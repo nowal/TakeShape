@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import happyPic from '../../public/TakeShapeHappyPic.png';
-import takingVideo from '../../takingVideo.jpg';
+import takingVideo from '../../public/takingVideo.jpg';
 import muddyBoots from '../../public/muddyBoots.jpeg'
 import QuoteButton from '../../components/quoteButton';
 import Faq from '../../components/faq';
