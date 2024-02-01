@@ -1,0 +1,21 @@
+[debug] [2024-01-31T22:48:43.926Z] ----------------------------------------------------------------------
+[debug] [2024-01-31T22:48:43.929Z] Command:       /Users/noahwaldron/.nvm/versions/node/v21.5.0/bin/node /Users/noahwaldron/.nvm/versions/node/v21.5.0/bin/firebase init
+[debug] [2024-01-31T22:48:43.929Z] CLI Version:   13.1.0
+[debug] [2024-01-31T22:48:43.930Z] Platform:      darwin
+[debug] [2024-01-31T22:48:43.930Z] Node Version:  v21.5.0
+[debug] [2024-01-31T22:48:43.930Z] Time:          Wed Jan 31 2024 16:48:43 GMT-0600 (Central Standard Time)
+[debug] [2024-01-31T22:48:43.930Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-01-31T22:48:43.936Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-01-31T22:48:43.936Z] > authorizing via signed-in user (waldronnoah@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/noahwaldron/Documents/code/TakeShape/takeshapeapp
+

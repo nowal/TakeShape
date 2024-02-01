@@ -3,31 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 0, 0, 0; /* Black for text */
+  --background-start-rgb: 255, 255, 255; /* White for background */
+  --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light-mode) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 255, 255, 255; /* White for text in dark mode */
+    --background-start-rgb: 0, 0, 0; /* Black for background in dark mode */
+    --background-end-rgb: 0, 0, 0; /* Keeping end color also black for a solid background in dark mode */
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: rgb(var(--background-start-rgb)); /* Updated to use a solid color */
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.bg-floral-white {
+  background-color: floralwhite;
+}
+
+.secondary-color {
+  background-color: #F7E4DE;
 }
