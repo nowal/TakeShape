@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, deleteDoc, getDoc, doc, setDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { getFirestore, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
@@ -20,16 +20,46 @@ export default function SignupAccountPage() {
     e.preventDefault();
     const auth = getAuth();
     const firestore = getFirestore();
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+  
+      // Link the quote data to the user's account
+      const quoteData = sessionStorage.getItem('quoteData');
+      const docId = sessionStorage.getItem('documentId');
+      if (quoteData && user && docId) {
+        const quote = JSON.parse(quoteData);
+        
+        // Get the document reference for the specific document ID
+        const userImageDocRef = doc(firestore, "userImages", docId);
+
+        // Retrieve the document
+        const userImageSnap = await getDoc(userImageDocRef);
+
+        if (userImageSnap.exists()) {
+          // Update the document with the new user's ID
+          await updateDoc(userImageDocRef, {
+            userId: user.uid,
+            ...quote // spread the quote data if needed
+          });
+
+          sessionStorage.removeItem('quoteData'); // Clean up session storage
+          sessionStorage.removeItem('documentId'); // Also clean up the documentId from session storage
+        } else {
+          console.error("No user image document found with the provided documentId");
+          // Handle the error - no document found with the provided ID
+        }
+      }
+  
+      // Handle painter data if necessary
       if (isPainter && sessionStorage.getItem('painterId')) {
         const oldPainterId = sessionStorage.getItem('painterId');
         await handlePainterData(oldPainterId, user.uid);
       } else {
         setIsPainter(false);
       }
+  
       router.push('/dashboard');
     } catch (error) {
       console.error("Error signing up: ", error);
@@ -106,7 +136,7 @@ export default function SignupAccountPage() {
           />
         </div>
 
-        <button type="submit" className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded">
+        <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
           Sign Up
         </button>
         {/* Add a link or button for existing users to log in */}

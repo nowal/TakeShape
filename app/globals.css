@@ -28,9 +28,13 @@ body {
 }
 
 .bg-floral-white {
-  background-color: floralwhite;
+  background-color: #F8F6F2;
 }
 
 .secondary-color {
-  background-color: #F7E4DE;
+  background-color: #DDD0D1;
+}
+
+.button-color {
+  background-color: #5C7457;
 }

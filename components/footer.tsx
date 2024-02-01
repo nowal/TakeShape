@@ -5,7 +5,7 @@ import logo from '../public/TakeShapeIcon.png';
 
 const Footer = () => {
     return (
-        <footer className="bg-footer py-8">
+        <footer className="secondary-color py-8">
             <div className="container mx-auto px-4 flex flex-col items-center">
                 <div className="flex items-center mb-4">
                     <img 

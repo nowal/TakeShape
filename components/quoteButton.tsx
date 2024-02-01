@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import Link from 'next/link';
 
 type QuoteButtonProps = {
@@ -6,10 +7,26 @@ type QuoteButtonProps = {
   className?: string;
 };
 
+
+
 const QuoteButton: React.FC<QuoteButtonProps> = ({ text, className }) => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsSignedIn(!!user);
+    });
+    return () => unsubscribe(); // Cleanup subscription on unmount
+    }, [auth]);
+
+    if (isSignedIn) {
+        return null; // Don't render the button if user is not signed in
+    }
+
   return (
     <Link href="/quote">
-      <button className={`shadow bg-green-800 hover:bg-green-900 text-white rounded ${className || ''}`}>
+      <button className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
         {text}
       </button>
       <style jsx>{`

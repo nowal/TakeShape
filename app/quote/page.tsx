@@ -124,9 +124,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 };
 
   return (
-    <div className="p-8 bg-floral-white pt-40">
+    <div className="p-8 bg-floral-white pt-20">
       <div className="border border-gray-300 w-full max-w-xs mx-auto mb-2">
-        <div style={{ width: currentStep === 1 ? '50%' : '100%', backgroundColor: 'green', height: '10px' }} />
+        <div style={{ width: currentStep === 1 ? '50%' : '100%', backgroundColor: '#5C7457', height: '10px' }} />
       </div>
       <div className="text-center mb-4">
         Step {currentStep} of 2
@@ -149,7 +149,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       )}
 
       {currentStep === 1 && (
-                <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg box-color">
+                <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
                     <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
                     <ol className="list-decimal pl-4">
                         <li>Use the front camera in landscape video mode.</li>
@@ -165,7 +165,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       
 
       {currentStep === 2 && (
-        <form onSubmit={handleSubmit} className="steps-box mt-10 mb-28 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg box-color flex flex-col space-y-4">
+        <form onSubmit={handleSubmit} className="secondary-color steps-box mt-10 mb-28 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondar-color flex flex-col space-y-4">
           <div>
             <label htmlFor="zipcode" className="block text-md font-medium text-gray-700">Zip Code</label>
             <input 
@@ -218,16 +218,16 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               className="p-2 border rounded w-full"
             >
               <option value="">Select</option>
-              <option value="yes">You</option>
-              <option value="no">Painter</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
             </select>
           </div>
 
           <div className="flex justify-between">
-            <button onClick={handlePrevious} className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded">
+            <button onClick={handlePrevious} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded">
               Previous
             </button>
-            <button type="submit" className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded">
+            <button type="submit" className="button-color hover:bg-green-900 text-white py-2 px-4 rounded">
               Submit
             </button>
           </div>

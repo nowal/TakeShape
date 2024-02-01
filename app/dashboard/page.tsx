@@ -62,7 +62,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
         className="input-field border-2 border-gray-300 focus:border-green-500 w-full py-2 px-4 mb-6 mt-4" 
       />
       <button onClick={() => setShowModal(false)} className="close-modal absolute top-3 right-3 text-2xl">X</button>
-      <button onClick={handlePhoneSubmit} className="block shadow bg-green-800 hover:bg-green-900 text-white rounded py-2 px-4 mx-auto">Submit</button>
+      <button onClick={handlePhoneSubmit} className="block shadow button-color hover:bg-green-900 text-white rounded py-2 px-4 mx-auto">Submit</button>
     </div>
   )}
 
@@ -257,7 +257,7 @@ const Dashboard = () => {
                     <p className="text-lg font-bold">Quote: <span className="text-xl">${price.amount.toFixed(2)}</span></p>
                     <button 
                         onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
-                        className="bg-green-800 hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                        className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
                         Accept Quote
                     </button>
                 </div>
@@ -278,7 +278,7 @@ const Dashboard = () => {
                 <>
                     {userData && userData.video ? (
                         <>
-                            <video src={userData.video} controls className="video mt-16 pb-8" />
+                            <video src={userData.video} controls className="video pb-8" />
                             {renderQuotes(userData.prices)}
                             <QuoteButton text="Resubmit quote" className='mb-14 text-xl shadow bg-green-800 hover:bg-green-900 text-white py-4 px-4 rounded'/>
                         </>

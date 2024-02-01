@@ -38,7 +38,7 @@ const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
     }
 
     return (
-        <div className="painter-card">
+        <div className="painter-card secondary-color">
             {painterData.logoUrl && (
                 <img
                     src={painterData.logoUrl}
@@ -56,7 +56,6 @@ const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
                     transition: 0.3s;
                     display: flex;
                     align-items: center;
-                    background-color: #F7E4DE;
                     flex: 1;
                 }
                 .painter-card:hover {

@@ -30,65 +30,67 @@ export default function Home() {
   return (
     <div className= "bg-floral-white pt-20">
       {/* First Section */}
-      <main className="pt-8 flex flex-col sm:flex-row gap-8 mb-2 container mx-auto px-4">
-        {/* Left VBox */}
-        <div className="flex flex-col w-full lg:w-1/2 mt-40">
-          <h1 className="text-4xl font-bold mb-4">Love the walls you're with</h1>
-          <h1 className="text-xl mb-8">Your home, your style, your terms. Connect with local painters with one video and transform your space into one you're proud of</h1>
-          <QuoteButton text="Get Quote" className='py-3 px-5 text-xl'/>
+      <main className="pt-8 container mx-auto px-4 flex flex-col md:flex-row gap-8 mb-2">
+        {/* Text Section */}
+        <div className="flex flex-col w-full md:w-1/2 justify-center md:mt-24">
+          <h1 className="text-4xl font-bold mb-4 text-center md:text-left">Love the walls you're with</h1>
+          <p className="text-xl mb-8 text-center md:text-left">Your home, your style, your terms. Connect with local painters with one video and transform your space into one you're proud of</p>
+          <div className="flex justify-center md:justify-start">
+            <QuoteButton text="Get Quote" className='py-3 px-5 text-xl'/>
+          </div>
         </div>
 
-        {/* Right Image Box */}
-        <div className="w-full lg:w-3/5 flex justify-center items-center ml-8 box-">
+        {/* Image Section */}
+        <div className="flex justify-center items-center w-full md:w-3/5">
           <img 
             src={happyPic.src} 
             alt="Happy Pic"
-            className="image-shadow w-full max-w-sm lg:max-w-md h-auto object-contain rounded-xl"
+            className="image-shadow max-w-sm md:max-w-md w-full h-auto object-contain rounded-xl"
           />
         </div>
       </main>
 
       {/* Second Section */}
-      <div className="container mx-auto px-4 container mx-auto px-4">
-        <main className="pt-16 flex flex-col sm:flex-row gap-6">
-          {/* Left Image Box */}
-          <div className="w-full sm:w-2/5 flex justify-center items-center">
-            <img 
-              src={muddyBoots.src} 
-              alt="Room Photo"
-              className="image-shadow w-4/5 max-w-md h-auto object-cover rounded-xl"
-              style={{ aspectRatio: '1 / 1' }}
-            />
-          </div>
+      <div className="container mx-auto px-4">
+  <main className="pt-16 flex flex-col md:flex-row-reverse gap-6 items-center">
+    {/* Text Section */}
+    <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
+      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Getting painting quotes is a hassle</h1>
+      <p className="text-lg mb-6 text-center md:text-left">Skip the in-home estimates and secure competitive painting quotes instantly with our hassle-free video upload feature.</p>
+    </div>
+    
+    {/* Image Section - The default order here will be below the text on small screens */}
+    <div className="w-full md:w-2/5 flex justify-center items-center mt-8 md:mt-0">
+      <img 
+        src={muddyBoots.src} 
+        alt="Room Photo"
+        className="image-shadow w-4/5 max-w-md md:h-auto md:min-h-[20rem] object-cover rounded-xl"
+      />
+    </div>
+  </main>
+</div>
 
-          {/* Right VBox */}
-          <div className="flex flex-col w-full sm:w-3/5 mt-32 sm:mt-32 sm:ml-4">
-            <h1 className="text-3xl font-bold mb-3">Getting painting quotes is a hassle</h1>
-            <h1 className="text-lg mb-6">TakeShape let's you upload a video of your space and gives you guaranteed quotes from reputable, local painters.</h1>
-          </div>
-        </main>
-      </div>
+{/* Third Section */}
+<div className="container mx-auto px-4 mb-40">
+  <main className="pt-16 flex flex-col md:flex-row gap-6 items-center">
+    {/* Text Section */}
+    <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
+      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Get quotes in a couple of clicks</h1>
+      <p className="text-lg mb-6 text-center md:text-left">Our platform simplifies the quotation process, enabling you to receive transparent pricing from local painters without the wait.</p>
+    </div>
 
-      <div className="container mx-auto px-4 mb-40">
-        <main className="pt-16 flex flex-col sm:flex-row gap-6">
-          {/* Left VBox */}
-          <div className="flex flex-col w-full sm:w-3/5 mt-32 sm:mt-32 sm:ml-4">
-            <h1 className="text-3xl font-bold mb-3">Get quotes within 24</h1>
-            <h1 className="text-lg mb-6">TakeShape lets you upload a video of your space and gives you guaranteed quotes from reputable, local painters.</h1>
-          </div>
+    {/* Image Section */}
+    <div className="w-full md:w-2/5 flex justify-center items-center mt-8 md:mt-0">
+      <img 
+        src={takingVideo.src} 
+        alt="takingVideo"
+        className="image-shadow w-4/5 max-w-md md:h-auto md:min-h-[20rem] object-cover rounded-xl"
+      />
+    </div>
+  </main>
+</div>
 
-          <div className="w-full sm:w-2/5 flex justify-center items-center">
-            <img 
-              src={takingVideo.src} 
-              alt="takingVideo"
-              className="image-shadow w-4/5 max-w-md h-auto object-cover rounded-xl"
-              style={{ aspectRatio: '1 / 1' }}
-            />
-          </div>
-        </main>
-      </div>
-
-      <div className="how-it-works container mx-auto px-4">
+<div className="how-it-works container mx-auto px-4">
   <h1 className="text-4xl font-bold text-center">How it works</h1>
   <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-4 lg:gap-20">
     {/* Step 1 */}

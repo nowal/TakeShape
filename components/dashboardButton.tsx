@@ -24,7 +24,7 @@ const DashboardButton: React.FC<DashboardButtonProps> = ({ text, className }) =>
 
     return (
         <Link href={'/dashboard'}>
-              <button className="bg-green-800 shadow hover:bg-green-900 text-white py-2 px-4 rounded">
+              <button className="button-color shadow hover:bg-green-900 text-white py-2 px-4 rounded">
                 {text}
               </button>
               <style jsx>{`
