@@ -18,7 +18,7 @@ const FAQSection = () => {
   };
 
   return (
-    <div className="bg-floral-white faq-section bg-white py-8">
+    <div className="faq-section py-8">
       <h2 className="text-center text-3xl font-bold mb-6 underline">Frequently Asked Questions</h2>
       <div className="mx-auto max-w-3xl">
         {faqData.map((faq, index) => (
@@ -49,9 +49,6 @@ const FAQSection = () => {
           width: 100%;
         }
         /* ... (rest of your styles) ... */
-        .bg-floral-white {
-          background-color: #fffaf0; /* Adjust the color as needed */
-        }
       `}</style>
     </div>
   );
