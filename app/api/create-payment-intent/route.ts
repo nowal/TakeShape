@@ -1,5 +1,5 @@
 // pages/api/create-payment-intent.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
+/*import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
 console.log(process.env.STRIPE_SECRET_KEY);
@@ -29,4 +29,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
   }
-}
+} */

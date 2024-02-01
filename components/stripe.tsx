@@ -1,10 +1,16 @@
+export default function PaymentForm() {
+  return (
+    <h1>hello world</h1>
+  );
+  }
+
 // components/PaymentForm.js
-import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+/*import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import axios from "axios";
 import React from "react";
 
 export default function PaymentForm() {
-  console.log('What about here?')
+  console.log('What about here?');
   const stripe = useStripe();
   const elements = useElements();
 
@@ -44,3 +50,4 @@ export default function PaymentForm() {
     </form>
   );
 }
+*/
