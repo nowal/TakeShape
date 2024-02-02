@@ -21,7 +21,7 @@ const StripePayment: React.FC<StripePaymentProps> = ({ price }) => {
 
   return (
     <button onClick={handleClick}>
-      Pay with Stripe
+      Pay with Stripe Real
     </button>
   );
 };
