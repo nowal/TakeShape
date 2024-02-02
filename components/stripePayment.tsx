@@ -1,8 +1,34 @@
-export default function PaymentForm() {
+import React from 'react';
+import axios from "axios";
+
+type StripePaymentProps = {
+  price: number;
+};
+
+const StripePayment: React.FC<StripePaymentProps> = ({ price }) => {
+  const handleClick = async () => {
+    try {
+      const { data: sessionUrl } = await axios.post('/api/payDeposit', {
+        price,
+      });
+
+      // Redirect to the Stripe Checkout page
+      window.location.href = sessionUrl;
+    } catch (error) {
+      console.error('Error during Stripe Checkout:', error);
+    }
+  };
+
   return (
-    <h1>hello world</h1>
+    <button onClick={handleClick}>
+      Pay with Stripe
+    </button>
   );
-  }
+};
+
+export default StripePayment;
+
+
 
 // components/PaymentForm.js
 /*import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";

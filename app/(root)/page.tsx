@@ -7,6 +7,7 @@ import takingVideo from '../../public/takingVideo.jpg';
 import muddyBoots from '../../public/muddyBoots.jpeg'
 import QuoteButton from '../../components/quoteButton';
 import Faq from '../../components/faq';
+import DashboardButton from '@/components/dashboardButton';
 
 export default function Home() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -130,6 +131,7 @@ export default function Home() {
   <div className="flex flex-col w-full lg:w-4/5 text-center mt-40">
     <h1 className="text-4xl font-bold mb-8">Your dream room is only a few clicks away</h1>
     <QuoteButton text="Get Quote Now" className='py-3 px-5 text-xl'/>
+    <DashboardButton text="Go to your Dashboard" className='py-3 px-5 text-xl'/>
   </div>
 </main>
 

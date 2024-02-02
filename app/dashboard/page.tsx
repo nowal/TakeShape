@@ -11,7 +11,7 @@ import PainterCard from '../../components/painterCard';
 import { UserData } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import Stripe from "@/components/stripe";
+import StripePayment from "@/components/stripePayment";
 
 type ModalProps = {
     showModal: boolean;
@@ -27,7 +27,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
 
     const [modalStep, setModalStep] = useState(1);
 
-    const depositAmount = price ? (price * 0.02).toFixed(2) : '0.00';
+    const depositAmount = price ? parseFloat((price * 0.02).toFixed(2)) : 0;
 
   const handlePhoneSubmit = async () => {
     // Save the phone number to Firestore or handle it as needed
@@ -35,15 +35,13 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
   };
 
     const handlePayment = async () => {
-        const stripePromise = await loadStripe(
-            process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-          );
+        const stripePromise = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
 
-          return (
+        return (
             <Elements stripe={stripePromise}>
-              <Stripe/>
+                <StripePayment price={depositAmount} />
             </Elements>
-          );
+        );
         
     }
 
