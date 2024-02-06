@@ -8,7 +8,7 @@ type CompletedQuotesButtonProps = {
 
 const CompletedQuotesButton: React.FC<CompletedQuotesButtonProps> = ({ text, className }) => {
   return (
-    <Link href="/dashboard">
+    <Link href="/completedQuotes">
       <button className={`button-color hover:bg-green-900 text-white py-2 px-4 rounded ${className || ''}`}>
         {text}
       </button>
