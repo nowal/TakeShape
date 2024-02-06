@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { uploadProgressAtom, uploadStatusAtom, videoURLAtom, documentIdAtom } from '@/atom/atom';
+import { useAtom } from 'jotai';
 import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import firebase from '../../lib/firebase';
 import UploadButton from '../../components/uploadButton';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function QuotePage() {
@@ -23,17 +25,24 @@ export default function QuotePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // State to keep track of user's authentication status
+  const [fileUrl, setFileUrl] = useState('');
+  const [uploadTask, setUploadTask] = useState(null);
   const auth = getAuth();
-
-
   const router = useRouter();
   const firestore = getFirestore(firebase);
+  const [userData, setUploadProgress] = useAtom(uploadProgressAtom);
+  const [isPainter, setVideoURL] = useAtom(videoURLAtom);
+  const [checkingAuth, setUploadStatus] = useAtom(uploadStatusAtom);
+  const [documentId, setDocumentId] = useAtom(documentIdAtom);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsUserLoggedIn(!!user);
     });
-    return unsubscribe; // Unsubscribe on component unmount
+    
+    return () => {
+      unsubscribe(); // Unsubscribe on component unmount
+    };
   }, [auth]);
 
   const deleteOldQuotes = async (userId: string) => {
@@ -44,7 +53,6 @@ export default function QuotePage() {
     });
   };
 
-  // Handle checkbox changes
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPaintPreferences({
       ...paintPreferences,
@@ -54,51 +62,63 @@ export default function QuotePage() {
 
   const handleUploadSuccess = (file: File) => {
     setSelectedFile(file);
-    setCurrentStep(2);
+    setIsUploading(true);
+    setCurrentStep(2); // Move to the next step immediately without waiting for the upload to finish
+
+    const storage = getStorage(firebase);
+    const fileRef = storageRef(storage, `uploads/${file.name}`);
+    const uploadTask = uploadBytesResumable(fileRef, file);
+
+    // Store the upload promise in the state or a ref
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        // Handle progress
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+        setUploadStatus('uploading');
+        console.log('Upload is ' + progress + '% done');
+      },
+      (error) => {
+        console.error('Error uploading video: ', error);
+        alert('Error uploading video. Please try again.');
+        setIsUploading(false);
+      },
+      () => {
+        // Handle successful uploads on complete
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          console.log('File available at', url);
+          setUploadStatus('completed');
+          setFileUrl(url); // Save the URL once the upload is complete
+          setVideoURL(url); 
+          setIsUploading(false);
+        });
+      }
+    );
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     setCurrentStep(1);
   };
 
-  
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  console.log("Submit button clicked."); // Log to ensure submit is being triggered
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  if (!selectedFile) {
-    alert('Please select a video file to upload.');
-    return;
-  }
-
-  setIsLoading(true);
-  const storage = getStorage(firebase);
-  const fileRef = storageRef(storage, `uploads/${selectedFile.name}`);
-  setIsUploading(true);
-
-  try {
-    console.log("Get's here");
-    const uploadResult = await uploadBytes(fileRef, selectedFile);
-    console.log('Upload result:', uploadResult); // Log the upload result
-
-    const fileUrl = await getDownloadURL(fileRef);
-    console.log('File URL:', fileUrl); // Log the file URL
-
-    if (isUserLoggedIn && auth.currentUser) {
-      await deleteOldQuotes(auth.currentUser.uid); // Delete old quotes before adding new one
-    }
-
-    const docRef = await addDoc(collection(firestore, "userImages"), {
-      zipCode,
-      description,
-      paintPreferences,
-      providingOwnPaint,
-      prices: [],
-      video: fileUrl, // Storing single video URL
-      userId: auth.currentUser ? auth.currentUser.uid : null,
-    });
-    console.log('Document written with ID:', docRef.id);
-      sessionStorage.setItem('documentId', docRef.id);
+    try {
+      console.log('Gets here');
+      const docRef = await addDoc(collection(firestore, "userImages"), {
+        zipCode,
+        description,
+        paintPreferences,
+        providingOwnPaint,
+        prices: [],
+        video: fileUrl, // Storing single video URL
+        userId: auth.currentUser ? auth.currentUser.uid : null,
+      });
+      console.log('Document written with ID:', docRef.id);
+      setDocumentId(docRef.id);
+      console.log(documentId);
       
       if (isUserLoggedIn) {
         router.push('/dashboard'); // Route to dashboard if the user is logged in
@@ -113,37 +133,33 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         }));
         router.push('/signup'); // Route to signup if the user is not logged in
       }
-      setIsUploading(false);
-  } catch (error) {
-    console.error('Error uploading vidveo: ', error);
-    alert('Error uploading video. Please try again.');
-    setIsUploading(false);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    } catch (error) {
+      console.error('Error saving data: ', error);
+      alert('Error saving data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="p-8 bg-floral-white pt-20">
+    <div className="p-8 pt-20">
       <div className="border border-gray-300 w-full max-w-xs mx-auto mb-2">
-        <div style={{ width: currentStep === 1 ? '50%' : '100%', backgroundColor: '#5C7457', height: '10px' }} />
+        <div style={{ width: currentStep === 1 ? '50%' : '100%', backgroundColor: '#034E35', height: '10px' }} />
       </div>
       <div className="text-center mb-4">
         Step {currentStep} of 2
       </div>
 
-      {/* Add the modal for "Uploading information" */}
-      {isUploading && (
+      {isLoading && currentStep === 2 && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <p>Uploading information...</p>
+            <p>Uploading video, please wait...</p>
           </div>
         </div>
       )}
 
       {currentStep === 1 && (
         <div className="image-upload-step mb-14 mt-10 flex justify-center items-center">
-          {/* Placeholder for explanatory image */}
           <UploadButton text="Upload Video" onUploadSuccess={handleUploadSuccess} inputId="imageUpload" />
         </div>
       )}
@@ -261,9 +277,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           border-radius: 5px;
           width: 300px; 
           text-align: center;
-        }
-        .bg-floral-white {
-          background-color: floralwhite;
         }
       `}</style>
 

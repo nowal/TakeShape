@@ -3,6 +3,8 @@ import { getFirestore, collection, query, where, getDoc, getDocs, doc, updateDoc
 import { getAuth } from 'firebase/auth';
 import { Job } from '../types/types'; // Adjust the import path as needed
 import AcceptedQuotesButton from './acceptedQuotesButton';
+import CompletedQuotesButton from './completedQuotesButton';
+
 
 const PainterDashboard = () => {
     const [painterZipCodes, setPainterZipCodes] = useState<string[]>([]);
@@ -60,29 +62,47 @@ const PainterDashboard = () => {
 
     return (
         <div className='flex flex-col items-center'>
+            <div className='flex flex-row gap-10 items-center'>
+            <CompletedQuotesButton text='View Completed Quotes'/>
             <AcceptedQuotesButton text='View Accepted Quotes'/>
-            <h1 className="text-4xl font-bold underline mb-6 mt-14">Available Quotes</h1>
-            {jobList.length > 0 ? (
-                jobList.map(job => (
-                    <div key={job.jobId} className="job-item mb-4">
-                        <video src={job.video} controls style={{ width: '300px' }} />
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            const form = e.currentTarget;
-                            const price = form.price.value;
-                            handlePriceSubmit(job.jobId, Number(price));
-                            form.reset();
-                        }} className="mt-2">
-                            <input type="number" name="price" placeholder="Enter quoted price" className="mr-2 p-1 border rounded" />
-                            <button type="submit" className="bg-green-700 hover:bg-green-800 text-white font-bold py-1 px-4 rounded">Submit Price</button>
-                        </form>
-                    </div>
-                ))
-            ) : (
-                <div className="text-center my-10">
-                    <h2 className="text-2xl font-medium">No Available Quotes at this time</h2>
+            </div>
+          <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
+          {jobList.length > 0 ? (
+            jobList.map(job => (
+              <div key={job.jobId} className="flex flex-row justify-center items-start gap-10 mb-10">
+                <div className="flex flex-col justify-center items-center mr-8">
+                  <video src={job.video} controls style={{ width: '400px' }}  />
+                  <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const form = e.currentTarget;
+                      const price = form.price.value;
+                      handlePriceSubmit(job.jobId, Number(price));
+                      form.reset();
+                  }} className="mt-4">
+                    <input type="number" name="price" placeholder="Enter quoted price" className="mr-2 p-2 border rounded" />
+                    <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 rounded">Submit Price</button>
+                  </form>
                 </div>
-            )}
+                <div className="details-box space-y-2">
+                  <p className="text-lg">Zip Code: <span className="font-semibold">{job.zipCode}</span></p>
+                  <div className="space-y-1">
+                    <p className="text-lg">Paint Preferences:</p>
+                    <ul className="list-disc pl-5">
+                      <li>Walls: {job.paintPreferences.walls ? "Yes" : "No"}</li>
+                      <li>Ceilings: {job.paintPreferences.ceilings ? "Yes" : "No"}</li>
+                      <li>Trim: {job.paintPreferences.trim ? "Yes" : "No"}</li>
+                    </ul>
+                  </div>
+                  <p className="text-lg">Providing Own Paint: <span className="font-semibold">{job.providingOwnPaint}</span></p>
+                  <p className="text-lg">Description: <span className="font-semibold">{job.description}</span></p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center my-10">
+              <h2 className="text-2xl font-medium">No Available Quotes at this time</h2>
+            </div>
+          )}
         </div>
     );
 };

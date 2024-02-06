@@ -13,8 +13,23 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(true);
   const auth = getAuth(firebase);
   const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, set any state or perform actions as needed
+      } else {
+        // User is signed out, set any state or perform actions as needed
+      }
+      setAuthLoading(false); // Authentication state is confirmed, loading is done
+    });
+  
+    // Cleanup the listener on unmount
+    return () => unsubscribe();
+  }, []);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -57,6 +72,10 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
   };
+
+  if (authLoading) {
+    return <div>Loading...</div>; // Or any other loading indicator
+  }
 
   return (
     <div>

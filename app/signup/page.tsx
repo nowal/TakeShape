@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { useAtom } from 'jotai';
-import { isPainterAtom, painterInfoAtom } from '../../atom/atom';
+import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
 
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
+  const [docId, setDocId] = useAtom(documentIdAtom);
   const [painterInfo] = useAtom(painterInfoAtom); // Access the painterInfo atom
   const [showLoginInstead, setShowLoginInstead] = useState(false);
   const router = useRouter();
@@ -27,12 +28,14 @@ export default function SignupAccountPage() {
   
       // Link the quote data to the user's account
       const quoteData = sessionStorage.getItem('quoteData');
-      const docId = sessionStorage.getItem('documentId');
+      
+      console.log('Doc ID?:' + docId);
       if (quoteData && user && docId) {
         const quote = JSON.parse(quoteData);
-        
+
         // Get the document reference for the specific document ID
         const userImageDocRef = doc(firestore, "userImages", docId);
+  
 
         // Retrieve the document
         const userImageSnap = await getDoc(userImageDocRef);

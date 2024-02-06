@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { userDataAtom, isPainterAtom, checkingAuthAtom, userTypeLoadingAtom } from '../../atom/atom'; // Import all required atoms
+import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
-import QuoteButton from '../../components/quoteButton';
+import QuoteButtonDashboard from '../../components/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
 import { UserData } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
@@ -140,6 +140,10 @@ const Dashboard = () => {
     const [userTypeLoading, setUserTypeLoading] = useAtom(userTypeLoadingAtom); // Atom to manage loading state of user type check and data fetching
     const [phoneNumber, setPhoneNumber] = useState('');
     const [painterId, setPainterId] = useState('');
+    const [uploadProgress, setUploadProgress] = useAtom(uploadProgressAtom);
+    const [videoURL, setVideoURL] = useAtom(videoURLAtom);
+    const [uploadStatus, setUploadStatus] = useAtom(uploadStatusAtom);
+    const [documentId] = useAtom(documentIdAtom);
     const firestore = getFirestore();
     const auth = getAuth();
 
@@ -193,8 +197,36 @@ const Dashboard = () => {
         };
     }, [setUserData, setIsPainter, setCheckingAuth, setUserTypeLoading, auth, firestore]);
 
+    useEffect(() => {
+        console.log('Ever Called?');
+        if (uploadStatus === 'completed' && videoURL && documentId) {
+            console.log('How bout here?');
+          const docRef = doc(firestore, "userImages", documentId);
+          updateDoc(docRef, {
+            video: videoURL
+          }).then(() => {
+            console.log("Document successfully updated with video URL");
+            window.location.reload()
+          }).catch((error) => {
+            console.error("Error updating document: ", error);
+          });
+        }
+      }, [uploadStatus, videoURL, documentId, firestore]);
+
     const [showModal, setShowModal] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<number>(0);
+
+    if (uploadStatus === 'uploading') {
+        return (
+        <div className="flex items-center justify-center h-screen">
+            <p className="text-2xl font-bold mb-14 px-6 py-4 bg-white rounded shadow-lg text-center">
+                Uploading Video. Please leave page open: <br />
+                {Math.round(uploadProgress)}%
+            </p>
+          </div>
+          
+        );
+      }
 
     // ... (rest of your useEffect)
 
@@ -278,10 +310,10 @@ const Dashboard = () => {
                         <>
                             <video src={userData.video} controls className="video pb-8" />
                             {renderQuotes(userData.prices)}
-                            <QuoteButton text="Resubmit quote" className='mb-14 text-xl shadow bg-green-800 hover:bg-green-900 text-white py-4 px-4 rounded'/>
+                            <QuoteButtonDashboard text="Resubmit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded'/>
                         </>
                     ) : (
-                        <QuoteButton text="Submit quote" className="center-button" />
+                        <QuoteButtonDashboard text="Submit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
                     )}
                 </>
             )}
@@ -344,7 +376,6 @@ const Dashboard = () => {
                     font-weight: bold;
                     font-size: 1.1em;
                 }
-            
                 .accept-quote-btn:hover {
                     background-color: #45a049; /* Slightly darker green on hover */
                 }

@@ -11,3 +11,7 @@ export const painterInfoAtom = atom({
     isInsured: false,
     logoUrl: '',
   });
+export const uploadProgressAtom = atom<number>(0);
+export const videoURLAtom = atom<string>('');
+export const uploadStatusAtom = atom<'idle' | 'uploading' | 'completed' | 'error'>('idle');
+export const documentIdAtom = atom<string | null>(null);

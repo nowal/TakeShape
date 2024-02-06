@@ -1,12 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 
-type AcceptedQuotesButtonProps = {
+type CompletedQuotesButtonProps = {
   text: string;
   className?: string;
 };
 
-const AcceptedQuotesButton: React.FC<AcceptedQuotesButtonProps> = ({ text, className }) => {
+const CompletedQuotesButton: React.FC<CompletedQuotesButtonProps> = ({ text, className }) => {
   return (
     <Link href="/dashboard">
       <button className={`button-color hover:bg-green-900 text-white py-2 px-4 rounded ${className || ''}`}>
@@ -17,4 +17,4 @@ const AcceptedQuotesButton: React.FC<AcceptedQuotesButtonProps> = ({ text, class
   );
 };
 
-export default AcceptedQuotesButton;
+export default CompletedQuotesButton;
