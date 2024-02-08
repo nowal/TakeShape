@@ -10,6 +10,8 @@ export const painterInfoAtom = atom({
     zipCodes: [''],
     isInsured: false,
     logoUrl: '',
+    acceptedQuotes: [''],
+    phoneNumber: '',
   });
 export const uploadProgressAtom = atom<number>(0);
 export const videoURLAtom = atom<string>('');

@@ -62,7 +62,6 @@ export default function SignupAccountPage() {
       } else {
         setIsPainter(false);
       }
-  
       router.push('/dashboard');
     } catch (error) {
       console.error("Error signing up: ", error);

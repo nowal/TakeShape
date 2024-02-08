@@ -14,6 +14,7 @@ export default function PainterRegisterPage() {
   const [businessName, setBusinessName] = useState('');
   const [zipCodes, setZipCodes] = useState('');
   const [isInsured, setIsInsured] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
@@ -47,13 +48,16 @@ export default function PainterRegisterPage() {
       const logoUrl = await uploadLogoAndGetUrl(logo); // Implement this function to handle logo upload and return the URL
 
       const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
+      const acceptedQuotes = [''];
 
       // Update the painterInfo atom with the new data
       setPainterInfo({
         businessName,
         zipCodes:zipCodesArray,
         isInsured,
-        logoUrl // URL of the uploaded logo
+        logoUrl,
+        acceptedQuotes,
+        phoneNumber,
       });
 
       router.push('/signup');
@@ -96,7 +100,7 @@ export default function PainterRegisterPage() {
 
 
   return (
-    <div className="p-8 bg-floral-white">
+    <div className="p-8">
       <h1 className="text-center text-2xl font-bold mb-6">Painter Registration</h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
@@ -126,6 +130,19 @@ export default function PainterRegisterPage() {
         </div>
 
         <div>
+          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Enter your phone number"
+            required
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
           <label htmlFor="isInsured" className="block text-md font-medium text-gray-700">Are you insured?</label>
           <input 
             type="checkbox" 
@@ -142,20 +159,15 @@ export default function PainterRegisterPage() {
             type="file" 
             id="logo"
             onChange={handleLogoChange} 
+            accept="image/*"
             className="p-2 border rounded w-full"
           />
         </div>
 
-        <button type="submit" className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded">
+        <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
           Register
         </button>
       </form>
-      <style jsx>{`
-        /* ... (rest of your styles) ... */
-        .bg-floral-white {
-          background-color: floralwhite; /* Adjust the color as needed */
-        }
-      `}</style>
     </div>
   );
 }

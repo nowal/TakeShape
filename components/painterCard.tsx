@@ -8,7 +8,7 @@ type PainterCardProps = {
 type PainterData = {
     businessName: string;
     logoUrl?: string;
-    isInsured?: boolean;
+    phoneNumber?: string;
 };
 
 const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
@@ -46,7 +46,10 @@ const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
                     className="painter-logo"
                 />
             )}
+            <div className='flex-col flex justify-between'>
             <h2 className="painter-name">{painterData.businessName}</h2>
+            <h2 className="painter-phone">{painterData.phoneNumber}</h2>
+            </div>
             <style jsx>{`
                 .painter-card {
                     padding: 20px;
@@ -81,6 +84,11 @@ const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
                 }
                 .checkmark {
                     font-size: 1.5em;
+                }
+                .painter-phone {
+                    font-size: 1em; /* Smaller font size for phone number */
+                    color: #555; /* Slightly lighter color for contrast */
+                    margin-top: 5px; /* Space between name and phone number */
                 }
             `}</style>
         </div>

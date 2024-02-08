@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, query, where, getDoc, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Job } from '../../types/types'; // Adjust the import path as needed
-import AcceptedQuotesButton from '../../components/acceptedQuotesButton';
+import CompletedQuotesButton from '../../components/completedQuotesButton';
 import DashboardButton from '../../components/dashboardButton';
 
 
-const CompletedQuotes = () => {
+const AcceptedQuotes = () => {
     const [painterZipCodes, setPainterZipCodes] = useState<string[]>([]);
     const [jobList, setJobList] = useState<Job[]>([]);
     const [authLoading, setAuthLoading] = useState(true);
@@ -30,29 +30,40 @@ const CompletedQuotes = () => {
         return () => unsubscribe();
       }, []);
 
-    const fetchPainterData = async () => {
-
+      const fetchPainterData = async () => {
         if (user) {
-            const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
-            const painterSnapshot = await getDocs(painterQuery);
-            if (!painterSnapshot.empty) {
-                const painterData = painterSnapshot.docs[0].data();
-                setPainterZipCodes(painterData.zipCodes);
-
-                const jobsQuery = query(collection(firestore, "userImages"), where("zipCode", "in", painterData.zipCodes));
-                const jobsSnapshot = await getDocs(jobsQuery);
-                const jobs: Job[] = jobsSnapshot.docs.map(doc => ({
-                    ...doc.data() as Job,
-                    jobId: doc.id
-                }));
-                const quotedJobs = jobs.filter(job => 
-                    job.prices.some(price => price.painterId === user.uid)
-                );
-                console.log(jobs[0].prices);
-                setJobList(quotedJobs);
+          const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
+          const painterSnapshot = await getDocs(painterQuery);
+      
+          if (!painterSnapshot.empty) {
+            const painterData = painterSnapshot.docs[0].data();
+      
+            if (painterData.acceptedQuotes && painterData.acceptedQuotes.length > 0) {
+              const acceptedJobs = [];
+      
+              for (const acceptedQuoteId of painterData.acceptedQuotes) {
+                // Check if acceptedQuoteId is valid
+                if (acceptedQuoteId) {
+                  try {
+                    const jobRef = doc(firestore, "userImages", acceptedQuoteId);
+                    const jobSnapshot = await getDoc(jobRef);
+      
+                    if (jobSnapshot.exists()) {
+                      const jobData = jobSnapshot.data() as Job;
+                      acceptedJobs.push({ ...jobData, jobId: jobSnapshot.id });
+                    }
+                  } catch (error) {
+                    console.error("Error fetching job data:", error);
+                  }
+                }
+              }
+      
+              setJobList(acceptedJobs);
             }
+          }
         }
-    };
+      };
+      
 
     useEffect(() => {
         fetchPainterData();
@@ -86,13 +97,12 @@ const CompletedQuotes = () => {
     return (
         <div className='flex flex-col items-center mt-12'>
             <div className='flex flex-row gap-10 items-center'>
-                <DashboardButton text='View Available Quotes'/>
-                <AcceptedQuotesButton text='View Accepted Quotes'/>
+            <DashboardButton text='View Available Quotes'/>
+            <CompletedQuotesButton text='View Completed Quotes'/>
             </div>
-            <h1 className="text-4xl font-bold underline mb-8 mt-14">Completed Quotes</h1>
+            <h1 className="text-4xl font-bold underline mb-8 mt-14">Accepted Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
-                    // Use TailwindCSS responsive width classes here
                     <div key={job.jobId} className="flex flex-row justify-center items-start gap-10 mb-10 w-full max-w-4xl">
                         <div className="flex flex-col justify-center items-center mr-8">
                             <video src={job.video} controls style={{ width: '400px' }}  />
@@ -120,16 +130,17 @@ const CompletedQuotes = () => {
                             </div>
                             <p className="text-lg">Providing Own Paint: <span className="font-semibold">{job.providingOwnPaint}</span></p>
                             <p className="text-lg">Description: <span className="font-semibold">{job.description}</span></p>
+                            <p className="text-xl font-bold">Homeowner's Phone Number: <span className="font-bold">{job.phoneNumber}</span></p>
                         </div>
                     </div>
                 ))
             ) : (
                 <div className="text-center my-10">
-                    <h2 className="text-2xl font-medium">No Completed Quotes at this time</h2>
+                    <h2 className="text-2xl font-medium">No Accepted Quotes at this time</h2>
                 </div>
             )}
         </div>
     );
 };
 
-export default CompletedQuotes;
+export default AcceptedQuotes;

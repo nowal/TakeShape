@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, arrayUnion, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
 import QuoteButtonDashboard from '../../components/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
@@ -22,17 +22,84 @@ type ModalProps = {
     painterId: string;
 };
 
+type Price = {
+    painterId: string;
+    amount: number;
+    timestamp: number;
+    accepted?: boolean; // Optional because it will not exist on all objects initially
+  };
+
 const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumber, setPhoneNumber, painterId }) => {
     if (!showModal) return null;
 
     const [modalStep, setModalStep] = useState(1);
+    const firestore = getFirestore();
+    const auth = getAuth();
 
     const depositAmount = price ? parseFloat((price * 0.02).toFixed(2)) : 0;
 
-  const handlePhoneSubmit = async () => {
-    // Save the phone number to Firestore or handle it as needed
-    setModalStep(2); // Move to the payment step
-  };
+    const handlePhoneSubmit = async () => {
+        // Assuming phoneNumber is already set and you have the painterId and documentId
+    
+        // Step 1: Update the homeowner's document with the phone number
+
+        if (auth.currentUser) {
+            // First, get the document reference for the userImages document
+            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            const querySnapshot = await getDocs(userImagesQuery);
+    
+            if (!querySnapshot.empty) {
+                // Assuming there's only one document per user in the userImages collection
+                const userImageDoc = querySnapshot.docs[0];
+                const documentId = userImageDoc.id;
+
+                try {
+                    if (documentId && phoneNumber) {
+                        const userImageRef = doc(firestore, "userImages", documentId);
+                        let prices = userImageDoc.data().prices; // Assuming this gets you the array of prices
+                        let updatedPrices = prices.map((price: Price) => {
+                            if (price.painterId === painterId) {
+                                return { ...price, accepted: true }; // Update the accepted field for the matched painterId
+                            }
+                            return price;
+});
+                        await updateDoc(userImageRef, {
+                            phoneNumber: phoneNumber,
+                            prices: updatedPrices,
+                        });
+                        console.log("Homeowner's phone number updated successfully");
+                    }
+                } catch (error) {
+                    console.error("Error updating homeowner's document: ", error);
+                }
+            
+                // Step 2: Add the quote's document ID to the painter's acceptedQuotes array
+                try {
+                    const painterQuery = query(collection(firestore, "painters"), where("userId", "==", painterId));
+                    const querySnapshot = await getDocs(painterQuery);
+            
+                    if (!querySnapshot.empty) {
+                        const painterDocRef = querySnapshot.docs[0].ref;
+
+                        const painterDoc = querySnapshot.docs[0];
+            
+                        // Use arrayUnion to add the documentId to the acceptedQuotes array without duplicates
+                        await updateDoc(painterDocRef, {
+                            acceptedQuotes: arrayUnion(documentId),
+                        });
+            
+                        console.log("Quote successfully added to painter's acceptedQuotes");
+                        // Move to the payment step after successfully updating both documents
+                        //setModalStep(2);
+                        setShowModal(false);
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    console.error("Error adding quote to painter's acceptedQuotes: ", error);
+                }
+            }
+        }
+    };
 
     const handlePayment = async () => {
         const stripePromise = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
@@ -144,6 +211,7 @@ const Dashboard = () => {
     const [videoURL, setVideoURL] = useAtom(videoURLAtom);
     const [uploadStatus, setUploadStatus] = useAtom(uploadStatusAtom);
     const [documentId] = useAtom(documentIdAtom);
+    const [acceptedQuote, setAcceptedQuote] = useState<Price | null>(null);
     const firestore = getFirestore();
     const auth = getAuth();
 
@@ -213,6 +281,15 @@ const Dashboard = () => {
         }
       }, [uploadStatus, videoURL, documentId, firestore]);
 
+    useEffect(() => {
+        // Ensure userData and userData.prices are defined before proceeding
+        if (userData && userData.prices) {
+            const accepted = userData.prices.find((price) => price.accepted);
+            setAcceptedQuote(accepted || null);
+        }
+    }, [userData, userData?.prices]);
+
+
     const [showModal, setShowModal] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<number>(0);
 
@@ -276,6 +353,8 @@ const Dashboard = () => {
                 </div>
             );
         }
+        
+        if (acceptedQuote) return null;
 
 
         return (
@@ -284,7 +363,15 @@ const Dashboard = () => {
             <div key={index} className="flex items-center justify-between mb-5 p-3 border border-gray-300 rounded shadow-md">
                 <PainterCard painterId={price.painterId}/>
                 <div className="flex-2 flex items-center justify-between pl-5 border-l-2 border-gray-300 gap-10">
-                    <p className="text-lg font-bold">Quote: <span className="text-xl">${price.amount.toFixed(2)}</span></p>
+                    <p className="text-lg font-bold">Quote: <span className="text-xl">${price.amount.toFixed(2)}</span>
+                    <div className="ml-10">
+                    {prices.find(price => price.painterId)?.invoiceUrl && (
+                                <a href={prices.find(price => price.painterId)?.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                                Invoice
+                                </a>
+                            )}
+                    </div>
+                    </p>
                     <button 
                         onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
                         className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
@@ -306,15 +393,22 @@ const Dashboard = () => {
                 <PainterDashboard />
             ) : (
                 <>
-                    {userData && userData.video ? (
-                        <>
-                            <video src={userData.video} controls className="video pb-8" />
-                            {renderQuotes(userData.prices)}
-                            <QuoteButtonDashboard text="Resubmit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded'/>
-                        </>
-                    ) : (
-                        <QuoteButtonDashboard text="Submit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
-                    )}
+                    {userData && userData.video && (
+                    <>
+                        <video src={userData.video} controls className="video pb-8" />
+                        {acceptedQuote ? (
+                            <div className="text-center my-10">
+                                <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
+                                <PainterCard painterId={acceptedQuote.painterId}/>
+                            </div>
+                        ) : (
+                            renderQuotes(userData.prices)
+                        )}
+                        {!acceptedQuote && (
+                            <QuoteButtonDashboard text="Submit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
+                        )}
+                    </>
+                )}
                 </>
             )}
 

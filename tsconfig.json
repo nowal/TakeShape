@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/types/app/signup/page.tsx", "atom/atom.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/types/app/signup/page.tsx", "atom/atom.js", "app/api/payDeposit/route.js"],
   "exclude": ["node_modules"]
 }

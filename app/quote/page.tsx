@@ -105,41 +105,48 @@ export default function QuotePage() {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      console.log('Gets here');
-      const docRef = await addDoc(collection(firestore, "userImages"), {
-        zipCode,
-        description,
-        paintPreferences,
-        providingOwnPaint,
-        prices: [],
-        video: fileUrl, // Storing single video URL
-        userId: auth.currentUser ? auth.currentUser.uid : null,
-      });
-      console.log('Document written with ID:', docRef.id);
-      setDocumentId(docRef.id);
-      console.log(documentId);
-      
-      if (isUserLoggedIn) {
-        router.push('/dashboard'); // Route to dashboard if the user is logged in
-      } else {
-        sessionStorage.setItem('quoteData', JSON.stringify({
-          zipCode,
-          description,
-          paintPreferences,
-          providingOwnPaint,
-          prices: [],
-          video: fileUrl
-        }));
-        router.push('/signup'); // Route to signup if the user is not logged in
-      }
-    } catch (error) {
-      console.error('Error saving data: ', error);
-      alert('Error saving data. Please try again.');
-    } finally {
-      setIsLoading(false);
+    if (auth.currentUser) {
+        try {
+            // Delete previous quotes before adding a new one
+            await deleteOldQuotes(auth.currentUser.uid);
+
+            // Add a new quote after deleting old ones
+            const docRef = await addDoc(collection(firestore, "userImages"), {
+                zipCode,
+                description,
+                paintPreferences,
+                providingOwnPaint,
+                prices: [],
+                video: fileUrl, // Storing single video URL
+                userId: auth.currentUser.uid,
+            });
+            console.log('Document written with ID:', docRef.id);
+            setDocumentId(docRef.id);
+            
+            if (isUserLoggedIn) {
+                router.push('/dashboard'); // Navigate to dashboard
+            } else {
+                // Handle non-logged-in user case
+                sessionStorage.setItem('quoteData', JSON.stringify({
+                    zipCode,
+                    description,
+                    paintPreferences,
+                    providingOwnPaint,
+                    prices: [],
+                    video: fileUrl
+                }));
+                router.push('/signup'); // Navigate to signup page
+            }
+        } catch (error) {
+            console.error('Error saving data: ', error);
+            alert('Error saving data. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    } else {
+        alert('You must be logged in to submit a quote.');
     }
-  };
+};
 
   return (
     <div className="p-8 pt-20">
