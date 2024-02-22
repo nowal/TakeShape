@@ -5,7 +5,7 @@ import { getFirestore, collection, query, where, getDoc, getDocs, doc, updateDoc
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Job } from '../../types/types'; // Adjust the import path as needed
 import AcceptedQuotesButton from '../../components/acceptedQuotesButton';
-import DashboardButton from '../../components/dashboardButton';
+import AvilableQuotesButton from '@/components/availableQuotesButton';
 
 
 const CompletedQuotes = () => {
@@ -86,7 +86,7 @@ const CompletedQuotes = () => {
     return (
         <div className='flex flex-col items-center mt-12'>
             <div className='flex flex-row gap-10 items-center'>
-                <DashboardButton text='View Available Quotes'/>
+                <AvilableQuotesButton text='View Available Quotes'/>
                 <AcceptedQuotesButton text='View Accepted Quotes'/>
             </div>
             <h1 className="text-4xl font-bold underline mb-8 mt-14">Completed Quotes</h1>

@@ -405,7 +405,7 @@ const Dashboard = () => {
                             renderQuotes(userData.prices)
                         )}
                         {!acceptedQuote && (
-                            <QuoteButtonDashboard text="Submit quote" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
+                            <QuoteButtonDashboard text="Resubmit Information" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
                         )}
                     </>
                 )}

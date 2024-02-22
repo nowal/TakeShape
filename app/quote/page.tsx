@@ -34,6 +34,7 @@ export default function QuotePage() {
   const [isPainter, setVideoURL] = useAtom(videoURLAtom);
   const [checkingAuth, setUploadStatus] = useAtom(uploadStatusAtom);
   const [documentId, setDocumentId] = useAtom(documentIdAtom);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -104,6 +105,19 @@ export default function QuotePage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+
+    if (!zipCode.trim()) {
+      setErrorMessage('Zip Code is required.');
+      setIsLoading(false);
+      return; // Early return if Zip Code is missing
+    }
+
+    if (!description.trim()) {
+      setErrorMessage('Description is required.');
+      setIsLoading(false);
+      return; // Early return if Description is missing
+    }
 
     if (auth.currentUser) {
         try {
@@ -144,7 +158,40 @@ export default function QuotePage() {
             setIsLoading(false);
         }
     } else {
-        alert('You must be logged in to submit a quote.');
+      try {
+        // Add a new quote after deleting old ones
+        const docRef = await addDoc(collection(firestore, "userImages"), {
+            zipCode,
+            description,
+            paintPreferences,
+            providingOwnPaint,
+            prices: [],
+            video: fileUrl, // Storing single video URL
+            userId: "",
+        });
+        console.log('Document written with ID:', docRef.id);
+        setDocumentId(docRef.id);
+        
+        if (isUserLoggedIn) {
+            router.push('/dashboard'); // Navigate to dashboard
+        } else {
+            // Handle non-logged-in user case
+            sessionStorage.setItem('quoteData', JSON.stringify({
+                zipCode,
+                description,
+                paintPreferences,
+                providingOwnPaint,
+                prices: [],
+                video: fileUrl
+            }));
+            router.push('/signup'); // Navigate to signup page
+        }
+    } catch (error) {
+        console.error('Error saving data: ', error);
+        alert('Error saving data. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
     }
 };
 
@@ -160,7 +207,7 @@ export default function QuotePage() {
       {isLoading && currentStep === 2 && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <p>Uploading video, please wait...</p>
+            <p>Uploading, please wait...</p>
           </div>
         </div>
       )}
@@ -175,10 +222,10 @@ export default function QuotePage() {
                 <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
                     <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
                     <ol className="list-decimal pl-4">
-                        <li>Use the front camera in landscape video mode.</li>
-                        <li>Choose the .5x zoom.</li>
+                        <li>Use the front camera. You can hold horizontally or vertically</li>
+                        <li>Choose the .5x zoom if availably on your camera.</li>
                         <li>Go around the edge of the room as best as possible with camera facing in (it’s ok if you can’t totally keep to the edge due to furniture).</li>
-                        <li>In the corners move the phone up and down to capture ceiling and trim.</li>
+                        <li>Move Camera up and down occasionally to capture trim and ceiling.</li>
                         <li>Walk through all areas that you would like painted, taking approximately 30 seconds per room to capture.</li>
                         <li>Specify if you would like to exclude any areas from the quote on the next page.</li>
                     </ol>
@@ -233,7 +280,7 @@ export default function QuotePage() {
           </fieldset>
 
           <div>
-            <label htmlFor="providingOwnPaint" className="block text-md font-medium text-gray-700">Will you be providing your own paint?</label>
+            <label htmlFor="providingOwnPaint" className="block text-md font-medium text-gray-700">Will you be providing your own paint? Your painter will take care of this for you if not.</label>
             <select 
               id="providingOwnPaint" 
               value={providingOwnPaint} 

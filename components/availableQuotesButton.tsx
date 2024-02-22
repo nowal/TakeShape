@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import Link from 'next/link';
 
-type DashboardButtonProps = {
+type AvilableQuotesButtonProps = {
   text: string;
   className?: string;
 };
 
-const DashboardButton: React.FC<DashboardButtonProps> = ({ text, className }) => {
+const AvilableQuotesButton: React.FC<AvilableQuotesButtonProps> = ({ text, className }) => {
     const [isSignedIn, setIsSignedIn] = useState(false);
     const auth = getAuth();
 
@@ -24,7 +24,7 @@ const DashboardButton: React.FC<DashboardButtonProps> = ({ text, className }) =>
 
     return (
         <Link href={'/dashboard'}>
-              <button className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
+              <button className={`button-color hover:bg-green-900 text-white py-2 px-4 rounded ${className || ''}`}>
                 {text}
               </button>
               <style jsx>{`
@@ -36,4 +36,4 @@ const DashboardButton: React.FC<DashboardButtonProps> = ({ text, className }) =>
     );
 };
 
-export default DashboardButton;
+export default AvilableQuotesButton;

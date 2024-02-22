@@ -35,7 +35,7 @@ export default function Home() {
         {/* Text Section */}
         <div className="flex flex-col w-full md:w-1/2 justify-center md:mt-24">
           <h1 className="text-4xl font-bold mb-4 text-center md:text-left">Love the walls you're with</h1>
-          <p className="text-xl mb-8 text-center md:text-left">Your home, your style, your terms. Connect with local painters with one video and transform your space into one you're proud of</p>
+          <p className="text-xl mb-8 text-center md:text-left">Instantly connect with local painters for free through one video of your space. This is your home, your style, your terms.</p>
           <div className="flex justify-center md:justify-start">
             <QuoteButton text="Get Quote" className='py-3 px-5 text-xl'/>
           </div>
@@ -56,8 +56,8 @@ export default function Home() {
   <main className="pt-16 flex flex-col md:flex-row-reverse gap-6 items-center">
     {/* Text Section */}
     <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
-      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Getting painting quotes is a hassle</h1>
-      <p className="text-lg mb-6 text-center md:text-left">Skip the in-home estimates and secure competitive painting quotes instantly with our hassle-free video upload feature.</p>
+      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Getting painting quotes is a nightmare</h1>
+      <p className="text-lg mb-6 text-center md:text-left"> Stop the awkward phone calls and in-home estimates with strangers. Get guaranteed painting quotes instantly with one video.</p>
     </div>
     
     {/* Image Section - The default order here will be below the text on small screens */}
@@ -76,8 +76,8 @@ export default function Home() {
   <main className="pt-16 flex flex-col md:flex-row gap-6 items-center">
     {/* Text Section */}
     <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
-      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Get quotes in a couple of clicks</h1>
-      <p className="text-lg mb-6 text-center md:text-left">Our platform simplifies the quotation process, enabling you to receive transparent pricing from local painters without the wait.</p>
+      <h1 className="text-3xl font-bold mb-3 text-center md:text-left">Your quote is only a couple of clicks away</h1>
+      <p className="text-lg mb-6 text-center md:text-left">We've done the hard work of finding the painters, now just show us what you want done.</p>
     </div>
 
     {/* Image Section */}
@@ -98,7 +98,7 @@ export default function Home() {
     <div className="step-box secondary-color p-4 rounded-xl w-64">
       <h2 className="text-2xl font-semibold mb-2">Upload Your Video</h2>
       <p className="text-lg">
-        Capture a video of your space and upload it. It's the first step to transforming your home.
+        Capture a video of your space and upload it. We only need 30 seconds per room.
       </p>
     </div>
 
@@ -109,7 +109,7 @@ export default function Home() {
     <div className="step-box secondary-color p-4 rounded-xl w-64">
       <h2 className="text-2xl font-semibold mb-2">Receive Quotes</h2>
       <p className="text-lg">
-        Local painters will see your video and provide you with their best prices.
+        Local painters will see your video and provide you with their best price.
       </p>
     </div>
 
@@ -120,7 +120,7 @@ export default function Home() {
     <div className="step-box secondary-color p-4 rounded-xl w-64">
       <h2 className="text-2xl font-semibold mb-2">Approve & Transform</h2>
       <p className="text-lg">
-        Review the quotes, approve the price, and watch as your space is transformed.
+        Review the quotes, approve the price, and get ready to enjoy the color you love.
       </p>
     </div>
   </div>

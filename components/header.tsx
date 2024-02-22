@@ -12,15 +12,15 @@ const Header = () => {
     const isHomePage = usePathname() === '/';
 
     return (
-        <header className={`${isHomePage ? 'fixed top-0 w-full z-50' : ''} secondary-color flex items-center justify-between border-b px-4 sm:px-6 lg:px-8`}>
+        <header className={`${isHomePage ? 'fixed top-0 w-full z-50' : ''} secondary-color flex items-center justify-between border-b px-4 py-2 md:px-6 lg:px-8`}>
             <Link href="/" className="flex items-center space-x-2">
-                <img src={logo.src} alt="Logo" className="h-12 w-12 sm:h-16 sm:w-16" />
-                <h1 className="hidden sm:block text-lg sm:text-xl font-bold">TakeShape</h1>
+                <img src={logo.src} alt="Logo" className="h-14 w-14 md:h-16 md:w-16" /> {/* Increased size for mobile */}
+                <h1 className="text-lg md:text-xl font-bold">Dwelling</h1> {/* Ensure text size is responsive */}
             </Link>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-                <QuoteButton text="Get Quote" className='text-sm sm:text-base py-1 sm:py-2 px-2 sm:px-4'/>
-                <DashboardButton text="Go To Dashboard" className='text-sm sm:text-base'/>
-                <SignInButton className='text-sm sm:text-base py-1 sm:py-2 px-2 sm:px-4'/>
+            <div className="flex items-center space-x-3 md:space-x-4">
+                <QuoteButton text="Get Quote" className='text-base py-2 px-3 md:text-lg md:py-2 md:px-4'/> {/* Adjusted for better mobile interaction */}
+                <DashboardButton text="Go To Dashboard" className='text-base py-2 px-3 md:text-lg md:py-2 md:px-4'/> {/* Adjusted for better mobile interaction */}
+                <SignInButton className='text-base py-2 px-3 md:text-lg md:py-2 md:px-4'/> {/* Adjusted for better mobile interaction */}
             </div>
         </header>
     );

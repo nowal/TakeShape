@@ -6,7 +6,7 @@ export type UserData = {
     prices?: Array<{
         painterId: string;
         amount: number;
-        invoiceUrl: string;
+        invoiceUrl?: string;
         timestamp: number;
         accepted?: boolean;
     }>;

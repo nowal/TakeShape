@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 
 const faqData = [
-  { question: "How does the quote process work?", answer: "Upload a video of the space you want painted, and our platform will provide you with guaranteed quotes from local, reputable painters." },
-  { question: "How long does it take to get a quote?", answer: "After uploading your video, you'll receive quotes within 24 hours." },
-  { question: "Can I choose my own paint colors?", answer: "Absolutely! You're free to choose your preferred paint colors. Just let the painters know your choice." },
-  { question: "Is there a cost for getting quotes?", answer: "No, the quote process is completely free. You only pay for the painting service you decide to use." },
-  { question: "What if I'm not satisfied with the work?", answer: "Our painters are committed to quality. If you're not satisfied, please contact us, and we'll work with you to address any concerns." }
+  { question: "Can I speak with a painter before accepting a quote?", answer: "Yes! We provide the phone number for each painter so that you can speak with them directly. The beauty is that you don't have to until you want to." },
+  { question: "How long does it take to get a quote?", answer: "Typically it takes 24 hours to get the first 2-3 quotes back." },
+  { question: "Can I choose my own paint colors?", answer: "Absolutely! You're free to choose your preferred paint colors. We allow you to select if you would like to provide the paint or have the painter do so." },
+  { question: "Is there a cost for getting quotes?", answer: "Nope, the quote process is completely free!" },
+  { question: "Is the price guaranteed or is it subject to change?", answer: "We are able to get extremely accurate quotes with the one video. The price can shift slightly if something is not clear from the video, but unlike in person estimates, you have a video record of what was visible." }
 ];
 
 const FAQSection = () => {

@@ -94,9 +94,15 @@ export default function PainterRegisterPage() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
         const file = e.target.files[0];
-        setLogo(file); // Set the selected file to the 'logo' state
+        const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+        if (validTypes.includes(file.type)) {
+            setLogo(file); // Set the selected file to the 'logo' state
+        } else {
+            alert('Invalid file type. Please select a PNG, JPG, or PDF file.');
+            e.target.value = ''; // Reset the file input
+        }
     }
-};
+  };
 
 
   return (
@@ -159,7 +165,7 @@ export default function PainterRegisterPage() {
             type="file" 
             id="logo"
             onChange={handleLogoChange} 
-            accept="image/*"
+            accept="image/png, image/jpeg, application/pdf" // Restrict file types
             className="p-2 border rounded w-full"
           />
         </div>

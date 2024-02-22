@@ -15,6 +15,7 @@ export default function SignupAccountPage() {
   const [docId, setDocId] = useAtom(documentIdAtom);
   const [painterInfo] = useAtom(painterInfoAtom); // Access the painterInfo atom
   const [showLoginInstead, setShowLoginInstead] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,7 +66,16 @@ export default function SignupAccountPage() {
       router.push('/dashboard');
     } catch (error) {
       console.error("Error signing up: ", error);
-      alert("Error during sign up. Please try again.");
+      const errorCode = (error as { code: string }).code; // Type casting the error
+    
+      // Set a user-friendly error message based on the error code
+      if (errorCode === 'auth/email-already-in-use') {
+        setErrorMessage('The email address is already in use by another account.');
+      } else if (errorCode === 'auth/weak-password') {
+        setErrorMessage('The password is too weak.');
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
+      }
     }
   };
 

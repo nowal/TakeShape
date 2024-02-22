@@ -11,7 +11,7 @@ const PainterDashboard = () => {
     const [painterZipCodes, setPainterZipCodes] = useState<string[]>([]);
     const [jobList, setJobList] = useState<Job[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [price, setPrice] = useState(Number);
+    const [price, setPrice] = useState('');
     const firestore = getFirestore();
     const storage = getStorage(); // Initialize Firebase Storage
     const auth = getAuth();
@@ -49,36 +49,64 @@ const PainterDashboard = () => {
         }
     };
 
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Optional: Add validation here if you want to ensure only numeric input
+        setPrice(value.replace(/[^0-9.]/g, '')); // This regex allows only numbers and decimal point
+    };
+
     const handlePriceSubmit = async (e: React.FormEvent<HTMLFormElement>, jobId: string, amount: number): Promise<void> => {
         e.preventDefault();
-        if (!user || !selectedFile) return;
+        if (!user || price === '') return; // Ensure user exists and price is not empty
 
-        const invoicePath = `invoices/${user.uid}/${selectedFile.name}`;
-        const storageRef = ref(storage, invoicePath);
-
+        // Convert price back to a number before submitting
+        const numericPrice = parseFloat(price);
+        if (isNaN(numericPrice)) {
+            alert('Please enter a valid price');
+            return;
+        }
+    
+        let invoiceUrl = ''; // Initialize invoiceUrl as an empty string
+    
+        // Only attempt to upload file and get URL if a file is selected
+        if (selectedFile) {
+            const invoicePath = `invoices/${user.uid}/${selectedFile.name}-${Date.now()}`; // Adding timestamp to make filename unique
+            const storageRef = ref(storage, invoicePath);
+    
+            try {
+                const fileSnapshot = await uploadBytes(storageRef, selectedFile);
+                invoiceUrl = await getDownloadURL(fileSnapshot.ref); // Get URL only if file upload succeeds
+            } catch (error) {
+                console.error('Error uploading invoice: ', error);
+                // Optionally handle the error, e.g., showing an error message to the user
+                // If invoice upload fails, you might decide to proceed with updating the price or handle it differently
+            }
+        }
+    
+        // Proceed to update the job with the new price (and invoiceUrl if available)
+        const newPrice = {
+            painterId: user.uid,
+            amount: amount,
+            timestamp: Date.now(),
+            ...(invoiceUrl && { invoiceUrl }) // Spread invoiceUrl into the object if it exists
+        };
+    
+        const jobRef = doc(firestore, "userImages", jobId);
         try {
-            const fileSnapshot = await uploadBytes(storageRef, selectedFile);
-            const invoiceUrl = await getDownloadURL(fileSnapshot.ref);
-            const newPrice = {
-                painterId: user.uid,
-                amount: amount,
-                timestamp: Date.now(),
-                invoiceUrl // Add the invoice URL to the price object
-            };
-
-            const jobRef = doc(firestore, "userImages", jobId);
             await updateDoc(jobRef, {
                 prices: arrayUnion(newPrice)
             });
-            console.log(`Price and invoice for job ${jobId} updated successfully`);
-
+            console.log(`Price${invoiceUrl ? ' and invoice' : ''} for job ${jobId} updated successfully`);
             // Optionally reset form state here
             setSelectedFile(null);
+            setPrice('');// Reset price state, consider setting to initial state value
             fetchPainterData(); // Refresh data
-        } catch (error) {
-            console.error('Error uploading file or updating price: ', error);
+        } catch (updateError) {
+            console.error('Error updating price: ', updateError);
+            // Optionally handle this error as well
         }
     };
+    
       
 
     return (
@@ -91,16 +119,20 @@ const PainterDashboard = () => {
             {jobList.length > 0 ? (
                 jobList.map(job => (
                     // Use TailwindCSS responsive width classes here
-                    <div key={job.jobId} className="flex flex-row justify-center items-start gap-10 mb-10 w-full max-w-4xl">
+                    <div key={job.jobId} className="flex flex-row justify-center items-start mb-10 w-full max-w-4xl">
                         <div className="flex flex-col justify-center items-center mr-8">
                             <video src={job.video} controls style={{ width: '400px' }}  />
-                            <form onSubmit={(e) => {
-                                e.preventDefault(); // Prevent the default form submission
-                                handlePriceSubmit(e, job.jobId, price); // Call your submit handler with jobId
-                            }} className="mt-4">
-                                <input type="number" name="price" placeholder="Enter quoted price" className="mr-2 p-2 border rounded" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+                            <form onSubmit={(e) => handlePriceSubmit(e, job.jobId, parseFloat(price))} className="mt-4 pl-32">
+                                <input
+                                    type="text" // Change to text type
+                                    name="price"
+                                    placeholder="Price" // Set placeholder
+                                    className="mr-2 p-2 border rounded"
+                                    value={price}
+                                    onChange={handlePriceChange} // Use the new handler
+                                />
                                 <input type="file" onChange={handleFileChange} accept="application/pdf" />
-                                <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 rounded">Submit Price and Invoice</button>
+                                <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded">Submit Quote</button>
                             </form>
                         </div>
                         <div className="details-box space-y-2">
