@@ -18,6 +18,15 @@ export type PaintPreferences = {
     trim: boolean;
   };
 
+export type TimestampPair = {
+    id: string; // Assuming each timestamp pair has a unique ID for key purposes
+    startTime: number;
+    endTime: number;
+    roomName?: string; // Optional fields for the submitted information
+    color?: string;
+    finish?: string;
+};
+
 export type Job = {
     jobId: string;
     zipCode: string;

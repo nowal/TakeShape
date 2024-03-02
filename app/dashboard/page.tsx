@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
+import { timestampPairsAtom } from '../../atom/atom';
 import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, arrayUnion, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, setDoc, getDoc, arrayUnion, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
 import QuoteButtonDashboard from '../../components/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
+import RoomCard from '@/components/roomCard';
 import { UserData } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -202,6 +204,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
 
 const Dashboard = () => {
     const [userData, setUserData] = useAtom(userDataAtom);
+    const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
     const [isPainter, setIsPainter] = useAtom(isPainterAtom);
     const [checkingAuth, setCheckingAuth] = useAtom(checkingAuthAtom);
     const [userTypeLoading, setUserTypeLoading] = useAtom(userTypeLoadingAtom); // Atom to manage loading state of user type check and data fetching
@@ -212,8 +215,69 @@ const Dashboard = () => {
     const [uploadStatus, setUploadStatus] = useAtom(uploadStatusAtom);
     const [documentId] = useAtom(documentIdAtom);
     const [acceptedQuote, setAcceptedQuote] = useState<Price | null>(null);
+    const [defaultPaintColor, setDefaultPaintColor] = useState('');
+    const [defaultPaintFinish, setDefaultPaintFinish] = useState('');
+    const [ceilingPaint, setCeilingPaint] = useState(false);
+    const [doorsAndTrimPaint, setDoorsAndTrimPaint] = useState(false);
+    const [videoSelectionStart, setVideoSelectionStart] = useState<number | null>(null);
     const firestore = getFirestore();
+    const [userImageRef, setUserImageRef] = useState<DocumentReference | null>(null);
     const auth = getAuth();
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const fetchUserData = async () => {
+        if (!auth.currentUser) return;
+        const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+        const querySnapshot = await getDocs(userImagesQuery);
+      
+        if (!querySnapshot.empty) {
+          const userImageDocRef = querySnapshot.docs[0].ref; // Get the document reference
+          setUserImageRef(userImageDocRef); // Store it in state
+        }
+      };
+      
+      useEffect(() => {
+        if (auth.currentUser) {
+          fetchUserData();
+        }
+      }, [auth.currentUser]);
+
+    useEffect(() => {
+        const fetchTimestampPairs = async () => {
+          if (auth.currentUser) {
+            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            const querySnapshot = await getDocs(userImagesQuery);
+      
+            if (!querySnapshot.empty) {
+              // Assuming the structure { timestampPairs: [{ start, end, roomName, color, finish }, ...] }
+              const userImageDoc = querySnapshot.docs[0].data();
+              const fetchedTimestampPairs = userImageDoc.timestampPairs || [];
+              setTimestampPairs(fetchedTimestampPairs.map((pair: number[], index: number) => ({ ...pair, id: `pair-${index}` }))); // Adding a temporary ID
+            }
+          }
+        };
+      
+        fetchTimestampPairs();
+      }, [auth.currentUser, firestore, setTimestampPairs]);
+
+      useEffect(() => {
+        const fetchPaintPreferences = async () => {
+          if (auth.currentUser) {
+            const docRef = doc(firestore, "paintPreferences", auth.currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              // Assume paintPreferences fields exist
+              const { color, finish, ceilings, trim } = docSnap.data();
+              setDefaultPaintColor(color);
+              setDefaultPaintFinish(finish);
+              setCeilingPaint(!ceilings); // Assuming you want to invert the boolean
+              setDoorsAndTrimPaint(!trim); // Assuming you want to invert the boolean
+            }
+          }
+        };
+      
+        fetchPaintPreferences();
+      }, [auth.currentUser, firestore]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -307,6 +371,60 @@ const Dashboard = () => {
 
     // ... (rest of your useEffect)
 
+    const handleVideoSelection = async () => {
+        if (!auth.currentUser) return;
+        if (videoRef.current) {
+            const currentTime = videoRef.current.currentTime;
+            console.log("Current Time: ", currentTime);
+
+            // Fetch default paint preferences
+            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            const querySnapshot = await getDocs(userImagesQuery);
+            if (!querySnapshot.empty) {
+                const userImageDoc = querySnapshot.docs[0].data();
+                if (userImageDoc.paintPreferencesId) {
+                    const paintPreferencesRef = doc(firestore, "paintPreferences", userImageDoc.paintPreferencesId);
+                    const paintPreferencesSnap = await getDoc(paintPreferencesRef);
+                    if (paintPreferencesSnap.exists()) {
+                        const { color, finish, ceilings, trim } = paintPreferencesSnap.data();
+                        // Invert the boolean values for ceilings and trim as per requirement
+                        saveTimestampToFirestore(currentTime, color, finish, !ceilings, !trim);
+                    }
+                }
+            }
+        }
+    };
+
+    const saveTimestampToFirestore = async (startTime: number, color: string, finish: string, dontPaintCeilings: boolean, dontPaintTrimAndDoors: boolean) => {
+        if (!auth.currentUser || !userImageRef) {
+            console.error('No authenticated user or user image document reference.');
+            return;
+        }
+    
+        const newTimestampPair = { 
+            startTime, 
+            roomName: "Default Room Name", 
+            color, 
+            finish,
+            dontPaintCeilings, 
+            dontPaintTrimAndDoors,
+            dontPaintAtAll: false // Assuming a default value, adjust as necessary
+        };
+    
+        try {
+            await updateDoc(userImageRef, {
+                timestampPairs: arrayUnion(newTimestampPair)
+            });
+            console.log("Timestamp pair added successfully");
+    
+            // Update the local state to reflect the new timestamp pair addition
+            setTimestampPairs(prevPairs => [...prevPairs, { ...newTimestampPair, id: `pair-${startTime}` }]);
+        } catch (error) {
+            console.error("Error adding timestamp pair: ", error);
+        }
+    };
+    
+
     const handleAcceptQuote = async (painterId: string, price: number) => {
         setPainterId(painterId);
         if (auth.currentUser) {
@@ -384,98 +502,146 @@ const Dashboard = () => {
         );
     };
 
+    const updateAdditionalInfo = async () => {
+        const user = auth.currentUser;
+        if (!user) return; // Check if user is signed in
+
+        try {
+            // Step 1: Update Paint Preferences
+            const paintPrefDocRef = doc(firestore, 'paintPreferences', user.uid);
+            await setDoc(paintPrefDocRef, {
+                color: defaultPaintColor,
+                finish: defaultPaintFinish,
+                ceilings: ceilingPaint,
+                trim: doorsAndTrimPaint,
+            }, { merge: true });
+
+            console.log('Paint preferences updated successfully');
+
+            // Step 2: Link Paint Preferences to User Images
+            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            const querySnapshot = await getDocs(userImagesQuery);
+    
+            if (!querySnapshot.empty) {
+                // Assuming there's only one document per user in the userImages collection
+                const userImageDoc = querySnapshot.docs[0];
+                const documentId = userImageDoc.id;
+                const userImageRef = doc(firestore, "userImages", documentId);
+                await updateDoc(userImageRef, {
+                    paintPreferencesId: paintPrefDocRef.id // Save the ID of the paint preferences document
+                });
+                console.log('Linked paint preferences ID to user image document successfully');
+            }
+        } catch (error) {
+            console.error('Error updating paint preferences or linking: ', error);
+        }
+    };
+
     
 
     return (
-        <div className='dashboard'>
+        <div className='dashboard flex flex-col items-center mt-10 w-full'>
             <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} painterId={painterId}/>
             {isPainter ? (
                 <PainterDashboard />
             ) : (
-                <>
+                <div className="w-full flex flex-col items-center">
                     {userData && userData.video && (
-                    <>
-                        <video src={userData.video} controls className="video pb-8" />
-                        {acceptedQuote ? (
-                            <div className="text-center my-10">
-                                <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
-                                <PainterCard painterId={acceptedQuote.painterId}/>
+                        // Use flex to create a horizontal layout, and justify-center to center the content
+                        <div className="flex justify-center items-start gap-8 w-full max-w-4xl">
+                            <div className="flex-grow flex-shrink basis-2/3">
+                                <video ref={videoRef} src={userData.video} controls className="w-full h-auto ml-4 mr-12 video" />
+                                <div className="mt-4 ml-4">
+                                    <label className="block mb-2">Set your most used wall paint color and finish:</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Color"
+                                            value={defaultPaintColor}
+                                            onChange={(e) => setDefaultPaintColor(e.target.value)}
+                                            className="input input-bordered w-full max-w-xs"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Finish"
+                                            value={defaultPaintFinish}
+                                            onChange={(e) => setDefaultPaintFinish(e.target.value)}
+                                            className="input input-bordered w-full max-w-xs"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="ml-4 mt-4 flex gap-4 items-center">
+                                    <label>Do you want any of your ceilings painted?</label>
+                                    <input type="checkbox" checked={ceilingPaint} onChange={(e) => setCeilingPaint(e.target.checked)} />
+                                </div>
+                                <div className="ml-4 mt-4 flex gap-4 items-center">
+                                    <label>Do you want any doors and trim painted?</label>
+                                    <input type="checkbox" checked={doorsAndTrimPaint} onChange={(e) => setDoorsAndTrimPaint(e.target.checked)} />
+                                </div>
+                                <button onClick={updateAdditionalInfo} className="ml-4 button mt-4 button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                    Set Defaults
+                                </button>
                             </div>
-                        ) : (
-                            renderQuotes(userData.prices)
-                        )}
-                        {!acceptedQuote && (
-                            <QuoteButtonDashboard text="Resubmit Information" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
-                        )}
-                    </>
-                )}
-                </>
+                            <div className="flex-grow flex-shrink basis-1/3">
+                                <div className="text-center mb-4">
+                                    <p>Add any room or area that does not match your defaults on the left:</p>
+                                    <button onClick={handleVideoSelection} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                        New Room
+                                    </button>
+                                </div>
+                                <div className="overflow-auto mr-8" style={{ maxHeight: '350px' }}>
+                                {timestampPairs.map((pair) => (
+                                    <RoomCard
+                                        key={pair.startTime}
+                                        startTime={pair.startTime}
+                                        userImageRef={userImageRef!}
+                                        defaultColor={defaultPaintColor}
+                                        defaultFinish={defaultPaintFinish}
+                                        defaultCeilings={!ceilingPaint}
+                                        defaultTrim={!doorsAndTrimPaint}
+                                    />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {acceptedQuote ? (
+                        <div className="text-center my-10">
+                            <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
+                            <PainterCard painterId={acceptedQuote.painterId}/>
+                        </div>
+                    ) : (
+                        userData && userData.prices && renderQuotes(userData.prices)
+                    )}
+                    {!acceptedQuote && (
+                        <QuoteButtonDashboard text="Resubmit Information" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
+                    )}
+                </div>
             )}
-
+    
             <style jsx>{`
                 .dashboard {
-                    margin-top: 50px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    width: 100%;
+                }
+                // Ensure the flex container for the video and room cards is centered
+                .dashboard > div {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
                 }
                 .video {
-                    width: 60%;
+                    width: 100%;
                     max-width: 400px;
-                    max-height: 300px;
-                    margin-bottom: 20px;
-                    object-fit: cover;
-                }
-                .quotes, .loading-quotes {
-                    font-size: 1.5em;
-                    text-align: center;
-                }
-                .quote-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    border: 1px solid #ccc;
-                    padding: 10px;
-                    border-radius: 5px;
-                    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-                }
-            
-                .painter-card {
-                    flex: 1;
-                }
-            
-                .quote-details {
-                    flex: 2;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding-left: 20px; /* Add some space between the painter card and the details */
-                    border-left: 2px solid #ccc; /* Thin line between painter card and details */
-                }
-            
-                .quote-price {
-                    font-size: 1.2em;
-                    font-weight: bold;
-                }
-            
-                .accept-quote-btn {
-                    background-color: #4CAF50; /* A nicer shade of green */
-                    color: white;
-                    padding: 12px 24px; /* Larger buttons */
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    transition: background-color 0.2s; /* Smooth transition for hover effect */
-                    font-weight: bold;
-                    font-size: 1.1em;
-                }
-                .accept-quote-btn:hover {
-                    background-color: #45a049; /* Slightly darker green on hover */
                 }
             `}</style>
         </div>
     );
+    
+    
+    
 };
 
 export default Dashboard;

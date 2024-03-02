@@ -16,20 +16,17 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const auth = getAuth(firebase);
   const router = useRouter();
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, set any state or perform actions as needed
-      } else {
-        // User is signed out, set any state or perform actions as needed
-      }
+      setIsSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
   
     // Cleanup the listener on unmount
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,7 +76,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
 
   return (
     <div>
-      {auth.currentUser ? (
+      {isSignedIn ? (
         <button onClick={handleSignOut} className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
           Sign Out
         </button>

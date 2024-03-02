@@ -61,63 +61,14 @@ export default function QuotePage() {
     });
   };
 
-  const handleUploadSuccess = (file: File) => {
-    setSelectedFile(file);
-    setIsUploading(true);
-    setCurrentStep(2); // Move to the next step immediately without waiting for the upload to finish
-
-    const storage = getStorage(firebase);
-    const fileRef = storageRef(storage, `uploads/${file.name}`);
-    const uploadTask = uploadBytesResumable(fileRef, file);
-
-    // Store the upload promise in the state or a ref
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        // Handle progress
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-        setUploadStatus('uploading');
-        console.log('Upload is ' + progress + '% done');
-      },
-      (error) => {
-        console.error('Error uploading video: ', error);
-        alert('Error uploading video. Please try again.');
-        setIsUploading(false);
-      },
-      () => {
-        // Handle successful uploads on complete
-        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          console.log('File available at', url);
-          setUploadStatus('completed');
-          setFileUrl(url); // Save the URL once the upload is complete
-          setVideoURL(url); 
-          setIsUploading(false);
-        });
-      }
-    );
-  };
-
   const handlePrevious = async () => {
     setCurrentStep(1);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    console.log("In handle submit");
     setIsLoading(true);
     setErrorMessage('');
-
-    if (!zipCode.trim()) {
-      setErrorMessage('Zip Code is required.');
-      setIsLoading(false);
-      return; // Early return if Zip Code is missing
-    }
-
-    if (!description.trim()) {
-      setErrorMessage('Description is required.');
-      setIsLoading(false);
-      return; // Early return if Description is missing
-    }
 
     if (auth.currentUser) {
         try {
@@ -195,14 +146,53 @@ export default function QuotePage() {
     }
 };
 
+const handleUploadSuccess = (file: File) => {
+    
+  if (auth.currentUser != null) {
+    console.log(auth.currentUser.uid);
+  } else {
+    console.log("no user");
+  }
+  setSelectedFile(file);
+  setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
+
+  const storage = getStorage(firebase);
+  const fileRef = storageRef(storage, `uploads/${file.name}`);
+  const uploadTask = uploadBytesResumable(fileRef, file);
+
+  // Store the upload promise in the state or a ref
+  uploadTask.on(
+    'state_changed',
+    (snapshot) => {
+      // Handle progress
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      setUploadProgress(progress);
+      setUploadStatus('uploading');
+      console.log('Upload is ' + progress + '% done');
+    },
+    (error) => {
+      console.error('Error uploading video: ', error);
+      alert('Error uploading video. Please try again.');
+      setIsUploading(false);
+    },
+    () => {
+      // Handle successful uploads on complete
+      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+        console.log('File available at', url);
+        setUploadStatus('completed');
+        setFileUrl(url); // Save the URL once the upload is complete
+        setVideoURL(url); 
+        setIsUploading(false);
+      });
+    } 
+  );
+  console.log("Before Handle Submit");
+  handleSubmit();
+};
+
   return (
     <div className="p-8 pt-20">
-      <div className="border border-gray-300 w-full max-w-xs mx-auto mb-2">
-        <div style={{ width: currentStep === 1 ? '50%' : '100%', backgroundColor: '#034E35', height: '10px' }} />
-      </div>
-      <div className="text-center mb-4">
-        Step {currentStep} of 2
-      </div>
+
 
       {isLoading && currentStep === 2 && (
         <div className="modal-overlay">
@@ -218,7 +208,8 @@ export default function QuotePage() {
         </div>
       )}
 
-      {currentStep === 1 && (
+      {currentStep ===
+       1 && (
                 <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
                     <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
                     <ol className="list-decimal pl-4">

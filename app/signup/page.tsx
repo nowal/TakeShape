@@ -11,6 +11,7 @@ import SignInButton from '@/components/signInButton';
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [zipcode, setZipcode] = useState('');
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
   const [painterInfo] = useAtom(painterInfoAtom); // Access the painterInfo atom
@@ -45,7 +46,8 @@ export default function SignupAccountPage() {
           // Update the document with the new user's ID
           await updateDoc(userImageDocRef, {
             userId: user.uid,
-            ...quote // spread the quote data if needed
+            ...quote, // spread the quote data if needed
+            zipCode: zipcode
           });
 
           sessionStorage.removeItem('quoteData'); // Clean up session storage
@@ -143,6 +145,19 @@ export default function SignupAccountPage() {
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             placeholder="Enter your password" 
+            required 
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="zipcode" className="block text-md font-medium text-gray-700">Property Zipcode</label>
+          <input 
+            type="text" 
+            id="zipcode"
+            value={zipcode} 
+            onChange={(e) => setZipcode(e.target.value)} 
+            placeholder="Enter your zipcode" 
             required 
             className="p-2 border rounded w-full"
           />
