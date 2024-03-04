@@ -374,8 +374,14 @@ const Dashboard = () => {
     const handleVideoSelection = async () => {
         if (!auth.currentUser) return;
         if (videoRef.current) {
-            const currentTime = videoRef.current.currentTime;
-            console.log("Current Time: ", currentTime);
+            videoRef.current.pause(); 
+          const currentTime = videoRef.current.currentTime;
+          // Check for existing timestamp with the same start time
+          const existingTimestamp = timestampPairs.find(pair => pair.startTime === currentTime);
+          if (existingTimestamp) {
+            alert("A room with this start time already exists. Please choose a different time.");
+            return; // Prevent adding a new timestamp pair
+          }
 
             // Fetch default paint preferences
             const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
@@ -395,10 +401,14 @@ const Dashboard = () => {
         }
     };
 
-    const saveTimestampToFirestore = async (startTime: number, color: string, finish: string, dontPaintCeilings: boolean, dontPaintTrimAndDoors: boolean) => {
+    const handleTimestampPairDelete = (startTime: number) => {
+        setTimestampPairs(prevPairs => prevPairs.filter(pair => pair.startTime !== startTime));
+    };
+
+    const saveTimestampToFirestore = async (startTime: number, color: string = defaultPaintColor, finish: string = defaultPaintFinish, dontPaintCeilings: boolean = !ceilingPaint, dontPaintTrimAndDoors: boolean = !doorsAndTrimPaint) => {
         if (!auth.currentUser || !userImageRef) {
-            console.error('No authenticated user or user image document reference.');
-            return;
+          console.error('No authenticated user or user image document reference.');
+          return;
         }
     
         const newTimestampPair = { 
@@ -537,21 +547,73 @@ const Dashboard = () => {
         }
     };
 
+    /*<div className="mt-4 ml-4">
+                                    <label className="block mb-2">Set your most used wall paint color and finish:</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Color"
+                                            value={defaultPaintColor}
+                                            onChange={(e) => setDefaultPaintColor(e.target.value)}
+                                            className="input input-bordered w-full max-w-xs"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Finish"
+                                            value={defaultPaintFinish}
+                                            onChange={(e) => setDefaultPaintFinish(e.target.value)}
+                                            className="input input-bordered w-full max-w-xs"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="ml-4 mt-4 flex gap-4 items-center">
+                                    <label>Do you want any of your ceilings painted?</label>
+                                    <input type="checkbox" checked={ceilingPaint} onChange={(e) => setCeilingPaint(e.target.checked)} />
+                                </div>
+                                <div className="ml-4 mt-4 flex gap-4 items-center">
+                                    <label>Do you want any doors and trim painted?</label>
+                                    <input type="checkbox" checked={doorsAndTrimPaint} onChange={(e) => setDoorsAndTrimPaint(e.target.checked)} />
+                                </div>
+                                <button onClick={updateAdditionalInfo} className="ml-4 button mt-4 button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                    Set Defaults
+                                </button>*/
+
     
 
-    return (
-        <div className='dashboard flex flex-col items-center mt-10 w-full'>
-            <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} painterId={painterId}/>
-            {isPainter ? (
-                <PainterDashboard />
-            ) : (
-                <div className="w-full flex flex-col items-center">
-                    {userData && userData.video && (
-                        // Use flex to create a horizontal layout, and justify-center to center the content
-                        <div className="flex justify-center items-start gap-8 w-full max-w-4xl">
-                            <div className="flex-grow flex-shrink basis-2/3">
-                                <video ref={videoRef} src={userData.video} controls className="w-full h-auto ml-4 mr-12 video" />
-                                <div className="mt-4 ml-4">
+return (
+    <div className='dashboard flex flex-col items-center mt-10 w-full'>
+        <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} painterId={painterId}/>
+        {isPainter ? (
+            <PainterDashboard />
+        ) : (
+            <div className="dashboard-content w-full max-w-4xl">
+                {userData && userData.video && (
+                    <div className="video-container">
+                        <video controls playsInline webkit-playsinline="true" muted={true} ref={videoRef} src={userData.video} className="video" />
+                    </div>
+                )}
+                <div className="new-room-container text-center">
+                    <p>Add any room or area that does not match your defaults on the left:</p>
+                    <button onClick={handleVideoSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                        New Room
+                    </button>
+                </div>
+                <div className="room-cards-container overflow-auto" style={{ maxHeight: '350px' }}>
+                    {timestampPairs.map((pair) => (
+                        <RoomCard
+                            key={pair.startTime}
+                            startTime={pair.startTime}
+                            userImageRef={userImageRef!}
+                            onDelete={handleTimestampPairDelete}
+                            defaultColor={defaultPaintColor}
+                            defaultFinish={defaultPaintFinish}
+                            defaultCeilings={!ceilingPaint}
+                            defaultTrim={!doorsAndTrimPaint}
+                        />
+                    ))}
+                </div>
+                <div className="defaults-form-container">
+                <div className="mt-4 ml-4">
                                     <label className="block mb-2">Set your most used wall paint color and finish:</label>
                                     <div className="flex gap-2">
                                         <input
@@ -581,64 +643,52 @@ const Dashboard = () => {
                                 <button onClick={updateAdditionalInfo} className="ml-4 button mt-4 button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
                                     Set Defaults
                                 </button>
-                            </div>
-                            <div className="flex-grow flex-shrink basis-1/3">
-                                <div className="text-center mb-4">
-                                    <p>Add any room or area that does not match your defaults on the left:</p>
-                                    <button onClick={handleVideoSelection} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
-                                        New Room
-                                    </button>
-                                </div>
-                                <div className="overflow-auto mr-8" style={{ maxHeight: '350px' }}>
-                                {timestampPairs.map((pair) => (
-                                    <RoomCard
-                                        key={pair.startTime}
-                                        startTime={pair.startTime}
-                                        userImageRef={userImageRef!}
-                                        defaultColor={defaultPaintColor}
-                                        defaultFinish={defaultPaintFinish}
-                                        defaultCeilings={!ceilingPaint}
-                                        defaultTrim={!doorsAndTrimPaint}
-                                    />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {acceptedQuote ? (
-                        <div className="text-center my-10">
-                            <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
-                            <PainterCard painterId={acceptedQuote.painterId}/>
-                        </div>
-                    ) : (
-                        userData && userData.prices && renderQuotes(userData.prices)
-                    )}
-                    {!acceptedQuote && (
-                        <QuoteButtonDashboard text="Resubmit Information" className='mb-14 text-xl shadow button-color hover:bg-green-900 text-white py-4 px-4 rounded' />
-                    )}
                 </div>
-            )}
-    
-            <style jsx>{`
-                .dashboard {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    width: 100%;
+            </div>
+        )}
+
+        <style jsx>{`
+            .dashboard-content {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            @media (min-width: 768px) {
+                .dashboard-content {
+                    grid-template-columns: repeat(2, 1fr);
+                    grid-template-rows: auto auto;
+                    gap: 20px;
                 }
-                // Ensure the flex container for the video and room cards is centered
-                .dashboard > div {
-                    width: 100%;
-                    display: flex;
-                    justify-content: center;
+
+                .video-container {
+                    grid-column: 1 / 2;
+                    grid-row: 1 / 2;
                 }
-                .video {
-                    width: 100%;
-                    max-width: 400px;
+
+                .defaults-form-container {
+                    grid-column: 1 / 2;
+                    grid-row: 2 / 3;
                 }
-            `}</style>
-        </div>
-    );
+
+                .new-room-container {
+                    grid-column: 2 / 3;
+                    grid-row: 1 / 2;
+                }
+
+                .room-cards-container {
+                    grid-column: 2 / 3;
+                    grid-row: 2 / 3;
+                    max-height: none;
+                }
+            }
+
+            .video {
+                width: 100%;
+            }
+        `}</style>
+    </div>
+);
     
     
     
