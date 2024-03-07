@@ -124,7 +124,6 @@ const AcceptedQuotes = () => {
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
                                 <ul className="list-disc pl-5">
-                                    <li>Walls: {job.paintPreferences.walls ? "Yes" : "No"}</li>
                                     <li>Ceilings: {job.paintPreferences.ceilings ? "Yes" : "No"}</li>
                                     <li>Trim: {job.paintPreferences.trim ? "Yes" : "No"}</li>
                                 </ul>
