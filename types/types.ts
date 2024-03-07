@@ -13,17 +13,19 @@ export type UserData = {
 };
 
 export type PaintPreferences = {
-    walls: boolean;
-    ceilings: boolean;
-    trim: boolean;
+    color?: string;
+    finish?: string;
+    ceilings?: boolean;
+    trim?: boolean;
   };
 
 export type TimestampPair = {
-    id: string; // Assuming each timestamp pair has a unique ID for key purposes
     startTime: number;
-    roomName?: string; // Optional fields for the submitted information
+    endTime?: number;
     color?: string;
     finish?: string;
+    ceilings?: boolean;
+    trim?: boolean;
 };
 
 export type Job = {

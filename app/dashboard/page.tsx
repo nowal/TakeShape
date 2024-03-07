@@ -10,7 +10,7 @@ import PainterDashboard from '../../components/painterDashboard';
 import QuoteButtonDashboard from '../../components/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
 import RoomCard from '@/components/roomCard';
-import { UserData } from '@/types/types';
+import { TimestampPair, UserData, PaintPreferences } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";
@@ -219,11 +219,27 @@ const Dashboard = () => {
     const [defaultPaintFinish, setDefaultPaintFinish] = useState('');
     const [ceilingPaint, setCeilingPaint] = useState(false);
     const [doorsAndTrimPaint, setDoorsAndTrimPaint] = useState(false);
+    const [currentTimestampPair, setCurrentTimestampPair] = useState<TimestampPair>({
+        startTime: 0,
+        endTime: 0,
+        color: '',
+        finish: '',
+        ceilings: false,
+        trim: false,
+      });
+    const [currentPreferences, setCurrentPreferences] = useState<PaintPreferences>({
+        color: '', // Default values or fetched from your initial data
+        finish: '',
+        ceilings: false,
+        trim: false,
+      });
+    const [addingRoom, setAddingRoom] = useState(false);
     const [videoSelectionStart, setVideoSelectionStart] = useState<number | null>(null);
     const firestore = getFirestore();
     const [userImageRef, setUserImageRef] = useState<DocumentReference | null>(null);
     const auth = getAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
+    const roomCardsContainerRef = useRef<HTMLDivElement>(null);
 
     const fetchUserData = async () => {
         if (!auth.currentUser) return;
@@ -235,12 +251,93 @@ const Dashboard = () => {
           setUserImageRef(userImageDocRef); // Store it in state
         }
       };
+
+      useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+    
+        const handleTimeUpdate = () => {
+            const currentTime = video.currentTime;
+            const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (pair.endTime === undefined || currentTime <= pair.endTime));
+    
+            if (matchedPair) {
+                setCurrentTimestampPair(matchedPair);
+            } else {
+                setCurrentTimestampPair({
+                    startTime: currentTime,
+                    endTime: undefined,
+                    color: defaultPaintColor,
+                    finish: defaultPaintFinish,
+                    ceilings: ceilingPaint,
+                    trim: doorsAndTrimPaint,
+                });
+            }
+        };
+    
+        video.addEventListener('timeupdate', handleTimeUpdate);
+        video.addEventListener('seeked', handleTimeUpdate); // Listen for the seeked event
+    
+        return () => {
+            video.removeEventListener('timeupdate', handleTimeUpdate);
+            video.removeEventListener('seeked', handleTimeUpdate); // Clean up
+        };
+    }, [timestampPairs, defaultPaintColor, defaultPaintFinish, ceilingPaint, doorsAndTrimPaint, videoRef]);
+
+    useEffect(() => {
+        // Function to determine the current timestamp pair or revert to defaults
+        const determineCurrentTimestampOrRevertToDefaults = () => {
+            const currentTime = videoRef.current?.currentTime || 0;
+            const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
+    
+            if (matchedPair) {
+                setCurrentTimestampPair(matchedPair);
+            } else {
+                setCurrentTimestampPair({
+                    startTime: currentTime,
+                    endTime: undefined,
+                    color: defaultPaintColor,
+                    finish: defaultPaintFinish,
+                    ceilings: ceilingPaint,
+                    trim: doorsAndTrimPaint,
+                });
+            }
+        };
+    
+        // Invoke immediately to adjust based on the current state of timestampPairs
+        determineCurrentTimestampOrRevertToDefaults();
+    
+        // Additionally, you might want to listen to 'timeupdate' or 'seeked' events of the video
+        // to ensure the displayed RoomCard always reflects the correct timestamp pair or defaults
+        const video = videoRef.current;
+        if (video) {
+            video.addEventListener('timeupdate', determineCurrentTimestampOrRevertToDefaults);
+            video.addEventListener('seeked', determineCurrentTimestampOrRevertToDefaults);
+    
+            // Cleanup
+            return () => {
+                video.removeEventListener('timeupdate', determineCurrentTimestampOrRevertToDefaults);
+                video.removeEventListener('seeked', determineCurrentTimestampOrRevertToDefaults);
+            };
+        }
+    }, [timestampPairs, defaultPaintColor, defaultPaintFinish, ceilingPaint, doorsAndTrimPaint, videoRef]);
+
+    
+    
       
       useEffect(() => {
         if (auth.currentUser) {
           fetchUserData();
         }
       }, [auth.currentUser]);
+
+      useEffect(() => {
+        // Your existing useEffect hooks here.
+
+        // New useEffect hook for setting video playback speed.
+        if (videoRef.current) {
+            videoRef.current.playbackRate = 2.0;
+        }
+    }, [videoRef.current]);
 
     useEffect(() => {
         const fetchTimestampPairs = async () => {
@@ -371,19 +468,33 @@ const Dashboard = () => {
 
     // ... (rest of your useEffect)
 
+    const displayPreferences = (preferences: PaintPreferences) => {
+        setCurrentPreferences(preferences);
+        console.log(preferences);
+    };
+
     const handleVideoSelection = async () => {
         if (!auth.currentUser) return;
         if (videoRef.current) {
-            videoRef.current.pause(); 
-          const currentTime = videoRef.current.currentTime;
-          // Check for existing timestamp with the same start time
-          const existingTimestamp = timestampPairs.find(pair => pair.startTime === currentTime);
-          if (existingTimestamp) {
-            alert("A room with this start time already exists. Please choose a different time.");
-            return; // Prevent adding a new timestamp pair
-          }
-
-            // Fetch default paint preferences
+            videoRef.current.pause();
+            const currentTime = videoRef.current.currentTime;
+    
+            // Check if currentTime falls within any existing timestamp pair
+            const isWithinExistingPair = timestampPairs.some(pair => {
+                const endTime = pair.endTime === undefined ? Infinity : pair.endTime;
+                return currentTime >= pair.startTime && currentTime <= endTime;
+            });
+    
+            if (isWithinExistingPair) {
+                alert("You cannot add a new room within the time range of an existing room. Please choose a different time.");
+                return; // Prevent further execution
+            }
+    
+            // If not within an existing pair, proceed to handle adding a new room
+            setAddingRoom(true);
+    
+            // Fetch default paint preferences if any, and proceed with saving the timestamp to Firestore
+            // This could involve fetching additional data like user paint preferences or using defaults
             const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
             const querySnapshot = await getDocs(userImagesQuery);
             if (!querySnapshot.empty) {
@@ -393,17 +504,35 @@ const Dashboard = () => {
                     const paintPreferencesSnap = await getDoc(paintPreferencesRef);
                     if (paintPreferencesSnap.exists()) {
                         const { color, finish, ceilings, trim } = paintPreferencesSnap.data();
-                        // Invert the boolean values for ceilings and trim as per requirement
                         saveTimestampToFirestore(currentTime, color, finish, !ceilings, !trim);
                     }
                 }
             }
+            if (roomCardsContainerRef.current) {
+                roomCardsContainerRef.current.scrollTo(0, 0);
+            }
         }
     };
+    
 
-    const handleTimestampPairDelete = (startTime: number) => {
-        setTimestampPairs(prevPairs => prevPairs.filter(pair => pair.startTime !== startTime));
-    };
+    const handleTimestampPairDelete = async (startTime: number) => {
+    setTimestampPairs(prevPairs => {
+        const updatedPairs = prevPairs.filter(pair => pair.startTime !== startTime);
+
+        // Update Firestore document
+        if (userImageRef) {
+            updateDoc(userImageRef, {
+                timestampPairs: updatedPairs
+            }).then(() => {
+                console.log('Firestore updated successfully');
+            }).catch(error => {
+                console.error('Error updating Firestore: ', error);
+            });
+        }
+
+        return updatedPairs;
+    });
+};
 
     const saveTimestampToFirestore = async (startTime: number, color: string = defaultPaintColor, finish: string = defaultPaintFinish, dontPaintCeilings: boolean = !ceilingPaint, dontPaintTrimAndDoors: boolean = !doorsAndTrimPaint) => {
         if (!auth.currentUser || !userImageRef) {
@@ -413,7 +542,7 @@ const Dashboard = () => {
     
         const newTimestampPair = { 
             startTime, 
-            roomName: "Default Room Name", 
+
             color, 
             finish,
             dontPaintCeilings, 
@@ -428,10 +557,52 @@ const Dashboard = () => {
             console.log("Timestamp pair added successfully");
     
             // Update the local state to reflect the new timestamp pair addition
-            setTimestampPairs(prevPairs => [...prevPairs, { ...newTimestampPair, id: `pair-${startTime}` }]);
+            setTimestampPairs(prevPairs => [...prevPairs, { ...newTimestampPair}]);
         } catch (error) {
             console.error("Error adding timestamp pair: ", error);
         }
+    };
+
+    const endRoomAndReturnToDefaults = async () => {
+        
+        if (!auth.currentUser || !videoRef.current || timestampPairs.length === 0 || !userImageRef) {
+            console.error("Missing required references or no timestamp pairs available.");
+            return;
+        }
+        if (videoRef.current) {
+            videoRef.current.pause(); 
+        }
+    
+        const currentTime = videoRef.current.currentTime;
+        // Find the index of the timestamp pair that was most recently added without an endTime.
+        const mostRecentPairIndex = timestampPairs.findIndex(pair => pair.endTime === undefined || pair.endTime === 0);
+    
+        if (mostRecentPairIndex !== -1) {
+            // Clone the current timestampPairs to avoid direct state mutation.
+            let updatedTimestampPairs = [...timestampPairs];
+            updatedTimestampPairs[mostRecentPairIndex] = {
+                ...updatedTimestampPairs[mostRecentPairIndex],
+                endTime: currentTime, // Update only the endTime.
+            };
+    
+            try {
+                await updateDoc(userImageRef, {
+                    timestampPairs: updatedTimestampPairs,
+                });
+                // Fetch the latest data again to synchronize
+                const updatedDoc = await getDoc(userImageRef);
+                if (updatedDoc.exists()) {
+                    setTimestampPairs(updatedDoc.data().timestampPairs);
+                }
+            } catch (error) {
+                console.error("Error updating timestamp pair with endTime: ", error);
+            }
+        } else {
+            console.error("No active timestamp pair to end.");
+        }
+    
+        // Toggle addingRoom state to show "New Room" button again.
+        setAddingRoom(false);
     };
     
 
@@ -589,28 +760,52 @@ return (
             <div className="dashboard-content w-full max-w-4xl">
                 {userData && userData.video && (
                     <div className="video-container">
-                        <video controls playsInline webkit-playsinline="true" muted={true} ref={videoRef} src={userData.video} className="video" />
+                        <video 
+                        controls 
+                        playsInline // This is equivalent to webkit-playsinline
+                        muted={true} 
+                        ref={videoRef} 
+                        src={userData.video} 
+                        className="video" 
+                        onLoadedMetadata={() => {
+                            if (videoRef.current) {
+                                videoRef.current.playbackRate = 2.0;
+                            }
+                        }} />
+                        {currentTimestampPair && userImageRef && (
+                            <RoomCard
+                            key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
+                            startTime={currentTimestampPair.startTime}
+                            endTime={currentTimestampPair.endTime}
+                            defaultColor={currentTimestampPair.color || defaultPaintColor}
+                            defaultFinish={currentTimestampPair.finish || defaultPaintFinish}
+                            defaultCeilings={currentTimestampPair.ceilings !== undefined ? currentTimestampPair.ceilings : ceilingPaint}
+                            defaultTrim={currentTimestampPair.trim !== undefined ? currentTimestampPair.trim : doorsAndTrimPaint}
+                            userImageRef={userImageRef}
+                            onDelete={handleTimestampPairDelete}
+                          />
+                        )}
                     </div>
                 )}
                 <div className="new-room-container text-center">
-                    <p>Add any room or area that does not match your defaults on the left:</p>
-                    <button onClick={handleVideoSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
-                        New Room
+                <p>{addingRoom ? "End room and return to your defaults" : "Add any room or area that does not match your defaults"}</p>
+                    <button onClick={addingRoom ? endRoomAndReturnToDefaults : handleVideoSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                        {addingRoom ? "End room" : "New Room"}
                     </button>
                 </div>
-                <div className="room-cards-container overflow-auto" style={{ maxHeight: '350px' }}>
-                    {timestampPairs.map((pair) => (
-                        <RoomCard
-                            key={pair.startTime}
-                            startTime={pair.startTime}
-                            userImageRef={userImageRef!}
-                            onDelete={handleTimestampPairDelete}
-                            defaultColor={defaultPaintColor}
-                            defaultFinish={defaultPaintFinish}
-                            defaultCeilings={!ceilingPaint}
-                            defaultTrim={!doorsAndTrimPaint}
-                        />
-                    ))}
+                <div className="overflow-auto" style={{ maxHeight: '350px' }} ref={roomCardsContainerRef}>
+                {/*{timestampPairs.slice().reverse().map((pair) => (
+                    <RoomCard
+                    key={pair.startTime}
+                    startTime={pair.startTime}
+                    userImageRef={userImageRef!}
+                    onDelete={handleTimestampPairDelete}
+                    defaultColor={defaultPaintColor}
+                    defaultFinish={defaultPaintFinish}
+                    defaultCeilings={!ceilingPaint}
+                    defaultTrim={!doorsAndTrimPaint}
+                    />
+                ))}*/}
                 </div>
                 <div className="defaults-form-container">
                 <div className="mt-4 ml-4">

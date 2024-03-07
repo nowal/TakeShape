@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { useAtom } from 'jotai';
+import { timestampPairsAtom } from '../atom/atom';
 import { updateDoc, DocumentReference, getDoc } from 'firebase/firestore';
 
 interface TimestampPair {
   startTime: number;
-  roomName: string;
   color: string;
   finish: string;
   dontPaintCeilings?: boolean;
@@ -13,54 +14,67 @@ interface TimestampPair {
 
 interface RoomCardProps {
     startTime: number;
+    endTime?: number;
     userImageRef: DocumentReference;
     defaultColor?: string;
     defaultFinish?: string;
     defaultCeilings?: boolean;
     defaultTrim?: boolean;
-    onDelete: (startTime: number) => void; // Add this prop
+    onDelete: (startTime: number) => void;
   }
 
-  const RoomCard: React.FC<RoomCardProps> = ({
+const RoomCard: React.FC<RoomCardProps> = ({
     startTime,
+    endTime,
     userImageRef,
     defaultColor = '', 
     defaultFinish = '',
     defaultCeilings = true,
     defaultTrim = true,
-    onDelete, // Don't forget to destructure this prop
-  }) => {
-    const [roomName, setRoomName] = useState('');
+    onDelete,
+}) => {
     const [color, setColor] = useState(defaultColor);
     const [finish, setFinish] = useState(defaultFinish);
     const [dontPaintCeilings, setDontPaintCeilings] = useState(!defaultCeilings);
     const [dontPaintTrimAndDoors, setDontPaintTrimAndDoors] = useState(!defaultTrim);
     const [dontPaintAtAll, setDontPaintAtAll] = useState(false);
 
-  const updateTimestampPairs = async () => {
-    try {
-      const docSnap = await getDoc(userImageRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        let timestampPairs: TimestampPair[] = data.timestampPairs || [];
-  
-        // Remove any existing entry with the same startTime
-        timestampPairs = timestampPairs.filter(pair => pair.startTime !== startTime);
-  
-        // Now, add the new or updated entry
-        // Since we've removed the old entry, we can simply push the updated info
-        timestampPairs.push({ startTime, roomName, color, finish });
-  
-        // Update the document with the modified timestampPairs array
-        await updateDoc(userImageRef, { timestampPairs });
-        console.log('User image document updated successfully with new timestamp pair');
-      } else {
-        console.log("No such document!");
-      }
-    } catch (error) {
-      console.error('Error updating document: ', error);
-    }
-  };
+    const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
+
+    const updateTimestampPairs = async () => {
+        try {
+          const docSnap = await getDoc(userImageRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            let timestampPairs: TimestampPair[] = data.timestampPairs || [];
+      
+            // Remove any existing entry with the same startTime
+            timestampPairs = timestampPairs.filter(pair => pair.startTime !== startTime);
+      
+            // Now, add the new or updated entry with all the correct values
+            const newPair: TimestampPair = {
+                startTime, 
+                color, 
+                finish,
+                dontPaintCeilings, // This should be included
+                dontPaintTrimAndDoors, // This should be included
+                dontPaintAtAll
+            };
+            timestampPairs.push(newPair);
+      
+            // Update the document with the modified timestampPairs array
+            await updateDoc(userImageRef, { timestampPairs });
+
+            setTimestampPairs([...timestampPairs]);
+            
+            console.log('User image document updated successfully with new timestamp pair');
+          } else {
+            console.log("No such document!");
+          }
+        } catch (error) {
+          console.error('Error updating document: ', error);
+        }
+    };
 
   const handleDelete = async () => {
     // Function to delete this timestamp pair from Firestore
@@ -89,58 +103,54 @@ interface RoomCardProps {
   };
 
   return (
-    <div className="p-3 m-3 rounded-lg shadow-lg bg-white flex flex-col justify-between relative max-w-sm mx-auto">
-      <button onClick={handleDelete} className="absolute top-2 right-2 text-xl font-bold">×</button>
-      <form onSubmit={handleSubmit} className="w-full flex flex-col space-y-2">
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Room Name"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-            className="text-lg font-semibold w-full"
-          />
-        </div>
-        <div className="flex gap-2">
+    <div className="p-4 px-8 m-4 rounded-lg shadow-lg bg-white flex flex-col justify-between relative max-w-lg mx-auto">
+      <button onClick={() => onDelete(startTime)} className="absolute top-2 right-2 text-2xl font-bold">×</button>
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="flex items-center gap-2 mb-2">
           <input
             type="text"
             placeholder="Color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            className="input input-bordered flex-1"
+            className="input input-bordered w-28" // Made wider
           />
           <input
             type="text"
             placeholder="Finish"
             value={finish}
             onChange={(e) => setFinish(e.target.value)}
-            className="input input-bordered flex-1"
+            className="input input-bordered w-28" // Made wider
           />
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={dontPaintCeilings}
+                onChange={(e) => setDontPaintCeilings(e.target.checked)}
+              />
+              Ceilings
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={dontPaintTrimAndDoors}
+                onChange={(e) => setDontPaintTrimAndDoors(e.target.checked)}
+              />
+              Trim/Doors
+            </label>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={dontPaintCeilings}
-              onChange={(e) => setDontPaintCeilings(e.target.checked)}
-            /> Don't paint ceilings in this room?
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={dontPaintTrimAndDoors}
-              onChange={(e) => setDontPaintTrimAndDoors(e.target.checked)}
-            /> Don't paint trim and doors in this room?
-          </label>
-          <label className="flex items-center gap-2">
+        <div className="flex justify-between items-center mb-2">
+          <label className="flex items-center gap-1">
             <input
               type="checkbox"
               checked={dontPaintAtAll}
               onChange={(e) => setDontPaintAtAll(e.target.checked)}
-            /> Don't paint this room at all?
+            />
+            Don't paint at all
           </label>
+          <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded">Set Room</button>
         </div>
-        <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded mt-4 self-end">Set Room</button>
       </form>
     </div>
   );
