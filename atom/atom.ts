@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { UserData, TimestampPair } from '../types/types';
+import { UserData, TimestampPair, PaintPreferences } from '../types/types';
 
 export const userDataAtom = atom<UserData | null>(null);
 export const isPainterAtom = atom<boolean>(false);
@@ -18,3 +18,9 @@ export const videoURLAtom = atom<string>('');
 export const uploadStatusAtom = atom<'idle' | 'uploading' | 'completed' | 'error'>('idle');
 export const documentIdAtom = atom<string | null>(null);
 export const timestampPairsAtom = atom<TimestampPair[]>([]);
+export const defaultPreferencesAtom = atom<PaintPreferences>({
+  color: '',
+  finish: '',
+  ceilings: false,
+  trim: false,
+});

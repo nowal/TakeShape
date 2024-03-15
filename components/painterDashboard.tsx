@@ -18,15 +18,19 @@ const PainterDashboard = () => {
     const user = auth.currentUser;
 
     const fetchPainterData = async () => {
+        console.log('Current user:', user); // Log the current user for debugging
         if (user) {
             const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
             const painterSnapshot = await getDocs(painterQuery);
+            console.log('Painter data:', painterSnapshot.docs.map(doc => doc.data())); // Log fetched painter data
             if (!painterSnapshot.empty) {
                 const painterData = painterSnapshot.docs[0].data();
+                console.log('Painter zip codes:', painterData.zipCodes); // Log painter zip codes
                 setPainterZipCodes(painterData.zipCodes);
-
+    
                 const jobsQuery = query(collection(firestore, "userImages"), where("zipCode", "in", painterData.zipCodes));
                 const jobsSnapshot = await getDocs(jobsQuery);
+                console.log('Jobs:', jobsSnapshot.docs.map(doc => doc.data())); // Log fetched jobs
                 const jobs: Job[] = jobsSnapshot.docs.map(doc => ({
                     ...doc.data() as Job,
                     jobId: doc.id
@@ -34,8 +38,11 @@ const PainterDashboard = () => {
                 const unquotedJobs = jobs.filter(job => 
                     !job.prices.some(price => price.painterId === user.uid)
                 );
+                console.log('Unquoted Jobs:', unquotedJobs); // Log unquoted jobs
                 setJobList(unquotedJobs);
             }
+        } else {
+            console.log('No user found, unable to fetch painter data.');
         }
     };
 
@@ -110,7 +117,7 @@ const PainterDashboard = () => {
       
 
     return (
-        <div className='flex flex-col items-center'>
+        <div className='flex flex-col items-center mt-12'>
             <div className='flex flex-row gap-10 items-center'>
                 <CompletedQuotesButton text='View Completed Quotes'/>
                 <AcceptedQuotesButton text='View Accepted Quotes'/>

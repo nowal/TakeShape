@@ -16,15 +16,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";
 
-type ModalProps = {
-    showModal: boolean;
-    setShowModal: (show: boolean) => void;
-    price: number | null;
-    phoneNumber: string;
-    setPhoneNumber: (number: string) => void;
-    painterId: string;
-};
-
 type Price = {
     painterId: string;
     amount: number;
@@ -32,178 +23,7 @@ type Price = {
     accepted?: boolean; // Optional because it will not exist on all objects initially
   };
 
-const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumber, setPhoneNumber, painterId }) => {
-    if (!showModal) return null;
-
-    const [modalStep, setModalStep] = useState(1);
-    const firestore = getFirestore();
-    const auth = getAuth();
-
-    const depositAmount = price ? parseFloat((price * 0.02).toFixed(2)) : 0;
-
-    const handlePhoneSubmit = async () => {
-        // Assuming phoneNumber is already set and you have the painterId and documentId
-    
-        // Step 1: Update the homeowner's document with the phone number
-
-        if (auth.currentUser) {
-            // First, get the document reference for the userImages document
-            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
-            const querySnapshot = await getDocs(userImagesQuery);
-    
-            if (!querySnapshot.empty) {
-                // Assuming there's only one document per user in the userImages collection
-                const userImageDoc = querySnapshot.docs[0];
-                const documentId = userImageDoc.id;
-
-                try {
-                    if (documentId && phoneNumber) {
-                        const userImageRef = doc(firestore, "userImages", documentId);
-                        let prices = userImageDoc.data().prices; // Assuming this gets you the array of prices
-                        let updatedPrices = prices.map((price: Price) => {
-                            if (price.painterId === painterId) {
-                                return { ...price, accepted: true }; // Update the accepted field for the matched painterId
-                            }
-                            return price;
-});
-                        await updateDoc(userImageRef, {
-                            phoneNumber: phoneNumber,
-                            prices: updatedPrices,
-                        });
-                        console.log("Homeowner's phone number updated successfully");
-                    }
-                } catch (error) {
-                    console.error("Error updating homeowner's document: ", error);
-                }
-            
-                // Step 2: Add the quote's document ID to the painter's acceptedQuotes array
-                try {
-                    const painterQuery = query(collection(firestore, "painters"), where("userId", "==", painterId));
-                    const querySnapshot = await getDocs(painterQuery);
-            
-                    if (!querySnapshot.empty) {
-                        const painterDocRef = querySnapshot.docs[0].ref;
-
-                        const painterDoc = querySnapshot.docs[0];
-            
-                        // Use arrayUnion to add the documentId to the acceptedQuotes array without duplicates
-                        await updateDoc(painterDocRef, {
-                            acceptedQuotes: arrayUnion(documentId),
-                        });
-            
-                        console.log("Quote successfully added to painter's acceptedQuotes");
-                        // Move to the payment step after successfully updating both documents
-                        //setModalStep(2);
-                        setShowModal(false);
-                        window.location.reload();
-                    }
-                } catch (error) {
-                    console.error("Error adding quote to painter's acceptedQuotes: ", error);
-                }
-            }
-        }
-    };
-
-    const handlePayment = async () => {
-        const stripePromise = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
-
-        return (
-            <Elements stripe={stripePromise}>
-                <StripePayment price={depositAmount} />
-            </Elements>
-        );
-        
-    }
-
-    return (
-        <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            {modalStep === 1 && (
-    <div className="modal-content bg-white p-8 rounded-lg shadow-lg relative w-96 max-w-95-percent">
-      <h2 className="text-center text-xl font-semibold mb-4">Congrats on accepting your quote!</h2>
-      <p className="mb-4">Please enter your phone number below so that we can connect you with:</p>
-      <PainterCard painterId={painterId}/>
-      <input 
-        type="tel" 
-        value={phoneNumber} 
-        onChange={(e) => setPhoneNumber(e.target.value)} 
-        placeholder="Your phone number"
-        className="input-field border-2 border-gray-300 focus:border-green-500 w-full py-2 px-4 mb-6 mt-4" 
-      />
-      <button onClick={() => setShowModal(false)} className="close-modal absolute top-3 right-3 text-2xl">X</button>
-      <button onClick={handlePhoneSubmit} className="block shadow button-color hover:bg-green-900 text-white rounded py-2 px-4 mx-auto">Submit</button>
-    </div>
-  )}
-
-  {modalStep === 2 && (
-    <div className="modal-content bg-white p-8 rounded-lg shadow-lg relative w-96 max-w-95-percent">
-      <PainterCard painterId={painterId}/>
-      <p className="mt-4 mb-6">We hold a 2% deposit for the painter that is fully applied to your quoted price. Securely pay this deposit with Stripe.</p>
-      <button onClick={() => setShowModal(false)} className="close-modal absolute top-3 right-3 text-2xl">X</button>
-      <button onClick={() => handlePayment()} className="stripe-pay-button bg-blue-500 hover:bg-blue-700 text-white rounded py-2 px-4 mx-auto block">Pay with Stripe</button>
-    </div>
-  )}
-
-            <style jsx>{`
-                .modal-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                }
-                .modal-content {
-                    position: relative; /* Ensures that the absolute positioning of children is relative to this container */
-                    background: white;
-                    padding: 30px;
-                    border-radius: 8px;
-                    width: 500px;
-                    max-width: 95%;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                }
-                h2, p {
-                    font-size: 1.25rem; /* Increased text size */
-                }
-                input[type="tel"], .submit-phone-btn {
-                    font-size: 1rem; /* Adjust the font size as needed */
-                    margin-top: 0.5rem; /* Space between the input and the label/text */
-                }
-                .submit-phone-btn {
-                    padding: 10px 20px; /* Larger button padding */
-                    margin-top: 1rem; /* More space above the button */
-                }
-                .close-modal {
-                    position: absolute; /* Positions the button absolutely within the relative container */
-                    top: 10px; /* Adjusts the top position */
-                    right: 10px; /* Adjusts the right position */
-                    background-color: transparent;
-                    border: none;
-                    font-size: 1.5rem; /* Increases the size of the 'X' */
-                    cursor: pointer;
-                    z-index: 10; /* Ensures it's above other elements */
-                }
-                .stripe-pay-button {
-                    background-color: #6772e5;
-                    color: white;
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 20px;
-                }
-                .stripe-pay-button:hover {
-                    background-color: #5469d4;
-                }
-            `}</style>
-        </div>
-    );
-};
-
-const Dashboard = () => {
+const RoomPreferences = () => {
     const [userData, setUserData] = useAtom(userDataAtom);
     const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
     const [isPainter, setIsPainter] = useAtom(isPainterAtom);
@@ -311,8 +131,6 @@ const Dashboard = () => {
             }
         };
     }, [timestampPairs, defaultPaintColor, defaultPaintFinish, ceilingPaint, doorsAndTrimPaint, videoRef]);
-    
-    
 
     useEffect(() => {
         // Function to determine the current timestamp pair or revert to defaults
@@ -565,18 +383,20 @@ const Dashboard = () => {
     });
 };
 
-    const saveTimestampToFirestore = async (startTime:number, color = defaultPaintColor, finish = defaultPaintFinish, ceilings = ceilingPaint, trim = doorsAndTrimPaint) => {
+    const saveTimestampToFirestore = async (startTime: number, color: string = defaultPaintColor, finish: string = defaultPaintFinish, dontPaintCeilings: boolean = ceilingPaint, dontPaintTrimAndDoors: boolean = doorsAndTrimPaint) => {
         if (!auth.currentUser || !userImageRef) {
-            console.error('No authenticated user or user image document reference.');
-            return;
+          console.error('No authenticated user or user image document reference.');
+          return;
         }
     
         const newTimestampPair = { 
-            startTime,
-            color,
+            startTime, 
+
+            color, 
             finish,
-            ceilings, // Use "ceilings" directly without inverting the value
-            trim, // Use "trim" directly without inverting the value
+            dontPaintCeilings, 
+            dontPaintTrimAndDoors,
+            dontPaintAtAll: false // Assuming a default value, adjust as necessary
         };
     
         try {
@@ -586,31 +406,45 @@ const Dashboard = () => {
             console.log("Timestamp pair added successfully");
     
             // Update the local state to reflect the new timestamp pair addition
-            setTimestampPairs(prevPairs => [...prevPairs, newTimestampPair]);
+            setTimestampPairs(prevPairs => [...prevPairs, { ...newTimestampPair}]);
         } catch (error) {
             console.error("Error adding timestamp pair: ", error);
         }
     };
 
     const endRoomAndReturnToDefaults = async () => {
-        
         if (!auth.currentUser || !videoRef.current || timestampPairs.length === 0 || !userImageRef) {
             console.error("Missing required references or no timestamp pairs available.");
             return;
         }
         if (videoRef.current) {
-            videoRef.current.pause(); 
+            videoRef.current.pause();
         }
     
         const currentTime = videoRef.current.currentTime;
-        // Find the index of the timestamp pair that was most recently added without an endTime.
-        const mostRecentPairIndex = timestampPairs.findIndex(pair => pair.endTime === undefined || pair.endTime === 0);
+        // Find the index of the timestamp pair that is being ended
+        const endingPairIndex = timestampPairs.findIndex(pair => pair.startTime === videoSelectionStart);
     
-        if (mostRecentPairIndex !== -1) {
+        // Check if the intended endTime falls within any existing timestamp pair (excluding the one being ended)
+        const isWithinExistingPair = timestampPairs.some((pair, index) => {
+            if (index !== endingPairIndex) { // Exclude the pair being ended from the check
+                const startTime = pair.startTime;
+                const endTime = pair.endTime || Infinity; // Treat pairs without an endTime as extending to Infinity
+                return currentTime > startTime && currentTime < endTime;
+            }
+            return false;
+        });
+    
+        if (isWithinExistingPair) {
+            alert("You cannot end a room within the time range of an existing room. Please choose an earlier time.");
+            return; // Prevent further execution
+        }
+    
+        if (endingPairIndex !== -1) {
             // Clone the current timestampPairs to avoid direct state mutation.
             let updatedTimestampPairs = [...timestampPairs];
-            updatedTimestampPairs[mostRecentPairIndex] = {
-                ...updatedTimestampPairs[mostRecentPairIndex],
+            updatedTimestampPairs[endingPairIndex] = {
+                ...updatedTimestampPairs[endingPairIndex],
                 endTime: currentTime, // Update only the endTime.
             };
     
@@ -621,8 +455,7 @@ const Dashboard = () => {
                 // Fetch the latest data again to synchronize
                 const updatedDoc = await getDoc(userImageRef);
                 if (updatedDoc.exists()) {
-                    const updatedTimestampPairs = updatedDoc.data().timestampPairs;
-                    setTimestampPairs(updatedTimestampPairs); // This updates the local state with the latest from Firestore
+                    setTimestampPairs(updatedDoc.data().timestampPairs);
                 }
             } catch (error) {
                 console.error("Error updating timestamp pair with endTime: ", error);
@@ -783,28 +616,34 @@ const Dashboard = () => {
 
                                 return (
                                     <div className='dashboard flex flex-col items-center mt-10 w-full'>
-                                        <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} painterId={painterId}/>
                                         {isPainter ? (
                                             <PainterDashboard />
                                         ) : (
-                                            <div className="dashboard-content flex flex-col items-center w-full max-w-4xl">
+                                            <div className="dashboard-content flex flex-col items-center w-full max-w-4xl mb-16">
                                                 {userData && userData.video && (
-                                                    <div className="video-container mb-2">
+                                                    <div className="video-container mb-4" style={{ maxWidth: '768px', width: '100%' }}>
                                                         <video 
                                                             controls 
-                                                            playsInline
+                                                            playsInline // This is equivalent to webkit-playsinline
                                                             muted={true} 
                                                             ref={videoRef} 
                                                             src={userData.video} 
-                                                            className="video" 
+                                                            className="video mb-4"
+                                                            style={{ width: '100%' }}
                                                             onLoadedMetadata={() => {
                                                                 if (videoRef.current) {
                                                                     videoRef.current.playbackRate = 2.0;
                                                                 }
-                                                            }}
+                                                            }} 
                                                         />
                                                     </div>
                                                 )}
+                                                <div className="new-room-container text-center mt-4 mb-4">
+                                                    <p>{addingRoom ? "End room and return to your defaults" : "Add any room or area that does not match your defaults"}</p>
+                                                    <button onClick={addingRoom ? endRoomAndReturnToDefaults : handleVideoSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                                        {addingRoom ? "End room" : "New Room"}
+                                                    </button>
+                                                </div>
                                                 {currentTimestampPair && userImageRef && (
                                                     <RoomCard
                                                         key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
@@ -812,41 +651,25 @@ const Dashboard = () => {
                                                         endTime={currentTimestampPair.endTime}
                                                         defaultColor={currentTimestampPair.color || defaultPaintColor}
                                                         defaultFinish={currentTimestampPair.finish || defaultPaintFinish}
-                                                        defaultCeilings={currentTimestampPair.ceilings}
-                                                        defaultTrim={currentTimestampPair.trim}
+                                                        defaultCeilings={currentTimestampPair.ceilings !== undefined ? currentTimestampPair.ceilings : ceilingPaint}
+                                                        defaultTrim={currentTimestampPair.trim !== undefined ? currentTimestampPair.trim : doorsAndTrimPaint}
                                                         userImageRef={userImageRef}
                                                         onDelete={handleTimestampPairDelete}
-                                                        editable={false}
+                                                        editable={true}
                                                     />
                                                 )}
-                                                {acceptedQuote ? (
-                                                    <div className="text-center my-10">
-                                                        <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
-                                                        <PainterCard painterId={acceptedQuote.painterId}/>
-                                                    </div>
-                                                ) : (
-                                                    userData && userData.prices && renderQuotes(userData.prices)
-                                                )}
-                                
-                                                {/* Button row */}
-                                                <div className="button-group my-4 flex justify-center gap-4">
-                                                    <button 
-                                                        onClick={() => router.push('/quote')} 
-                                                        className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
-                                                    >
-                                                        Resubmit Video
-                                                    </button>
+                                                <div className="button-group mt-4 flex justify-center gap-4"> {/* Flex container for buttons */}
                                                     <button 
                                                         onClick={() => router.push('/defaultPreferences')} 
-                                                        className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                                                        className="reset-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
                                                     >
                                                         Reset Defaults
                                                     </button>
                                                     <button 
-                                                        onClick={() => router.push('/roomPreferences')} 
-                                                        className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                                                        onClick={() => router.push('/dashboard')} 
+                                                        className="submit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
                                                     >
-                                                        Reset Rooms
+                                                        Set Rooms
                                                     </button>
                                                 </div>
                                             </div>
@@ -861,12 +684,15 @@ const Dashboard = () => {
                                 
                                             .video-container {
                                                 width: 100%;
-                                                max-width: 450px; // Adjust as needed
                                             }
                                 
                                             .video {
-                                                width: 100%; // Ensure video width matches the container
-                                                max-width: 768px; // Adjust as needed
+                                                width: 100%; // Adjust as necessary
+                                                max-width: 100%; // Ensure video doesn't exceed its container
+                                            }
+                                
+                                            .new-room-btn {
+                                                margin-top: 1rem;
                                             }
                                             .button-group {
                                                 display: flex;
@@ -875,10 +701,300 @@ const Dashboard = () => {
                                         `}</style>
                                     </div>
                                 );
-                                
-    
+                                 
     
     
 };
 
-export default Dashboard;
+export default RoomPreferences;
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import { useAtom } from 'jotai';
+import { timestampPairsAtom, userDataAtom } from '../../atom/atom';
+import RoomCard from '@/components/roomCard';
+import { getFirestore, setDoc, getDoc, arrayUnion, arrayRemove, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { TimestampPair } from '@/types/types';
+
+const RoomPreferences = () => {
+    const firestore = getFirestore();
+    const auth = getAuth();
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [userData, setUserData] = useAtom(userDataAtom);
+    const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
+    const [userImageRef, setUserImageRef] = useState<DocumentReference | null>(null);
+    const [currentTimestampPair, setCurrentTimestampPair] = useState<TimestampPair | null>(null);
+    const [defaultColor, setDefaultColor] = useState('DefaultColor');
+    const [defaultFinish, setDefaultFinish] = useState('DefaultFinish');
+    const [defaultCeilings, setDefaultCeilings] = useState(false);
+    const [defaultTrim, setDefaultTrim] = useState(false);
+
+    useEffect(() => {
+        if (userData && userData.paintPreferencesId) {
+            const prefDocRef = doc(firestore, "paintPreferences", userData.paintPreferencesId);
+            getDoc(prefDocRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    const prefs = docSnap.data();
+                    setDefaultColor(prefs.color);
+                    setDefaultFinish(prefs.finish);
+                    setDefaultCeilings(prefs.ceilings);
+                    setDefaultTrim(prefs.trim);
+    
+                    // Once defaults are fetched, set currentTimestampPair with these values
+                    setCurrentTimestampPair({
+                        startTime: 0, // Assuming start time of 0 for new selection
+                        endTime: undefined, // No end time for new selection
+                        color: prefs.color,
+                        finish: prefs.finish,
+                        ceilings: prefs.ceilings,
+                        trim: prefs.trim,
+                    });
+                }
+            }).catch(error => console.error("Error fetching paint preferences:", error));
+        }
+    }, [userData, firestore]);
+
+    useEffect(() => {
+        if (auth.currentUser) {
+            const dataQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            getDocs(dataQuery).then(querySnapshot => {
+                if (!querySnapshot.empty) {
+                    const userDataDoc = querySnapshot.docs[0].data();
+                    setUserData(userDataDoc);
+                } else {
+                    console.log("No user data found");
+                    setUserData(null);
+                }
+            }).catch(error => {
+                console.error("Error fetching user data:", error);
+                setUserData(null);
+            });
+        }
+    }, [auth.currentUser, firestore]);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            console.log("Auth state changed. Current User: ", user);
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                const uid = user.uid;
+                // Now fetch user data and set up userImageRef
+                const docRef = doc(firestore, "userImages", uid);
+                setUserImageRef(docRef);
+                // Fetch user data as before
+                const dataQuery = query(collection(firestore, "userImages"), where("userId", "==", uid));
+                getDocs(dataQuery).then(querySnapshot => {
+                    if (!querySnapshot.empty) {
+                        const userDataDoc = querySnapshot.docs[0].data();
+                        setUserData(userDataDoc);
+                    } else {
+                        console.log("No user data found");
+                        setUserData(null);
+                    }
+                }).catch(error => {
+                    console.error("Error fetching user data:", error);
+                    setUserData(null);
+                });
+            } else {
+                // User is signed out
+                setUserData(null);
+            }
+        });
+    
+        // Unsubscribe from the listener when the component unmounts
+        return unsubscribe;
+    }, [auth, firestore]);
+
+    useEffect(() => {
+        console.log("Current User: ", auth.currentUser);
+        if (auth.currentUser) {
+            const docRef = doc(firestore, "userImages", auth.currentUser.uid);
+            console.log("DocRef: ", docRef);
+            setUserImageRef(docRef);
+        }
+    }, [auth.currentUser, firestore]);
+
+    useEffect(() => {
+        console.log("UserData: ", userData);
+        console.log("Video URL: ", userData?.video);
+    }, [userData]);
+
+    const handleTimeUpdate = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        //const currentTime = video.currentTime;
+        console.log('Time update or seeked event fired');
+        //const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
+        const currentTime = videoRef.current?.currentTime || 0;
+        const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
+
+        if (matchedPair) {
+            setCurrentTimestampPair(matchedPair);
+            console.log(matchedPair);
+        } else {
+            setCurrentTimestampPair({
+                startTime: currentTime,
+                endTime: undefined,
+                color: defaultColor,
+                finish: defaultFinish,
+                ceilings: defaultCeilings,
+                trim: defaultTrim,
+            });
+        }
+    };
+
+    const handleNewRoomSelection = async () => {
+        if (!auth.currentUser || !videoRef.current || !userImageRef) return;
+    
+        // Example values for missing properties - adjust these as necessary based on your application's logic
+        const defaultColor = 'DefaultColor';
+        const defaultFinish = 'DefaultFinish';
+        const defaultCeilings = false;
+        const defaultTrim = false;
+    
+        const currentTime = videoRef.current.currentTime;
+        const newPair = {
+            startTime: currentTime, // Assuming this is the start time for the new room
+            endTime: currentTime + 10, // Just an example, adjust this based on how you determine end time
+            color: defaultColor,
+            finish: defaultFinish,
+            ceilings: defaultCeilings,
+            trim: defaultTrim,
+        };
+    
+        setTimestampPairs(prev => [...prev, newPair]);
+
+        // Update Firestore
+        try {
+            await updateDoc(userImageRef, {
+                timestampPairs: arrayUnion(newPair)
+            });
+            console.log("New room timestamp added successfully");
+        } catch (error) {
+            console.error("Error adding new room timestamp:", error);
+        }
+    };
+
+    const handleTimestampPairDelete = async (startTime: number) => {
+        // Update local state
+        const updatedPairs = timestampPairs.filter(pair => pair.startTime !== startTime);
+        setTimestampPairs(updatedPairs);
+
+        // Update Firestore
+        if (userImageRef) {
+            try {
+                await updateDoc(userImageRef, {
+                    timestampPairs: arrayRemove({ startTime })
+                });
+                console.log('Firestore updated successfully');
+            } catch (error) {
+                console.error('Error updating Firestore: ', error);
+            }
+        }
+    };
+
+    return (
+        <div className='dashboard flex flex-col items-center mt-10 w-full'>
+                <div className="dashboard-content w-full max-w-4xl">
+                    {userData && userData.video && (
+                        <div className="video-container">
+                            <video
+                            ref={videoRef}
+                            controls
+                            playsInline
+                            muted
+                            src={userData?.video}
+                            className="video"
+                            onLoadedMetadata={() => {
+                                if (videoRef.current) {
+                                    videoRef.current.playbackRate = 2.0;
+                                }
+                            }}
+                            onTimeUpdate={handleTimeUpdate} // Directly use React event handler
+                            onSeeked={handleTimeUpdate}    // Directly use React event handler
+                        />
+                            {currentTimestampPair && userImageRef && (
+                                <RoomCard
+                                key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
+                                startTime={currentTimestampPair.startTime}
+                                endTime={currentTimestampPair.endTime}
+                                defaultColor={currentTimestampPair.color || defaultColor}
+                                defaultFinish={currentTimestampPair.finish || defaultFinish}
+                                defaultCeilings={currentTimestampPair.ceilings !== undefined ? currentTimestampPair.ceilings : defaultCeilings}
+                                defaultTrim={currentTimestampPair.trim !== undefined ? currentTimestampPair.trim : defaultTrim}
+                                userImageRef={userImageRef}
+                                onDelete={handleTimestampPairDelete}
+                              />
+                            )}
+                        </div>
+                    )}
+                    <div className="new-room-container text-center">
+                    <p>{"Add any room or area that does not match your defaults"}</p>
+                        <button onClick={handleNewRoomSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                            {"New Room"}
+                        </button>
+                    </div>
+                </div>
+    
+            <style jsx>{`
+                .dashboard-content {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+    
+                @media (min-width: 768px) {
+                    .dashboard-content {
+                        grid-template-columns: repeat(2, 1fr);
+                        grid-template-rows: auto auto;
+                        gap: 20px;
+                    }
+    
+                    .video-container {
+                        grid-column: 1 / 2;
+                        grid-row: 1 / 2;
+                    }
+    
+                    .defaults-form-container {
+                        grid-column: 1 / 2;
+                        grid-row: 2 / 3;
+                    }
+    
+                    .new-room-container {
+                        grid-column: 2 / 3;
+                        grid-row: 1 / 2;
+                    }
+    
+                    .room-cards-container {
+                        grid-column: 2 / 3;
+                        grid-row: 2 / 3;
+                        max-height: none;
+                    }
+                }
+    
+                .video {
+                    width: 100%;
+                }
+            `}</style>
+        </div>
+    );
+};
+
+export default RoomPreferences;
+*/

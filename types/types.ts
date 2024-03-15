@@ -3,6 +3,7 @@ export type UserData = {
     email?: string;
     quote?: string | null;
     video?: string;
+    paintPreferencesId?: string;
     prices?: Array<{
         painterId: string;
         amount: number;
