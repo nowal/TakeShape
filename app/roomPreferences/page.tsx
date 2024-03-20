@@ -704,20 +704,20 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                                         ) : (
                                             <div className="dashboard-content flex flex-col items-center w-full max-w-4xl mb-16">
                                                 {userData && userData.video && (
-                                                    <div className="video-container mb-4" style={{ maxWidth: '450px', width: '100%' }}>
-                                                        <video 
-                                                            controls 
-                                                            playsInline // This is equivalent to webkit-playsinline
-                                                            muted={true} 
-                                                            ref={videoRef} 
-                                                            src={userData.video} 
-                                                            className="video mb-4"
-                                                            style={{ width: '100%' }}
-                                                            onLoadedMetadata={() => {
-                                                                if (videoRef.current) {
-                                                                    videoRef.current.playbackRate = 2.0;
-                                                                }
-                                                            }} 
+                                                    <div className="video-container mb-2" style={{ maxWidth: '90%' }}>
+                                                        <video
+                                                        controls
+                                                        playsInline
+                                                        muted={true}
+                                                        ref={videoRef}
+                                                        src={userData.video}
+                                                        className="video"
+                                                        style={{ width: '100%', maxWidth: '100%' }} // Adjust video size dynamically
+                                                        onLoadedMetadata={() => {
+                                                            if (videoRef.current) {
+                                                            videoRef.current.playbackRate = 2.0;
+                                                            }
+                                                        }}
                                                         />
                                                     </div>
                                                 )}

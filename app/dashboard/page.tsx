@@ -820,21 +820,22 @@ const Dashboard = () => {
                                         ) : (
                                             <div className="dashboard-content flex flex-col items-center w-full max-w-4xl">
                                                 {userData && userData.video && (
-                                                    <div className="video-container mb-2">
-                                                        <video 
-                                                            controls 
-                                                            playsInline
-                                                            muted={true} 
-                                                            ref={videoRef} 
-                                                            src={userData.video} 
-                                                            className="video" 
-                                                            onLoadedMetadata={() => {
-                                                                if (videoRef.current) {
-                                                                    videoRef.current.playbackRate = 2.0;
-                                                                }
-                                                            }}
-                                                        />
-                                                    </div>
+                                                    <div className="video-container mb-2" style={{ maxWidth: '90%' }}>
+                                                    <video
+                                                      controls
+                                                      playsInline
+                                                      muted={true}
+                                                      ref={videoRef}
+                                                      src={userData.video}
+                                                      className="video"
+                                                      style={{ width: '100%', maxWidth: '100%' }} // Adjust video size dynamically
+                                                      onLoadedMetadata={() => {
+                                                        if (videoRef.current) {
+                                                          videoRef.current.playbackRate = 2.0;
+                                                        }
+                                                      }}
+                                                    />
+                                                  </div>
                                                 )}
                                                 {currentTimestampPair && userImageRef && (
                                                     <RoomCard

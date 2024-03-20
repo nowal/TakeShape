@@ -123,8 +123,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   return (
     <div
-      className="room-card p-4 px-8 m-4 rounded-lg shadow-lg bg-white flex flex-col justify-between relative max-w-lg mx-auto cursor-pointer"
+      className="room-card p-4 px-8 m-4 rounded-lg shadow-lg bg-white flex flex-col justify-between relative mx-auto cursor-pointer"
       onClick={onClick} // Use the onClick prop here
+      style={{ maxWidth: '80%' }} // Ensure roomCard doesn't overflow on mobile
     >
       {editable && (
         <button onClick={() => onDelete(startTime)} className="absolute top-2 right-2 text-2xl font-bold">×</button>
