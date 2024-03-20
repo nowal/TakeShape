@@ -40,6 +40,8 @@ const RoomPreferences = () => {
     const [defaultPaintFinish, setDefaultPaintFinish] = useState('');
     const [ceilingPaint, setCeilingPaint] = useState(false);
     const [doorsAndTrimPaint, setDoorsAndTrimPaint] = useState(false);
+    const [roomNumber, setRoomNumber] = useState(1);
+    const [showTooltip, setShowTooltip] = useState(false);
     const [currentTimestampPair, setCurrentTimestampPair] = useState<TimestampPair>({
         startTime: 0,
         endTime: 0,
@@ -47,6 +49,7 @@ const RoomPreferences = () => {
         finish: '',
         ceilings: false,
         trim: false,
+        roomName:'',
       });
     const [currentPreferences, setCurrentPreferences] = useState<PaintPreferences>({
         color: '', // Default values or fetched from your initial data
@@ -73,6 +76,24 @@ const RoomPreferences = () => {
           setUserImageRef(userImageDocRef); // Store it in state
         }
       };
+
+      useEffect(() => {
+        // Function to hide tooltip
+        const hideTooltip = () => setShowTooltip(false);
+    
+        // Automatically show the tooltip when the component mounts
+        setShowTooltip(true);
+    
+        // Add event listeners
+        document.addEventListener('click', hideTooltip);
+        window.addEventListener('scroll', hideTooltip, true); // Using capture phase for better detection
+    
+        // Cleanup function to remove event listeners
+        return () => {
+            document.removeEventListener('click', hideTooltip);
+            window.removeEventListener('scroll', hideTooltip, true);
+        };
+    }, []);
 
       useEffect(() => {
         // Declare intervalId outside the attemptAccessVideo function to control its scope
@@ -103,6 +124,7 @@ const RoomPreferences = () => {
                             finish: defaultPaintFinish,
                             ceilings: ceilingPaint,
                             trim: doorsAndTrimPaint,
+                            roomName: 'bad',
                         });
                     }
                 };
@@ -148,6 +170,7 @@ const RoomPreferences = () => {
                     finish: defaultPaintFinish,
                     ceilings: ceilingPaint,
                     trim: doorsAndTrimPaint,
+                    roomName: 'Bad',
                 });
             }
         };
@@ -169,6 +192,55 @@ const RoomPreferences = () => {
             };
         }
     }, [timestampPairs, defaultPaintColor, defaultPaintFinish, ceilingPaint, doorsAndTrimPaint, videoRef]);
+
+    useEffect(() => {
+        // Check for and potentially add an initial timestampPair when the component mounts
+        if (timestampPairs.length === 0 && auth.currentUser && userImageRef) {
+            const initialPair = {
+                startTime: 0,
+                color: defaultPaintColor,
+                finish: defaultPaintFinish,
+                ceilings: ceilingPaint,
+                trim: doorsAndTrimPaint,
+            };
+            // This adds the initial timestamp pair to Firestore and local state
+            saveTimestampToFirestore(0); // Passing 0 to start at the beginning of the video
+        }
+    }, [auth.currentUser, timestampPairs, userImageRef]);
+
+    const changePreferences = async () => {
+        if (!videoRef.current || !userImageRef) return;
+    
+        videoRef.current.pause();
+        const currentTime = videoRef.current.currentTime;
+    
+        let updatedPairs = timestampPairs ? [...timestampPairs] : [];
+    
+        const newRoomNumber = updatedPairs.length + 1; // Dynamically calculate the new room number
+    
+        // Define the room name based on the new room number
+        const newRoomName = `Room ${newRoomNumber}`;
+    
+        const newTimestampPair = {
+            startTime: currentTime,
+            color: defaultPaintColor,
+            finish: defaultPaintFinish,
+            ceilings: ceilingPaint,
+            trim: doorsAndTrimPaint,
+            dontPaintAtAll: false,
+            roomName: newRoomName, // Use the dynamically generated room name
+        };
+    
+        // Add the new timestamp pair
+        updatedPairs.push(newTimestampPair);
+    
+        await updateDoc(userImageRef, {
+            timestampPairs: updatedPairs
+        });
+    
+        setTimestampPairs(updatedPairs); // Update local state with the new list of timestamp pairs
+    };
+    
 
     
     
@@ -383,34 +455,39 @@ const RoomPreferences = () => {
     });
 };
 
-    const saveTimestampToFirestore = async (startTime: number, color: string = defaultPaintColor, finish: string = defaultPaintFinish, dontPaintCeilings: boolean = ceilingPaint, dontPaintTrimAndDoors: boolean = doorsAndTrimPaint) => {
-        if (!auth.currentUser || !userImageRef) {
-          console.error('No authenticated user or user image document reference.');
-          return;
-        }
-    
-        const newTimestampPair = { 
-            startTime, 
+const saveTimestampToFirestore = async (startTime: number, color: string = defaultPaintColor, finish: string = defaultPaintFinish, dontPaintCeilings: boolean = ceilingPaint, dontPaintTrimAndDoors: boolean = doorsAndTrimPaint) => {
+    if (!auth.currentUser || !userImageRef) {
+      console.error('No authenticated user or user image document reference.');
+      return;
+    }
 
-            color, 
-            finish,
-            dontPaintCeilings, 
-            dontPaintTrimAndDoors,
-            dontPaintAtAll: false // Assuming a default value, adjust as necessary
-        };
-    
-        try {
-            await updateDoc(userImageRef, {
-                timestampPairs: arrayUnion(newTimestampPair)
-            });
-            console.log("Timestamp pair added successfully");
-    
-            // Update the local state to reflect the new timestamp pair addition
-            setTimestampPairs(prevPairs => [...prevPairs, { ...newTimestampPair}]);
-        } catch (error) {
-            console.error("Error adding timestamp pair: ", error);
-        }
+    // Generate the room name based on the current roomNumber state
+    const roomName = `Room ${roomNumber}`;
+
+    const newTimestampPair: TimestampPair = { 
+        startTime,
+        color, 
+        finish,
+        ceilings: dontPaintCeilings, 
+        trim: dontPaintTrimAndDoors,
+        roomName // Including the dynamically generated roomName
     };
+
+    try {
+        await updateDoc(userImageRef, {
+            timestampPairs: arrayUnion(newTimestampPair)
+        });
+        console.log("Timestamp pair added successfully");
+
+        // Update the local state to reflect the new timestamp pair addition
+        setTimestampPairs(prevPairs => [...prevPairs, newTimestampPair]);
+
+        // Increment the room number for subsequent rooms
+    } catch (error) {
+        console.error("Error adding timestamp pair: ", error);
+    }
+};
+
 
     const endRoomAndReturnToDefaults = async () => {
         if (!auth.currentUser || !videoRef.current || timestampPairs.length === 0 || !userImageRef) {
@@ -581,6 +658,12 @@ const RoomPreferences = () => {
         }
     };
 
+    const handleRoomCardClick = (startTime: number) => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = startTime;
+        }
+      };
+
     /*<div className="mt-4 ml-4">
                                     <label className="block mb-2">Set your most used wall paint color and finish:</label>
                                     <div className="flex gap-2">
@@ -621,7 +704,7 @@ const RoomPreferences = () => {
                                         ) : (
                                             <div className="dashboard-content flex flex-col items-center w-full max-w-4xl mb-16">
                                                 {userData && userData.video && (
-                                                    <div className="video-container mb-4" style={{ maxWidth: '768px', width: '100%' }}>
+                                                    <div className="video-container mb-4" style={{ maxWidth: '450px', width: '100%' }}>
                                                         <video 
                                                             controls 
                                                             playsInline // This is equivalent to webkit-playsinline
@@ -639,12 +722,17 @@ const RoomPreferences = () => {
                                                     </div>
                                                 )}
                                                 <div className="new-room-container text-center mt-4 mb-4">
-                                                    <p>{addingRoom ? "End room and return to your defaults" : "Add any room or area that does not match your defaults"}</p>
-                                                    <button onClick={addingRoom ? endRoomAndReturnToDefaults : handleVideoSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
-                                                        {addingRoom ? "End room" : "New Room"}
+                                                    <button onClick={changePreferences} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                                        New Room
                                                     </button>
+                                                    <div className="tooltip-container ml-2 inline-block relative">
+    <span className="tooltip-icon">?</span>
+    <span className={`tooltip-text ${showTooltip ? 'visible' : ''}`}>
+        Click the Change Preferences button whenever the video enters a room or space that you want different preferences for.
+    </span>
+</div>
                                                 </div>
-                                                {currentTimestampPair && userImageRef && (
+                                                {/*{currentTimestampPair && userImageRef && (
                                                     <RoomCard
                                                         key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
                                                         startTime={currentTimestampPair.startTime}
@@ -657,7 +745,26 @@ const RoomPreferences = () => {
                                                         onDelete={handleTimestampPairDelete}
                                                         editable={true}
                                                     />
-                                                )}
+                                                )}*/}
+                                                <div className="overflow-auto" style={{ maxHeight: '350px' }} ref={roomCardsContainerRef}>
+                                                    {userImageRef && [...timestampPairs]
+                                                        .sort((a, b) => b.startTime - a.startTime) // Sort timestampPairs by startTime in descending order
+                                                        .map((pair, index) => (
+                                                            <RoomCard
+                                                                key={index} // Consider using a more unique key if possible
+                                                                startTime={pair.startTime}
+                                                                userImageRef={userImageRef}
+                                                                onDelete={() => handleTimestampPairDelete(pair.startTime)}
+                                                                defaultColor={pair.color || defaultPaintColor}
+                                                                defaultFinish={pair.finish || defaultPaintFinish}
+                                                                defaultCeilings={pair.ceilings !== undefined ? pair.ceilings : ceilingPaint}
+                                                                defaultTrim={pair.trim !== undefined ? pair.trim : doorsAndTrimPaint}
+                                                                roomName={pair.roomName}
+                                                                editable={true}
+                                                                onClick={() => handleRoomCardClick(pair.startTime)}
+                                                            />
+                                                        ))}
+                                                </div>
                                                 <div className="button-group mt-4 flex justify-center gap-4"> {/* Flex container for buttons */}
                                                     <button 
                                                         onClick={() => router.push('/defaultPreferences')} 
@@ -671,34 +778,63 @@ const RoomPreferences = () => {
                                                     >
                                                         Set Rooms
                                                     </button>
-                                                </div>
+                                                    </div>
                                             </div>
                                         )}
                                 
-                                        <style jsx>{`
-                                            .dashboard-content {
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                            }
-                                
-                                            .video-container {
-                                                width: 100%;
-                                            }
-                                
-                                            .video {
-                                                width: 100%; // Adjust as necessary
-                                                max-width: 100%; // Ensure video doesn't exceed its container
-                                            }
-                                
-                                            .new-room-btn {
-                                                margin-top: 1rem;
-                                            }
-                                            .button-group {
-                                                display: flex;
-                                                gap: 1rem;
-                                            }
-                                        `}</style>
+                                <style jsx>{`
+                                    .dashboard-content {
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                    }
+
+                                    .video-container {
+                                        width: 100%;
+                                    }
+
+                                    .video {
+                                        width: 100%;
+                                        max-width: 100%;
+                                    }
+
+                                    .new-room-btn {
+                                        margin-top: 1rem;
+                                    }
+
+                                    .button-group {
+                                        display: flex;
+                                        gap: 1rem;
+                                    }
+
+                                    .tooltip-container .tooltip-icon {
+                                        cursor: pointer;
+                                        display: inline-block;
+                                        font-weight: bold;
+                                    }
+                                    
+                                    .tooltip-text {
+                                        min-width: 200px;
+                                        background-color: black;
+                                        color: white;
+                                        text-align: center;
+                                        border-radius: 6px;
+                                        padding: 5px 0;
+                                        position: absolute;
+                                        z-index: 1;
+                                        bottom: 100%;
+                                        left: 50%;
+                                        transform: translateX(-50%);
+                                        opacity: 0;
+                                        transition: opacity 0.5s ease-in-out;
+                                        pointer-events: none;
+                                    }
+
+                                    .tooltip-container:hover .tooltip-text, .tooltip-text.visible {
+                                        opacity: 1;
+                                        pointer-events: auto;
+                                    }
+                                `}</style>
                                     </div>
                                 );
                                  

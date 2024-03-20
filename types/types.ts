@@ -17,7 +17,11 @@ export type PaintPreferences = {
     color?: string;
     finish?: string;
     ceilings?: boolean;
+    ceilingColor?: string;
+    ceilingFinish?: string;
     trim?: boolean;
+    trimColor?: string;
+    trimFinish?: string;
   };
 
 export type TimestampPair = {
@@ -27,6 +31,7 @@ export type TimestampPair = {
     finish?: string;
     ceilings?: boolean;
     trim?: boolean;
+    roomName: string;
 };
 
 export type Job = {

@@ -16,6 +16,8 @@ const DefaultPreferences = () => {
     // Use the defaultPreferencesAtom directly
     const [defaultPreferences, setDefaultPreferences] = useAtom(defaultPreferencesAtom);
     const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
+    const [showCeilingFields, setShowCeilingFields] = useState(defaultPreferences.ceilings || false);
+    const [showTrimFields, setShowTrimFields] = useState(defaultPreferences.trim || false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -71,32 +73,98 @@ const DefaultPreferences = () => {
         setIsSubmitEnabled((defaultPreferences.color || '').trim() !== '' && (defaultPreferences.finish || '').trim() !== '');
     }, [defaultPreferences.color, defaultPreferences.finish]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type } = e.target;
-        const isCheckbox = type === "checkbox";
-        const checked = isCheckbox ? e.target.checked : false;
-
-        setDefaultPreferences(prev => ({
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        setDefaultPreferences((prev) => ({
             ...prev,
-            [name]: isCheckbox ? checked : value,
+            [name]: checked,
         }));
+
+        if (name === "ceilings") {
+            setShowCeilingFields(checked);
+        } else if (name === "trim") {
+            setShowTrimFields(checked);
+        }
     };
 
+    // Update the handleChange function to include handleCheckboxChange for checkbox fields
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const target = e.target;
+        const { name, value } = target;
+        const isCheckbox = target.type === "checkbox";
+
+        if (isCheckbox) {
+            handleCheckboxChange(e as React.ChangeEvent<HTMLInputElement>);
+        } else {
+            setDefaultPreferences((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
+    };
+    
+
     return (
-        <div className="defaultPreferences flex justify-center items-center h-screen">
-            <div className="form-container text-center">
+        <div className="defaultPreferences flex flex-col justify-start items-center h-screen">
+            <div className="form-container text-center mt-10 md:mt-20">
                 <h2 className="text-2xl font-bold mb-8">Set Your Default Painting Preferences</h2>
-                <div className="preferences-row flex flex-col items-center gap-4 mb-6">
-                    <input type="text" name="color" placeholder="Color" value={defaultPreferences.color || ''} onChange={handleChange} className="input-field" />
-                    <input type="text" name="finish" placeholder="Finish" value={defaultPreferences.finish || ''} onChange={handleChange} className="input-field" />
+                <div className="preferences-row flex flex-col items-center gap-2 mb-6">
+                    <input type="text" name="color" placeholder="Wall Color" value={defaultPreferences.color || ''} onChange={handleChange} className="input-field" />
+                    {/* Style the link as a traditional hyperlink */}
+                    <a href="https://www.thisoldhouse.com/painting/21015206/how-to-choose-the-right-colors-for-your-rooms" target="_blank" rel="noopener noreferrer" className="help-link">
+                        Need help picking a paint color?
+                    </a>
+                    <div className="select-container flex items-center gap-4 w-full">
+                        <select name="finish" value={defaultPreferences.finish || ''} onChange={handleChange} className="input-field select-field">
+                            <option value="Eggshell">Eggshell</option>
+                            <option value="Flat">Flat</option>
+                            <option value="Satin">Satin</option>
+                            <option value="Semi-gloss">Semi-Gloss</option>
+                            <option value="High-gloss">High Gloss</option>
+                        </select>
+                        <span className="tooltip">?
+                            <span className="tooltiptext">We default to eggshell finish because of its versatility, but you are welcome to pick whatever finish you prefer</span>
+                        </span>
+                    </div>
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" name="ceilings" checked={defaultPreferences.ceilings || false} onChange={handleChange} /> Paint Ceilings
+                        <input type="checkbox" name="ceilings" checked={defaultPreferences.ceilings || false} onChange={handleChange} /> Do you any of your ceilings painted?
                     </label>
+                    {showCeilingFields && (
+                        <div className="extra-fields-row flex justify-between w-full">
+                            <input type="text" name="ceilingColor" placeholder="Ceiling Color" value={defaultPreferences.ceilingColor || ''} onChange={handleChange} className="input-field" />
+                            <select name="ceilingFinish" value={defaultPreferences.ceilingFinish || ''} onChange={handleChange} className="input-field select-field">
+                                <option value="Flat">Flat</option>
+                                <option value="Eggshell">Eggshell</option>
+                                <option value="Satin">Satin</option>
+                                <option value="Semi-gloss">Semi-Gloss</option>
+                                <option value="High-gloss">High Gloss</option>
+                            </select>
+                        </div>
+                    )}
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" name="trim" checked={defaultPreferences.trim || false} onChange={handleChange} /> Paint Doors and Trim
+                        <input type="checkbox" name="trim" checked={defaultPreferences.trim || false} onChange={handleChange} /> Do you want any of your trim and doors painted?
                     </label>
+                    {showTrimFields && (
+                        <div className="extra-fields-row flex justify-between w-full">
+                            <input type="text" name="trimColor" placeholder="Trim Color" value={defaultPreferences.trimColor || ''} onChange={handleChange} className="input-field" />
+                            <select name="trimFinish" value={defaultPreferences.trimFinish || ''} onChange={handleChange} className="input-field select-field">
+                                <option value="Semi-gloss">Semi-Gloss</option>
+                                <option value="Flat">Flat</option>
+                                <option value="Eggshell">Eggshell</option>
+                                <option value="Satin">Satin</option>
+                                <option value="High-gloss">High Gloss</option>
+                            </select>
+                        </div>
+                    )}
+                    <select name="trimFinish" value={defaultPreferences.trimFinish || ''} onChange={handleChange} className="input-field select-field">
+                                <option value="Semi-gloss">Paint Quality</option>
+                                <option value="Flat">Budget Quality</option>
+                                <option value="Eggshell">Medium Quality</option>
+                                <option value="Satin">High Quality</option>
+                            </select>
+                    <p className="note-text px-4">Each painter will specify the type of paint that they will use in their quote.</p>
                 </div>
-                <div className="button-group flex justify-center gap-4"> {/* Flex container for buttons */}
+                <div className="button-group flex justify-center gap-4">
                     <button 
                         onClick={() => router.push('/quote')} 
                         className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
@@ -104,7 +172,7 @@ const DefaultPreferences = () => {
                         Resubmit Video
                     </button>
                     <button 
-                        disabled={!isSubmitEnabled} // Disable the button if isSubmitEnabled is false
+                        disabled={!isSubmitEnabled}
                         onClick={updateAdditionalInfo} 
                         className={`submit-btn ${!isSubmitEnabled ? 'disabled-btn' : 'button-color'} hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300`}
                     >
@@ -115,22 +183,24 @@ const DefaultPreferences = () => {
     
             <style jsx>{`
                 .disabled-btn {
-                    background-color: grey; // Style for the disabled button
+                    background-color: grey;
                 }
                 .defaultPreferences {
                     display: flex;
-                    justify-content: center;
+                    flex-direction: column;
+                    justify-content: flex-start;
                     align-items: center;
                     height: 100vh;
                 }
                 .form-container {
                     width: 100%;
-                    max-width: 500px; // Adjust width as necessary
+                    max-width: 500px;
                     padding: 2rem;
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                     border-radius: 8px;
+                    margin-top: 10vh;
                 }
-                .input-field {
+                .input-field, .select-field {
                     width: 100%;
                     padding: 0.5rem;
                     margin-bottom: 0.5rem;
@@ -149,9 +219,46 @@ const DefaultPreferences = () => {
                     padding: 0.75rem;
                     font-size: 1rem;
                 }
+                .tooltip {
+                    position: relative;
+                    display: inline-block;
+                    border-bottom: 1px dotted black;
+                }
+                .tooltip .tooltiptext {
+                    visibility: hidden;
+                    width: 120px;
+                    background-color: black;
+                    color: #fff;
+                    text-align: center;
+                    border-radius: 6px;
+                    padding: 5px 0;
+                    position: absolute;
+                    z-index: 1;
+                    bottom: 100%;
+                    left: 50%;
+                    margin-left: -60px;
+                }
+                .tooltip:hover .tooltiptext {
+                    visibility: visible;
+                }
+                .help-link {
+                    color: blue; /* Change the color to blue */
+                    text-decoration: underline; /* Add underline */
+                    cursor: pointer; /* Change cursor to pointer on hover */
+                    margin-bottom: 1rem; /* Adjust spacing */
+                }
+                .note-text {
+                    text-align: center;
+                    color: #666; /* You can adjust the color as needed */
+                    font-size: 0.875rem; /* Adjust the font size as needed */
+                    max-width: 90%; /* Ensure it doesn't stretch too wide on larger screens */
+                    margin: 20px auto; /* Add some spacing around the note */
+                }
             `}</style>
         </div>
     );
+    
+    
     
 };
 

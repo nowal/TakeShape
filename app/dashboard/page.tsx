@@ -227,6 +227,7 @@ const Dashboard = () => {
         finish: '',
         ceilings: false,
         trim: false,
+        roomName: '',
       });
     const [currentPreferences, setCurrentPreferences] = useState<PaintPreferences>({
         color: '', // Default values or fetched from your initial data
@@ -255,6 +256,27 @@ const Dashboard = () => {
       };
 
       useEffect(() => {
+        const currentTime = videoRef.current?.currentTime || 0;
+        const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
+    
+        if (matchedPair) {
+            setCurrentTimestampPair(matchedPair); // Make sure this includes roomName
+        } else {
+            // Default or fallback logic, ensure roomName is handled appropriately here too
+            setCurrentTimestampPair({
+                startTime: currentTime,
+                endTime: undefined,
+                color: defaultPaintColor,
+                finish: defaultPaintFinish,
+                ceilings: ceilingPaint,
+                trim: doorsAndTrimPaint,
+                roomName: 'Default Room', // Example fallback roomName
+            });
+        }
+    }, [videoRef.current, timestampPairs, defaultPaintColor, defaultPaintFinish, ceilingPaint, doorsAndTrimPaint]);
+    
+
+      useEffect(() => {
         // Declare intervalId outside the attemptAccessVideo function to control its scope
         let intervalId: NodeJS.Timeout | null = null;
     
@@ -278,11 +300,11 @@ const Dashboard = () => {
                     } else {
                         setCurrentTimestampPair({
                             startTime: currentTime,
-                            endTime: undefined,
                             color: defaultPaintColor,
                             finish: defaultPaintFinish,
                             ceilings: ceilingPaint,
                             trim: doorsAndTrimPaint,
+                            roomName: '',
                         });
                     }
                 };
@@ -325,11 +347,11 @@ const Dashboard = () => {
             } else {
                 setCurrentTimestampPair({
                     startTime: currentTime,
-                    endTime: undefined,
                     color: defaultPaintColor,
                     finish: defaultPaintFinish,
                     ceilings: ceilingPaint,
                     trim: doorsAndTrimPaint,
+                    roomName: '',
                 });
             }
         };
@@ -570,13 +592,16 @@ const Dashboard = () => {
             console.error('No authenticated user or user image document reference.');
             return;
         }
-    
+
+        const newRoomName = "shouldn't";
+
         const newTimestampPair = { 
             startTime,
             color,
             finish,
             ceilings, // Use "ceilings" directly without inverting the value
             trim, // Use "trim" directly without inverting the value
+            roomName: newRoomName,
         };
     
         try {
@@ -713,6 +738,12 @@ const Dashboard = () => {
         );
     };
 
+    const handleRoomCardClick = (startTime: number) => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = startTime;
+        }
+      };
+
     const updateAdditionalInfo = async () => {
         const user = auth.currentUser;
         if (!user) return; // Check if user is signed in
@@ -817,6 +848,8 @@ const Dashboard = () => {
                                                         userImageRef={userImageRef}
                                                         onDelete={handleTimestampPairDelete}
                                                         editable={false}
+                                                        roomName={currentTimestampPair.roomName}
+                                                        onClick={() => handleRoomCardClick(currentTimestampPair.startTime)}
                                                     />
                                                 )}
                                                 {acceptedQuote ? (
