@@ -704,7 +704,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                                         ) : (
                                             <div className="dashboard-content flex flex-col items-center w-full max-w-4xl mb-16">
                                                 {userData && userData.video && (
-                                                    <div className="video-container mb-2" style={{ maxWidth: '90%' }}>
+                                                    <div className="video-container mb-2" style={{ maxWidth: '100%' }}>
                                                         <video
                                                         controls
                                                         playsInline

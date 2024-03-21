@@ -123,81 +123,87 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   return (
     <div
-      className="room-card p-4 px-8 m-4 rounded-lg shadow-lg bg-white flex flex-col justify-between relative mx-auto cursor-pointer"
-      onClick={onClick} // Use the onClick prop here
-      style={{ maxWidth: '80%' }} // Ensure roomCard doesn't overflow on mobile
+      className="room-card p-4 m-4 rounded-lg shadow-lg bg-white flex flex-col justify-between relative max-w-lg mx-auto cursor-pointer"
+      onClick={onClick}
+      style={{ maxWidth: '95%' }} 
     >
       {editable && (
         <button onClick={() => onDelete(startTime)} className="absolute top-2 right-2 text-2xl font-bold">×</button>
       )}
       <form onSubmit={handleSubmit} className="w-full">
-      <input
-        type="text"
-        value={editableRoomName}
-        onChange={(e) => setEditableRoomName(e.target.value)}
-        className="text-lg font-semibold mb-4 block w-full rounded-md border-transparent focus:border-transparent focus:ring-0"
-        readOnly={!editable}
-        placeholder="Room Name"
-        style={{ textAlign: 'left' }}
-      />
-  {dontPaintAtAll ? (
-    <p>Don't paint this area</p>
-  ) : (
-    <>
-      <div className="flex items-center gap-2 mb-2">
         <input
           type="text"
-          placeholder="Color"
-          value={color}
-          onChange={(e) => editable ? setColor(e.target.value) : null}
-          className="input input-bordered w-28"
+          value={editableRoomName}
+          onChange={(e) => setEditableRoomName(e.target.value)}
+          className="text-lg font-semibold mb-4 block w-full rounded-md border-transparent focus:border-transparent focus:ring-0"
           readOnly={!editable}
+          placeholder="Room Name"
         />
-        <input
-          type="text"
-          placeholder="Finish"
-          value={finish}
-          onChange={(e) => editable ? setFinish(e.target.value) : null}
-          className="input input-bordered w-28"
-          readOnly={!editable}
-        />
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              checked={paintCeilings}
-              onChange={(e) => editable ? setPaintCeilings(e.target.checked) : null}
-              disabled={!editable}
-            />
-            Ceilings
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              checked={paintTrimAndDoors}
-              onChange={(e) => editable ? setPaintTrimAndDoors(e.target.checked) : null}
-              disabled={!editable}
-            />
-            Trim/Doors
-          </label>
-        </div>
-      </div>
-    </>
-  )}
-  {editable && (
-    <div className="flex justify-between items-center mb-2">
-      <label className="flex items-center gap-1">
-        <input
-          type="checkbox"
-          checked={dontPaintAtAll}
-          onChange={(e) => setDontPaintAtAll(e.target.checked)}
-        />
-        Don't paint at all
-      </label>
-      <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded">Set Room</button>
-    </div>
-  )}
-</form>
+        {dontPaintAtAll ? (
+          <p>Don't paint this area</p>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <input
+                type="text"
+                placeholder="Color"
+                value={color}
+                onChange={(e) => editable ? setColor(e.target.value) : null}
+                className="input input-bordered flex-grow flex-shrink min-w-0"
+                style={{ maxWidth: "30%" }} // Limit max width to give more room for checkboxes
+                readOnly={!editable}
+              />
+              <select
+                name="finish"
+                value={finish}
+                onChange={(e) => editable ? setFinish(e.target.value) : null}
+                className="select select-bordered flex-grow flex-shrink min-w-0"
+                style={{ maxWidth: "30%" }}
+                disabled={!editable}
+              >
+                <option value="Eggshell">Eggshell</option>
+                <option value="Flat">Flat</option>
+                <option value="Satin">Satin</option>
+                <option value="Semi-gloss">Semi-Gloss</option>
+                <option value="High-gloss">High Gloss</option>
+              </select>
+              <div className="flex-grow flex-shrink min-w-0 flex-wrap" style={{ maxWidth: "35%" }}> {/* This div will hold checkboxes and allow for some flex growth/shrink */}
+                <label className="flex items-center gap-1 whitespace-nowrap mr-2">
+                  <input
+                    type="checkbox"
+                    checked={paintCeilings}
+                    onChange={(e) => editable ? setPaintCeilings(e.target.checked) : null}
+                    disabled={!editable}
+                  />
+                  Ceilings
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={paintTrimAndDoors}
+                    onChange={(e) => editable ? setPaintTrimAndDoors(e.target.checked) : null}
+                    disabled={!editable}
+                  />
+                  Trim/Doors
+                </label>
+              </div>
+            </div>
+          </>
+        )}
+        {editable && (
+          <div className="flex justify-between items-center mb-2">
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={dontPaintAtAll}
+                onChange={(e) => setDontPaintAtAll(e.target.checked)}
+              />
+              Don't paint at all
+            </label>
+            <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded">Set Room</button>
+          </div>
+        )}
+      </form>
     </div>
   );
 };
