@@ -709,32 +709,30 @@ const Dashboard = () => {
         }
         
         if (acceptedQuote) return null;
-
-
+    
         return (
-            <div className="quotes mb-12"  style={{ width: '95%', maxWidth: '95%', margin: '0 auto' }}>
-        {prices.map((price, index) => (
-            <div key={index} className="flex items-center justify-between mb-5 p-3 border border-gray-300 rounded shadow-md">
-                <PainterCard painterId={price.painterId}/>
-                <div className="flex-2 flex items-center justify-between pl-5 border-l-2 border-gray-300 gap-10">
-                    <p className="text-lg font-bold">Quote: <span className="text-xl">${price.amount.toFixed(2)}</span>
-                    <div className="ml-10">
-                    {prices.find(price => price.painterId)?.invoiceUrl && (
-                                <a href={prices.find(price => price.painterId)?.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-                                Invoice
-                                </a>
-                            )}
+            <div className="quotes mb-12" style={{ width: '95%', maxWidth: '95%', margin: '0 auto' }}>
+                {prices.map((price, index) => (
+                    <div key={index} className="quote-item flex flex-col sm:flex-row items-center justify-between mb-5 p-3 border border-gray-300 rounded shadow-md">
+                        <PainterCard painterId={price.painterId}/>
+                        <div className="quote-details flex-1 flex flex-col sm:flex-row items-center justify-between pl-5 border-l-2 border-gray-300 gap-4">
+                            <div className="quote-info">
+                                <p className="text-lg font-bold">Quote: <span className="text-xl">${price.amount.toFixed(2)}</span></p>
+                                {prices.find(price => price.painterId)?.invoiceUrl && (
+                                    <a href={prices.find(price => price.painterId)?.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                                        Invoice
+                                    </a>
+                                )}
+                            </div>
+                            <button 
+                                onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
+                                className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300 mt-2 sm:mt-0">
+                                Accept Quote
+                            </button>
+                        </div>
                     </div>
-                    </p>
-                    <button 
-                        onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
-                        className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
-                        Accept Quote
-                    </button>
-                </div>
+                ))}
             </div>
-        ))}
-    </div>
         );
     };
 
@@ -905,6 +903,30 @@ const Dashboard = () => {
                                             .button-group {
                                                 display: flex;
                                                 gap: 1rem;
+                                            }
+                                            .quote-item {
+                                                display: flex;
+                                                flex-direction: column;
+                                                gap: 0.5rem;
+                                            }
+                                        
+                                            @media (min-width: 640px) {
+                                                .quote-item {
+                                                    flex-direction: row;
+                                                }
+                                            }
+                                        
+                                            .quote-details {
+                                                display: flex;
+                                                flex-direction: column;
+                                                gap: 0.5rem;
+                                            }
+                                        
+                                            @media (min-width: 640px) {
+                                                .quote-details {
+                                                    flex-direction: row;
+                                                    align-items: center;
+                                                }
                                             }
                                         `}</style>
                                     </div>
