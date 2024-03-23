@@ -2,20 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { useRouter } from 'next/navigation'; // Make sure this import matches your routing library
+import { useRouter } from 'next/navigation'; // Adjust based on your routing package
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
-import { defaultPreferencesAtom } from '../../atom/atom'; // Adjust the import paths as necessary
+import { getFirestore, doc, setDoc, query, collection, where, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { defaultPreferencesAtom } from '../../atom/atom';
 
 const DefaultPreferences = () => {
     const firestore = getFirestore();
     const auth = getAuth();
     const router = useRouter();
     const [authInitialized, setAuthInitialized] = useState(false);
-
-    // Use the defaultPreferencesAtom directly
     const [defaultPreferences, setDefaultPreferences] = useAtom(defaultPreferencesAtom);
-    const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
     const [showCeilingFields, setShowCeilingFields] = useState(defaultPreferences.ceilings || false);
     const [showTrimFields, setShowTrimFields] = useState(defaultPreferences.trim || false);
 
@@ -27,82 +24,71 @@ const DefaultPreferences = () => {
                 setAuthInitialized(false);
             }
         });
-
         return () => unsubscribe();
     }, [auth]);
 
     useEffect(() => {
-        const fetchUserDefaultPreferences = async () => {
-            if (!auth.currentUser || !authInitialized) return;
-            
-            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
-            const querySnapshot = await getDocs(userImagesQuery);
-            if (!querySnapshot.empty) {
-                const userImageDoc = querySnapshot.docs[0].data();
-                if (userImageDoc.paintPreferencesId) {
-                    const paintPrefDocRef = doc(firestore, "paintPreferences", userImageDoc.paintPreferencesId);
-                    const paintPrefDocSnap = await getDoc(paintPrefDocRef);
-                    if (paintPrefDocSnap.exists()) {
-                        setDefaultPreferences(paintPrefDocSnap.data());
-                    }
-                }
-            }
-        };
-
-        if (authInitialized) {
+        if (authInitialized && auth.currentUser) {
             fetchUserDefaultPreferences();
         }
-    }, [authInitialized, auth.currentUser, firestore, setDefaultPreferences]);
+    }, [authInitialized, auth.currentUser, firestore]);
 
-    const updateAdditionalInfo = async () => {
+    const fetchUserDefaultPreferences = async () => {
         if (!auth.currentUser) return;
 
+        const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+        const querySnapshot = await getDocs(userImagesQuery);
+        if (!querySnapshot.empty) {
+            const userImageDoc = querySnapshot.docs[0].data();
+            if (userImageDoc.paintPreferencesId) {
+                const paintPrefDocRef = doc(firestore, "paintPreferences", userImageDoc.paintPreferencesId);
+                const paintPrefDocSnap = await getDoc(paintPrefDocRef);
+                if (paintPrefDocSnap.exists()) {
+                    setDefaultPreferences(paintPrefDocSnap.data());
+                }
+            }
+        }
+    };
+
+    const handlePreferenceSubmit = async (navigateTo: string, morePreferences: boolean) => {
+        if (!auth.currentUser) return;
+
+        // First, find the userImages document for the current user
+        const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+        const querySnapshot = await getDocs(userImagesQuery);
+        if (querySnapshot.empty) {
+            console.error("User image document not found");
+            return;
+        }
+
+        // Assuming there's only one userImages document per user
+        const userImageDocRef = querySnapshot.docs[0].ref;
+
         try {
+            // Update both paint preferences and the morePreferences field
             const paintPrefDocRef = doc(firestore, 'paintPreferences', auth.currentUser.uid);
             await setDoc(paintPrefDocRef, defaultPreferences, { merge: true });
 
-            // Redirect to the roomPreferences page after setting defaults
-            router.push('/roomPreferences');
+            await updateDoc(userImageDocRef, {
+                morePreferences: morePreferences
+            });
+
+            router.push(navigateTo);
         } catch (error) {
-            console.error('Error updating paint preferences: ', error);
+            console.error('Error updating document: ', error);
         }
     };
 
-    useEffect(() => {
-        // Check if both color and finish fields have values to enable the submit button
-        setIsSubmitEnabled((defaultPreferences.color || '').trim() !== '' && (defaultPreferences.finish || '').trim() !== '');
-    }, [defaultPreferences.color, defaultPreferences.finish]);
-
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-        setDefaultPreferences((prev) => ({
-            ...prev,
-            [name]: checked,
-        }));
-
-        if (name === "ceilings") {
-            setShowCeilingFields(checked);
-        } else if (name === "trim") {
-            setShowTrimFields(checked);
-        }
-    };
-
-    // Update the handleChange function to include handleCheckboxChange for checkbox fields
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const target = e.target;
-        const { name, value } = target;
-        const isCheckbox = target.type === "checkbox";
-
-        if (isCheckbox) {
-            handleCheckboxChange(e as React.ChangeEvent<HTMLInputElement>);
-        } else {
-            setDefaultPreferences((prev) => ({
-                ...prev,
-                [name]: value,
-            }));
-        }
-    };
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+        const target = e.target as HTMLInputElement; // Assumption here for simplification
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
     
+        setDefaultPreferences(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
     return (
         <div className="defaultPreferences flex flex-col justify-start items-center h-screen">
@@ -127,7 +113,7 @@ const DefaultPreferences = () => {
                         </span>
                     </div>
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" name="ceilings" checked={defaultPreferences.ceilings || false} onChange={handleChange} /> Do you any of your ceilings painted?
+                        <input type="checkbox" name="ceilings" checked={defaultPreferences.ceilings || false} onChange={handleChange} /> Do you want any of your ceilings painted?
                     </label>
                     {showCeilingFields && (
                         <div className="extra-fields-row flex justify-between w-full">
@@ -161,24 +147,30 @@ const DefaultPreferences = () => {
                                 <option value="Flat">Budget Quality</option>
                                 <option value="Eggshell">Medium Quality</option>
                                 <option value="Satin">High Quality</option>
-                            </select>
-                    <p className="note-text px-4">Each painter will specify the type of paint that they will use in their quote.</p>
-                </div>
-                <div className="button-group flex justify-center gap-4">
+                    </select>
+                    </div>
+                <p className="note-text px-4">Each painter will specify the type of paint that they will use in their quote.</p>
+                <p className="additional-preferences-question">Are these preferences correct for your whole quote? If no, you will be able to set any additional preferences on the next page.</p>
+                <div className="preferences-buttons flex justify-center gap-4 my-4">
                     <button 
-                        onClick={() => router.push('/quote')} 
-                        className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                        onClick={() => handlePreferenceSubmit('/dashboard', false)}
+                        className="only-preferences-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300"
                     >
-                        Resubmit Video
+                        Only Preferences
                     </button>
                     <button 
-                        disabled={!isSubmitEnabled}
-                        onClick={updateAdditionalInfo} 
-                        className={`submit-btn ${!isSubmitEnabled ? 'disabled-btn' : 'button-color'} hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300`}
+                        onClick={() => handlePreferenceSubmit('/roomPreferences', true)}
+                        className="more-preferences-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300"
                     >
-                        Set Defaults
+                        More Preferences
                     </button>
                 </div>
+                <button 
+                    onClick={() => router.push('/quote')}
+                    className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                >
+                    Resubmit Video
+                </button>
             </div>
     
             <style jsx>{`

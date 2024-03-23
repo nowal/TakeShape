@@ -236,6 +236,8 @@ const Dashboard = () => {
         trim: false,
       });
     const [addingRoom, setAddingRoom] = useState(false);
+    const [laborAndMaterial, setLaborAndMaterial] = useState(true); // Default to true
+    const [morePreferences, setMorePreferences] = useState(true);
     const [videoSelectionStart, setVideoSelectionStart] = useState<number | null>(null);
     const firestore = getFirestore();
     const [userImageRef, setUserImageRef] = useState<DocumentReference | null>(null);
@@ -254,6 +256,23 @@ const Dashboard = () => {
           setUserImageRef(userImageDocRef); // Store it in state
         }
       };
+
+      useEffect(() => {
+        const fetchUserImagePreferences = async () => {
+            if (!auth.currentUser) return;
+            const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
+            const querySnapshot = await getDocs(userImagesQuery);
+      
+            if (!querySnapshot.empty) {
+                // Assuming there's only one userImages document per user
+                const userImageDocData = querySnapshot.docs[0].data();
+                setLaborAndMaterial(userImageDocData.laborAndMaterial ?? true); // Use nullish coalescing to default to true
+                setMorePreferences(userImageDocData.morePreferences ?? true); // Use nullish coalescing to default to true
+            }
+        };
+
+        fetchUserImagePreferences();
+    }, [auth.currentUser, firestore]);
 
       useEffect(() => {
         const currentTime = videoRef.current?.currentTime || 0;
@@ -835,7 +854,7 @@ const Dashboard = () => {
                                                     />
                                                   </div>
                                                 )}
-                                                {currentTimestampPair && userImageRef && (
+                                                {currentTimestampPair && userImageRef && laborAndMaterial && (
                                                     <RoomCard
                                                         key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
                                                         startTime={currentTimestampPair.startTime}
@@ -868,18 +887,22 @@ const Dashboard = () => {
                                                     >
                                                         Resubmit Video
                                                     </button>
-                                                    <button 
-                                                        onClick={() => router.push('/defaultPreferences')} 
-                                                        className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
-                                                    >
-                                                        Reset Defaults
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => router.push('/roomPreferences')} 
-                                                        className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
-                                                    >
-                                                        Reset Rooms
-                                                    </button>
+                                                    {laborAndMaterial && ( // Only render Reset Defaults if laborAndMaterial is true
+                                                        <button 
+                                                            onClick={() => router.push('/defaultPreferences')} 
+                                                            className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                                                        >
+                                                            Reset Defaults
+                                                        </button>
+                                                    )}
+                                                    {morePreferences && ( // Only render Reset Rooms if morePreferences is true
+                                                        <button 
+                                                            onClick={() => router.push('/roomPreferences')} 
+                                                            className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                                                        >
+                                                            Reset Rooms
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}

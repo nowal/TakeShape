@@ -65,7 +65,7 @@ export default function SignupAccountPage() {
       } else {
         setIsPainter(false);
       }
-      router.push('/defaultPreferences');
+      router.push('/laborMaterial');
     } catch (error) {
       console.error("Error signing up: ", error);
       const errorCode = (error as { code: string }).code; // Type casting the error
