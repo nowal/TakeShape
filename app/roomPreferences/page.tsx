@@ -195,7 +195,8 @@ const RoomPreferences = () => {
 
     useEffect(() => {
         // Check for and potentially add an initial timestampPair when the component mounts
-        if (timestampPairs.length === 0 && auth.currentUser && userImageRef) {
+        // and only if the video has been fully uploaded
+        if (timestampPairs.length === 0 && auth.currentUser && userImageRef && uploadStatus === 'completed') {
             const initialPair = {
                 startTime: 0,
                 color: defaultPaintColor,
@@ -206,8 +207,8 @@ const RoomPreferences = () => {
             // This adds the initial timestamp pair to Firestore and local state
             saveTimestampToFirestore(0); // Passing 0 to start at the beginning of the video
         }
-    }, [auth.currentUser, timestampPairs, userImageRef]);
-
+    }, [auth.currentUser, timestampPairs, userImageRef, uploadStatus]);
+    
     const changePreferences = async () => {
         if (!videoRef.current || !userImageRef) return;
     

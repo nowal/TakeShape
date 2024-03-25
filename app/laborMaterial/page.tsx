@@ -33,7 +33,11 @@ const QuoteTypeSelection = () => {
                 laborAndMaterial: selection
             });
             console.log('Document successfully updated');
-            router.push('/defaultPreferences');
+            if (selection) {
+                router.push('/defaultPreferences'); // Labor and Material
+            } else {
+                router.push('/dashboard'); // Labor Only
+            }
         } catch (error) {
             console.error('Error updating document: ', error);
         }
