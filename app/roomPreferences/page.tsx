@@ -102,7 +102,6 @@ const RoomPreferences = () => {
         const attemptAccessVideo = () => {
             const video = videoRef.current;
             if (video) {
-                console.log("Video is available now");
                 // Once the video is available, clear the interval
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -137,7 +136,6 @@ const RoomPreferences = () => {
                     video.removeEventListener('seeked', handleTimeUpdate);
                 };
             } else {
-                console.log("Ain't no video yet, retrying...");
                 if (!intervalId) {
                     intervalId = setInterval(attemptAccessVideo, 100);
                 }
@@ -208,7 +206,7 @@ const RoomPreferences = () => {
             saveTimestampToFirestore(0); // Passing 0 to start at the beginning of the video
         }
     }, [auth.currentUser, timestampPairs, userImageRef, uploadStatus]);
-    
+
     const changePreferences = async () => {
         if (!videoRef.current || !userImageRef) return;
     
@@ -349,14 +347,11 @@ const RoomPreferences = () => {
     }, [setUserData, setIsPainter, setCheckingAuth, setUserTypeLoading, auth, firestore]);
 
     useEffect(() => {
-        console.log('Ever Called?');
         if (uploadStatus === 'completed' && videoURL && documentId) {
-            console.log('How bout here?');
           const docRef = doc(firestore, "userImages", documentId);
           updateDoc(docRef, {
             video: videoURL
           }).then(() => {
-            console.log("Document successfully updated with video URL");
             window.location.reload()
           }).catch((error) => {
             console.error("Error updating document: ", error);
@@ -392,7 +387,6 @@ const RoomPreferences = () => {
 
     const displayPreferences = (preferences: PaintPreferences) => {
         setCurrentPreferences(preferences);
-        console.log(preferences);
     };
 
     const handleVideoSelection = async () => {
@@ -446,7 +440,6 @@ const RoomPreferences = () => {
             updateDoc(userImageRef, {
                 timestampPairs: updatedPairs
             }).then(() => {
-                console.log('Firestore updated successfully');
             }).catch(error => {
                 console.error('Error updating Firestore: ', error);
             });
@@ -478,7 +471,6 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
         await updateDoc(userImageRef, {
             timestampPairs: arrayUnion(newTimestampPair)
         });
-        console.log("Timestamp pair added successfully");
 
         // Update the local state to reflect the new timestamp pair addition
         setTimestampPairs(prevPairs => [...prevPairs, newTimestampPair]);
@@ -638,7 +630,6 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                 trim: doorsAndTrimPaint,
             }, { merge: true });
 
-            console.log('Paint preferences updated successfully');
 
             // Step 2: Link Paint Preferences to User Images
             const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
@@ -652,7 +643,6 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                 await updateDoc(userImageRef, {
                     paintPreferencesId: paintPrefDocRef.id // Save the ID of the paint preferences document
                 });
-                console.log('Linked paint preferences ID to user image document successfully');
             }
         } catch (error) {
             console.error('Error updating paint preferences or linking: ', error);

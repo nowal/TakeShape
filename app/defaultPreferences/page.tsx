@@ -52,27 +52,27 @@ const DefaultPreferences = () => {
 
     const handlePreferenceSubmit = async (navigateTo: string, morePreferences: boolean) => {
         if (!auth.currentUser) return;
-
-        // First, find the userImages document for the current user
+    
         const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
         const querySnapshot = await getDocs(userImagesQuery);
         if (querySnapshot.empty) {
             console.error("User image document not found");
             return;
         }
-
-        // Assuming there's only one userImages document per user
+    
         const userImageDocRef = querySnapshot.docs[0].ref;
-
+    
         try {
-            // Update both paint preferences and the morePreferences field
+            // Update or create paint preferences and get the document reference
             const paintPrefDocRef = doc(firestore, 'paintPreferences', auth.currentUser.uid);
             await setDoc(paintPrefDocRef, defaultPreferences, { merge: true });
-
+    
+            // Link the paint preferences ID to the user's image document
             await updateDoc(userImageDocRef, {
+                paintPreferencesId: paintPrefDocRef.id, // Ensure this line is correct
                 morePreferences: morePreferences
             });
-
+    
             router.push(navigateTo);
         } catch (error) {
             console.error('Error updating document: ', error);
@@ -81,17 +81,35 @@ const DefaultPreferences = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.target as HTMLInputElement; // Assumption here for simplification
-        const value = target.type === 'checkbox' ? target.checked : target.value;
+        
+        // Correctly handle the value based on the input type
+        const value: string | boolean = target.type === 'checkbox' ? target.checked : target.value;
         const name = target.name;
+        
+        if (target.type === 'checkbox') {
+            // Directly handle boolean values for checkboxes
+            setDefaultPreferences(prev => ({
+                ...prev,
+                [name]: target.checked,
+            }));
     
-        setDefaultPreferences(prev => ({
-            ...prev,
-            [name]: value,
-        }));
+            // Specifically handle visibility of extra fields
+            if (name === "ceilings") {
+                setShowCeilingFields(target.checked);
+            } else if (name === "trim") {
+                setShowTrimFields(target.checked);
+            }
+        } else {
+            // Handle other inputs normally
+            setDefaultPreferences(prev => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
     };
 
     return (
-        <div className="defaultPreferences flex flex-col justify-start items-center h-screen">
+        <div className="defaultPreferences flex flex-col justify-start items-center h-screen mb-32">
             <div className="form-container text-center mt-10 md:mt-20">
                 <h2 className="text-2xl font-bold mb-8">Set Your Default Painting Preferences</h2>
                 <div className="preferences-row flex flex-col items-center gap-2 mb-6">

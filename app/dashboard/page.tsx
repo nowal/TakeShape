@@ -70,7 +70,6 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
                             phoneNumber: phoneNumber,
                             prices: updatedPrices,
                         });
-                        console.log("Homeowner's phone number updated successfully");
                     }
                 } catch (error) {
                     console.error("Error updating homeowner's document: ", error);
@@ -91,7 +90,6 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
                             acceptedQuotes: arrayUnion(documentId),
                         });
             
-                        console.log("Quote successfully added to painter's acceptedQuotes");
                         // Move to the payment step after successfully updating both documents
                         //setModalStep(2);
                         setShowModal(false);
@@ -276,10 +274,11 @@ const Dashboard = () => {
 
       useEffect(() => {
         const currentTime = videoRef.current?.currentTime || 0;
-        const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
-    
-        if (matchedPair) {
-            setCurrentTimestampPair(matchedPair); // Make sure this includes roomName
+        const matchingPairs = timestampPairs.filter(pair => currentTime >= pair.startTime);
+        const highestStartPair = matchingPairs.reduce((acc, pair) => (acc.startTime > pair.startTime ? acc : pair), matchingPairs[0]);
+
+        if (highestStartPair) {
+            setCurrentTimestampPair(highestStartPair); // Make sure this includes roomName
         } else {
             // Default or fallback logic, ensure roomName is handled appropriately here too
             setCurrentTimestampPair({
@@ -302,7 +301,6 @@ const Dashboard = () => {
         const attemptAccessVideo = () => {
             const video = videoRef.current;
             if (video) {
-                console.log("Video is available now");
                 // Once the video is available, clear the interval
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -312,10 +310,12 @@ const Dashboard = () => {
                 // Define your event handlers here as before
                 const handleTimeUpdate = () => {
                     const currentTime = video.currentTime;
-                    const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (pair.endTime === undefined || currentTime <= pair.endTime));
+                
+                    const matchingPairs = timestampPairs.filter(pair => currentTime >= pair.startTime);
+                    const highestStartPair = matchingPairs.reduce((acc, pair) => (acc.startTime > pair.startTime ? acc : pair), matchingPairs[0]);
                     
-                    if (matchedPair) {
-                        setCurrentTimestampPair(matchedPair);
+                    if (highestStartPair) {
+                        setCurrentTimestampPair(highestStartPair);
                     } else {
                         setCurrentTimestampPair({
                             startTime: currentTime,
@@ -336,7 +336,6 @@ const Dashboard = () => {
                     video.removeEventListener('seeked', handleTimeUpdate);
                 };
             } else {
-                console.log("Ain't no video yet, retrying...");
                 if (!intervalId) {
                     intervalId = setInterval(attemptAccessVideo, 100);
                 }
@@ -359,10 +358,11 @@ const Dashboard = () => {
         // Function to determine the current timestamp pair or revert to defaults
         const determineCurrentTimestampOrRevertToDefaults = () => {
             const currentTime = videoRef.current?.currentTime || 0;
-            const matchedPair = timestampPairs.find(pair => currentTime >= pair.startTime && (!pair.endTime || currentTime <= pair.endTime));
+            const matchingPairs = timestampPairs.filter(pair => currentTime >= pair.startTime);
+            const highestStartPair = matchingPairs.reduce((acc, pair) => (acc.startTime > pair.startTime ? acc : pair), matchingPairs[0]);
     
-            if (matchedPair) {
-                setCurrentTimestampPair(matchedPair);
+            if (highestStartPair) {
+                setCurrentTimestampPair(highestStartPair);
             } else {
                 setCurrentTimestampPair({
                     startTime: currentTime,
@@ -499,14 +499,11 @@ const Dashboard = () => {
     }, [setUserData, setIsPainter, setCheckingAuth, setUserTypeLoading, auth, firestore]);
 
     useEffect(() => {
-        console.log('Ever Called?');
         if (uploadStatus === 'completed' && videoURL && documentId) {
-            console.log('How bout here?');
           const docRef = doc(firestore, "userImages", documentId);
           updateDoc(docRef, {
             video: videoURL
           }).then(() => {
-            console.log("Document successfully updated with video URL");
             window.location.reload()
           }).catch((error) => {
             console.error("Error updating document: ", error);
@@ -542,7 +539,6 @@ const Dashboard = () => {
 
     const displayPreferences = (preferences: PaintPreferences) => {
         setCurrentPreferences(preferences);
-        console.log(preferences);
     };
 
     const handleVideoSelection = async () => {
@@ -596,7 +592,6 @@ const Dashboard = () => {
             updateDoc(userImageRef, {
                 timestampPairs: updatedPairs
             }).then(() => {
-                console.log('Firestore updated successfully');
             }).catch(error => {
                 console.error('Error updating Firestore: ', error);
             });
@@ -627,7 +622,6 @@ const Dashboard = () => {
             await updateDoc(userImageRef, {
                 timestampPairs: arrayUnion(newTimestampPair)
             });
-            console.log("Timestamp pair added successfully");
     
             // Update the local state to reflect the new timestamp pair addition
             setTimestampPairs(prevPairs => [...prevPairs, newTimestampPair]);
@@ -775,8 +769,6 @@ const Dashboard = () => {
                 trim: doorsAndTrimPaint,
             }, { merge: true });
 
-            console.log('Paint preferences updated successfully');
-
             // Step 2: Link Paint Preferences to User Images
             const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
             const querySnapshot = await getDocs(userImagesQuery);
@@ -789,7 +781,6 @@ const Dashboard = () => {
                 await updateDoc(userImageRef, {
                     paintPreferencesId: paintPrefDocRef.id // Save the ID of the paint preferences document
                 });
-                console.log('Linked paint preferences ID to user image document successfully');
             }
         } catch (error) {
             console.error('Error updating paint preferences or linking: ', error);

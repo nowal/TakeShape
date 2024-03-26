@@ -46,6 +46,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [paintCeilings, setPaintCeilings] = useState(defaultCeilings);
   const [paintTrimAndDoors, setPaintTrimAndDoors] = useState(defaultTrim);
   const [dontPaintAtAll, setDontPaintAtAll] = useState(false);
+  const [isRoomSet, setIsRoomSet] = useState(false);
   const [editableRoomName, setEditableRoomName] = useState(roomName); // State variable for editable roomName
 
   const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
@@ -119,6 +120,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateTimestampPairs();
+    setIsRoomSet(true);
   };
 
   return (
@@ -200,7 +202,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
               />
               Don't paint at all
             </label>
-            <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded">Set Room</button>
+            <button type="submit" className="btn button-color hover:bg-green-900 text-white rounded">
+                {isRoomSet ? "Edit Room" : "Set Room"}
+            </button>
           </div>
         )}
       </form>
