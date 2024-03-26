@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Provider } from 'jotai';
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const open_sans = Open_Sans({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
           {children}
           <Footer/>
         </body>
+        <GoogleAnalytics gaId="G-47EYLN83WE" />
       </Provider>
     </html>
   );
