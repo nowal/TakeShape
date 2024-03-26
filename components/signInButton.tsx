@@ -24,8 +24,15 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
   
-    // Cleanup the listener on unmount
-    return () => unsubscribe();
+    const timeoutId = setTimeout(() => {
+      setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
+    }, 5000);
+  
+    // Cleanup the listener and timeout on unmount
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, [auth]);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
