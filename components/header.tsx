@@ -51,10 +51,20 @@ const Header = () => {
                 <img src={daltonLogo.src} alt="Logo" className="h-10 w-10 md:h-16 md:w-16" /> {/* Adjusted size for mobile */}
                 <h1 className="text-base md:text-xl font-bold">DwellDone</h1>
             </Link>
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-8 sm:space-x-3">
+                {/*{isHomePage && (
+                    <>
+                        <Link href="/howItWorks" className="text-md hover:underline">
+                            How It Works
+                        </Link>
+                        <Link href="/aboutUs" className="text-md hover:underline">
+                            About Us
+                        </Link>
+                    </>
+                )}*/}
+                <SignInButton className="text-md hover:underline" />
                 <QuoteButton text="Get Quote" className='text-sm sm:text-base md:text-lg py-2 px-3' />
                 <DashboardButton text="Dashboard" className='text-sm sm:text-base md:text-lg py-2 px-3' />
-                <SignInButton className='text-sm sm:text-base md:text-lg py-2 px-3' />
             </div>
         </header>
 

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'; // Adjust based on your routing pac
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, query, collection, where, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { defaultPreferencesAtom } from '../../atom/atom';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 const DefaultPreferences = () => {
     const firestore = getFirestore();
@@ -110,6 +111,7 @@ const DefaultPreferences = () => {
 
     return (
         <div className="defaultPreferences flex flex-col justify-start items-center h-screen mb-32">
+            <GoogleAnalytics gaId="G-47EYLN83WE" />
             <div className="form-container text-center mt-10 md:mt-20">
                 <h2 className="text-2xl font-bold mb-8">Set Your Default Painting Preferences</h2>
                 <div className="preferences-row flex flex-col items-center gap-2 mb-6">

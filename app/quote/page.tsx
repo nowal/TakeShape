@@ -9,6 +9,7 @@ import firebase from '../../lib/firebase';
 import UploadButton from '../../components/uploadButton';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 export default function QuotePage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -192,6 +193,7 @@ const handleUploadSuccess = (file: File) => {
 
   return (
     <div className="p-8 pt-20">
+      <GoogleAnalytics gaId="G-47EYLN83WE" />
 
 
       {isLoading && currentStep === 2 && (
@@ -213,12 +215,9 @@ const handleUploadSuccess = (file: File) => {
                 <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
                     <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
                     <ol className="list-decimal pl-4">
-                        <li>Use the front camera. You can hold horizontally or vertically</li>
-                        <li>Choose the .5x zoom if availably on your camera.</li>
-                        <li>Go around the edge of the room as best as possible with camera facing in (it’s ok if you can’t totally keep to the edge due to furniture).</li>
-                        <li>Move Camera up and down occasionally to capture trim and ceiling.</li>
-                        <li>Walk through all areas that you would like painted, taking approximately 30 seconds per room to capture.</li>
-                        <li>Specify if you would like to exclude any areas from the quote on the next page.</li>
+                        <li>Use the front camera. You can hold horizontally or vertically. Use .5x zoom if available.</li>
+                        <li>Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim. </li>
+                        <li>Walk through all areas that you would like painted, taking 15-30 seconds per room. You can exclude an area in you video from the quote in the next step.</li>
                     </ol>
                 </div>
             )}

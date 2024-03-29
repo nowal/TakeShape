@@ -26,7 +26,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   
     const timeoutId = setTimeout(() => {
       setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
-    }, 5000);
+    }, 2000);
   
     // Cleanup the listener and timeout on unmount
     return () => {
@@ -84,11 +84,11 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   return (
     <div>
       {isSignedIn ? (
-        <button onClick={handleSignOut} className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
+        <button onClick={handleSignOut} className={`${className || ''}`}>
           Sign Out
         </button>
       ) : (
-        <button onClick={() => setShowModal(true)} className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
+        <button onClick={() => setShowModal(true)} className={`${className || ''}`}>
           Sign In
         </button>
       )}

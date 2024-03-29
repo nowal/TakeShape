@@ -7,6 +7,7 @@ import { getFirestore, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, up
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
@@ -123,6 +124,7 @@ export default function SignupAccountPage() {
 
   return (
     <div className="p-8">
+      <GoogleAnalytics gaId="G-47EYLN83WE" />
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
           <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>

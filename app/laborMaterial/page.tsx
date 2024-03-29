@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAtom } from 'jotai';
 import { getFirestore, doc, getDocs, query, collection, where, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 const QuoteTypeSelection = () => {
     const router = useRouter();
@@ -45,6 +46,7 @@ const QuoteTypeSelection = () => {
 
     return (
         <div className="quoteTypeSelection flex flex-col justify-start items-center h-screen">
+            <GoogleAnalytics gaId="G-47EYLN83WE" />
             <div className="card-container text-center mt-10 md:mt-20">
                 <h2 className="text-2xl font-bold mb-8">Do you want the painters to quote you for labor and material or just labor?</h2>
                 <div className="options-row flex gap-4 justify-center">

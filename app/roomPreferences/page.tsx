@@ -15,6 +15,7 @@ import { TimestampPair, UserData, PaintPreferences } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 type Price = {
     painterId: string;
@@ -690,6 +691,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
 
                                 return (
                                     <div className='dashboard flex flex-col items-center mt-10 w-full'>
+                                        <GoogleAnalytics gaId="G-47EYLN83WE" />
                                         {isPainter ? (
                                             <PainterDashboard />
                                         ) : (
