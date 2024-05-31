@@ -15,6 +15,8 @@ export default function SignupAccountPage() {
   const [zipcode, setZipcode] = useState('');
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
+  const [name, setName] = useState(''); // Added
+  const [phoneNumber, setPhoneNumber] = useState(''); // Added
   const [painterInfo] = useAtom(painterInfoAtom); // Access the painterInfo atom
   const [showLoginInstead, setShowLoginInstead] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -44,11 +46,13 @@ export default function SignupAccountPage() {
         const userImageSnap = await getDoc(userImageDocRef);
 
         if (userImageSnap.exists()) {
-          // Update the document with the new user's ID
           await updateDoc(userImageDocRef, {
             userId: user.uid,
-            ...quote, // spread the quote data if needed
-            zipCode: zipcode
+            ...quote, // Spread the existing quote data
+            zipCode: zipcode,
+            // Add these new fields
+            ...(name && { name }), // Only add name if it's provided (truthy)
+            ...(phoneNumber && { phoneNumber }) // Only add phoneNumber if it's provided (truthy)
           });
 
           sessionStorage.removeItem('quoteData'); // Clean up session storage
@@ -125,6 +129,16 @@ export default function SignupAccountPage() {
   return (
     <div className="p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
+
+      {errorMessage && (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">{errorMessage}</span>
+      </div>
+      )}
+
+      <p className="mb-4">None of this information will be shared with painters until you accept a quote.</p>
+
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
           <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
@@ -153,6 +167,18 @@ export default function SignupAccountPage() {
         </div>
 
         <div>
+          <label htmlFor="name" className="block text-md font-medium text-gray-700">Name (Optional)</label>
+          <input 
+            type="text" 
+            id="name"
+            value={name} 
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your name" 
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
           <label htmlFor="zipcode" className="block text-md font-medium text-gray-700">Property Zipcode</label>
           <input 
             type="text" 
@@ -161,6 +187,18 @@ export default function SignupAccountPage() {
             onChange={(e) => setZipcode(e.target.value)} 
             placeholder="Enter your zipcode" 
             required 
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number (Optional)</label>
+          <input 
+            type="tel" 
+            id="phoneNumber"
+            value={phoneNumber} 
+            onChange={(e) => setPhoneNumber(e.target.value)} 
+            placeholder="Enter your phone number" 
             className="p-2 border rounded w-full"
           />
         </div>

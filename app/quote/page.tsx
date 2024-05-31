@@ -217,7 +217,7 @@ const handleUploadSuccess = (file: File) => {
                     <ol className="list-decimal pl-4">
                         <li>Use the back camera. You can hold horizontally or vertically. Use .5x zoom if available.</li>
                         <li>Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim. </li>
-                        <li>Walk through all areas that you would like painted, taking 15-30 seconds per room. You can exclude an area in you video from the quote in the next step.</li>
+                        <li>Walk through all areas that you would like painted, taking 15-30 seconds per room. You can exclude an area in your video from the quote in the next step.</li>
                     </ol>
                 </div>
             )}

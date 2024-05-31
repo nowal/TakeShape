@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import logo from '../public/TakeShapeIcon.png';
 import daltonLogo from '../public/daltonLogo.png'
 import Link from 'next/link';
+import AboutUsButton from './AboutUsButton';
 import SignInButton from './signInButton';
 import DashboardButton from './dashboardButton';
 import QuoteButton from './quoteButton';
@@ -62,6 +63,7 @@ const Header = () => {
                         </Link>
                     </>
                 )}*/}
+                <AboutUsButton className="text-md hover:underline" />
                 <SignInButton className="text-md hover:underline" />
                 <QuoteButton text="Get Quote" className='text-sm sm:text-base md:text-lg py-2 px-3' />
                 <DashboardButton text="Dashboard" className='text-sm sm:text-base md:text-lg py-2 px-3' />
