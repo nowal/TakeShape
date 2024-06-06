@@ -848,7 +848,7 @@ const Dashboard = () => {
                                                     />
                                                   </div>
                                                 )}
-                                                {currentTimestampPair && userImageRef && laborAndMaterial && (
+                                                {/*currentTimestampPair && userImageRef && laborAndMaterial && (
                                                     <RoomCard
                                                         key={`${currentTimestampPair.startTime}-${currentTimestampPair.endTime}`}
                                                         startTime={currentTimestampPair.startTime}
@@ -863,11 +863,15 @@ const Dashboard = () => {
                                                         roomName={currentTimestampPair.roomName}
                                                         onClick={() => handleRoomCardClick(currentTimestampPair.startTime)}
                                                     />
-                                                )}
+                                                )*/}
                                                 {acceptedQuote ? (
                                                     <div className="text-center my-10">
                                                         <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
                                                         <PainterCard painterId={acceptedQuote.painterId}/>
+                                                        <h2 className="">They will reach out within two business days to schedule your job. If you have any questions, please contact us at:</h2>
+                                                        <a href="mailto:dwelldonehelp@gmail.com?subject=Contact%20DwellDone" className="text-center text-sm">dwelldonehelp@gmail.com</a>
+                                                        <h2 className=""> or </h2>
+                                                        <a href="tel:+16158096429" className="text-center text-sm mt-2">(615) 809-6429</a>
                                                     </div>
                                                 ) : (
                                                     userData && userData.prices && renderQuotes(userData.prices)
@@ -881,22 +885,20 @@ const Dashboard = () => {
                                                     >
                                                         Resubmit Video
                                                     </button>
-                                                    {laborAndMaterial && ( // Only render Reset Defaults if laborAndMaterial is true
                                                         <button 
                                                             onClick={() => router.push('/defaultPreferences')} 
                                                             className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
                                                         >
-                                                            Reset Defaults
+                                                            Reset Preferences
                                                         </button>
-                                                    )}
-                                                    {morePreferences && ( // Only render Reset Rooms if morePreferences is true
+                                                    {/*morePreferences && ( // Only render Reset Rooms if morePreferences is true
                                                         <button 
                                                             onClick={() => router.push('/roomPreferences')} 
                                                             className="button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
                                                         >
                                                             Reset Rooms
                                                         </button>
-                                                    )}
+                                                    )*/}
                                                 </div>
                                             </div>
                                         )}

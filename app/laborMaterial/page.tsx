@@ -37,7 +37,7 @@ const QuoteTypeSelection = () => {
             if (selection) {
                 router.push('/defaultPreferences'); // Labor and Material
             } else {
-                router.push('/dashboard'); // Labor Only
+                router.push('/defaultPreferences'); // Labor Only
             }
         } catch (error) {
             console.error('Error updating document: ', error);
