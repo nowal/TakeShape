@@ -21,6 +21,19 @@ const DefaultPreferences: React.FC = () => {
     const [moveFurniture, setMoveFurniture] = useState<boolean>(false);
 
     useEffect(() => {
+        setDefaultPreferences({
+            color: '',
+            finish: 'Eggshell',
+            paintQuality: 'Medium',
+            ceilingColor: 'White',
+            ceilingFinish: 'Flat',
+            trimColor: 'White',
+            trimFinish: 'Semi-gloss',
+            ...defaultPreferences
+        });
+    }, []);
+
+    useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 setAuthInitialized(true);
@@ -51,11 +64,29 @@ const DefaultPreferences: React.FC = () => {
                 const paintPrefDocRef = doc(firestore, "paintPreferences", userImageDoc.paintPreferencesId);
                 const paintPrefDocSnap = await getDoc(paintPrefDocRef);
                 if (paintPrefDocSnap.exists()) {
-                    setDefaultPreferences(paintPrefDocSnap.data());
+                    setDefaultPreferences({
+                        color: '',
+                        finish: 'Eggshell',
+                        paintQuality: 'Medium',
+                        ceilingColor: 'White',
+                        ceilingFinish: 'Flat',
+                        trimColor: 'White',
+                        trimFinish: 'Semi-gloss',
+                        ...paintPrefDocSnap.data(),
+                    });
                 }
             }
         } else {
             setLaborAndMaterial(false); // Default to labor only if no document found
+            setDefaultPreferences({
+                color: '',
+                finish: 'Eggshell',
+                paintQuality: 'Medium',
+                ceilingColor: 'White',
+                ceilingFinish: 'Flat',
+                trimColor: 'White',
+                trimFinish: 'Semi-gloss',
+            });
         }
     };
 
@@ -71,7 +102,21 @@ const DefaultPreferences: React.FC = () => {
     
         const userImageDocRef = querySnapshot.docs[0].ref;
         const paintPrefDocRef = doc(firestore, 'paintPreferences', auth.currentUser.uid);
-        await setDoc(paintPrefDocRef, defaultPreferences, { merge: true });
+    
+        // Manually set the values of the fields in defaultPreferences before submitting
+        const updatedPreferences = {
+            ...defaultPreferences,
+            color: (document.getElementsByName('color')[0] as HTMLInputElement).value || defaultPreferences.color,
+            finish: (document.getElementsByName('finish')[0] as HTMLSelectElement).value || defaultPreferences.finish,
+            paintQuality: (document.getElementsByName('paintQuality')[0] as HTMLSelectElement).value || defaultPreferences.paintQuality,
+            ceilingColor: (document.getElementsByName('ceilingColor')[0] as HTMLInputElement).value || defaultPreferences.ceilingColor,
+            ceilingFinish: (document.getElementsByName('ceilingFinish')[0] as HTMLSelectElement).value || defaultPreferences.ceilingFinish,
+            trimColor: (document.getElementsByName('trimColor')[0] as HTMLInputElement).value || defaultPreferences.trimColor,
+            trimFinish: (document.getElementsByName('trimFinish')[0] as HTMLSelectElement).value || defaultPreferences.trimFinish,
+        };
+        setDefaultPreferences(updatedPreferences);
+    
+        await setDoc(paintPrefDocRef, updatedPreferences, { merge: true });
     
         await updateDoc(userImageDocRef, {
             paintPreferencesId: paintPrefDocRef.id,
@@ -84,27 +129,23 @@ const DefaultPreferences: React.FC = () => {
         router.push(navigateTo);
     };
 
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.target as HTMLInputElement;
         const value: string | boolean = target.type === 'checkbox' ? target.checked : target.value;
         const name = target.name;
-
+    
+        setDefaultPreferences(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    
         if (target.type === 'checkbox') {
-            setDefaultPreferences(prev => ({
-                ...prev,
-                [name]: target.checked,
-            }));
-
             if (name === "ceilings") {
                 setShowCeilingFields(target.checked);
             } else if (name === "trim") {
                 setShowTrimFields(target.checked);
             }
-        } else {
-            setDefaultPreferences(prev => ({
-                ...prev,
-                [name]: value,
-            }));
         }
     };
 
@@ -165,9 +206,9 @@ const DefaultPreferences: React.FC = () => {
                 </div>
                 <label className="text-left">
                     Paint Quality
-                <select name="paintQuality" value={defaultPreferences.trimFinish || ''} onChange={handleChange} className="input-field select-field">
-                    <option value="Budget">Budget Quality</option>
+                <select name="paintQuality" value={defaultPreferences.paintQuality || ''} onChange={handleChange} className="input-field select-field">
                     <option value="Medium">Medium Quality</option>
+                    <option value="Budget">Budget Quality</option>
                     <option value="High">High Quality</option>
                 </select>
                 </label>

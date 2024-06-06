@@ -833,6 +833,7 @@ const Dashboard = () => {
                                                 {userData && userData.video && (
                                                     <div className="video-container mb-2" style={{ maxWidth: '100%' }}>
                                                     <video
+                                                      autoPlay
                                                       controls
                                                       playsInline
                                                       muted={true}

@@ -21,6 +21,11 @@ export const timestampPairsAtom = atom<TimestampPair[]>([]);
 export const defaultPreferencesAtom = atom<PaintPreferences>({
   color: '',
   finish: '',
+  paintQuality: '',
   ceilings: false,
+  ceilingColor: '',
+  ceilingFinish:'',
   trim: false,
+  trimColor:'',
+  trimFinish:'',
 });
