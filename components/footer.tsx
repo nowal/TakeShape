@@ -2,7 +2,8 @@
 
 import React from 'react';
 import logo from '../public/TakeShapeIcon.png';
-import daltonLogo from '../public/daltonLogo.png'
+import daltonLogo from '../public/daltonLogo.png';
+import Link from 'next/link';
 
 const Footer = () => {
     return (
@@ -18,6 +19,9 @@ const Footer = () => {
                 </div>
                 <a href="mailto:dwelldonehelp@gmail.com?subject=Contact%20DwellDone" className="text-center text-sm">Contact Us</a>
                 <a href="tel:+16158096429" className="text-center text-sm mt-2">(615) 809-6429</a>
+                <Link href="/aboutUs" className="text-sm mt-2 hover:underline">
+                        About Us
+                </Link>
             </div>
             <style jsx>{`
                 .bg-footer {

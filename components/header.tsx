@@ -55,11 +55,11 @@ const Header = () => {
                 <h1 className="text-base md:text-xl font-bold">DwellDone</h1>
             </Link>
             <div className="flex items-center space-x-4 sm:space-x-2">
-                {!isUserLoggedIn && (
+                {/*!isUserLoggedIn && (
                     <Link href="/aboutUs" className="text-md hover:underline">
                         About Us
                     </Link>
-                )}
+                )*/}
                 <SignInButton className="text-md hover:underline" />
                 <QuoteButton text="Get Quote" className='text-sm sm:text-base md:text-lg py-2 px-3' />
                 <DashboardButton text="Dashboard" className='text-sm sm:text-base md:text-lg py-2 px-3' />
