@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Job } from '../types/types'; // Ensure this path is correct
+import { Job, PaintPreferences } from '../types/types'; // Ensure this path is correct
 import AcceptedQuotesButton from './acceptedQuotesButton';
 import CompletedQuotesButton from './completedQuotesButton';
-
 
 const PainterDashboard = () => {
     const [painterZipCodes, setPainterZipCodes] = useState<string[]>([]);
@@ -18,27 +17,29 @@ const PainterDashboard = () => {
     const user = auth.currentUser;
 
     const fetchPainterData = async () => {
-        console.log('Current user:', user); // Log the current user for debugging
         if (user) {
             const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
             const painterSnapshot = await getDocs(painterQuery);
-            console.log('Painter data:', painterSnapshot.docs.map(doc => doc.data())); // Log fetched painter data
             if (!painterSnapshot.empty) {
                 const painterData = painterSnapshot.docs[0].data();
-                console.log('Painter zip codes:', painterData.zipCodes); // Log painter zip codes
                 setPainterZipCodes(painterData.zipCodes);
-    
+
                 const jobsQuery = query(collection(firestore, "userImages"), where("zipCode", "in", painterData.zipCodes));
                 const jobsSnapshot = await getDocs(jobsQuery);
-                console.log('Jobs:', jobsSnapshot.docs.map(doc => doc.data())); // Log fetched jobs
-                const jobs: Job[] = jobsSnapshot.docs.map(doc => ({
-                    ...doc.data() as Job,
-                    jobId: doc.id
+                const jobs: Job[] = await Promise.all(jobsSnapshot.docs.map(async (jobDoc) => {
+                    const jobData = jobDoc.data() as Job;
+                    if (jobData.paintPreferencesId) {
+                        const paintPrefDocRef = doc(firestore, "paintPreferences", jobData.paintPreferencesId);
+                        const paintPrefDocSnap = await getDoc(paintPrefDocRef);
+                        if (paintPrefDocSnap.exists()) {
+                            jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
+                        }
+                    }
+                    return { ...jobData, jobId: jobDoc.id };
                 }));
                 const unquotedJobs = jobs.filter(job => 
                     !job.prices.some(price => price.painterId === user.uid)
                 );
-                console.log('Unquoted Jobs:', unquotedJobs); // Log unquoted jobs
                 setJobList(unquotedJobs);
             }
         } else {
@@ -58,7 +59,6 @@ const PainterDashboard = () => {
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        // Optional: Add validation here if you want to ensure only numeric input
         setPrice(value.replace(/[^0-9.]/g, '')); // This regex allows only numbers and decimal point
     };
 
@@ -85,8 +85,6 @@ const PainterDashboard = () => {
                 invoiceUrl = await getDownloadURL(fileSnapshot.ref); // Get URL only if file upload succeeds
             } catch (error) {
                 console.error('Error uploading invoice: ', error);
-                // Optionally handle the error, e.g., showing an error message to the user
-                // If invoice upload fails, you might decide to proceed with updating the price or handle it differently
             }
         }
     
@@ -110,12 +108,9 @@ const PainterDashboard = () => {
             fetchPainterData(); // Refresh data
         } catch (updateError) {
             console.error('Error updating price: ', updateError);
-            // Optionally handle this error as well
         }
     };
     
-      
-
     return (
         <div className='flex flex-col items-center mt-12'>
             <div className='flex flex-row gap-10 items-center'>
@@ -125,18 +120,17 @@ const PainterDashboard = () => {
             <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
-                    // Use TailwindCSS responsive width classes here
                     <div key={job.jobId} className="flex flex-row justify-center items-start mb-10 w-full max-w-4xl">
                         <div className="flex flex-col justify-center items-center mr-8">
                             <video src={job.video} controls style={{ width: '400px' }}  />
                             <form onSubmit={(e) => handlePriceSubmit(e, job.jobId, parseFloat(price))} className="mt-4 pl-32">
                                 <input
-                                    type="text" // Change to text type
+                                    type="text"
                                     name="price"
-                                    placeholder="Price" // Set placeholder
+                                    placeholder="Price"
                                     className="mr-2 p-2 border rounded"
                                     value={price}
-                                    onChange={handlePriceChange} // Use the new handler
+                                    onChange={handlePriceChange}
                                 />
                                 <input type="file" onChange={handleFileChange} accept="application/pdf" />
                                 <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded">Submit Quote</button>
@@ -147,12 +141,18 @@ const PainterDashboard = () => {
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
                                 <ul className="list-disc pl-5">
-                                    <li>Ceilings: {job.paintPreferences.ceilings ? "Yes" : "No"}</li>
-                                    <li>Trim: {job.paintPreferences.trim ? "Yes" : "No"}</li>
+                                    <li>Ceilings: <span className="font-semibold">{job.paintPreferences?.ceilings ? "Yes" : "No"}</span></li>
+                                    <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilingColor || "N/A"}</span></li>
+                                    <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilingFinish || "N/A"}</span></li>
+                                    <li>Trim: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
+                                    <li>Trim Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
+                                    <li>Trim Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
+                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color}</span></li>
+                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish}</span></li>
+                                    <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                                 </ul>
                             </div>
-                            <p className="text-lg">Providing Own Paint: <span className="font-semibold">{job.providingOwnPaint}</span></p>
-                            <p className="text-lg">Description: <span className="font-semibold">{job.description}</span></p>
+                            <p className="text-lg">Special Requests: <span className="font-semibold">{job.specialRequests}</span></p>
                         </div>
                     </div>
                 ))

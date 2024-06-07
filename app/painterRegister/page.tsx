@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
@@ -16,54 +17,45 @@ export default function PainterRegisterPage() {
   const [isInsured, setIsInsured] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
   const router = useRouter();
-
-  useEffect(() => {
-    const savePainterInfo = async () => {
-      if (painterInfo.businessName) { // Check if businessName is not empty, indicating the form was submitted
-        const firestore = getFirestore();
-        const painterDocRef = doc(collection(firestore, "painters"));
-        try {
-          await setDoc(painterDocRef, painterInfo);
-          console.log('Painter info saved:', painterInfo);
-          setIsPainter(true); // Set the user as a painter
-          sessionStorage.setItem('painterId', painterDocRef.id); // Save painter's doc ID for later use in Signup page
-          router.push('/signup');
-        } catch (error) {
-          console.error('Error saving painter info: ', error);
-        }
-      }
-    };
-
-    savePainterInfo();
-  }, [painterInfo, router]);
+  const auth = getAuth(firebase);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      // Handle logo upload and get the URL
-      const logoUrl = await uploadLogoAndGetUrl(logo); // Implement this function to handle logo upload and return the URL
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
+      const logoUrl = await uploadLogoAndGetUrl(logo); // Implement this function to handle logo upload and return the URL
       const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
       const acceptedQuotes = [''];
 
-      // Update the painterInfo atom with the new data
-      setPainterInfo({
+      const painterData = {
         businessName,
-        zipCodes:zipCodesArray,
+        zipCodes: zipCodesArray,
         isInsured,
         logoUrl,
         acceptedQuotes,
         phoneNumber,
-      });
+        userId: user.uid, // Link the painter data to the user ID
+      };
 
-      router.push('/signup');
+      const firestore = getFirestore();
+      const painterDocRef = doc(collection(firestore, "painters"));
+
+      await setDoc(painterDocRef, painterData);
+      console.log('Painter info saved:', painterData);
+      setIsPainter(true); // Set the user as a painter
+
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error preparing painter registration: ', error);
-      alert('Error preparing registration. Please try again.');
+      console.error('Error registering painter: ', error);
+      alert('Error during registration. Please try again.');
     }
   };
 
@@ -71,19 +63,17 @@ export default function PainterRegisterPage() {
     if (!logoFile) {
       throw new Error('No logo file provided.');
     }
-  
+
     const storage = getStorage(firebase);
     const logoRef = storageRef(storage, `logos/${logoFile.name}-${Date.now()}`); // Append timestamp to ensure unique file names
-  
+
     try {
-      // Upload the logo to Firebase Storage
       const uploadResult = await uploadBytes(logoRef, logoFile);
       console.log('Upload result:', uploadResult);
-  
-      // Get the URL of the uploaded logo
+
       const logoUrl = await getDownloadURL(uploadResult.ref);
       console.log('Logo URL:', logoUrl);
-  
+
       return logoUrl;
     } catch (error) {
       console.error('Error uploading logo: ', error);
@@ -93,17 +83,16 @@ export default function PainterRegisterPage() {
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-        const file = e.target.files[0];
-        const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-        if (validTypes.includes(file.type)) {
-            setLogo(file); // Set the selected file to the 'logo' state
-        } else {
-            alert('Invalid file type. Please select a PNG, JPG, or PDF file.');
-            e.target.value = ''; // Reset the file input
-        }
+      const file = e.target.files[0];
+      const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+      if (validTypes.includes(file.type)) {
+        setLogo(file); // Set the selected file to the 'logo' state
+      } else {
+        alert('Invalid file type. Please select a PNG, JPG, or PDF file.');
+        e.target.value = ''; // Reset the file input
+      }
     }
   };
-
 
   return (
     <div className="p-8">
@@ -111,26 +100,26 @@ export default function PainterRegisterPage() {
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
           <label htmlFor="businessName" className="block text-md font-medium text-gray-700">Business or Personal Name</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="businessName"
-            value={businessName} 
-            onChange={(e) => setBusinessName(e.target.value)} 
-            placeholder="Enter your business or personal name" 
-            required 
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            placeholder="Enter your business or personal name"
+            required
             className="p-2 border rounded w-full"
           />
         </div>
 
         <div>
           <label htmlFor="zipCodes" className="block text-md font-medium text-gray-700">Zip Codes</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="zipCodes"
-            value={zipCodes} 
-            onChange={(e) => setZipCodes(e.target.value)} 
-            placeholder="Enter zip codes separated by commas" 
-            required 
+            value={zipCodes}
+            onChange={(e) => setZipCodes(e.target.value)}
+            placeholder="Enter zip codes separated by commas"
+            required
             className="p-2 border rounded w-full"
           />
         </div>
@@ -148,24 +137,50 @@ export default function PainterRegisterPage() {
           />
         </div>
 
-        <div>
-          <label htmlFor="isInsured" className="block text-md font-medium text-gray-700">Are you insured?</label>
-          <input 
-            type="checkbox" 
+        <div className="flex items-center">
+          <input
+            type="checkbox"
             id="isInsured"
-            checked={isInsured} 
-            onChange={(e) => setIsInsured(e.target.checked)} 
+            checked={isInsured}
+            onChange={(e) => setIsInsured(e.target.checked)}
+            className="mr-2"
+          />
+          <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
+        </div>
+
+        <div>
+          <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo</label>
+          <input
+            type="file"
+            id="logo"
+            onChange={handleLogoChange}
+            accept="image/png, image/jpeg, application/pdf" // Restrict file types
             className="p-2 border rounded w-full"
           />
         </div>
 
         <div>
-          <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo</label>
-          <input 
-            type="file" 
-            id="logo"
-            onChange={handleLogoChange} 
-            accept="image/png, image/jpeg, application/pdf" // Restrict file types
+          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="block text-md font-medium text-gray-700">Password</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            required
             className="p-2 border rounded w-full"
           />
         </div>

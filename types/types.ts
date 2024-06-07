@@ -23,7 +23,7 @@ export type PaintPreferences = {
     trimColor?: string;
     trimFinish?: string;
     paintQuality?: string;
-  };
+};
 
 export type TimestampPair = {
     startTime: number;
@@ -39,20 +39,19 @@ export type Job = {
     jobId: string;
     zipCode: string;
     video: string;
-    phoneNumber?: string,
-    description: string;
-    paintPreferences: PaintPreferences;
-    providingOwnPaint: string;
+    phoneNumber?: string;
+    specialRequests?: string;
+    paintPreferencesId?: string;
+    paintPreferences?: PaintPreferences;
+    providingOwnPaint?: string;
+    moveFurniture?: boolean;
     prices: Array<{
         painterId: string;
         amount: number;
-        invoiceUrl: string;
-        timestamp: number; // Unix timestamp of when the quote was made
+        invoiceUrl?: string;
+        timestamp: number;
     }>;
-    acceptedQuotes: Array<{
-        acceptedQuoteId: string; // Unix timestamp of when the quote was made
-    }>; // This will exist if a quote has been accepted
-
+    acceptedQuotes?: Array<{
+        acceptedQuoteId: string;
+    }>;
 };
-
-  
