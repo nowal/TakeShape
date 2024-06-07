@@ -124,13 +124,18 @@ const AcceptedQuotes = () => {
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
                                 <ul className="list-disc pl-5">
-                                    <li>Ceilings: {job.paintPreferences.ceilings ? "Yes" : "No"}</li>
-                                    <li>Trim: {job.paintPreferences.trim ? "Yes" : "No"}</li>
+                                    <li>Ceilings: <span className="font-semibold">{job.paintPreferences?.ceilings ? "Yes" : "No"}</span></li>
+                                    <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilingColor || "N/A"}</span></li>
+                                    <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilingFinish || "N/A"}</span></li>
+                                    <li>Trim: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
+                                    <li>Trim Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
+                                    <li>Trim Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
+                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color}</span></li>
+                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish}</span></li>
+                                    <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                                 </ul>
                             </div>
-                            <p className="text-lg">Providing Own Paint: <span className="font-semibold">{job.providingOwnPaint}</span></p>
-                            <p className="text-lg">Description: <span className="font-semibold">{job.description}</span></p>
-                            <p className="text-xl font-bold">Homeowner's Phone Number: <span className="font-bold">{job.phoneNumber}</span></p>
+                            <p className="text-lg">Special Requests: <span className="font-semibold">{job.specialRequests}</span></p>
                         </div>
                     </div>
                 ))
