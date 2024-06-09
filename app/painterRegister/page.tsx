@@ -1,7 +1,7 @@
 'use client';
 
 // PainterRegisterPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -31,7 +31,7 @@ export default function PainterRegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const logoUrl = await uploadLogoAndGetUrl(logo); // Implement this function to handle logo upload and return the URL
+      const logoUrl = logo ? await uploadLogoAndGetUrl(logo) : ''; // Handle logo upload if provided
       const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
       const acceptedQuotes = [''];
 
@@ -61,7 +61,7 @@ export default function PainterRegisterPage() {
 
   const uploadLogoAndGetUrl = async (logoFile: File | null) => {
     if (!logoFile) {
-      throw new Error('No logo file provided.');
+      return ''; // Return an empty string if no logo file is provided
     }
 
     const storage = getStorage(firebase);
@@ -149,7 +149,7 @@ export default function PainterRegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo</label>
+          <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo (optional)</label>
           <input
             type="file"
             id="logo"
