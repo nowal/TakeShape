@@ -3,16 +3,17 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
-import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [zipcode, setZipcode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
   const [name, setName] = useState(''); // Added
@@ -24,90 +25,86 @@ export default function SignupAccountPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true); // Set loading state to true
     const auth = getAuth();
     const firestore = getFirestore();
-  
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-  
-      // Link the quote data to the user's account
-      const quoteData = sessionStorage.getItem('quoteData');
-      
-      console.log('Doc ID?:' + docId);
-      if (quoteData && user && docId) {
-        const quote = JSON.parse(quoteData);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        // Get the document reference for the specific document ID
-        const userImageDocRef = doc(firestore, "userImages", docId);
-  
+        const quoteData = sessionStorage.getItem('quoteData');
+        if (quoteData && user && docId) {
+            const quote = JSON.parse(quoteData);
+            const userImageDocRef = doc(firestore, "userImages", docId);
+            const userImageSnap = await getDoc(userImageDocRef);
 
-        // Retrieve the document
-        const userImageSnap = await getDoc(userImageDocRef);
+            if (userImageSnap.exists()) {
+                await updateDoc(userImageDocRef, {
+                    userId: user.uid,
+                    ...quote,
+                    zipCode: zipcode,
+                    ...(name && { name }),
+                    ...(phoneNumber && { phoneNumber })
+                });
 
-        if (userImageSnap.exists()) {
-          await updateDoc(userImageDocRef, {
-            userId: user.uid,
-            ...quote, // Spread the existing quote data
-            zipCode: zipcode,
-            // Add these new fields
-            ...(name && { name }), // Only add name if it's provided (truthy)
-            ...(phoneNumber && { phoneNumber }) // Only add phoneNumber if it's provided (truthy)
-          });
-
-          sessionStorage.removeItem('quoteData'); // Clean up session storage
-          sessionStorage.removeItem('documentId'); // Also clean up the documentId from session storage
-        } else {
-          console.error("No user image document found with the provided documentId");
-          // Handle the error - no document found with the provided ID
+                sessionStorage.removeItem('quoteData');
+                sessionStorage.removeItem('documentId');
+            } else {
+                console.error("No user image document found with the provided documentId");
+            }
         }
-      }
-  
-      // Handle painter data if necessary
-      if (isPainter && sessionStorage.getItem('painterId')) {
-        const oldPainterId = sessionStorage.getItem('painterId');
-        await handlePainterData(oldPainterId, user.uid);
-      } else {
-        setIsPainter(false);
-      }
-      router.push('/defaultPreferences');
+
+        if (isPainter && sessionStorage.getItem('painterId')) {
+            const oldPainterId = sessionStorage.getItem('painterId');
+            await handlePainterData(oldPainterId, user.uid);
+        } else {
+            setIsPainter(false);
+        }
+
+        // Check if the user has submitted a video
+        const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", user.uid));
+        const userImagesSnapshot = await getDocs(userImagesQuery);
+        if (!userImagesSnapshot.empty) {
+            router.push('/defaultPreferences');
+        } else {
+            router.push('/quote');
+        }
     } catch (error) {
-      console.error("Error signing up: ", error);
-      const errorCode = (error as { code: string }).code; // Type casting the error
-    
-      // Set a user-friendly error message based on the error code
-      if (errorCode === 'auth/email-already-in-use') {
-        setErrorMessage('The email address is already in use by another account.');
-      } else if (errorCode === 'auth/weak-password') {
-        setErrorMessage('The password is too weak.');
-      } else {
-        setErrorMessage('An unexpected error occurred. Please try again.');
-      }
+        console.error("Error signing up: ", error);
+        const errorCode = (error as { code: string }).code;
+
+        if (errorCode === 'auth/email-already-in-use') {
+            setErrorMessage('The email address is already in use by another account.');
+        } else if (errorCode === 'auth/weak-password') {
+            setErrorMessage('The password is too weak.');
+        } else {
+            setErrorMessage('An unexpected error occurred. Please try again.');
+        }
+    } finally {
+        setIsLoading(false); // Reset loading state
     }
   };
+
 
   const handlePainterData = async (oldPainterId: string | null, newUserId: string) => {
     const firestore = getFirestore();
     if (oldPainterId) {
-      // Fetch the old painter document
       const oldPainterDocRef = doc(firestore, "painters", oldPainterId);
       const oldPainterSnap = await getDoc(oldPainterDocRef);
 
       if (oldPainterSnap.exists()) {
         const oldPainterData = oldPainterSnap.data();
-
-        // Create a new painter document with the newUserId as the document ID and update userId field
         const newPainterDocRef = doc(firestore, "painters", newUserId);
         await setDoc(newPainterDocRef, {
           ...oldPainterData,
-          userId: newUserId, // Set the userId field to match the new user's Firebase Auth ID
+          userId: newUserId,
         });
 
         await deleteDoc(oldPainterDocRef);
 
-        console.log('Painter profile linked with new user ID:', newUserId);
         setIsPainter(true);
-        sessionStorage.removeItem('painterId'); // Clean up session storage
+        sessionStorage.removeItem('painterId');
       } else {
         console.error("Old painter document not found");
       }
@@ -131,10 +128,10 @@ export default function SignupAccountPage() {
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
       {errorMessage && (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong className="font-bold">Error: </strong>
-        <span className="block sm:inline">{errorMessage}</span>
-      </div>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{errorMessage}</span>
+        </div>
       )}
 
       <p className="mb-4">None of this information will be shared with painters until you accept a quote.</p>
@@ -203,10 +200,13 @@ export default function SignupAccountPage() {
           />
         </div>
 
-        <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
-          Sign Up
+        <button 
+          type="submit" 
+          className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Signing Up...' : 'Sign Up'}
         </button>
-        {/* Add a link or button for existing users to log in */}
         <p className="text-center">
           Already have an account? <button className="text-blue-600 underline" onClick={() => setShowLoginInstead(true)}>Sign in here</button>
         </p>

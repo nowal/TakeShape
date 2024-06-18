@@ -19,6 +19,7 @@ export default function PainterRegisterPage() {
   const [logo, setLogo] = useState<File | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
@@ -27,6 +28,7 @@ export default function PainterRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true); // Set loading state to true
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -56,6 +58,8 @@ export default function PainterRegisterPage() {
     } catch (error) {
       console.error('Error registering painter: ', error);
       alert('Error during registration. Please try again.');
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -160,7 +164,7 @@ export default function PainterRegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
+          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address (this will be your username)</label>
           <input
             type="email"
             id="email"
@@ -185,8 +189,12 @@ export default function PainterRegisterPage() {
           />
         </div>
 
-        <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
-          Register
+        <button 
+          type="submit" 
+          className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Registering...' : 'Register'}
         </button>
       </form>
     </div>

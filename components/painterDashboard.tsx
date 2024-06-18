@@ -11,6 +11,7 @@ const PainterDashboard = () => {
     const [jobList, setJobList] = useState<Job[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [price, setPrice] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const firestore = getFirestore();
     const storage = getStorage(); // Initialize Firebase Storage
     const auth = getAuth();
@@ -64,12 +65,18 @@ const PainterDashboard = () => {
 
     const handlePriceSubmit = async (e: React.FormEvent<HTMLFormElement>, jobId: string, amount: number): Promise<void> => {
         e.preventDefault();
-        if (!user || price === '') return; // Ensure user exists and price is not empty
+        setIsLoading(true); // Set loading state to true
+
+        if (!user || price === '') {
+            setIsLoading(false); // Reset loading state
+            return; // Ensure user exists and price is not empty
+        }
 
         // Convert price back to a number before submitting
         const numericPrice = parseFloat(price);
         if (isNaN(numericPrice)) {
             alert('Please enter a valid price');
+            setIsLoading(false); // Reset loading state
             return;
         }
     
@@ -104,23 +111,17 @@ const PainterDashboard = () => {
             console.log(`Price${invoiceUrl ? ' and invoice' : ''} for job ${jobId} updated successfully`);
             // Optionally reset form state here
             setSelectedFile(null);
-            setPrice('');// Reset price state, consider setting to initial state value
+            setPrice(''); // Reset price state, consider setting to initial state value
             fetchPainterData(); // Refresh data
         } catch (updateError) {
             console.error('Error updating price: ', updateError);
+        } finally {
+            setIsLoading(false); // Reset loading state
         }
     };
     
     return (
         <div className='flex flex-col items-center mt-12 px-4 md:px-8'>
-            {/*<div className='flex flex-row gap-4 items-center justify-center w-full md:w-auto md:space-x-4'>
-                <div className='w-full md:w-auto flex justify-center md:justify-start'>
-                    <CompletedQuotesButton text='View Completed Quotes'/>
-                </div>
-                <div className='w-full md:w-auto flex justify-center md:justify-start'>
-                    <AcceptedQuotesButton text='View Accepted Quotes'/>
-                </div>
-    </div>*/}
             <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
@@ -139,7 +140,13 @@ const PainterDashboard = () => {
                                     />
                                     <input type="file" onChange={handleFileChange} accept="application/pdf" className="w-full lg:w-auto" />
                                 </div>
-                                <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded w-full lg:w-auto">Submit Quote</button>
+                                <button 
+                                    type="submit" 
+                                    className={`button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded w-full lg:w-auto ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? 'Submitting...' : 'Submit Quote'}
+                                </button>
                             </form>
                         </div>
                         <div className="details-box space-y-2 w-full lg:w-auto">
@@ -172,3 +179,4 @@ const PainterDashboard = () => {
 };
 
 export default PainterDashboard;
+
