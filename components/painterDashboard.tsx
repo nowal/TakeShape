@@ -112,31 +112,37 @@ const PainterDashboard = () => {
     };
     
     return (
-        <div className='flex flex-col items-center mt-12'>
-            <div className='flex flex-row gap-10 items-center'>
-                <CompletedQuotesButton text='View Completed Quotes'/>
-                <AcceptedQuotesButton text='View Accepted Quotes'/>
-            </div>
+        <div className='flex flex-col items-center mt-12 px-4 md:px-8'>
+            {/*<div className='flex flex-row gap-4 items-center justify-center w-full md:w-auto md:space-x-4'>
+                <div className='w-full md:w-auto flex justify-center md:justify-start'>
+                    <CompletedQuotesButton text='View Completed Quotes'/>
+                </div>
+                <div className='w-full md:w-auto flex justify-center md:justify-start'>
+                    <AcceptedQuotesButton text='View Accepted Quotes'/>
+                </div>
+    </div>*/}
             <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
-                    <div key={job.jobId} className="flex flex-row justify-center items-start mb-10 w-full max-w-4xl">
-                        <div className="flex flex-col justify-center items-center mr-8">
-                            <video src={job.video} controls style={{ width: '400px' }}  />
-                            <form onSubmit={(e) => handlePriceSubmit(e, job.jobId, parseFloat(price))} className="mt-4 pl-32">
-                                <input
-                                    type="text"
-                                    name="price"
-                                    placeholder="Price"
-                                    className="mr-2 p-2 border rounded"
-                                    value={price}
-                                    onChange={handlePriceChange}
-                                />
-                                <input type="file" onChange={handleFileChange} accept="application/pdf" />
-                                <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded">Submit Quote</button>
+                    <div key={job.jobId} className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl">
+                        <div className="flex flex-col justify-center items-center lg:mr-8 mb-4 lg:mb-0 w-full lg:w-auto">
+                            <video src={job.video} autoPlay controls playsInline muted={true} className="w-full lg:w-96" />
+                            <form onSubmit={(e) => handlePriceSubmit(e, job.jobId, parseFloat(price))} className="mt-4 w-full lg:w-auto">
+                                <div className="flex flex-row">
+                                    <input
+                                        type="text"
+                                        name="price"
+                                        placeholder="Price"
+                                        className="mr-2 p-2 border rounded w-full lg:w-auto"
+                                        value={price}
+                                        onChange={handlePriceChange}
+                                    />
+                                    <input type="file" onChange={handleFileChange} accept="application/pdf" className="w-full lg:w-auto" />
+                                </div>
+                                <button type="submit" className="button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded w-full lg:w-auto">Submit Quote</button>
                             </form>
                         </div>
-                        <div className="details-box space-y-2">
+                        <div className="details-box space-y-2 w-full lg:w-auto">
                             <p className="text-lg">Zip Code: <span className="font-semibold">{job.zipCode}</span></p>
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
@@ -147,12 +153,12 @@ const PainterDashboard = () => {
                                     <li>Trim: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
                                     <li>Trim Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
                                     <li>Trim Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
-                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color}</span></li>
-                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish}</span></li>
+                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color || "N/A"}</span></li>
+                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish || "N/A"}</span></li>
                                     <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                                 </ul>
                             </div>
-                            <p className="text-lg">Special Requests: <span className="font-semibold">{job.specialRequests}</span></p>
+                            <p className="text-lg">Special Requests: <span className="font-semibold">{job.specialRequests || "N/A"}</span></p>
                         </div>
                     </div>
                 ))

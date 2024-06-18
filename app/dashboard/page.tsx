@@ -843,7 +843,7 @@ const Dashboard = () => {
                                                       style={{ width: '100%', maxWidth: '100%' }} // Adjust video size dynamically
                                                       onLoadedMetadata={() => {
                                                         if (videoRef.current) {
-                                                          videoRef.current.playbackRate = 2.0;
+                                                          videoRef.current.playbackRate = 1.0;
                                                         }
                                                       }}
                                                     />
