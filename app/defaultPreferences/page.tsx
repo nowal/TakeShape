@@ -16,7 +16,7 @@ const DefaultPreferences: React.FC = () => {
     const [defaultPreferences, setDefaultPreferences] = useAtom(defaultPreferencesAtom);
     const [showCeilingFields, setShowCeilingFields] = useState(defaultPreferences.ceilings || false);
     const [showTrimFields, setShowTrimFields] = useState(defaultPreferences.trim || false);
-    const [laborAndMaterial, setLaborAndMaterial] = useState<boolean | null>(null);
+    const [laborAndMaterial, setLaborAndMaterial] = useState<boolean>(false);
     const [specialRequests, setSpecialRequests] = useState<string>('');
     const [moveFurniture, setMoveFurniture] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +53,7 @@ const DefaultPreferences: React.FC = () => {
 
     const fetchUserDefaultPreferences = async () => {
         if (!auth.currentUser) return;
-    
+
         const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
         const querySnapshot = await getDocs(userImagesQuery);
         if (!querySnapshot.empty) {
@@ -73,6 +73,7 @@ const DefaultPreferences: React.FC = () => {
                         ceilingFinish: 'Flat',
                         trimColor: 'White',
                         trimFinish: 'Semi-gloss',
+                        laborAndMaterial: laborAndMaterial,
                         ...paintPrefDocSnap.data(),
                     });
                 }
@@ -87,6 +88,7 @@ const DefaultPreferences: React.FC = () => {
                 ceilingFinish: 'Flat',
                 trimColor: 'White',
                 trimFinish: 'Semi-gloss',
+                laborAndMaterial: laborAndMaterial,
             });
         }
     };
@@ -94,7 +96,7 @@ const DefaultPreferences: React.FC = () => {
     const handlePreferenceSubmit = async (navigateTo: string, morePreferences: boolean) => {
         if (!auth.currentUser) return;
         setIsLoading(true); // Set loading state to true
-    
+
         const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", auth.currentUser.uid));
         const querySnapshot = await getDocs(userImagesQuery);
         if (querySnapshot.empty) {
@@ -102,12 +104,13 @@ const DefaultPreferences: React.FC = () => {
             setIsLoading(false); // Reset loading state
             return;
         }
-    
+
         const userImageDocRef = querySnapshot.docs[0].ref;
         const paintPrefDocRef = doc(firestore, 'paintPreferences', auth.currentUser.uid);
-    
+
         // Build the updatedPreferences object conditionally
         const updatedPreferences = {
+            laborAndMaterial: laborAndMaterial, // Add laborAndMaterial field
             ...(laborAndMaterial && {
                 color: (document.getElementsByName('color')[0] as HTMLInputElement).value || defaultPreferences.color,
                 finish: (document.getElementsByName('finish')[0] as HTMLSelectElement).value || defaultPreferences.finish,
@@ -123,9 +126,9 @@ const DefaultPreferences: React.FC = () => {
             })
         };
         setDefaultPreferences(updatedPreferences);
-    
+
         await setDoc(paintPrefDocRef, updatedPreferences, { merge: true });
-    
+
         await updateDoc(userImageDocRef, {
             paintPreferencesId: paintPrefDocRef.id,
             morePreferences,
@@ -133,24 +136,21 @@ const DefaultPreferences: React.FC = () => {
             specialRequests, // Save special requests
             moveFurniture, // Save moveFurniture
         });
-    
+
         router.push(navigateTo);
         setIsLoading(false); // Reset loading state
     };
-    
-    
-
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.target as HTMLInputElement;
         const value: string | boolean = target.type === 'checkbox' ? target.checked : target.value;
         const name = target.name;
-    
+
         setDefaultPreferences(prev => ({
             ...prev,
             [name]: value,
         }));
-    
+
         if (target.type === 'checkbox') {
             if (name === "ceilings") {
                 setShowCeilingFields(target.checked);

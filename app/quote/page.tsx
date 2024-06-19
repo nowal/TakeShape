@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadProgressAtom, uploadStatusAtom, videoURLAtom, documentIdAtom } from '@/atom/atom';
 import { useAtom } from 'jotai';
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import firebase from '../../lib/firebase';
 import UploadButton from '../../components/uploadButton';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -38,14 +38,22 @@ export default function QuotePage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsUserLoggedIn(!!user);
+      if (user) {
+        const userDocRef = doc(firestore, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setZipCode(userData.zipCode || ''); // Prepopulate the zip code if it exists
+        }
+      }
     });
     
     return () => {
       unsubscribe(); // Unsubscribe on component unmount
     };
-  }, [auth]);
+  }, [auth, firestore]);
 
   const deleteOldQuotes = async (userId: string) => {
     const q = query(collection(firestore, "userImages"), where("userId", "==", userId));
@@ -72,124 +80,123 @@ export default function QuotePage() {
     setErrorMessage('');
 
     if (auth.currentUser) {
-        try {
-            // Delete previous quotes before adding a new one
-            await deleteOldQuotes(auth.currentUser.uid);
-
-            // Add a new quote after deleting old ones
-            const docRef = await addDoc(collection(firestore, "userImages"), {
-                zipCode,
-                description,
-                paintPreferences,
-                providingOwnPaint,
-                prices: [],
-                video: fileUrl, // Storing single video URL
-                userId: auth.currentUser.uid,
-            });
-            console.log('Document written with ID:', docRef.id);
-            setDocumentId(docRef.id);
-            
-            if (isUserLoggedIn) {
-                router.push('/defaultPreferences'); // Navigate to dashboard
-            } else {
-                // Handle non-logged-in user case
-                sessionStorage.setItem('quoteData', JSON.stringify({
-                    zipCode,
-                    description,
-                    paintPreferences,
-                    providingOwnPaint,
-                    prices: [],
-                    video: fileUrl
-                }));
-                router.push('/signup'); // Navigate to signup page
-            }
-        } catch (error) {
-            console.error('Error saving data: ', error);
-            alert('Error saving data. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    } else {
       try {
+        // Delete previous quotes before adding a new one
+        await deleteOldQuotes(auth.currentUser.uid);
+
         // Add a new quote after deleting old ones
         const docRef = await addDoc(collection(firestore, "userImages"), {
-            zipCode,
-            description,
-            paintPreferences,
-            providingOwnPaint,
-            prices: [],
-            video: fileUrl, // Storing single video URL
-            userId: "",
+          zipCode,
+          description,
+          paintPreferences,
+          providingOwnPaint,
+          prices: [],
+          video: fileUrl, // Storing single video URL
+          userId: auth.currentUser.uid,
         });
         console.log('Document written with ID:', docRef.id);
         setDocumentId(docRef.id);
         
         if (isUserLoggedIn) {
-            router.push('/dashboard'); // Navigate to dashboard
+          router.push('/defaultPreferences'); // Navigate to dashboard
         } else {
-            // Handle non-logged-in user case
-            sessionStorage.setItem('quoteData', JSON.stringify({
-                zipCode,
-                description,
-                paintPreferences,
-                providingOwnPaint,
-                prices: [],
-                video: fileUrl
-            }));
-            router.push('/signup'); // Navigate to signup page
+          // Handle non-logged-in user case
+          sessionStorage.setItem('quoteData', JSON.stringify({
+            zipCode,
+            description,
+            paintPreferences,
+            providingOwnPaint,
+            prices: [],
+            video: fileUrl
+          }));
+          router.push('/signup'); // Navigate to signup page
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Error saving data: ', error);
         alert('Error saving data. Please try again.');
-    } finally {
+      } finally {
         setIsLoading(false);
+      }
+    } else {
+      try {
+        // Add a new quote after deleting old ones
+        const docRef = await addDoc(collection(firestore, "userImages"), {
+          zipCode,
+          description,
+          paintPreferences,
+          providingOwnPaint,
+          prices: [],
+          video: fileUrl, // Storing single video URL
+          userId: "",
+        });
+        console.log('Document written with ID:', docRef.id);
+        setDocumentId(docRef.id);
+        
+        if (isUserLoggedIn) {
+          router.push('/dashboard'); // Navigate to dashboard
+        } else {
+          // Handle non-logged-in user case
+          sessionStorage.setItem('quoteData', JSON.stringify({
+            zipCode,
+            description,
+            paintPreferences,
+            providingOwnPaint,
+            prices: [],
+            video: fileUrl
+          }));
+          router.push('/signup'); // Navigate to signup page
+        }
+      } catch (error) {
+        console.error('Error saving data: ', error);
+        alert('Error saving data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
+  };
+
+  const handleUploadSuccess = (file: File) => {
+    if (auth.currentUser != null) {
+      console.log(auth.currentUser.uid);
+    } else {
+      console.log("no user");
     }
-};
+    setSelectedFile(file);
+    setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
 
-const handleUploadSuccess = (file: File) => {
-    
-  if (auth.currentUser != null) {
-    console.log(auth.currentUser.uid);
-  } else {
-    console.log("no user");
-  }
-  setSelectedFile(file);
-  setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
+    const storage = getStorage(firebase);
+    const fileRef = storageRef(storage, `uploads/${file.name}`);
+    const uploadTask = uploadBytesResumable(fileRef, file);
 
-  const storage = getStorage(firebase);
-  const fileRef = storageRef(storage, `uploads/${file.name}`);
-  const uploadTask = uploadBytesResumable(fileRef, file);
-
-  // Store the upload promise in the state or a ref
-  uploadTask.on(
-    'state_changed',
-    (snapshot) => {
-      // Handle progress
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      setUploadProgress(progress);
-      setUploadStatus('uploading');
-      console.log('Upload is ' + progress + '% done');
-    },
-    (error) => {
-      console.error('Error uploading video: ', error);
-      alert('Error uploading video. Please try again.');
-      setIsUploading(false);
-    },
-    () => {
-      // Handle successful uploads on complete
-      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-        console.log('File available at', url);
-        setUploadStatus('completed');
-        setFileUrl(url); // Save the URL once the upload is complete
-        setVideoURL(url); 
+    // Store the upload promise in the state or a ref
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        // Handle progress
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+        setUploadStatus('uploading');
+        console.log('Upload is ' + progress + '% done');
+      },
+      (error) => {
+        console.error('Error uploading video: ', error);
+        alert('Error uploading video. Please try again.');
         setIsUploading(false);
-      });
-    } 
-  );
-  console.log("Before Handle Submit");
-  handleSubmit();
-};
+      },
+      () => {
+        // Handle successful uploads on complete
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          console.log('File available at', url);
+          setUploadStatus('completed');
+          setFileUrl(url); // Save the URL once the upload is complete
+          setVideoURL(url); 
+          setIsUploading(false);
+        });
+      }
+    );
+    console.log("Before Handle Submit");
+    handleSubmit();
+  };
 
   return (
     <div className="p-8 pt-20">

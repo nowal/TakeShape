@@ -36,6 +36,8 @@ const PainterDashboard = () => {
                             jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
                         }
                     }
+                    // Log the video URL to ensure it's correct
+                    console.log(`Video URL for job ${jobDoc.id}: ${jobData.video}`);
                     return { ...jobData, jobId: jobDoc.id };
                 }));
                 const unquotedJobs = jobs.filter(job => 
@@ -119,7 +121,7 @@ const PainterDashboard = () => {
             setIsLoading(false); // Reset loading state
         }
     };
-    
+
     return (
         <div className='flex flex-col items-center mt-12 px-4 md:px-8'>
             <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
@@ -133,12 +135,14 @@ const PainterDashboard = () => {
                                     <input
                                         type="text"
                                         name="price"
-                                        placeholder="Price"
+                                        placeholder="Total Price"
                                         className="mr-2 p-2 border rounded w-full lg:w-auto"
                                         value={price}
                                         onChange={handlePriceChange}
                                     />
-                                    <input type="file" onChange={handleFileChange} accept="application/pdf" className="w-full lg:w-auto" />
+                                    <label>Invoice (optional)
+                                        <input type="file" onChange={handleFileChange} accept="application/pdf" className="w-full lg:w-auto" />
+                                    </label>
                                 </div>
                                 <button 
                                     type="submit" 
@@ -154,14 +158,16 @@ const PainterDashboard = () => {
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
                                 <ul className="list-disc pl-5">
+                                    <li className="font-semibold">{job.paintPreferences?.laborAndMaterial ? "Labor and Material" : "Labor Only"}</li>
+                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color || "N/A"}</span></li>
+                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish || "N/A"}</span></li>
+                                    <li>Paint Quality: <span className="font-semibold">{job.paintPreferences?.paintQuality || "N/A"}</span></li>
                                     <li>Ceilings: <span className="font-semibold">{job.paintPreferences?.ceilings ? "Yes" : "No"}</span></li>
                                     <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilingColor || "N/A"}</span></li>
                                     <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilingFinish || "N/A"}</span></li>
                                     <li>Trim: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
                                     <li>Trim Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
                                     <li>Trim Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
-                                    <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color || "N/A"}</span></li>
-                                    <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish || "N/A"}</span></li>
                                     <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                                 </ul>
                             </div>

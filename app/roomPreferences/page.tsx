@@ -57,6 +57,7 @@ const RoomPreferences = () => {
         finish: '',
         ceilings: false,
         trim: false,
+        laborAndMaterial: false,
       });
     const [addingRoom, setAddingRoom] = useState(false);
     const [videoSelectionStart, setVideoSelectionStart] = useState<number | null>(null);

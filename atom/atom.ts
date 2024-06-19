@@ -28,4 +28,5 @@ export const defaultPreferencesAtom = atom<PaintPreferences>({
   trim: false,
   trimColor:'',
   trimFinish:'',
+  laborAndMaterial:false,
 });

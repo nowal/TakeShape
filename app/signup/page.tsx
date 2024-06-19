@@ -33,6 +33,16 @@ export default function SignupAccountPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
+        // Create user document in "users" collection
+        const userDocRef = doc(firestore, "users", user.uid);
+        await setDoc(userDocRef, {
+          email,
+          zipCode: zipcode,
+          name,
+          phoneNumber,
+          isPainter
+        });
+
         const quoteData = sessionStorage.getItem('quoteData');
         if (quoteData && user && docId) {
             const quote = JSON.parse(quoteData);

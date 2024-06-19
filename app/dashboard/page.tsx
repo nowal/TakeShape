@@ -234,6 +234,7 @@ const Dashboard = () => {
         finish: '',
         ceilings: false,
         trim: false,
+        laborAndMaterial: false,
       });
     const [addingRoom, setAddingRoom] = useState(false);
     const [laborAndMaterial, setLaborAndMaterial] = useState(true); // Default to true

@@ -23,6 +23,7 @@ export type PaintPreferences = {
     trimColor?: string;
     trimFinish?: string;
     paintQuality?: string;
+    laborAndMaterial:boolean;
 };
 
 export type TimestampPair = {
