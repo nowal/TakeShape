@@ -14,6 +14,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Loading state for login button
   const auth = getAuth(firebase);
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -23,11 +24,11 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
       setIsSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
-  
+
     const timeoutId = setTimeout(() => {
       setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
     }, 2000);
-  
+
     // Cleanup the listener and timeout on unmount
     return () => {
       unsubscribe();
@@ -37,6 +38,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true); // Set loading state to true
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowModal(false);
@@ -56,6 +58,8 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error signing in:', error);
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -93,7 +97,6 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
         </button>
       )}
 
-
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content secondary-color">
@@ -113,12 +116,16 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
                 placeholder="Password"
                 className="p-2 border rounded w-full"
               />
-              <button type="submit" className="text-sm sm:text-bas button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
-                Log in
+              <button 
+                type="submit" 
+                className={`text-sm sm:text-bas button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Logging In...' : 'Log in'}
               </button>
               <Link className="text-center text-blue-600 underline" onClick={() => setShowModal(false)} href="/signup">
                 Sign Up
-                </Link>
+              </Link>
             </form>
           </div>
         </div>
