@@ -174,7 +174,7 @@ const PainterDashboard = () => {
 
     return (
         <div className='flex flex-col items-center px-4 md:px-8'>
-            <h1 className="text-4xl font-bold underline mb-8 mt-6">Available Quotes</h1>
+            <h1 className="text-4xl font-bold underline mb-8 mt-8">Available Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
                     <div key={job.jobId} className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl">
