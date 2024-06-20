@@ -84,12 +84,25 @@ export default function SignupAccountPage() {
         console.error("Error signing up: ", error);
         const errorCode = (error as { code: string }).code;
 
-        if (errorCode === 'auth/email-already-in-use') {
-            setErrorMessage('The email address is already in use by another account.');
-        } else if (errorCode === 'auth/weak-password') {
-            setErrorMessage('The password is too weak.');
-        } else {
-            setErrorMessage('An unexpected error occurred. Please try again.');
+        switch (errorCode) {
+            case 'auth/email-already-in-use':
+                setErrorMessage('The email address is already in use by another account.');
+                break;
+            case 'auth/weak-password':
+                setErrorMessage('The password is too weak.');
+                break;
+            case 'auth/invalid-email':
+                setErrorMessage('The email address is not valid.');
+                break;
+            case 'auth/operation-not-allowed':
+                setErrorMessage('Email/password accounts are not enabled.');
+                break;
+            case 'auth/network-request-failed':
+                setErrorMessage('Network error. Please try again.');
+                break;
+            default:
+                setErrorMessage('An unexpected error occurred. Please try again.');
+                break;
         }
     } finally {
         setIsLoading(false); // Reset loading state

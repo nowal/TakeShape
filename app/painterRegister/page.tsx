@@ -20,6 +20,7 @@ export default function PainterRegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
@@ -29,6 +30,8 @@ export default function PainterRegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
+    setErrorMessage(''); // Reset error message
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -57,7 +60,28 @@ export default function PainterRegisterPage() {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error registering painter: ', error);
-      alert('Error during registration. Please try again.');
+      const errorCode = (error as { code: string }).code;
+
+      switch (errorCode) {
+        case 'auth/email-already-in-use':
+          setErrorMessage('The email address is already in use by another account.');
+          break;
+        case 'auth/weak-password':
+          setErrorMessage('The password is too weak.');
+          break;
+        case 'auth/invalid-email':
+          setErrorMessage('The email address is not valid.');
+          break;
+        case 'auth/operation-not-allowed':
+          setErrorMessage('Email/password accounts are not enabled.');
+          break;
+        case 'auth/network-request-failed':
+          setErrorMessage('Network error. Please try again.');
+          break;
+        default:
+          setErrorMessage('An unexpected error occurred. Please try again.');
+          break;
+      }
     } finally {
       setIsLoading(false); // Reset loading state
     }
@@ -101,6 +125,14 @@ export default function PainterRegisterPage() {
   return (
     <div className="p-8">
       <h1 className="text-center text-2xl font-bold mb-6">Painter Registration</h1>
+
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{errorMessage}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
           <label htmlFor="businessName" className="block text-md font-medium text-gray-700">Business or Personal Name</label>
@@ -164,7 +196,7 @@ export default function PainterRegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address (this will be your username)</label>
+          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
           <input
             type="email"
             id="email"
