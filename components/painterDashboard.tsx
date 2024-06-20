@@ -18,6 +18,44 @@ const PainterDashboard = () => {
     const user = auth.currentUser;
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    const getFirstFrameAsImage = (videoUrl: string) => {
+        return new Promise<string>((resolve, reject) => {
+            const video = document.createElement('video');
+            video.src = videoUrl;
+            video.crossOrigin = 'anonymous';
+            video.muted = true; // Required to play the video without user interaction
+    
+            video.addEventListener('loadeddata', () => {
+                video.currentTime = 0;
+            });
+    
+            video.addEventListener('seeked', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+    
+                if (ctx) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    resolve(dataUrl);
+                } else {
+                    reject(new Error('Failed to get 2D context'));
+                }
+            });
+    
+            video.addEventListener('error', (err) => {
+                reject(err);
+            });
+    
+            // Add a timeout in case the video fails to load
+            setTimeout(() => {
+                reject(new Error('Video load timeout'));
+            }, 5000);
+        });
+    };
+    
+
     const fetchPainterData = async () => {
         if (user) {
             const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
@@ -135,8 +173,8 @@ const PainterDashboard = () => {
     };
 
     return (
-        <div className='flex flex-col items-center mt-12 px-4 md:px-8'>
-            <h1 className="text-4xl font-bold underline mb-8 mt-14">Available Quotes</h1>
+        <div className='flex flex-col items-center px-4 md:px-8'>
+            <h1 className="text-4xl font-bold underline mb-8 mt-6">Available Quotes</h1>
             {jobList.length > 0 ? (
                 jobList.map(job => (
                     <div key={job.jobId} className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl">
