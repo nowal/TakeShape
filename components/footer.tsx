@@ -15,13 +15,13 @@ const Footer = () => {
                         alt="Logo"
                         className="h-16 w-16"
                     />
-                    <h1 className="ml-2 text-lg font-bold">DwellDone</h1>
+                    <h1 className="ml-2 text-lg font-bold">TakeShape</h1>
                 </div>
-                <a href="mailto:dwelldonehelp@gmail.com?subject=Contact%20DwellDone" className="text-center text-sm">Contact Us</a>
-                <a href="tel:+16158096429" className="text-center text-sm mt-2">(615) 809-6429</a>
                 <Link href="/aboutUs" className="text-sm mt-2 hover:underline">
                         About Us
                 </Link>
+                <a href="mailto:takeshapehome@gmail.com?subject=Contact%20DwellDone" className="text-center text-sm">Contact Us</a>
+                <a href="tel:+16158096429" className="text-center text-sm mt-2">(615) 809-6429</a>
             </div>
             <style jsx>{`
                 .bg-footer {

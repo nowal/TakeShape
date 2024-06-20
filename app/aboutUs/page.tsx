@@ -11,9 +11,9 @@ const AboutUs = () => {
       <p className="text-base leading-6 text-gray-600">
         Hi, I'm Noah. As a proffesional home-service estimator, 
         I saw how much of a headache it is for homeowners to get quotes for painting.
-        I started DwellDone in order to connect homeowners with painters more quickly
+        I started TakeShape in order to connect homeowners with painters more quickly
         and to provide a space for local painters to offer better pricing.
-        As a resident of Murfreesboro, I founded DwellDone with Middle Tennesseans in mind.
+        As a resident of Murfreesboro, I founded TakeShape with Middle Tennesseans in mind.
         I've partnered with an extensive network of painters in the community, 
         and we are exicted to offer you the best experience for your painting needs.
       </p>

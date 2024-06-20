@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -16,6 +16,7 @@ const PainterDashboard = () => {
     const storage = getStorage(); // Initialize Firebase Storage
     const auth = getAuth();
     const user = auth.currentUser;
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const fetchPainterData = async () => {
         if (user) {
@@ -36,9 +37,10 @@ const PainterDashboard = () => {
                             jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
                         }
                     }
-                    // Log the video URL to ensure it's correct
-                    console.log(`Video URL for job ${jobDoc.id}: ${jobData.video}`);
-                    return { ...jobData, jobId: jobDoc.id };
+
+                    // Ensure the video URL is correct
+                    const videoUrl = await getVideoUrl(jobData.video);
+                    return { ...jobData, video: videoUrl, jobId: jobDoc.id };
                 }));
                 const unquotedJobs = jobs.filter(job => 
                     !job.prices.some(price => price.painterId === user.uid)
@@ -47,6 +49,16 @@ const PainterDashboard = () => {
             }
         } else {
             console.log('No user found, unable to fetch painter data.');
+        }
+    };
+
+    const getVideoUrl = async (path: string): Promise<string> => {
+        const videoRef = ref(storage, path);
+        try {
+            return await getDownloadURL(videoRef);
+        } catch (error) {
+            console.error('Error getting video URL: ', error);
+            return '';
         }
     };
 

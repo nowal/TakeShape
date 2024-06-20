@@ -10,8 +10,8 @@ admin.initializeApp();
 const mailTransport = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'dwelldoneupdates@gmail.com',
-    pass: 'dwvo zrkc uqny gkip',
+    user: 'takeshapehome@gmail.com',
+    pass: 'ifpj hnaq rtan nxlp', //'dwvo zrkc uqny gkip' (dwelldoneupdates),
   },
 });
 
@@ -21,7 +21,7 @@ exports.sendEmailNotification = functions.firestore.document('userImages/{userIm
     const userImage = snap.data();
 
     const mailOptions = {
-      from: 'dwelldoneupdates@gmail.com',
+      from: 'takeshapehome@gmail.com',
       to: 'waldronnoah@gmail.com', // List of recipients
       subject: 'New Quote Submitted',
       text: `A new quote has been submitted: ${JSON.stringify(userImage, null, 2)}`,

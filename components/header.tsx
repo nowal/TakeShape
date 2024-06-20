@@ -52,7 +52,7 @@ const Header = () => {
         <header className={`${isHomePage ? 'fixed top-0 w-full z-50' : ''} secondary-color flex items-center justify-between border-b px-4 py-2 sm:px-6 lg:px-8`}>
             <Link href="/" className="flex items-center space-x-2">
                 <img src={daltonLogo.src} alt="Logo" className="h-10 w-10 md:h-16 md:w-16" /> {/* Adjusted size for mobile */}
-                <h1 className="text-base md:text-xl font-bold">DwellDone</h1>
+                <h1 className="text-base md:text-xl font-bold">TakeShape</h1>
             </Link>
             <div className="flex items-center space-x-4 sm:space-x-2">
                 {/*!isUserLoggedIn && (
