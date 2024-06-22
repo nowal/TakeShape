@@ -76,6 +76,8 @@ const DefaultPreferences: React.FC = () => {
                         laborAndMaterial: laborAndMaterial,
                         ...paintPrefDocSnap.data(),
                     });
+                    setShowCeilingFields(paintPrefDocSnap.data().ceilings || false);
+                    setShowTrimFields(paintPrefDocSnap.data().trim || false);
                 }
             }
         } else {
@@ -116,10 +118,12 @@ const DefaultPreferences: React.FC = () => {
                 finish: (document.getElementsByName('finish')[0] as HTMLSelectElement).value || defaultPreferences.finish,
                 paintQuality: (document.getElementsByName('paintQuality')[0] as HTMLSelectElement).value || defaultPreferences.paintQuality,
             }),
+            ceilings: showCeilingFields,
             ...(showCeilingFields && {
                 ceilingColor: (document.getElementsByName('ceilingColor')[0] as HTMLInputElement).value || defaultPreferences.ceilingColor,
                 ceilingFinish: (document.getElementsByName('ceilingFinish')[0] as HTMLSelectElement).value || defaultPreferences.ceilingFinish,
             }),
+            trim: showTrimFields,
             ...(showTrimFields && {
                 trimColor: (document.getElementsByName('trimColor')[0] as HTMLInputElement).value || defaultPreferences.trimColor,
                 trimFinish: (document.getElementsByName('trimFinish')[0] as HTMLSelectElement).value || defaultPreferences.trimFinish,
