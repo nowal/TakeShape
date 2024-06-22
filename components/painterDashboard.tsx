@@ -215,9 +215,9 @@ const PainterDashboard = () => {
                                     <li>Ceilings: <span className="font-semibold">{job.paintPreferences?.ceilings ? "Yes" : "No"}</span></li>
                                     <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilingColor || "N/A"}</span></li>
                                     <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilingFinish || "N/A"}</span></li>
-                                    <li>Trim: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
-                                    <li>Trim Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
-                                    <li>Trim Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
+                                    <li>Trim and Doors: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
+                                    <li>Trim and Door Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
+                                    <li>Trim and Door Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
                                     <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                                 </ul>
                             </div>
