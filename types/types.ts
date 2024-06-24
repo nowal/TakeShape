@@ -46,6 +46,9 @@ export type Job = {
     paintPreferences?: PaintPreferences;
     providingOwnPaint?: string;
     moveFurniture?: boolean;
+    customerName?: string;
+    userId?: string;
+    address?: string;
     prices: Array<{
         painterId: string;
         amount: number;

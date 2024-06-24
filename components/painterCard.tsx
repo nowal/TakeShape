@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 
 type PainterCardProps = {
     painterId: string;
@@ -17,12 +17,13 @@ const PainterCard: React.FC<PainterCardProps> = ({ painterId }) => {
 
     useEffect(() => {
         const fetchPainterData = async () => {
-            const painterRef = doc(firestore, 'painters', painterId);
-            console.log('retrieving info for painter' + painterId);
-            const painterSnap = await getDoc(painterRef);
+            const painterQuery = query(collection(firestore, 'painters'), where('userId', '==', painterId));
+            console.log('retrieving info for painter ' + painterId);
+            const painterSnapshot = await getDocs(painterQuery);
 
-            if (painterSnap.exists()) {
-                setPainterData(painterSnap.data() as PainterData);
+            if (!painterSnapshot.empty) {
+                const painterDoc = painterSnapshot.docs[0].data();
+                setPainterData(painterDoc as PainterData);
             } else {
                 console.log('No such painter!');
             }

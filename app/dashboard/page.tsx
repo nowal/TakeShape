@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { useRouter } from 'next/navigation';
 import { timestampPairsAtom } from '../../atom/atom';
-import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
+import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, setDoc, getDoc, arrayUnion, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
@@ -24,6 +24,8 @@ type ModalProps = {
     price: number | null;
     phoneNumber: string;
     setPhoneNumber: (number: string) => void;
+    address: string;
+    setAddress: (address: string) => void;
     painterId: string;
 };
 
@@ -34,7 +36,7 @@ type Price = {
     accepted?: boolean; // Optional because it will not exist on all objects initially
   };
 
-const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumber, setPhoneNumber, painterId }) => {
+const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumber, setPhoneNumber, address, setAddress, painterId }) => {
     if (!showModal) return null;
 
     const [modalStep, setModalStep] = useState(1);
@@ -44,9 +46,9 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
     const depositAmount = price ? parseFloat((price * 0.02).toFixed(2)) : 0;
 
     const handlePhoneSubmit = async () => {
-        // Assuming phoneNumber is already set and you have the painterId and documentId
+        // Assuming phoneNumber and address are already set and you have the painterId and documentId
     
-        // Step 1: Update the homeowner's document with the phone number
+        // Step 1: Update the homeowner's document with the phone number and address
 
         if (auth.currentUser) {
             // First, get the document reference for the userImages document
@@ -59,7 +61,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
                 const documentId = userImageDoc.id;
 
                 try {
-                    if (documentId && phoneNumber) {
+                    if (documentId && phoneNumber && address) {
                         const userImageRef = doc(firestore, "userImages", documentId);
                         let prices = userImageDoc.data().prices; // Assuming this gets you the array of prices
                         let updatedPrices = prices.map((price: Price) => {
@@ -70,6 +72,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
 });
                         await updateDoc(userImageRef, {
                             phoneNumber: phoneNumber,
+                            address: address,
                             prices: updatedPrices,
                         });
                     }
@@ -120,7 +123,7 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
             {modalStep === 1 && (
     <div className="modal-content bg-white p-8 rounded-lg shadow-lg relative w-96 max-w-95-percent">
       <h2 className="text-center text-xl font-semibold mb-4">Congrats on accepting your quote!</h2>
-      <p className="mb-4">Please enter your phone number below so that we can connect you with:</p>
+      <p className="mb-4">Please enter your phone number and address below so that we can connect you with:</p>
       <PainterCard painterId={painterId}/>
       <input 
         type="tel" 
@@ -128,6 +131,13 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
         onChange={(e) => setPhoneNumber(e.target.value)} 
         placeholder="Your phone number"
         className="input-field border-2 border-gray-300 focus:border-green-500 w-full py-2 px-4 mb-6 mt-4" 
+      />
+      <input 
+        type="text" 
+        value={address} 
+        onChange={(e) => setAddress(e.target.value)} 
+        placeholder="Your address"
+        className="input-field border-2 border-gray-300 focus:border-green-500 w-full py-2 px-4 mb-6" 
       />
       <button onClick={() => setShowModal(false)} className="close-modal absolute top-3 right-3 text-2xl">X</button>
       <button onClick={handlePhoneSubmit} className="block shadow button-color hover:bg-green-900 text-white rounded py-2 px-4 mx-auto">Submit</button>
@@ -210,6 +220,7 @@ const Dashboard = () => {
     const [checkingAuth, setCheckingAuth] = useAtom(checkingAuthAtom);
     const [userTypeLoading, setUserTypeLoading] = useAtom(userTypeLoadingAtom); // Atom to manage loading state of user type check and data fetching
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [address, setAddress] = useState('');
     const [painterId, setPainterId] = useState('');
     const [uploadProgress, setUploadProgress] = useAtom(uploadProgressAtom);
     const [videoURL, setVideoURL] = useAtom(videoURLAtom);
@@ -826,7 +837,7 @@ const Dashboard = () => {
                                 return (
                                     <div className='dashboard flex flex-col items-center mt-10 w-full'>
                                         <GoogleAnalytics gaId="G-47EYLN83WE" />
-                                        <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} painterId={painterId}/>
+                                        <Modal showModal={showModal} setShowModal={setShowModal} price={selectedQuote} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} address={address} setAddress={setAddress} painterId={painterId}/>
                                         {isPainter ? (
                                             <PainterDashboard />
                                         ) : (

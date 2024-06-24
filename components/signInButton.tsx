@@ -15,6 +15,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false); // Loading state for login button
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error message state
   const auth = getAuth(firebase);
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -39,6 +40,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
+    setErrorMessage(null); // Reset error message state
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowModal(false);
@@ -58,6 +60,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error signing in:', error);
+      setErrorMessage('Incorrect email or password. Please try again.'); // Set error message
     } finally {
       setIsLoading(false); // Reset loading state
     }
@@ -116,6 +119,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
                 placeholder="Password"
                 className="p-2 border rounded w-full"
               />
+              {errorMessage && <p className="text-red-600">{errorMessage}</p>} {/* Display error message */}
               <button 
                 type="submit" 
                 className={`text-sm sm:text-bas button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}

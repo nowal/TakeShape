@@ -23,7 +23,7 @@ const AvilableQuotesButton: React.FC<AvilableQuotesButtonProps> = ({ text, class
     }
 
     return (
-        <Link href={'/availableQuotes'}>
+        <Link href={'/dashboard'}>
               <button className={`button-color hover:bg-green-900 text-white py-2 px-4 rounded ${className || ''}`}>
                 {text}
               </button>

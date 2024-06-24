@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Job, PaintPreferences } from '../types/types'; // Ensure this path is correct
 import AcceptedQuotesButton from './acceptedQuotesButton';
@@ -12,9 +13,11 @@ const PainterDashboard = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [price, setPrice] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedPage, setSelectedPage] = useState('Available Quotes');
     const firestore = getFirestore();
     const storage = getStorage(); // Initialize Firebase Storage
     const auth = getAuth();
+    const router = useRouter();
     const user = auth.currentUser;
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -172,9 +175,30 @@ const PainterDashboard = () => {
         }
     };
 
+    const handlePageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = e.target.value;
+        setSelectedPage(selected);
+        if (selected === 'Available Quotes') {
+            router.push('/dashboard');
+        } else if (selected === 'Accepted Quotes') {
+            router.push('/acceptedQuotes');
+        } else if (selected === 'Completed Quotes') {
+            router.push('/completedQuotes');
+        }
+    };
+
     return (
         <div className='flex flex-col items-center px-4 md:px-8'>
-            <h1 className="text-4xl font-bold underline mb-8 mt-8">Available Quotes</h1>
+            <select 
+                className="text-xl font-medium mb-4 p-2 underline"
+                value={selectedPage} 
+                onChange={handlePageChange}
+                style={{ fontSize: selectedPage === 'Available Quotes' ? '2rem' : '1rem', fontWeight: selectedPage === 'Available Quotes' ? 'bold' : 'normal' }}
+            >
+                <option value="Available Quotes">Available Quotes</option>
+                <option value="Accepted Quotes">Accepted Quotes</option>
+                <option value="Completed Quotes">Completed Quotes</option>
+            </select>
             {jobList.length > 0 ? (
                 jobList.map(job => (
                     <div key={job.jobId} className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl">

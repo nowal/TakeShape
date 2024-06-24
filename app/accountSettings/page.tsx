@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebase from '../../lib/firebase';
@@ -29,11 +29,11 @@ export default function AccountSettingsPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const firestore = getFirestore();
-        const painterDocRef = doc(firestore, "painters", user.uid);
-        const painterDocSnap = await getDoc(painterDocRef);
+        const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
+        const painterSnapshot = await getDocs(painterQuery);
 
-        if (painterDocSnap.exists()) {
-          const painterData = painterDocSnap.data();
+        if (!painterSnapshot.empty) {
+          const painterData = painterSnapshot.docs[0].data();
           setBusinessName(painterData.businessName || '');
           setZipCodes((painterData.zipCodes || []).join(', '));
           setIsInsured(painterData.isInsured || false);
@@ -65,23 +65,29 @@ export default function AccountSettingsPage() {
 
     try {
       const firestore = getFirestore();
-      const painterDocRef = doc(firestore, "painters", user.uid);
+      const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
+      const painterSnapshot = await getDocs(painterQuery);
 
-      const updatedLogoUrl = logo ? await uploadLogoAndGetUrl(logo) : logoUrl; // Handle logo upload if provided
-      const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
+      if (!painterSnapshot.empty) {
+        const painterDocRef = painterSnapshot.docs[0].ref;
+        const updatedLogoUrl = logo ? await uploadLogoAndGetUrl(logo) : logoUrl; // Handle logo upload if provided
+        const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
 
-      const updatedPainterData = {
-        businessName,
-        zipCodes: zipCodesArray,
-        isInsured,
-        logoUrl: updatedLogoUrl,
-        phoneNumber,
-      };
+        const updatedPainterData = {
+          businessName,
+          zipCodes: zipCodesArray,
+          isInsured,
+          logoUrl: updatedLogoUrl,
+          phoneNumber,
+        };
 
-      await updateDoc(painterDocRef, updatedPainterData);
-      console.log('Painter info updated:', updatedPainterData);
+        await updateDoc(painterDocRef, updatedPainterData);
+        console.log('Painter info updated:', updatedPainterData);
 
-      window.location.reload(); // Reload the page after updating
+        window.location.reload(); // Reload the page after updating
+      } else {
+        setErrorMessage('Painter data not found.');
+      }
     } catch (error) {
       console.error('Error updating painter info: ', error);
       setErrorMessage('An unexpected error occurred. Please try again.');
