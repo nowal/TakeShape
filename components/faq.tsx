@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 
 const faqData = [
   { question: "Can I speak with a painter before accepting a quote?", answer: "Yes! We provide the phone number for each painter so that you can speak with them directly. The beauty is that you don't have to until you want to." },
-  { question: "How long does it take to get a quote?", answer: "Typically it takes 24 hours to get the first 2-3 quotes back." },
-  { question: "Can I choose my own paint colors?", answer: "Absolutely! You're free to choose your preferred paint colors. We allow you to select if you would like to provide the paint or have the painter do so." },
+  { question: "How long does it take to get a quote?", answer: "It typically takes one to two business days to get two to three quotes back." },
+  { question: "What if I'm not happy with the work?", answer: "We will work with your painter to ensure that you are completely satisfied and will even pay for another painter to fix any unresolved mistakes." },
   { question: "Is there a cost for getting quotes?", answer: "Nope, the quote process is completely free!" },
-  { question: "Is the price guaranteed or is it subject to change?", answer: "We are able to get extremely accurate quotes with the one video. The price can shift slightly if something is not clear from the video, but unlike in person estimates, you have a video record of what was visible." }
+  { question: "Is the price guaranteed or is it subject to change?", answer: "We are able to get extremely accurate quotes with your one video. The price can shift slightly if something is not clear from the video, but unlike in person estimates, you have a video record of what was visible." }
 ];
 
 const FAQSection = () => {
@@ -25,9 +25,10 @@ const FAQSection = () => {
           <div key={index} className="mb-4">
             <button
               onClick={() => handleToggle(index)}
-              className="w-full text-left text-xl font-semibold py-2"
+              className="w-full text-left text-xl font-semibold py-2 flex justify-between items-center"
             >
-              {faq.question}
+              <span>{faq.question}</span>
+              <span>{activeIndex === index ? '▲' : '▼'}</span>
             </button>
             <div
               className={`answer text-lg py-2 ${activeIndex === index ? 'block' : 'hidden'}`}
