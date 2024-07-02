@@ -11,6 +11,7 @@ export default function AccountButton() {
   const [isLoading, setIsLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isPainter, setIsPainter] = useState(false);
+  const [isAgent, setIsAgent] = useState(false);
   const router = useRouter();
   const auth = getAuth();
   const firestore = getFirestore();
@@ -40,23 +41,29 @@ export default function AccountButton() {
           return;
         }
       } else {
-        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
-        const agentDoc = await getDoc(agentDocRef);
+        setIsPainter(false);
+      }
 
-        if (agentDoc.exists()) {
-          const agentData = agentDoc.data();
-          if (agentData.profilePictureUrl) {
-            setProfilePictureUrl(agentData.profilePictureUrl);
-            setIsLoading(false);
-            return;
-          } else {
-            const profilePictureRef = ref(storage, `profilePictures/${currentUser.uid}`);
-            const url = await getDownloadURL(profilePictureRef);
-            setProfilePictureUrl(url);
-            setIsLoading(false);
-            return;
-          }
+      // Check if the user is an agent
+      const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+      const agentDoc = await getDoc(agentDocRef);
+
+      if (agentDoc.exists()) {
+        setIsAgent(true);
+        const agentData = agentDoc.data();
+        if (agentData.profilePictureUrl) {
+          setProfilePictureUrl(agentData.profilePictureUrl);
+          setIsLoading(false);
+          return;
+        } else {
+          const profilePictureRef = ref(storage, `profilePictures/${currentUser.uid}`);
+          const url = await getDownloadURL(profilePictureRef);
+          setProfilePictureUrl(url);
+          setIsLoading(false);
+          return;
         }
+      } else {
+        setIsAgent(false);
       }
 
       // Retry fetching profile picture if not found and retry limit not reached
@@ -94,6 +101,14 @@ export default function AccountButton() {
     setDropdownOpen(false);
   };
 
+  const handleDashboardClick = () => {
+    if (isAgent) {
+      handleMenuClick('/agentDashboard');
+    } else {
+      handleMenuClick('/dashboard');
+    }
+  };
+
   return (
     <div className="relative">
       <button onClick={handleButtonClick} className="relative w-16 h-16 rounded-full overflow-hidden border border-gray-300">
@@ -109,7 +124,7 @@ export default function AccountButton() {
       </button>
       {dropdownOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-          <button onClick={() => handleMenuClick('/agentDashboard')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+          <button onClick={handleDashboardClick} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
             Dashboard
           </button>
           <button onClick={() => handleMenuClick('/accountSettings')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
