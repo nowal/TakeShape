@@ -98,7 +98,7 @@ const CompletedQuotes = () => {
 
     const geocodeAddress = async (address: { street: string, city: string, state: string, zip: string }) => {
         const formattedAddress = `${address.street}, ${address.city}, ${address.state}, ${address.zip}`;
-        const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+        const apiKey = 'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA';
         const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formattedAddress)}&key=${apiKey}`;
 
         try {
@@ -200,7 +200,6 @@ const CompletedQuotes = () => {
                                     </a>
                                 )}
                             </p>
-                            <h1 className="text-lg mt-2">Customer Details:</h1>
                         </div>
                         <div className="details-box space-y-2 w-full lg:w-auto">
                             <div className="space-y-1">
