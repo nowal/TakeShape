@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getFirestore, collection, query, where, getDoc, getDocs, doc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import axios from 'axios';
 import { Job, PaintPreferences } from '../../types/types'; // Adjust the import path as needed
 
 const CompletedQuotes = () => {
@@ -21,7 +22,7 @@ const CompletedQuotes = () => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setAuthLoading(false); // Authentication state is confirmed, loading is done
         });
-      
+
         // Cleanup the listener on unmount
         return () => unsubscribe();
     }, []);
@@ -40,41 +41,106 @@ const CompletedQuotes = () => {
             if (!painterSnapshot.empty) {
                 const painterData = painterSnapshot.docs[0].data();
 
-                const jobsQuery = query(collection(firestore, "userImages"), where("zipCode", "in", painterData.zipCodes));
-                const jobsSnapshot = await getDocs(jobsQuery);
-                const jobs: Job[] = await Promise.all(
-                    jobsSnapshot.docs.map(async (jobDoc) => {
-                        const jobData = jobDoc.data() as Job;
+                const userImagesQuery = collection(firestore, "userImages");
+                const userImagesSnapshot = await getDocs(userImagesQuery);
+                const jobs = await Promise.all(userImagesSnapshot.docs.map(async (jobDoc) => {
+                    const jobData = jobDoc.data() as Job;
 
-                        // Fetch paint preferences
-                        if (jobData.paintPreferencesId) {
-                            const paintPrefDocRef = doc(firestore, "paintPreferences", jobData.paintPreferencesId);
-                            const paintPrefDocSnap = await getDoc(paintPrefDocRef);
-                            if (paintPrefDocSnap.exists()) {
-                                jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
+                    if (jobData.address) {
+                        let { lat, lng } = jobData.address;
+
+                        if (lat === undefined || lng === undefined) {
+                            const geocodedLocation = await geocodeAddress(jobData.address);
+                            if (geocodedLocation) {
+                                lat = geocodedLocation.lat;
+                                lng = geocodedLocation.lng;
                             }
                         }
 
-                        // Fetch user information if userId is defined
-                        if (jobData.userId) {
-                            const userDocRef = doc(firestore, "users", jobData.userId);
-                            const userDocSnap = await getDoc(userDocRef);
-                            if (userDocSnap.exists()) {
-                                const userData = userDocSnap.data();
-                                jobData.customerName = userData.name;
-                                jobData.phoneNumber = jobData.phoneNumber || userData.phoneNumber;
-                                jobData.address = jobData.address || userData.address;
-                            }
-                        }
+                        if (lat !== undefined && lng !== undefined) {
+                            const isWithinRange = await isJobWithinRange(painterData.address, painterData.range, { lat, lng });
+                            if (isWithinRange) {
+                                if (jobData.paintPreferencesId) {
+                                    const paintPrefDocRef = doc(firestore, "paintPreferences", jobData.paintPreferencesId);
+                                    const paintPrefDocSnap = await getDoc(paintPrefDocRef);
+                                    if (paintPrefDocSnap.exists()) {
+                                        jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
+                                    }
+                                }
 
-                        // Ensure the video URL is correct
-                        const videoUrl = await getVideoUrl(jobData.video);
-                        return { ...jobData, video: videoUrl, jobId: jobDoc.id };
-                    })
-                );
-                setJobList(jobs);
+                                // Fetch user information if userId is defined
+                                if (jobData.userId) {
+                                    const userDocRef = doc(firestore, "users", jobData.userId);
+                                    const userDocSnap = await getDoc(userDocRef);
+                                    if (userDocSnap.exists()) {
+                                        const userData = userDocSnap.data();
+                                        jobData.customerName = userData.name;
+                                        jobData.phoneNumber = jobData.phoneNumber || userData.phoneNumber;
+                                        jobData.address = jobData.address || userData.address;
+                                    }
+                                }
+
+                                // Ensure the video URL is correct
+                                const videoUrl = await getVideoUrl(jobData.video);
+                                return { ...jobData, video: videoUrl, jobId: jobDoc.id };
+                            }
+                        } else {
+                            console.error('Job address is missing latitude and/or longitude after geocoding:', jobData.address);
+                        }
+                    }
+                    return null;
+                }));
+                const filteredJobs = jobs.filter(job => job !== null) as Job[];
+                setJobList(filteredJobs);
             }
         }
+    };
+
+    const geocodeAddress = async (address: { street: string, city: string, state: string, zip: string }) => {
+        const formattedAddress = `${address.street}, ${address.city}, ${address.state}, ${address.zip}`;
+        const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formattedAddress)}&key=${apiKey}`;
+
+        try {
+            const response = await axios.get(url);
+            if (response.data.status === 'OK') {
+                const location = response.data.results[0].geometry.location;
+                return {
+                    lat: location.lat,
+                    lng: location.lng,
+                };
+            } else {
+                console.error('Geocoding error:', response.data.status, response.data.error_message);
+            }
+        } catch (error) {
+            console.error('Geocoding request failed:', error);
+        }
+        return null;
+    };
+
+    const isJobWithinRange = async (painterAddress: any, range: number, jobAddress: any): Promise<boolean> => {
+        const { lat: painterLat, lng: painterLng } = painterAddress;
+        const { lat: jobLat, lng: jobLng } = jobAddress;
+
+        const distance = getDistanceFromLatLonInKm(painterLat, painterLng, jobLat, jobLng);
+        return distance <= (range * 1.60934); // Convert miles to kilometers
+    };
+
+    const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c; // Distance in km
+        return distance;
+    };
+
+    const deg2rad = (deg: number): number => {
+        return deg * (Math.PI / 180);
     };
 
     const getVideoUrl = async (path: string): Promise<string> => {
@@ -135,14 +201,8 @@ const CompletedQuotes = () => {
                                 )}
                             </p>
                             <h1 className="text-lg mt-2">Customer Details:</h1>
-                            <ul className="list-disc pl-5">
-                                <li>Name: <span className="font-semibold">{job.customerName || "N/A"}</span></li>
-                                <li>Phone Number: <span className="font-semibold">{job.phoneNumber || "N/A"}</span></li>
-                                <li>Address: <span className="font-semibold">{job.address || "N/A"}</span></li>
-                            </ul>
                         </div>
                         <div className="details-box space-y-2 w-full lg:w-auto">
-                            <p className="text-lg">Zip Code: <span className="font-semibold">{job.zipCode}</span></p>
                             <div className="space-y-1">
                                 <p className="text-lg">Paint Preferences:</p>
                                 <ul className="list-disc pl-5">
@@ -173,5 +233,3 @@ const CompletedQuotes = () => {
 };
 
 export default CompletedQuotes;
-
-

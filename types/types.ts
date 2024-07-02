@@ -38,7 +38,6 @@ export type TimestampPair = {
 
 export type Job = {
     jobId: string;
-    zipCode: string;
     video: string;
     phoneNumber?: string;
     specialRequests?: string;
@@ -48,7 +47,14 @@ export type Job = {
     moveFurniture?: boolean;
     customerName?: string;
     userId?: string;
-    address?: string;
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        zip: string;
+        lat: number;
+        lng: number;
+    };
     prices: Array<{
         painterId: string;
         amount: number;

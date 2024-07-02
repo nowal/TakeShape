@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
@@ -8,20 +8,86 @@ import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript';  // Adjust the import path as needed
+
+// Define the type for address components
+interface AddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
+}
 
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [zipcode, setZipcode] = useState('');
+  const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
-  const [name, setName] = useState(''); // Added
-  const [phoneNumber, setPhoneNumber] = useState(''); // Added
-  const [painterInfo] = useAtom(painterInfoAtom); // Access the painterInfo atom
+  const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [painterInfo] = useAtom(painterInfoAtom);
   const [showLoginInstead, setShowLoginInstead] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
+  const addressInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const initAutocomplete = async () => {
+      try {
+        await loadGoogleMapsScript('AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA');  // Replace with your actual API key
+        if (window.google) {
+          const autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current!, {
+            types: ['address'],
+            componentRestrictions: { country: 'us' }
+          });
+
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location || !place.address_components) {
+              console.error('Error: place details are incomplete.');
+              return;
+            }
+            
+            const addressComponents = place.address_components;
+
+            const newAddress = {
+              street: '',
+              city: '',
+              state: '',
+              zip: ''
+            };
+
+            addressComponents.forEach((component: AddressComponent) => {
+              const types = component.types;
+              if (types.includes('street_number')) {
+                newAddress.street = `${component.long_name} ${newAddress.street}`;
+              }
+              if (types.includes('route')) {
+                newAddress.street += component.long_name;
+              }
+              if (types.includes('locality')) {
+                newAddress.city = component.long_name;
+              }
+              if (types.includes('administrative_area_level_1')) {
+                newAddress.state = component.short_name;
+              }
+              if (types.includes('postal_code')) {
+                newAddress.zip = component.long_name;
+              }
+            });
+
+            setAddress(newAddress);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Google Maps script:', error);
+      }
+    };
+
+    initAutocomplete();
+  }, []);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,85 +96,84 @@ export default function SignupAccountPage() {
     const firestore = getFirestore();
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-        // Create user document in "users" collection
-        const userDocRef = doc(firestore, "users", user.uid);
-        await setDoc(userDocRef, {
-          email,
-          zipCode: zipcode,
-          name,
-          phoneNumber,
-          isPainter
-        });
+      // Create user document in "users" collection
+      const userDocRef = doc(firestore, "users", user.uid);
+      await setDoc(userDocRef, {
+        email,
+        address,
+        name,
+        phoneNumber,
+        isPainter
+      });
 
-        const quoteData = sessionStorage.getItem('quoteData');
-        if (quoteData && user && docId) {
-            const quote = JSON.parse(quoteData);
-            const userImageDocRef = doc(firestore, "userImages", docId);
-            const userImageSnap = await getDoc(userImageDocRef);
+      const quoteData = sessionStorage.getItem('quoteData');
+      if (quoteData && user && docId) {
+        const quote = JSON.parse(quoteData);
+        const userImageDocRef = doc(firestore, "userImages", docId);
+        const userImageSnap = await getDoc(userImageDocRef);
 
-            if (userImageSnap.exists()) {
-                await updateDoc(userImageDocRef, {
-                    userId: user.uid,
-                    ...quote,
-                    zipCode: zipcode,
-                    ...(name && { name }),
-                    ...(phoneNumber && { phoneNumber })
-                });
+        if (userImageSnap.exists()) {
+          await updateDoc(userImageDocRef, {
+            userId: user.uid,
+            ...quote,
+            address,
+            ...(name && { name }),
+            ...(phoneNumber && { phoneNumber })
+          });
 
-                sessionStorage.removeItem('quoteData');
-                sessionStorage.removeItem('documentId');
-            } else {
-                console.error("No user image document found with the provided documentId");
-            }
-        }
-
-        if (isPainter && sessionStorage.getItem('painterId')) {
-            const oldPainterId = sessionStorage.getItem('painterId');
-            await handlePainterData(oldPainterId, user.uid);
+          sessionStorage.removeItem('quoteData');
+          sessionStorage.removeItem('documentId');
         } else {
-            setIsPainter(false);
+          console.error("No user image document found with the provided documentId");
         }
+      }
 
-        // Check if the user has submitted a video
-        const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", user.uid));
-        const userImagesSnapshot = await getDocs(userImagesQuery);
-        if (!userImagesSnapshot.empty) {
-            router.push('/defaultPreferences');
-        } else {
-            router.push('/quote');
-        }
+      if (isPainter && sessionStorage.getItem('painterId')) {
+        const oldPainterId = sessionStorage.getItem('painterId');
+        await handlePainterData(oldPainterId, user.uid);
+      } else {
+        setIsPainter(false);
+      }
+
+      // Check if the user has submitted a video
+      const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", user.uid));
+      const userImagesSnapshot = await getDocs(userImagesQuery);
+      if (!userImagesSnapshot.empty) {
+        router.push('/defaultPreferences');
+      } else {
+        router.push('/quote');
+      }
     } catch (error) {
-        console.error("Error signing up: ", error);
-        const errorCode = (error as { code: string }).code;
+      console.error("Error signing up: ", error);
+      const errorCode = (error as { code: string }).code;
 
-        switch (errorCode) {
-            case 'auth/email-already-in-use':
-                setErrorMessage('The email address is already in use by another account.');
-                break;
-            case 'auth/weak-password':
-                setErrorMessage('The password is too weak.');
-                break;
-            case 'auth/invalid-email':
-                setErrorMessage('The email address is not valid.');
-                break;
-            case 'auth/operation-not-allowed':
-                setErrorMessage('Email/password accounts are not enabled.');
-                break;
-            case 'auth/network-request-failed':
-                setErrorMessage('Network error. Please try again.');
-                break;
-            default:
-                setErrorMessage('An unexpected error occurred. Please try again.');
-                break;
-        }
+      switch (errorCode) {
+        case 'auth/email-already-in-use':
+          setErrorMessage('The email address is already in use by another account.');
+          break;
+        case 'auth/weak-password':
+          setErrorMessage('The password is too weak.');
+          break;
+        case 'auth/invalid-email':
+          setErrorMessage('The email address is not valid.');
+          break;
+        case 'auth/operation-not-allowed':
+          setErrorMessage('Email/password accounts are not enabled.');
+          break;
+        case 'auth/network-request-failed':
+          setErrorMessage('Network error. Please try again.');
+          break;
+        default:
+          setErrorMessage('An unexpected error occurred. Please try again.');
+          break;
+      }
     } finally {
-        setIsLoading(false); // Reset loading state
+      setIsLoading(false); // Reset loading state
     }
   };
-
 
   const handlePainterData = async (oldPainterId: string | null, newUserId: string) => {
     const firestore = getFirestore();
@@ -187,38 +252,39 @@ export default function SignupAccountPage() {
         </div>
 
         <div>
-          <label htmlFor="name" className="block text-md font-medium text-gray-700">Name (Optional)</label>
+          <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
           <input 
             type="text" 
             id="name"
             value={name} 
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your name" 
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="zipcode" className="block text-md font-medium text-gray-700">Property Zipcode</label>
-          <input 
-            type="text" 
-            id="zipcode"
-            value={zipcode} 
-            onChange={(e) => setZipcode(e.target.value)} 
-            placeholder="Enter your zipcode" 
             required 
             className="p-2 border rounded w-full"
           />
         </div>
 
         <div>
-          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number (Optional)</label>
+          <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
+          <input 
+            type="text" 
+            id="address"
+            ref={addressInputRef}
+            placeholder="Enter your address"
+            required 
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
           <input 
             type="tel" 
             id="phoneNumber"
             value={phoneNumber} 
             onChange={(e) => setPhoneNumber(e.target.value)} 
             placeholder="Enter your phone number" 
+            required
             className="p-2 border rounded w-full"
           />
         </div>

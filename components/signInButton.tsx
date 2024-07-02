@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from
 import { useRouter } from 'next/navigation';
 import firebase from '../lib/firebase';
 import Link from 'next/link';
-import { getFirestore, query, collection, where, addDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, query, collection, where, addDoc, getDocs, doc, getDoc } from 'firebase/firestore';
 
 type SignInButtonProps = {
   className?: string;
@@ -41,23 +41,35 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
+    const firestore = getFirestore(firebase);
+    
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowModal(false);
 
-      // Link quote data to the user's account
-      const quoteData = sessionStorage.getItem('quoteData');
-      if (quoteData && auth.currentUser) {
-        const firestore = getFirestore();
-        const quote = JSON.parse(quoteData);
-        await addDoc(collection(firestore, "userImages"), {
-          ...quote,
-          userId: auth.currentUser.uid,
-        });
-        sessionStorage.removeItem('quoteData'); // Clean up
-      }
+      // Check if the signed-in user is in the reAgents collection
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDoc = await getDoc(agentDocRef);
 
-      router.push('/dashboard');
+        if (agentDoc.exists()) {
+          router.push('/agentDashboard');
+        } else {
+          // Link quote data to the user's account if they are not an agent
+          const quoteData = sessionStorage.getItem('quoteData');
+          if (quoteData) {
+            const quote = JSON.parse(quoteData);
+            await addDoc(collection(firestore, "userImages"), {
+              ...quote,
+              userId: auth.currentUser.uid,
+            });
+            sessionStorage.removeItem('quoteData'); // Clean up
+          }
+
+          router.push('/dashboard');
+        }
+      }
     } catch (error) {
       console.error('Error signing in:', error);
       setErrorMessage('Incorrect email or password. Please try again.'); // Set error message

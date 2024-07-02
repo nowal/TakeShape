@@ -1,22 +1,30 @@
 'use client';
 
-// PainterRegisterPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
-import { painterInfoAtom } from '../../atom/atom';
-import { isPainterAtom } from '../../atom/atom'; // Adjust the import path as needed
+import { painterInfoAtom, isPainterAtom } from '../../atom/atom';
+import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+
+// Define the type for address components
+interface AddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
+}
 
 export default function PainterRegisterPage() {
   const [businessName, setBusinessName] = useState('');
-  const [zipCodes, setZipCodes] = useState('');
+  const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '', lat: 0, lng: 0 });
+  const [range, setRange] = useState(10); // Default range in miles
   const [isInsured, setIsInsured] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +34,135 @@ export default function PainterRegisterPage() {
   const storage = getStorage(firebase);
   const router = useRouter();
   const auth = getAuth(firebase);
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const circleRef = useRef<google.maps.Circle | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null); // Add this line
+
+  useEffect(() => {
+    const initAutocomplete = async () => {
+      try {
+        await loadGoogleMapsScript('AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'); // Replace with your actual API key
+        if (window.google) {
+          const autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current!, {
+            types: ['address'],
+            componentRestrictions: { country: 'us' }
+          });
+
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location || !place.address_components) {
+              console.error('Error: place details are incomplete.');
+              return;
+            }
+
+            const addressComponents = place.address_components;
+
+            const newAddress = {
+              street: '',
+              city: '',
+              state: '',
+              zip: '',
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng()
+            };
+
+            addressComponents.forEach((component: AddressComponent) => {
+              const types = component.types;
+              if (types.includes('street_number')) {
+                newAddress.street = `${component.long_name} ${newAddress.street}`;
+              }
+              if (types.includes('route')) {
+                newAddress.street += component.long_name;
+              }
+              if (types.includes('locality')) {
+                newAddress.city = component.long_name;
+              }
+              if (types.includes('administrative_area_level_1')) {
+                newAddress.state = component.short_name;
+              }
+              if (types.includes('postal_code')) {
+                newAddress.zip = component.long_name;
+              }
+            });
+
+            setAddress(newAddress);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Google Maps script:', error);
+      }
+    };
+
+    initAutocomplete();
+  }, []);
+
+  useEffect(() => {
+    if (address.lat && address.lng) {
+      initializeMap(address.lat, address.lng, range);
+    }
+  }, [address, range]);
+
+  const initializeMap = (lat: number, lng: number, range: number) => {
+    if (window.google && mapRef.current) {
+      const bounds = new window.google.maps.LatLngBounds();
+      const center = new window.google.maps.LatLng(lat, lng);
+      bounds.extend(center);
+      bounds.extend(new window.google.maps.LatLng(lat + range / 69, lng));
+      bounds.extend(new window.google.maps.LatLng(lat - range / 69, lng));
+      bounds.extend(new window.google.maps.LatLng(lat, lng + range / 69));
+      bounds.extend(new window.google.maps.LatLng(lat, lng - range / 69));
+
+      if (!mapInstanceRef.current) {
+        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+          center: { lat, lng },
+          zoom: 10
+        });
+      } else {
+        mapInstanceRef.current.fitBounds(bounds);
+      }
+
+      if (!circleRef.current) {
+        circleRef.current = new window.google.maps.Circle({
+          map: mapInstanceRef.current,
+          center: { lat, lng },
+          radius: range * 1609.34, // Convert miles to meters
+          fillColor: '#AA0000',
+          strokeColor: '#AA0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillOpacity: 0.35
+        });
+      } else {
+        circleRef.current.setCenter({ lat, lng });
+        circleRef.current.setRadius(range * 1609.34);
+      }
+
+      if (!markerRef.current) {
+        markerRef.current = new window.google.maps.Marker({
+          position: { lat, lng },
+          map: mapInstanceRef.current,
+          draggable: true,
+        });
+
+        markerRef.current.addListener('dragend', () => {
+          const newLat = markerRef.current!.getPosition()!.lat();
+          const newLng = markerRef.current!.getPosition()!.lng();
+          setAddress((prev) => ({
+            ...prev,
+            lat: newLat,
+            lng: newLng,
+          }));
+          initializeMap(newLat, newLng, range);
+        });
+      } else {
+        markerRef.current.setPosition({ lat, lng });
+      }
+
+      mapInstanceRef.current.fitBounds(circleRef.current.getBounds()!);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,15 +174,13 @@ export default function PainterRegisterPage() {
       const user = userCredential.user;
 
       const logoUrl = logo ? await uploadLogoAndGetUrl(logo) : ''; // Handle logo upload if provided
-      const zipCodesArray = zipCodes.split(',').map(zip => zip.trim());
-      const acceptedQuotes = [''];
 
       const painterData = {
         businessName,
-        zipCodes: zipCodesArray,
+        address,
+        range,
         isInsured,
         logoUrl,
-        acceptedQuotes,
         phoneNumber,
         userId: user.uid, // Link the painter data to the user ID
       };
@@ -110,29 +245,29 @@ export default function PainterRegisterPage() {
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-      if (validTypes.includes(file.type)) {
-        setLogo(file); // Set the selected file to the 'logo' state
-      } else {
-        alert('Invalid file type. Please select a PNG, JPG, or PDF file.');
-        e.target.value = ''; // Reset the file input
-      }
+      setLogo(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   return (
     <div className="p-8">
       <h1 className="text-center text-2xl font-bold mb-6">Painter Registration</h1>
-
+  
       {errorMessage && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{errorMessage}</span>
         </div>
       )}
-
+  
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <div>
           <label htmlFor="businessName" className="block text-md font-medium text-gray-700">Business or Personal Name</label>
@@ -146,20 +281,43 @@ export default function PainterRegisterPage() {
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
         <div>
-          <label htmlFor="zipCodes" className="block text-md font-medium text-gray-700">Zip Codes You Paint In</label>
+          <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
           <input
             type="text"
-            id="zipCodes"
-            value={zipCodes}
-            onChange={(e) => setZipCodes(e.target.value)}
-            placeholder="Enter zip codes separated by commas"
+            id="address"
+            ref={addressInputRef}
+            placeholder="Enter your address"
             required
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
+        <div>
+          <label htmlFor="range" className="block text-md font-medium text-gray-700">Range (miles)</label>
+          <select
+            id="range"
+            value={range}
+            onChange={(e) => setRange(Number(e.target.value))}
+            required
+            className="p-2 border rounded w-full"
+          >
+            {[10, 20, 30, 40, 50].map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
+  
+        {address.lat !== 0 && address.lng !== 0 && (
+          <>
+            <div className="text-left text-gray-700 mb-2">Drag Marker to adjust service location</div>
+            <div ref={mapRef} style={{ height: '400px', marginTop: '20px' }}></div>
+          </>
+        )}
+  
         <div>
           <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
           <input
@@ -172,7 +330,7 @@ export default function PainterRegisterPage() {
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -183,9 +341,16 @@ export default function PainterRegisterPage() {
           />
           <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
         </div>
-
+  
         <div>
           <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo (optional)</label>
+          {logoPreview && (
+            <img 
+              src={logoPreview} 
+              alt="Company Logo Preview" 
+              className="mb-2 w-24 h-24 object-cover rounded-full" 
+            />
+          )}
           <input
             type="file"
             id="logo"
@@ -194,7 +359,7 @@ export default function PainterRegisterPage() {
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
         <div>
           <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
           <input
@@ -207,7 +372,7 @@ export default function PainterRegisterPage() {
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
         <div>
           <label htmlFor="password" className="block text-md font-medium text-gray-700">Password</label>
           <input
@@ -220,7 +385,7 @@ export default function PainterRegisterPage() {
             className="p-2 border rounded w-full"
           />
         </div>
-
+  
         <button 
           type="submit" 
           className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}

@@ -149,7 +149,7 @@ const AcceptedQuotes = () => {
                             <ul className="list-disc pl-5">
                                 <li>Name: <span className="font-semibold">{job.customerName || "N/A"}</span></li>
                                 <li>Phone Number: <span className="font-semibold">{job.phoneNumber || "N/A"}</span></li>
-                                <li>Address: <span className="font-semibold">{job.address || "N/A"}</span></li>
+                                <li>Address: <span className="font-semibold">{`${job.address?.street || "N/A"}, ${job.address?.city || "N/A"}, ${job.address?.state || "N/A"}, ${job.address?.zip || "N/A"}`}</span></li>
                             </ul>
                         </div>
                         <div className="details-box space-y-2 w-full lg:w-auto">
