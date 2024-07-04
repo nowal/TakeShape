@@ -1,6 +1,5 @@
 'use client';
 
-
 import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
@@ -23,8 +22,25 @@ export default function AgentDashboard() {
   const [newPainterName, setNewPainterName] = useState('');
   const [searchError, setSearchError] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState('');
+  const [agentName, setAgentName] = useState('');
   const auth = getAuth();
   const firestore = getFirestore();
+
+  useEffect(() => {
+    const fetchAgentName = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDoc = await getDoc(agentDocRef);
+        if (agentDoc.exists()) {
+          const agentData = agentDoc.data();
+          setAgentName(agentData.name || 'Agent');
+        }
+      }
+    };
+
+    fetchAgentName();
+  }, [auth, firestore]);
 
   useEffect(() => {
     const fetchPreferredPainters = async () => {
@@ -203,7 +219,7 @@ export default function AgentDashboard() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">  {/* Reduced padding for small screens */}
       
       <div className="flex justify-center mt-12 mb-12">
         <button
@@ -220,7 +236,7 @@ export default function AgentDashboard() {
           <p className="text-blue-600">{inviteLink}</p>
         </div>
       )}
-
+  
       <h2 className="text-3xl text-center font-bold underline mb-8">Preferred Painters</h2>
       
       <div className="flex justify-center mb-4">
@@ -228,7 +244,7 @@ export default function AgentDashboard() {
           Add new +
         </button>
       </div>
-
+  
       {addingPainter && (
         <div className="mb-4">
           <input
@@ -258,7 +274,7 @@ export default function AgentDashboard() {
           )}
         </div>
       )}
-
+  
       <div>
         {loading ? (
           <p>Loading...</p>
@@ -284,5 +300,4 @@ export default function AgentDashboard() {
       </div>
     </div>
   );
-}
-
+}  
