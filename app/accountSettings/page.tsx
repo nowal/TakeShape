@@ -30,6 +30,9 @@ export default function AccountSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [agentName, setAgentName] = useState(''); // New state for agent's name
+  const [newAgentName, setNewAgentName] = useState(''); // New state for new agent's name
+  const [agentError, setAgentError] = useState(''); // New state for agent error message
   const router = useRouter();
   const auth = getAuth(firebase);
   const firestore = getFirestore();
@@ -48,7 +51,6 @@ export default function AccountSettingsPage() {
           const agentDocRef = doc(firestore, 'reAgents', user.uid);
           const agentDoc = await getDoc(agentDocRef);
           if (agentDoc.exists()) {
-            console.log("Is agent!");
             setIsAgent(true);
             setIsPainter(false);
             const agentData = agentDoc.data();
@@ -60,7 +62,6 @@ export default function AccountSettingsPage() {
             const painterQuery = query(collection(firestore, "painters"), where("userId", "==", user.uid));
             const painterSnapshot = await getDocs(painterQuery);
             if (!painterSnapshot.empty) {
-              console.log("Is painter!");
               setIsPainter(true);
               setIsAgent(false);
               const painterData = painterSnapshot.docs[0].data();
@@ -83,6 +84,13 @@ export default function AccountSettingsPage() {
                 setName(userData.name || '');
                 setPhoneNumber(userData.phoneNumber || '');
                 setAddress(userData.address || '');
+                // Check if user has an associated agent
+                if (userData.reAgent) {
+                  const agentDoc = await getDoc(doc(firestore, 'reAgents', userData.reAgent));
+                  if (agentDoc.exists()) {
+                    setAgentName(agentDoc.data().name || '');
+                  }
+                }
                 // Geocode address to set marker
                 geocodeAddress(userData.address);
               } else {
@@ -212,7 +220,7 @@ export default function AccountSettingsPage() {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -224,23 +232,23 @@ export default function AccountSettingsPage() {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
     const currentUser = auth.currentUser;
     if (!currentUser) return;
-  
+
     try {
       if (isPainter) {
         // Painter specific update
         const painterQuery = query(collection(firestore, "painters"), where("userId", "==", currentUser.uid));
         const painterSnapshot = await getDocs(painterQuery);
-  
+
         if (!painterSnapshot.empty) {
           const painterDocRef = painterSnapshot.docs[0].ref;
           const updatedLogoUrl = logo ? await uploadLogoAndGetUrl(logo) : logoUrl; // Handle logo upload if provided
-  
+
           const updatedPainterData = {
             businessName,
             address,
@@ -249,10 +257,10 @@ export default function AccountSettingsPage() {
             logoUrl: updatedLogoUrl,
             phoneNumber,
           };
-  
+
           await updateDoc(painterDocRef, updatedPainterData);
           console.log('Painter info updated:', updatedPainterData);
-  
+
           window.location.reload(); // Reload the page after updating
         } else {
           setErrorMessage('Painter data not found.');
@@ -260,14 +268,14 @@ export default function AccountSettingsPage() {
       } else {
         // Agent or Homeowner specific update
         let profilePictureUrlToUpdate = profilePictureUrl;
-  
+
         // Upload new profile picture if provided
         if (newProfilePicture) {
           const profilePictureRef = storageRef(storage, `profilePictures/${currentUser.uid}`);
           await uploadBytes(profilePictureRef, newProfilePicture);
           profilePictureUrlToUpdate = await getDownloadURL(profilePictureRef);
         }
-  
+
         if (isAgent) {
           // Update user document in "reAgents" collection
           const userDocRef = doc(firestore, "reAgents", currentUser.uid);
@@ -276,13 +284,11 @@ export default function AccountSettingsPage() {
             phoneNumber,
             profilePictureUrl: profilePictureUrlToUpdate,
           });
-  
-          router.push('/agentDashboard');
         } else {
           // Homeowner update
           const userQuery = query(collection(firestore, "users"), where("email", "==", currentUser.email));
           const userSnapshot = await getDocs(userQuery);
-  
+
           if (!userSnapshot.empty) {
             const userDocRef = userSnapshot.docs[0].ref;
             await updateDoc(userDocRef, {
@@ -290,8 +296,23 @@ export default function AccountSettingsPage() {
               phoneNumber,
               address,
             });
-  
-            router.push('/dashboard');
+
+            // Handle Real Estate Agent update
+            if (newAgentName) {
+              const agentQuery = query(collection(firestore, "reAgents"), where("name", "==", newAgentName));
+              const agentSnapshot = await getDocs(agentQuery);
+
+              if (!agentSnapshot.empty) {
+                const agentDoc = agentSnapshot.docs[0];
+                await updateDoc(userDocRef, {
+                  reAgent: agentDoc.id
+                });
+                setAgentName(agentDoc.data().name || '');
+                setAgentError('');
+              } else {
+                setAgentError('Agent not found');
+              }
+            }
           } else {
             setErrorMessage('User data not found.');
           }
@@ -304,44 +325,44 @@ export default function AccountSettingsPage() {
       setIsLoading(false); // Reset loading state
     }
   };
-  
+
   const uploadLogoAndGetUrl = async (logoFile: File | null) => {
     if (!logoFile) {
       return ''; // Return an empty string if no logo file is provided
     }
-  
+
     const logoRef = storageRef(storage, `logos/${logoFile.name}-${Date.now()}`); // Append timestamp to ensure unique file names
-  
+
     try {
       const uploadResult = await uploadBytes(logoRef, logoFile);
       console.log('Upload result:', uploadResult);
-  
+
       const logoUrl = await getDownloadURL(uploadResult.ref);
       console.log('Logo URL:', logoUrl);
-  
+
       return logoUrl;
     } catch (error) {
       console.error('Error uploading logo: ', error);
       throw new Error('Error uploading logo.');
     }
   };
-  
+
   if (isDataLoading) {
     return <div>Loading...</div>;
   }
-  
+
   return (
     <div className="p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <h1 className="text-center text-2xl font-bold mb-6">Account Settings</h1>
-  
+
       {errorMessage && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{errorMessage}</span>
         </div>
       )}
-  
+
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         {isPainter ? (
           <>
@@ -357,7 +378,7 @@ export default function AccountSettingsPage() {
                 className="p-2 border rounded w-full"
               />
             </div>
-  
+
             <div>
               <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
               <input
@@ -371,7 +392,7 @@ export default function AccountSettingsPage() {
                 className="p-2 border rounded w-full"
               />
             </div>
-  
+
             <div>
               <label htmlFor="range" className="block text-md font-medium text-gray-700">Range (miles)</label>
               <select
@@ -395,7 +416,7 @@ export default function AccountSettingsPage() {
                 <div ref={mapRef} style={{ height: '400px', marginTop: '20px' }}></div>
               </>
             )}
-  
+
             <div>
               <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
               <input
@@ -408,7 +429,7 @@ export default function AccountSettingsPage() {
                 className="p-2 border rounded w-full"
               />
             </div>
-  
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -419,7 +440,7 @@ export default function AccountSettingsPage() {
               />
               <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
             </div>
-  
+
             <div>
               <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo (optional)</label>
               {(logoPreview || logoUrl) && (
@@ -438,109 +459,118 @@ export default function AccountSettingsPage() {
               />
             </div>
           </>
+                ) : isAgent ? (
+                  <>
+                    <div>
+                      <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
+                      <input
+                        type="text"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+        
+                    <div>
+                      <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="Enter your phone number"
+                        required
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+        
+                    <div>
+                      <label htmlFor="profilePicture" className="block text-md font-medium text-gray-700">Profile Picture</label>
+                      {(newProfilePicturePreview || profilePictureUrl) && (
+                        <img
+                          src={newProfilePicturePreview || profilePictureUrl || undefined}
+                          alt="Profile Picture"
+                          className="mb-2 w-24 h-24 object-cover rounded-full"
+                        />
+                      )}
+                      <input
+                        type="file"
+                        id="profilePicture"
+                        accept="image/png, image/jpeg"
+                        onChange={handleProfilePictureChange}
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
+                      <input
+                        type="text"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+        
+                    <div>
+                      <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="Enter your phone number"
+                        required
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+        
+                    <div>
+                      <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
+                      <input
+                        type="text"
+                        id="address"
+                        ref={addressInputRef}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Enter your address"
+                        required
+                        className="p-2 border rounded w-full"
+                      />
+                    </div>
+        
+                    <div>
+                      <label htmlFor="realEstateAgent" className="block text-md font-medium text-gray-700">Real Estate Agent (optional)</label>
+                      <input
+                        type="text"
+                        id="realEstateAgent"
+                        value={agentName ? agentName : newAgentName}
+                        onChange={(e) => setNewAgentName(e.target.value)}
+                        placeholder="Enter agent's name"
+                        className="p-2 border rounded w-full"
+                      />
+                      {agentError && <p className="text-red-600">{agentError}</p>}
+                    </div>
 
-      ) : isAgent ? (
-        <>
-          <div>
-            <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter your phone number"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="profilePicture" className="block text-md font-medium text-gray-700">Profile Picture</label>
-            {(newProfilePicturePreview || profilePictureUrl) && (
-              <img
-                src={newProfilePicturePreview || profilePictureUrl || undefined}
-                alt="Profile Picture"
-                className="mb-2 w-24 h-24 object-cover rounded-full"
-              />
-            )}
-            <input
-              type="file"
-              id="profilePicture"
-              accept="image/png, image/jpeg"
-              onChange={handleProfilePictureChange}
-              className="p-2 border rounded w-full"
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <div>
-            <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-            
-          <div>
-            <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter your phone number"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
-            <input
-              type="text"
-              id="address"
-              ref={addressInputRef}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Enter your address"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-        </>
-      )}
-
-      <button
-        type="submit"
-        className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        {isLoading ? 'Updating...' : 'Update'}
-      </button>
-    </form>
-  </div>
-);
-}
-
-         
-
-
-  
+                  </>
+                )}
+        
+                <button
+                  type="submit"
+                  className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isLoading ? 'Updating...' : 'Update'}
+                </button>
+              </form>
+            </div>
+          );
+        }
+        
