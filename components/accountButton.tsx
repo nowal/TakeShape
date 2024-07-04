@@ -111,14 +111,24 @@ export default function AccountButton() {
 
   return (
     <div className="relative">
-      <button onClick={handleButtonClick} className="relative w-16 h-16 rounded-full overflow-hidden border border-gray-300">
+      <button onClick={handleButtonClick} className="relative w-16 h-16 rounded-full overflow-hidden">
         {isLoading ? (
-          <div className="w-full h-full flex items-center justify-center">Loading...</div>
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="hamburger-icon w-8 h-8 flex flex-col justify-between">
+              <span className="block w-full h-1 bg-black"></span>
+              <span className="block w-full h-1 bg-black"></span>
+              <span className="block w-full h-1 bg-black"></span>
+            </div>
+          </div>
         ) : profilePictureUrl ? (
           <img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-300 text-white">
-            <span>No Image</span>
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="hamburger-icon w-8 h-8 flex flex-col justify-between">
+              <span className="block w-full h-1 bg-black"></span>
+              <span className="block w-full h-1 bg-black"></span>
+              <span className="block w-full h-1 bg-black"></span>
+            </div>
           </div>
         )}
       </button>

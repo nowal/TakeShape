@@ -10,16 +10,11 @@ import { useAtom } from 'jotai';
 import { painterInfoAtom, isPainterAtom } from '../../atom/atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 
-// Define the type for address components
-interface AddressComponent {
-  long_name: string;
-  short_name: string;
-  types: string[];
-}
-
 export default function PainterRegisterPage() {
   const [businessName, setBusinessName] = useState('');
-  const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '', lat: 0, lng: 0 });
+  const [address, setAddress] = useState('');
+  const [lat, setLat] = useState(0);
+  const [lng, setLng] = useState(0);
   const [range, setRange] = useState(10); // Default range in miles
   const [isInsured, setIsInsured] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -38,7 +33,7 @@ export default function PainterRegisterPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const circleRef = useRef<google.maps.Circle | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null); // Add this line
+  const markerRef = useRef<google.maps.Marker | null>(null);
 
   useEffect(() => {
     const initAutocomplete = async () => {
@@ -57,37 +52,12 @@ export default function PainterRegisterPage() {
               return;
             }
 
-            const addressComponents = place.address_components;
+            const formattedAddress = place.formatted_address;
+            const location = place.geometry.location;
 
-            const newAddress = {
-              street: '',
-              city: '',
-              state: '',
-              zip: '',
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            };
-
-            addressComponents.forEach((component: AddressComponent) => {
-              const types = component.types;
-              if (types.includes('street_number')) {
-                newAddress.street = `${component.long_name} ${newAddress.street}`;
-              }
-              if (types.includes('route')) {
-                newAddress.street += component.long_name;
-              }
-              if (types.includes('locality')) {
-                newAddress.city = component.long_name;
-              }
-              if (types.includes('administrative_area_level_1')) {
-                newAddress.state = component.short_name;
-              }
-              if (types.includes('postal_code')) {
-                newAddress.zip = component.long_name;
-              }
-            });
-
-            setAddress(newAddress);
+            setAddress(formattedAddress || '');
+            setLat(location.lat());
+            setLng(location.lng());
           });
         }
       } catch (error) {
@@ -99,10 +69,10 @@ export default function PainterRegisterPage() {
   }, []);
 
   useEffect(() => {
-    if (address.lat && address.lng) {
-      initializeMap(address.lat, address.lng, range);
+    if (lat && lng) {
+      initializeMap(lat, lng, range);
     }
-  }, [address, range]);
+  }, [lat, lng, range]);
 
   const initializeMap = (lat: number, lng: number, range: number) => {
     if (window.google && mapRef.current) {
@@ -149,11 +119,8 @@ export default function PainterRegisterPage() {
         markerRef.current.addListener('dragend', () => {
           const newLat = markerRef.current!.getPosition()!.lat();
           const newLng = markerRef.current!.getPosition()!.lng();
-          setAddress((prev) => ({
-            ...prev,
-            lat: newLat,
-            lng: newLng,
-          }));
+          setLat(newLat);
+          setLng(newLng);
           initializeMap(newLat, newLng, range);
         });
       } else {
@@ -178,6 +145,8 @@ export default function PainterRegisterPage() {
       const painterData = {
         businessName,
         address,
+        lat,
+        lng,
         range,
         isInsured,
         logoUrl,
@@ -227,7 +196,6 @@ export default function PainterRegisterPage() {
       return ''; // Return an empty string if no logo file is provided
     }
 
-    const storage = getStorage(firebase);
     const logoRef = storageRef(storage, `logos/${logoFile.name}-${Date.now()}`); // Append timestamp to ensure unique file names
 
     try {
@@ -269,131 +237,134 @@ export default function PainterRegisterPage() {
       )}
   
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-        <div>
-          <label htmlFor="businessName" className="block text-md font-medium text-gray-700">Business or Personal Name</label>
-          <input
-            type="text"
-            id="businessName"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            placeholder="Enter your business or personal name"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <div>
-          <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
-          <input
-            type="text"
-            id="address"
-            ref={addressInputRef}
-            placeholder="Enter your address"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <div>
-          <label htmlFor="range" className="block text-md font-medium text-gray-700">Range (miles)</label>
-          <select
-            id="range"
-            value={range}
-            onChange={(e) => setRange(Number(e.target.value))}
-            required
-            className="p-2 border rounded w-full"
-          >
-            {[10, 20, 30, 40, 50].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
-  
-        {address.lat !== 0 && address.lng !== 0 && (
-          <>
-            <div className="text-left text-gray-700 mb-2">Drag Marker to adjust service location</div>
-            <div ref={mapRef} style={{ height: '400px', marginTop: '20px' }}></div>
-          </>
-        )}
-  
-        <div>
-          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
-          <input
-            type="tel"
-            id="phoneNumber"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Enter your phone number"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="isInsured"
-            checked={isInsured}
-            onChange={(e) => setIsInsured(e.target.checked)}
-            className="mr-2"
-          />
-          <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
-        </div>
-  
-        <div>
-          <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo (optional)</label>
-          {logoPreview && (
-            <img 
-              src={logoPreview} 
-              alt="Company Logo Preview" 
-              className="mb-2 w-24 h-24 object-cover rounded-full" 
-            />
-          )}
-          <input
-            type="file"
-            id="logo"
-            onChange={handleLogoChange}
-            accept="image/png, image/jpeg, application/pdf" // Restrict file types
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <div>
-          <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <div>
-          <label htmlFor="password" className="block text-md font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-  
-        <button 
-          type="submit" 
-          className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={isLoading}
+      <div>
+        <label htmlFor="businessName" className="block text-md font-medium text-gray-700">Business or Personal Name</label>
+        <input
+          type="text"
+          id="businessName"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+          placeholder="Enter your business or personal name"
+          required
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
+        <input
+          type="text"
+          id="address"
+          ref={addressInputRef}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Enter your address"
+          required
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="range" className="block text-md font-medium text-gray-700">Range (miles)</label>
+        <select
+          id="range"
+          value={range}
+          onChange={(e) => setRange(Number(e.target.value))}
+          required
+          className="p-2 border rounded w-full"
         >
-          {isLoading ? 'Registering...' : 'Register'}
-        </button>
-      </form>
-    </div>
-  );
+          {[10, 20, 30, 40, 50].map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {lat !== 0 && lng !== 0 && (
+        <>
+          <div className="text-left text-gray-700 mb-2">Drag Marker to adjust service location</div>
+          <div ref={mapRef} style={{ height: '400px', marginTop: '20px' }}></div>
+        </>
+      )}
+
+      <div>
+        <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+        <input
+          type="tel"
+          id="phoneNumber"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          placeholder="Enter your phone number"
+          required
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="isInsured"
+          checked={isInsured}
+          onChange={(e) => setIsInsured(e.target.checked)}
+          className="mr-2"
+        />
+        <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
+      </div>
+
+      <div>
+        <label htmlFor="logo" className="block text-md font-medium text-gray-700">Company Logo (optional)</label>
+        {logoPreview && (
+          <img 
+            src={logoPreview} 
+            alt="Company Logo Preview" 
+            className="mb-2 w-24 h-24 object-cover rounded-full" 
+          />
+        )}
+        <input
+          type="file"
+          id="logo"
+          onChange={handleLogoChange}
+          accept="image/png, image/jpeg, application/pdf" // Restrict file types
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="email" className="block text-md font-medium text-gray-700">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password" className="block text-md font-medium text-gray-700">Password</label>
+        <input
+          type="password"
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          required
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
+      <button 
+        type="submit" 
+        className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Registering...' : 'Register'}
+      </button>
+    </form>
+  </div>
+);
 }
+

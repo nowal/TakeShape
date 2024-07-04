@@ -47,21 +47,17 @@ export type Job = {
     moveFurniture?: boolean;
     customerName?: string;
     userId?: string;
-    address: {
-        street: string;
-        city: string;
-        state: string;
-        zip: string;
-        lat: number;
-        lng: number;
-    };
+    address: string;
+    lat?: number;
+    lng?: number;
     prices: Array<{
-        painterId: string;
-        amount: number;
-        invoiceUrl?: string;
-        timestamp: number;
+      painterId: string;
+      amount: number;
+      invoiceUrl?: string;
+      timestamp: number;
     }>;
     acceptedQuotes?: Array<{
-        acceptedQuoteId: string;
+      acceptedQuoteId: string;
     }>;
-};
+  };
+  

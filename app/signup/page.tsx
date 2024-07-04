@@ -1,26 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, query, where, getDocs, deleteDoc, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc, query, collection, getDocs, where } from 'firebase/firestore';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript';  // Adjust the import path as needed
 
-// Define the type for address components
-interface AddressComponent {
-  long_name: string;
-  short_name: string;
-  types: string[];
-}
-
 export default function SignupAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '' });
+  const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
@@ -30,7 +23,10 @@ export default function SignupAccountPage() {
   const [showLoginInstead, setShowLoginInstead] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const addressInputRef = useRef<HTMLInputElement>(null);
+
+  const agentId = searchParams.get('agentId'); // Capture the agentId from query parameters
 
   useEffect(() => {
     const initAutocomplete = async () => {
@@ -48,36 +44,8 @@ export default function SignupAccountPage() {
               console.error('Error: place details are incomplete.');
               return;
             }
-            
-            const addressComponents = place.address_components;
 
-            const newAddress = {
-              street: '',
-              city: '',
-              state: '',
-              zip: ''
-            };
-
-            addressComponents.forEach((component: AddressComponent) => {
-              const types = component.types;
-              if (types.includes('street_number')) {
-                newAddress.street = `${component.long_name} ${newAddress.street}`;
-              }
-              if (types.includes('route')) {
-                newAddress.street += component.long_name;
-              }
-              if (types.includes('locality')) {
-                newAddress.city = component.long_name;
-              }
-              if (types.includes('administrative_area_level_1')) {
-                newAddress.state = component.short_name;
-              }
-              if (types.includes('postal_code')) {
-                newAddress.zip = component.long_name;
-              }
-            });
-
-            setAddress(newAddress);
+            setAddress(place.formatted_address ?? '');  // Add a fallback value
           });
         }
       } catch (error) {
@@ -88,6 +56,10 @@ export default function SignupAccountPage() {
     initAutocomplete();
   }, []);
 
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddress(e.target.value);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,7 +78,8 @@ export default function SignupAccountPage() {
         address,
         name,
         phoneNumber,
-        isPainter
+        isPainter,
+        reAgent: agentId || null // Set the reAgent field if agentId is present
       });
 
       const quoteData = sessionStorage.getItem('quoteData');
@@ -243,10 +216,10 @@ export default function SignupAccountPage() {
           <input 
             type="password" 
             id="password"
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="Enter your password" 
-            required 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            required
             className="p-2 border rounded w-full"
           />
         </div>
@@ -254,52 +227,63 @@ export default function SignupAccountPage() {
         <div>
           <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
           <input 
-            type="text" 
+            type="text"
             id="name"
-            value={name} 
+            value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name" 
-            required 
+            placeholder="Enter your name"
+            required
+            className="p-2 border rounded w-full"
+          />
+        </div>
+
+        <div>
+        <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+          <input 
+            type="tel"
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Enter your phone number"
+            required
             className="p-2 border rounded w-full"
           />
         </div>
 
         <div>
           <label htmlFor="address" className="block text-md font-medium text-gray-700">Address</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="address"
             ref={addressInputRef}
+            value={address}
+            onChange={handleAddressChange}
             placeholder="Enter your address"
-            required 
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
-          <input 
-            type="tel" 
-            id="phoneNumber"
-            value={phoneNumber} 
-            onChange={(e) => setPhoneNumber(e.target.value)} 
-            placeholder="Enter your phone number" 
             required
             className="p-2 border rounded w-full"
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={isLoading}
         >
-          {isLoading ? 'Signing Up...' : 'Sign Up'}
+          {isLoading ? 'Signing up...' : 'Sign Up'}
         </button>
-        <p className="text-center">
-          Already have an account? <button className="text-blue-600 underline" onClick={() => setShowLoginInstead(true)}>Sign in here</button>
-        </p>
       </form>
+
+      <div className="mt-4 text-center">
+        <p>
+          Already have an account?{' '}
+          <button
+            onClick={() => setShowLoginInstead(true)}
+            className="text-blue-600 hover:underline"
+          >
+            Log in
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
+
