@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc, query, collection, getDocs, where } from 'firebase/firestore';
@@ -10,7 +10,7 @@ import SignInButton from '@/components/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript';  // Adjust the import path as needed
 
-export default function SignupAccountPage() {
+function SignupAccountForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
@@ -55,7 +55,6 @@ export default function SignupAccountPage() {
 
     initAutocomplete();
   }, []);
-
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddress(e.target.value);
@@ -238,7 +237,7 @@ export default function SignupAccountPage() {
         </div>
 
         <div>
-        <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
+          <label htmlFor="phoneNumber" className="block text-md font-medium text-gray-700">Phone Number</label>
           <input 
             type="tel"
             id="phoneNumber"
@@ -287,3 +286,10 @@ export default function SignupAccountPage() {
   );
 }
 
+export default function SignupAccountPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupAccountForm />
+    </Suspense>
+  );
+}
