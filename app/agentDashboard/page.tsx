@@ -219,7 +219,7 @@ export default function AgentDashboard() {
   };
 
   return (
-    <div className="p-4 sm:p-8">  {/* Reduced padding for small screens */}
+    <div className="p-4 sm:p-8 mb-12">  {/* Reduced padding for small screens */}
       
       <div className="flex justify-center mt-12 mb-12">
         <button
@@ -295,7 +295,7 @@ export default function AgentDashboard() {
             ) : null
           )
         ) : (
-          <p className="text-center">No preferred painters added yet.</p>
+          <p className="text-center mt-12">No preferred painters added yet.</p>
         )}
       </div>
     </div>
