@@ -221,7 +221,7 @@ export default function AgentDashboard() {
   return (
     <div className="p-4 sm:p-8 mb-12">  {/* Reduced padding for small screens */}
       
-      <div className="flex justify-center mt-12 mb-12">
+      <div className="flex justify-center mt-12 mb-8">
         <button
           onClick={generateInviteLink}
           className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded"
@@ -237,7 +237,7 @@ export default function AgentDashboard() {
         </div>
       )}
   
-      <h2 className="text-3xl text-center font-bold underline mb-8">Preferred Painters</h2>
+      <h2 className="text-3xl text-center font-bold underline mb-8 mt-16">Preferred Painters</h2>
       
       <div className="flex justify-center mb-4">
         <button onClick={() => setAddingPainter(true)} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
