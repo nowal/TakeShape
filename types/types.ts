@@ -1,17 +1,30 @@
 // types.ts
+export type Price = {
+    painterId: string;
+    amount: number;
+    invoiceUrl?: string;
+    timestamp: number;
+    accepted?: boolean;
+};
+
+export type UserImage = {
+    userImageId: string;
+    video?: string;
+    prices?: Price[];
+    title?: string;
+};
+
 export type UserData = {
     email?: string;
     quote?: string | null;
     video?: string;
+    reAgent?: string;
     paintPreferencesId?: string;
-    prices?: Array<{
-        painterId: string;
-        amount: number;
-        invoiceUrl?: string;
-        timestamp: number;
-        accepted?: boolean;
-    }>;
+    userImages?: string[]; // Array of userImage IDs
+    prices?: Price[];
+    title?: string;
 };
+
 
 export type PaintPreferences = {
     color?: string;

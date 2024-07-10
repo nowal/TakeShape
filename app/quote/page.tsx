@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadProgressAtom, uploadStatusAtom, videoURLAtom, documentIdAtom } from '@/atom/atom';
 import { useAtom } from 'jotai';
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import firebase from '../../lib/firebase';
 import UploadButton from '../../components/uploadButton';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -15,27 +15,25 @@ export default function QuotePage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [zipCode, setZipCode] = useState('');
   const [description, setDescription] = useState('');
+  const [title, setTitle] = useState(''); // New title state
   const [paintPreferences, setPaintPreferences] = useState({
     walls: false,
     ceilings: false,
     trim: false
   });
   const [providingOwnPaint, setProvidingOwnPaint] = useState('');
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // State to keep track of user's authentication status
   const [fileUrl, setFileUrl] = useState('');
-  const [uploadTask, setUploadTask] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(''); // Add errorMessage state
   const auth = getAuth();
   const router = useRouter();
   const firestore = getFirestore(firebase);
-  const [userData, setUploadProgress] = useAtom(uploadProgressAtom);
-  const [isPainter, setVideoURL] = useAtom(videoURLAtom);
-  const [checkingAuth, setUploadStatus] = useAtom(uploadStatusAtom);
-  const [documentId, setDocumentId] = useAtom(documentIdAtom);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [, setUploadProgress] = useAtom(uploadProgressAtom);
+  const [, setVideoURL] = useAtom(videoURLAtom);
+  const [, setUploadStatus] = useAtom(uploadStatusAtom);
+  const [, setDocumentId] = useAtom(documentIdAtom);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -49,19 +47,10 @@ export default function QuotePage() {
         }
       }
     });
-    
     return () => {
       unsubscribe(); // Unsubscribe on component unmount
     };
   }, [auth, firestore]);
-
-  const deleteOldQuotes = async (userId: string) => {
-    const q = query(collection(firestore, "userImages"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(async (doc) => {
-      await deleteDoc(doc.ref); // Delete the document
-    });
-  };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPaintPreferences({
@@ -74,99 +63,67 @@ export default function QuotePage() {
     setCurrentStep(1);
   };
 
-  const handleSubmit = async () => {
-    console.log("In handle submit");
+  const handleCreateUserImage = async () => {
+    console.log("Creating user image document");
     setIsLoading(true);
     setErrorMessage('');
 
-    if (auth.currentUser) {
-      try {
-        // Delete previous quotes before adding a new one
-        await deleteOldQuotes(auth.currentUser.uid);
+    try {
+        const userImageData = {
+            zipCode,
+            description,
+            paintPreferences,
+            providingOwnPaint,
+            prices: [],
+            video: '', // Initially empty video field
+            title, // Add title to userImage
+            userId: auth.currentUser ? auth.currentUser.uid : '',
+        };
 
-        // Add a new quote after deleting old ones
-        const docRef = await addDoc(collection(firestore, "userImages"), {
-          zipCode,
-          description,
-          paintPreferences,
-          providingOwnPaint,
-          prices: [],
-          video: fileUrl, // Storing single video URL
-          userId: auth.currentUser.uid,
-        });
+        console.log("User Image Data: ", userImageData);
+
+        // Add the new quote
+        const docRef = await addDoc(collection(firestore, "userImages"), userImageData);
         console.log('Document written with ID:', docRef.id);
         setDocumentId(docRef.id);
-        
-        if (isUserLoggedIn) {
-          router.push('/defaultPreferences'); // Navigate to dashboard
-        } else {
-          // Handle non-logged-in user case
-          sessionStorage.setItem('quoteData', JSON.stringify({
-            zipCode,
-            description,
-            paintPreferences,
-            providingOwnPaint,
-            prices: [],
-            video: fileUrl
-          }));
-          router.push('/signup'); // Navigate to signup page
+        sessionStorage.setItem('userImageId', docRef.id); // Store userImageId in sessionStorage
+
+        if (auth.currentUser) {
+            const userDocRef = doc(firestore, "users", auth.currentUser.uid);
+            await updateDoc(userDocRef, {
+                userImages: arrayUnion(docRef.id),
+            });
         }
-      } catch (error) {
-        console.error('Error saving data: ', error);
-        alert('Error saving data. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      try {
-        // Add a new quote after deleting old ones
-        const docRef = await addDoc(collection(firestore, "userImages"), {
-          zipCode,
-          description,
-          paintPreferences,
-          providingOwnPaint,
-          prices: [],
-          video: fileUrl, // Storing single video URL
-          userId: "",
-        });
-        console.log('Document written with ID:', docRef.id);
-        setDocumentId(docRef.id);
-        
+
         if (isUserLoggedIn) {
-          router.push('/dashboard'); // Navigate to dashboard
+            console.log("Navigating to defaultPreferences with userImageId: ", docRef.id);
+            router.push(`/defaultPreferences?userImageId=${docRef.id}`); // Navigate to defaultPreferences with userImageId
         } else {
-          // Handle non-logged-in user case
-          sessionStorage.setItem('quoteData', JSON.stringify({
-            zipCode,
-            description,
-            paintPreferences,
-            providingOwnPaint,
-            prices: [],
-            video: fileUrl
-          }));
-          router.push('/signup'); // Navigate to signup page
+            // Handle non-logged-in user case
+            sessionStorage.setItem('quoteData', JSON.stringify(userImageData));
+            router.push(`/signup?userImageId=${docRef.id}`);
         }
-      } catch (error) {
-        console.error('Error saving data: ', error);
-        alert('Error saving data. Please try again.');
-      } finally {
+    } catch (error) {
+        console.error('Error creating user image document: ', error);
+        setErrorMessage('Error creating user image document. Please try again.');
+    } finally {
         setIsLoading(false);
-      }
     }
   };
 
   const handleUploadSuccess = (file: File) => {
     if (auth.currentUser != null) {
-      console.log(auth.currentUser.uid);
+      console.log("Authenticated user UID: ", auth.currentUser.uid);
     } else {
-      console.log("no user");
+      console.log("No authenticated user");
     }
-    setSelectedFile(file);
     setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
 
     const storage = getStorage(firebase);
     const fileRef = storageRef(storage, `uploads/${file.name}`);
     const uploadTask = uploadBytesResumable(fileRef, file);
+
+    handleCreateUserImage(); // Create the user image document immediately
 
     // Store the upload promise in the state or a ref
     uploadTask.on(
@@ -180,29 +137,34 @@ export default function QuotePage() {
       },
       (error) => {
         console.error('Error uploading video: ', error);
-        alert('Error uploading video. Please try again.');
+        setErrorMessage('Error uploading video. Please try again.');
         setIsUploading(false);
       },
-      () => {
+      async () => {
         // Handle successful uploads on complete
-        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          console.log('File available at', url);
-          setUploadStatus('completed');
-          setFileUrl(url); // Save the URL once the upload is complete
-          setVideoURL(url); 
-          setIsUploading(false);
-        });
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        console.log('File available at', url);
+        setUploadStatus('completed');
+        setFileUrl(url); // Save the URL once the upload is complete
+        setVideoURL(url);
+        setIsUploading(false);
+
+        // Update the userImage document with the video URL
+        const docId = sessionStorage.getItem('userImageId');
+        if (docId) {
+            await updateDoc(doc(firestore, "userImages", docId), {
+              video: url,
+            });
+            console.log(`Updated userImage document ${docId} with video URL`);
+        }
       }
     );
-    console.log("Before Handle Submit");
-    handleSubmit();
   };
 
   return (
     <div className="p-8 pt-20">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-
-
+  
       {isLoading && currentStep === 2 && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -210,101 +172,39 @@ export default function QuotePage() {
           </div>
         </div>
       )}
-
+  
       {currentStep === 1 && (
-        <div className="image-upload-step mb-14 mt-10 flex justify-center items-center">
-          <UploadButton text="Upload Video" onUploadSuccess={handleUploadSuccess} inputId="imageUpload" />
+        <div>
+          <div className="title-box flex justify-center items-center">
+            <div className="w-1/2">
+              <label htmlFor="title" className="block text-md font-medium text-gray-700">Title</label>
+              <input 
+                type="text" 
+                id="title"
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)} 
+                placeholder="Enter title for your quote" 
+                required 
+                className="p-2 border rounded w-full"
+              />
+            </div>
+          </div>
+          <div className="image-upload-step mb-14 mt-10 flex justify-center items-center">
+            <UploadButton text="Upload Video" onUploadSuccess={handleUploadSuccess} inputId="imageUpload" />
+          </div>
         </div>
       )}
-
-      {currentStep ===
-       1 && (
-                <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
-                    <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
-                    <ol className="list-decimal pl-4">
-                        <li>Use the back camera. Hold the phone horizontally. Use .5x zoom if available.</li>
-                        <li>Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim. </li>
-                        <li>Walk through all areas that you would like painted, taking 15-30 seconds for each full room. You can exclude an area in your video from the quote in the next step.</li>
-                    </ol>
-                </div>
-            )}
-
-      
-
-      {currentStep === 2 && (
-        <form onSubmit={handleSubmit} className="secondary-color steps-box mt-10 mb-28 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondar-color flex flex-col space-y-4">
-          <div>
-            <label htmlFor="zipcode" className="block text-md font-medium text-gray-700">Zip Code</label>
-            <input 
-              type="text" 
-              id="zipcode"
-              value={zipCode} 
-              onChange={(e) => setZipCode(e.target.value)} 
-              placeholder="Enter your Zip Code" 
-              required 
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-md font-medium text-gray-700">Brief Description</label>
-            <textarea 
-              id="description"
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
-              placeholder="i.e. The walls of the rooms and trim, not ceilings and not hallways" 
-              required 
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <fieldset>
-            <legend className="text-md font-medium text-gray-700">What do you want painted?</legend>
-            <div className="flex space-x-3">
-              <label>
-                <input type="checkbox" name="walls" checked={paintPreferences.walls} onChange={handleCheckboxChange} />
-                Walls
-              </label>
-              <label>
-                <input type="checkbox" name="ceilings" checked={paintPreferences.ceilings} onChange={handleCheckboxChange} />
-                Ceilings
-              </label>
-              <label>
-                <input type="checkbox" name="trim" checked={paintPreferences.trim} onChange={handleCheckboxChange} />
-                Trim
-              </label>
-            </div>
-          </fieldset>
-
-          <div>
-            <label htmlFor="providingOwnPaint" className="block text-md font-medium text-gray-700">Will you be providing your own paint? Your painter will take care of this for you if not.</label>
-            <select 
-              id="providingOwnPaint" 
-              value={providingOwnPaint} 
-              onChange={(e) => setProvidingOwnPaint(e.target.value)}
-              className="p-2 border rounded w-full"
-            >
-              <option value="">Select</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </div>
-
-          <div className="flex justify-between">
-            <button onClick={handlePrevious} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded">
-              Previous
-            </button>
-            <button type="submit" className="button-color hover:bg-green-900 text-white py-2 px-4 rounded">
-              Submit
-            </button>
-          </div>
-        </form>
-      )}
-
+  
+      <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
+        <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
+        <ol className="list-decimal pl-4">
+          <li>Use the back camera. Hold the phone horizontally. Use .5x zoom if available.</li>
+          <li>Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim.</li>
+          <li>Walk through all areas that you would like painted, taking 15-30 seconds for each full room. You can exclude an area in your video from the quote in the next step.</li>
+        </ol>
+      </div>
+  
       <style jsx>{`
-        /* ... (rest of your styles) */
-
-        /* Styles for the modal */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -317,11 +217,19 @@ export default function QuotePage() {
           align-items: center;
           z-index: 1000;
         }
-
+  
         .box-color {
           background-color: #F7E4DE;
         }
-
+  
+        .title-box {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          margin: 0 auto;
+        }
+  
         .modal-content {
           background: white;
           padding: 20px; 
@@ -330,7 +238,6 @@ export default function QuotePage() {
           text-align: center;
         }
       `}</style>
-
     </div>
   );
-}
+}  

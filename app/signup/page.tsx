@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc, query, collection, getDocs, where } from 'firebase/firestore';
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
 import SignInButton from '@/components/signInButton';
@@ -14,6 +14,7 @@ function SignupAccountForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
+  const [addressComponents, setAddressComponents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
@@ -26,9 +27,14 @@ function SignupAccountForm() {
   const searchParams = useSearchParams();
   const addressInputRef = useRef<HTMLInputElement>(null);
 
-  const agentId = searchParams.get('agentId'); // Capture the agentId from query parameters
+  const agentId = searchParams.get('agentId');
+  const userImageId = searchParams.get('userImageId');
 
   useEffect(() => {
+    console.log('searchParams:', searchParams.toString());
+    console.log('agentId:', agentId);
+    console.log('userImageId:', userImageId);
+
     const initAutocomplete = async () => {
       try {
         await loadGoogleMapsScript('AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA');  // Replace with your actual API key
@@ -46,6 +52,8 @@ function SignupAccountForm() {
             }
 
             setAddress(place.formatted_address ?? '');  // Add a fallback value
+            setAddressComponents(place.address_components ?? []);
+            setErrorMessage(''); // Clear the error message when a valid address is selected
           });
         }
       } catch (error) {
@@ -54,15 +62,31 @@ function SignupAccountForm() {
     };
 
     initAutocomplete();
-  }, []);
+  }, [agentId, userImageId, searchParams]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddress(e.target.value);
+    setErrorMessage(''); // Clear the error message when the user starts typing
+  };
+
+  const validateAddress = () => {
+    const requiredComponents = ['street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code'];
+    const foundComponents = requiredComponents.every(component => 
+      addressComponents.some(ac => ac.types.includes(component))
+    );
+    return foundComponents;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
+
+    if (!validateAddress()) {
+      setErrorMessage('Please enter a valid address.');
+      setIsLoading(false);
+      return;
+    }
+
     const auth = getAuth();
     const firestore = getFirestore();
 
@@ -78,29 +102,40 @@ function SignupAccountForm() {
         name,
         phoneNumber,
         isPainter,
-        reAgent: agentId || null // Set the reAgent field if agentId is present
+        reAgent: agentId || null,
+        userImages: userImageId ? [userImageId] : [] // Initialize userImages array with userImageId if present
       });
 
+      // Update the userImage document with the userId
+      if (userImageId) {
+        const userImageDocRef = doc(firestore, "userImages", userImageId);
+        await updateDoc(userImageDocRef, { userId: user.uid });
+
+        // Add userImageId to the user's userImages array field
+        await updateDoc(userDocRef, {
+          userImages: arrayUnion(userImageId)
+        });
+      }
+
       const quoteData = sessionStorage.getItem('quoteData');
-      if (quoteData && user && docId) {
+      if (quoteData) {
         const quote = JSON.parse(quoteData);
-        const userImageDocRef = doc(firestore, "userImages", docId);
-        const userImageSnap = await getDoc(userImageDocRef);
-
-        if (userImageSnap.exists()) {
-          await updateDoc(userImageDocRef, {
-            userId: user.uid,
-            ...quote,
-            address,
-            ...(name && { name }),
-            ...(phoneNumber && { phoneNumber })
-          });
-
-          sessionStorage.removeItem('quoteData');
-          sessionStorage.removeItem('documentId');
-        } else {
-          console.error("No user image document found with the provided documentId");
+        if (userImageId) {
+          const userImageDocRef = doc(firestore, "userImages", userImageId); // Use userImageId from URL or session
+          const userImageSnap = await getDoc(userImageDocRef);
+          if (userImageSnap.exists()) {
+            const existingData = userImageSnap.data();
+            await updateDoc(userImageDocRef, {
+              ...quote,
+              address,
+              ...(name && { name }),
+              ...(phoneNumber && { phoneNumber }),
+              userId: user.uid, // Ensure userId is set
+              video: existingData.video // Preserve existing video URL
+            });
+          }
         }
+        sessionStorage.removeItem('quoteData');
       }
 
       if (isPainter && sessionStorage.getItem('painterId')) {
@@ -110,11 +145,8 @@ function SignupAccountForm() {
         setIsPainter(false);
       }
 
-      // Check if the user has submitted a video
-      const userImagesQuery = query(collection(firestore, "userImages"), where("userId", "==", user.uid));
-      const userImagesSnapshot = await getDocs(userImagesQuery);
-      if (!userImagesSnapshot.empty) {
-        router.push('/defaultPreferences');
+      if (userImageId) {
+        router.push(`/defaultPreferences?userImageId=${userImageId}`);
       } else {
         router.push('/quote');
       }
@@ -182,6 +214,7 @@ function SignupAccountForm() {
       </div>
     );
   }
+
 
   return (
     <div className="p-8">

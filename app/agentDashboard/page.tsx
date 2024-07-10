@@ -237,7 +237,7 @@ export default function AgentDashboard() {
         </div>
       )}
   
-      <h2 className="text-3xl text-center font-bold underline mb-8 mt-16">Recommended Painters</h2>
+      <h2 className="text-3xl text-center font-bold underline mb-8 mt-14">Recommended Painters</h2>
       
       <div className="flex justify-center mb-4">
         <button onClick={() => setAddingPainter(true)} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
