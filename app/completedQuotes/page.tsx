@@ -194,7 +194,7 @@ const CompletedQuotes = () => {
                 jobList.map(job => (
                     <div key={job.jobId} className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl p-4 md:p-8 rounded">
                         <div className="flex flex-col justify-center items-center lg:mr-8 mb-4 lg:mb-0 w-full lg:w-auto">
-                            <video src={job.video} autoPlay controls playsInline muted={true} className="w-full lg:w-96" />
+                            <video src={`${job.video}#t=0.001`} autoPlay controls playsInline muted={true} className="w-full lg:w-96" />
                             
                             <p className="text-lg font-bold mt-4">Your Quoted Price: 
                                 <span className="text-xl">
