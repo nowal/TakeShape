@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useAtom } from 'jotai';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -472,4 +472,11 @@ const DefaultPreferences: React.FC = () => {
                     );
                 };
                 
-                export default DefaultPreferences;
+                const DefaultPreferencesWithSuspense: React.FC = () => (
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <DefaultPreferences />
+                    </Suspense>
+                );
+
+                export default DefaultPreferencesWithSuspense;
+

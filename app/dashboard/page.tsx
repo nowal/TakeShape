@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { useAtom } from 'jotai';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { timestampPairsAtom, userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom';
@@ -408,4 +408,10 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard
+const DashboardWithSuspense: React.FC = () => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <Dashboard />
+    </Suspense>
+);
+
+export default DashboardWithSuspense;
