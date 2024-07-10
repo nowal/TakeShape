@@ -306,7 +306,7 @@ const Dashboard = () => {
                                 onLoadedMetadata={() => {
                                     if (videoRef.current) {
                                         videoRef.current.playbackRate = 1.0;
-                                        videoRef.current.currentTime = 0.001;
+                                        videoRef.current.currentTime = 30;
                                     }
                                 }}
                             />
