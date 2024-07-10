@@ -300,8 +300,7 @@ const Dashboard = () => {
                                 playsInline
                                 muted={true}
                                 ref={videoRef}
-                                src={userData.video}
-                                preload="none"
+                                src={`${userData.video}#t=0.001`}
                                 className="video"
                                 style={{ width: '100%', maxWidth: '100%' }}
                                 onLoadedMetadata={() => {
