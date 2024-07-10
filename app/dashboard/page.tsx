@@ -301,12 +301,12 @@ const Dashboard = () => {
                                 muted={true}
                                 ref={videoRef}
                                 src={userData.video}
+                                preload="metadata"
                                 className="video"
                                 style={{ width: '100%', maxWidth: '100%' }}
                                 onLoadedMetadata={() => {
                                     if (videoRef.current) {
                                         videoRef.current.playbackRate = 1.0;
-                                        videoRef.current.currentTime = 30;
                                     }
                                 }}
                             />
