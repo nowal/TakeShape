@@ -208,7 +208,8 @@ const PainterDashboard = () => {
       console.log(`Price${invoiceUrl ? ' and invoice' : ''} for job ${jobId} updated successfully`);
       // Optionally reset form state here
       setSelectedFile(null);
-      setPrice(''); // Reset price state, consider setting to initial state value
+      setPrice(''); // Reset price state, consider setting to initial
+      // Reset price state, consider setting to initial value
       fetchPainterData(); // Refresh data
     } catch (updateError) {
       console.error('Error updating price: ', updateError);
@@ -275,15 +276,15 @@ const PainterDashboard = () => {
                 <p className="text-lg">Paint Preferences:</p>
                 <ul className="list-disc pl-5">
                   <li className="font-semibold">{job.paintPreferences?.laborAndMaterial ? "Labor and Material" : "Labor Only"}</li>
-                  <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.color || "N/A"}</span></li>
-                  <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.finish || "N/A"}</span></li>
-                  <li>Paint Quality: <span className="font-semibold">{job.paintPreferences?.paintQuality || "N/A"}</span></li>
+                  <li>Wall Color: <span className="font-semibold">{job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.color : "N/A"}</span></li>
+                  <li>Wall Finish: <span className="font-semibold">{job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.finish : "N/A"}</span></li>
+                  <li>Paint Quality: <span className="font-semibold">{job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.paintQuality : "N/A"}</span></li>
                   <li>Ceilings: <span className="font-semibold">{job.paintPreferences?.ceilings ? "Yes" : "No"}</span></li>
-                  <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilingColor || "N/A"}</span></li>
-                  <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilingFinish || "N/A"}</span></li>
+                  <li>Ceiling Color: <span className="font-semibold">{job.paintPreferences?.ceilings && job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.ceilingColor : "N/A"}</span></li>
+                  <li>Ceiling Finish: <span className="font-semibold">{job.paintPreferences?.ceilings && job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.ceilingFinish : "N/A"}</span></li>
                   <li>Trim and Doors: <span className="font-semibold">{job.paintPreferences?.trim ? "Yes" : "No"}</span></li>
-                  <li>Trim and Door Color: <span className="font-semibold">{job.paintPreferences?.trimColor || "N/A"}</span></li>
-                  <li>Trim and Door Finish: <span className="font-semibold">{job.paintPreferences?.trimFinish || "N/A"}</span></li>
+                  <li>Trim and Door Color: <span className="font-semibold">{job.paintPreferences?.trim && job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.trimColor : "N/A"}</span></li>
+                  <li>Trim and Door Finish: <span className="font-semibold">{job.paintPreferences?.trim && job.paintPreferences?.laborAndMaterial ? job.paintPreferences?.trimFinish : "N/A"}</span></li>
                   <li>Move Furniture: <span className="font-semibold">{job.moveFurniture ? "Yes" : "No"}</span></li>
                 </ul>
               </div>
@@ -301,4 +302,3 @@ const PainterDashboard = () => {
 };
 
 export default PainterDashboard;
-

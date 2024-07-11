@@ -97,6 +97,11 @@ const Dashboard = () => {
     
         if (userDoc.exists()) {
             const userDocData = userDoc.data() as UserData;
+            console.log("User data:", userDocData); // Add this log
+    
+            // Since the user exists in the users collection, we set isPainter to false
+            setIsPainter(false);
+    
             const userImageIds = userDocData.userImages || [];
             const userImagesData = await Promise.all(userImageIds.map(async (id) => {
                 const userImageDocRef = doc(firestore, "userImages", id);
@@ -142,12 +147,28 @@ const Dashboard = () => {
                 }
             }
         } else {
-            console.error('No user document found for the current user.');
+            // Check if the user exists in the painters collection
+            console.log(auth.currentUser.uid);
+            const paintersQuery = query(
+                collection(firestore, "painters"),
+                where("userId", "==", auth.currentUser.uid)
+            );
+            const paintersSnapshot = await getDocs(paintersQuery);
+    
+            if (!paintersSnapshot.empty) {
+                // User exists in the painters collection
+                setIsPainter(true);
+                console.log("User is a painter"); // Add this log
+            } else {
+                console.error('No user document found for the current user.');
+            }
         }
     
         setCheckingAuth(false);
         setUserTypeLoading(false);
     };
+    
+    
     
     const fetchUserImageData = async (userImageId: string) => {
         const userImageDocRef = doc(firestore, "userImages", userImageId);
