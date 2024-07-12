@@ -198,7 +198,7 @@ export default function QuotePage() {
       <div className="steps-box mb-40 max-w-3xl mx-auto text-left p-4 border rounded shadow-lg secondary-color">
         <h2 className="text-xl font-bold mb-2 text-center">How to Take Your Video</h2>
         <ol className="list-decimal pl-4">
-          <li>Use the back camera. Hold the phone horizontally. Use .5x zoom if available.</li>
+          <li>Use the back camera. Hold the phone horizontally. Zoom out as far as possible.</li>
           <li>Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim.</li>
           <li>Walk through all areas that you would like painted, taking 15-30 seconds for each full room. You can exclude an area in your video from the quote in the next step.</li>
         </ol>
