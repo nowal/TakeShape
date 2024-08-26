@@ -49,9 +49,9 @@ export default function Home() {
         {/* Text Section */}
         <div className="flex flex-col w-full md:w-1/2 justify-center md:mt-24">
           <h1 className="text-4xl font-bold mb-4 text-center md:text-left">Love the walls you're with</h1>
-          <p className="text-xl mb-8 text-center md:text-left">Instantly connect with local painters for free through one video of your space. This is your home, your style, your terms.</p>
+          <p className="text-xl mb-8 text-center md:text-left">Find the right paint color and painter for free through one video of your space. This is your home, your style, your terms.</p>
           <div className="flex justify-center md:justify-start">
-            <QuoteButton text="Get Quote" className='py-3 px-5 text-xl'/>
+            <QuoteButton text="Color Me Curious!" className='py-3 px-5 text-xl'/>
           </div>
         </div>
 

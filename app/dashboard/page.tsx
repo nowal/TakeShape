@@ -8,6 +8,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, getDoc, query, where, getDocs, collection, doc, updateDoc, DocumentReference } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
 import PainterCard from '../../components/painterCard';
+import CheckoutButton from '../../components/checkoutButton';
 import { TimestampPair, UserData, PaintPreferences, UserImage } from '@/types/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
 
@@ -21,6 +22,8 @@ type Price = {
 
 const Dashboard = () => {
     const [userData, setUserData] = useAtom(userDataAtom);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedQuote, setSelectedQuote] = useState<number>(0);
     const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
     const [isPainter, setIsPainter] = useAtom(isPainterAtom);
     const [checkingAuth, setCheckingAuth] = useAtom(checkingAuthAtom);
@@ -66,8 +69,6 @@ const Dashboard = () => {
     const roomCardsContainerRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [showModal, setShowModal] = useState(false);
-    const [selectedQuote, setSelectedQuote] = useState<number>(0);
     const [agentInfo, setAgentInfo] = useState<{ name: string; profilePictureUrl: string; preferredPainters: string[] } | null>(null);
     const [preferredPainterUserIds, setPreferredPainterUserIds] = useState<string[]>([]);
 
@@ -214,18 +215,20 @@ const Dashboard = () => {
     const handleAcceptQuote = async (painterId: string, price: number) => {
         setPainterId(painterId);
         if (auth.currentUser) {
-            if (selectedUserImage) {
-                const userImageDocRef = doc(firestore, "userImages", selectedUserImage);
-                await updateDoc(userImageDocRef, { phoneNumber: phoneNumber });
-                setSelectedQuote(price);
-                setShowModal(true);
-            } else {
-                console.error('No selected user image.');
-            }
+          if (selectedUserImage) {
+            const userImageDocRef = doc(firestore, "userImages", selectedUserImage);
+            await updateDoc(userImageDocRef, { phoneNumber: phoneNumber });
+            console.log('Selected User Image:', selectedUserImage); // Add this line
+            console.log('Painter ID:', painterId); // Add this line
+            setSelectedQuote(price);
+            setShowModal(true);
+          } else {
+            console.error('No selected user image.');
+          }
         } else {
-            console.error('No authenticated user.');
+          console.error('No authenticated user.');
         }
-    };
+      };
 
     const renderQuotes = (prices: UserData['prices']) => {
         console.log("Rendering quotes with prices:", prices);
@@ -238,8 +241,13 @@ const Dashboard = () => {
                 </div>
             );
         }
-    
-        if (acceptedQuote) return null;
+
+        const acceptedQuote = prices.find(price => price.accepted);
+        if (acceptedQuote) {
+            // Redirect to /congrats if a quote is accepted
+            router.push(`/congrats?userImageId=${selectedUserImage}&painterId=${acceptedQuote.painterId}`);
+            return null; 
+        }
     
         return (
             <div className="quotes mb-12" style={{ width: '95%', maxWidth: '95%', margin: '0 auto' }}>
@@ -361,69 +369,144 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-            <style jsx>{`
-                .dashboard-content {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-    
-                .video-container {
-                    width: 100%;
-                    max-width: 450px;
-                }
-    
-                .video {
-                    width: 100%;
-                    max-width: 768px;
-                }
-    
-                .button-group {
-                    display: flex;
-                    gap: 1rem;
-                }
-    
-                .quote-item {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
-    
-                @media (min-width: 640px) {
-                    .quote-item {
-                        flex-direction: row;
-                    }
-                }
-    
-                .quote-details {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
-    
-                @media (min-width: 640px) {
-                    .quote-details {
-                        flex-direction: row;
-                        align-items: center;
-                    }
-                }
-    
-                .recommended {
-                    display: flex;
-                    align-items: center;
-                }
-    
-                .recommended img {
-                    margin-right: 8px;
-                }
-    
-                .upload-progress {
-                    padding: 20px;
-                    background-color: #f0f4f8;
-                    border-radius: 10px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                }
-            `}</style>
+
+{showModal && (
+    <div className="modal-overlay">
+        <div className="modal-content">
+            <button 
+                onClick={() => setShowModal(false)} 
+                className="close-button"
+                aria-label="Close"
+            >
+                &times;
+            </button>
+            <h2>Congrats on accepting your quote!</h2>
+            <p>
+                We hold a 10% deposit in order to protect our painter's time. This will be applied towards your quoted price after the work is completed!
+            </p>
+            <CheckoutButton
+                amount={selectedQuote * 0.1} 
+                painterId={painterId} // Make sure this is the correct painterId
+                userImageId={selectedUserImage} // Make sure this is the correct userImageId
+                userId={selectedUserImage} 
+            />
+
+        </div>
+    </div>
+)}
+
+<style jsx>{`
+    .dashboard-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .video-container {
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .video {
+        width: 100%;
+        max-width: 768px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .quote-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .quote-item {
+            flex-direction: row;
+        }
+    }
+
+    .quote-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .quote-details {
+            flex-direction: row;
+            align-items: center;
+        }
+    }
+
+    .recommended {
+        display: flex;
+        align-items: center;
+    }
+
+    .recommended img {
+        margin-right: 8px;
+    }
+
+    .upload-progress {
+        padding: 20px;
+        background-color: #f0f4f8;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+    }
+
+    .modal-content h2 {
+        margin-bottom: 20px;
+    }
+
+    .modal-content p {
+        margin-bottom: 20px;
+    }
+
+    .modal-content button {
+        margin-top: 20px;
+        background-color: #ccc;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .close-button {
+        position: absolute;
+        top: -10px; /* Adjusted to move it higher */
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+`}</style>
         </div>
     );
 };
