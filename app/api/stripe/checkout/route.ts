@@ -36,3 +36,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function OPTIONS() {
+    return new NextResponse(null, {
+      status: 204, // No Content
+      headers: {
+        'Access-Control-Allow-Origin': 'https://www.takeshapehome.com', // Allow requests from your frontend origin
+        'Access-Control-Allow-Methods': 'POST, OPTIONS', // Allow POST and OPTIONS methods
+        'Access-Control-Allow-Headers': 'Content-Type', // Allow the Content-Type header
+      },
+    });
+  }
