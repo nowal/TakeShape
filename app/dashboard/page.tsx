@@ -36,6 +36,7 @@ const Dashboard = () => {
     const [uploadStatus, setUploadStatus] = useAtom(uploadStatusAtom);
     const [documentId] = useAtom(documentIdAtom);
     const [acceptedQuote, setAcceptedQuote] = useState<Price | null>(null);
+    const [acceptedQuoteBool, setAcceptedQuoteBool] = useState(false);
     const [defaultPaintColor, setDefaultPaintColor] = useState('');
     const [defaultPaintFinish, setDefaultPaintFinish] = useState('');
     const [ceilingPaint, setCeilingPaint] = useState(false);
@@ -75,6 +76,7 @@ const Dashboard = () => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
+                console.log("There is user");
                 fetchUserData();
             } else {
                 setUserData(null);
@@ -115,8 +117,11 @@ const Dashboard = () => {
     
             const userImageIdFromParams = searchParams.get('userImageId');
             const initialUserImageId = userImageIdFromParams || (userImageIds.length > 0 ? userImageIds[0] : '');
+            console.log("right after search params");
     
             if (initialUserImageId) {
+                console.log("Initial");
+                console.log(initialUserImageId);
                 fetchUserImageData(initialUserImageId);
                 setSelectedUserImage(initialUserImageId);
             }
@@ -242,10 +247,14 @@ const Dashboard = () => {
             );
         }
 
-        const acceptedQuote = prices.find(price => price.accepted);
+        setAcceptedQuote(prices.find(price => price.accepted) || null);
+
         if (acceptedQuote) {
             // Redirect to /congrats if a quote is accepted
-            router.push(`/congrats?userImageId=${selectedUserImage}&painterId=${acceptedQuote.painterId}`);
+            console.log("Get's here");
+            console.log(selectedUserImage);
+            console.log(acceptedQuote.painterId);
+            //router.push(`/congrats?userImageId=${selectedUserImage}&painterId=${acceptedQuote.painterId}`);
             return null; 
         }
     

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { 
   getFirestore, 
@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import PainterCard from '../../components/painterCard';
 
-export default function Congrats() {
+const Congrats = () => {
   const [painterUserId, setPainterUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,3 +101,11 @@ export default function Congrats() {
     </div>
   );
 }
+
+const CongratsWithSuspense: React.FC = () => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <Congrats />
+    </Suspense>
+);
+
+export default CongratsWithSuspense;
