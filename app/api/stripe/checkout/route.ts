@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/congrats?userImageId=${userImageId}&painterId=${painterId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
     });
 
     return NextResponse.json({ sessionId: session.id });
