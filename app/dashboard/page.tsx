@@ -89,6 +89,14 @@ const Dashboard = () => {
         return () => unsubscribe();
     }, [auth]);
 
+    useEffect(() => {
+        // Check if there's an accepted quote in userData.prices
+        if (userData && userData.prices) {
+          const acceptedQuoteFromPrices = userData.prices.find(price => price.accepted);
+          setAcceptedQuote(acceptedQuoteFromPrices || null);
+        }
+      }, [userData?.prices]);
+
     const fetchUserData = async () => {
         if (!auth.currentUser) {
             setCheckingAuth(false);
@@ -245,17 +253,6 @@ const Dashboard = () => {
                     <p>Gathering Quotes...</p>
                 </div>
             );
-        }
-
-        setAcceptedQuote(prices.find(price => price.accepted) || null);
-
-        if (acceptedQuote) {
-            // Redirect to /congrats if a quote is accepted
-            console.log("Get's here");
-            console.log(selectedUserImage);
-            console.log(acceptedQuote.painterId);
-            //router.push(`/congrats?userImageId=${selectedUserImage}&painterId=${acceptedQuote.painterId}`);
-            return null; 
         }
     
         return (
