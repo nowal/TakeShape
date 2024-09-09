@@ -56,7 +56,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       const docSnap = await getDoc(userImageRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        let specificPair = data.timestampPairs.find((pair: TimestampPair) => pair.startTime === startTime);
+        const specificPair = data.timestampPairs.find((pair: TimestampPair) => pair.startTime === startTime);
         if (specificPair) {
           setColor(specificPair.color || defaultColor);
           setFinish(specificPair.finish || defaultFinish);

@@ -215,7 +215,7 @@ const RoomPreferences = () => {
         videoRef.current.pause();
         const currentTime = videoRef.current.currentTime;
     
-        let updatedPairs = timestampPairs ? [...timestampPairs] : [];
+        const updatedPairs = timestampPairs ? [...timestampPairs] : [];
     
         const newRoomNumber = updatedPairs.length + 1; // Dynamically calculate the new room number
     
@@ -514,7 +514,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
     
         if (endingPairIndex !== -1) {
             // Clone the current timestampPairs to avoid direct state mutation.
-            let updatedTimestampPairs = [...timestampPairs];
+            const updatedTimestampPairs = [...timestampPairs];
             updatedTimestampPairs[endingPairIndex] = {
                 ...updatedTimestampPairs[endingPairIndex],
                 endTime: currentTime, // Update only the endTime.
