@@ -2,15 +2,14 @@
 module.exports = {
   content: [
     './app/**/*.{html,js,tsx}',
-    './components/**/*.{html,js,tsx}'
+    './components/**/*.{html,js,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        "pink": "#FF385C"
+        pink: '#FF385C',
       },
     },
   },
   plugins: [],
-}
-
+};
