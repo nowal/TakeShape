@@ -36,7 +36,8 @@ body {
 }
 
 .button-color {
-  background-color: #034E35;
+  /* background-color: #034E35; */
+  background-color: #FF385C;
 }
 
 @layer components {
