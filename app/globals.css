@@ -38,3 +38,9 @@ body {
 .button-color {
   background-color: #034E35;
 }
+
+@layer components {
+  .button-green {
+    @apply button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded;
+  }
+}

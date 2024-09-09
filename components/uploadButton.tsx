@@ -47,7 +47,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ text, onUploadSuccess, inpu
     return (
         <div>
             <button 
-            className="button-color hover:bg-green-900 text-white py-2 px-4 rounded"
+            className="button-green"
             onClick={() => document.getElementById(inputId)?.click()}
             disabled={uploading}
             >
