@@ -1,3 +1,4 @@
+import defaultTheme from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
@@ -8,15 +9,35 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Montserrat',
+          ...defaultTheme.fontFamily.sans,
+        ],
+      },
+      borderRadius: {
+        '15.1875': '15.1875rem',
+      },
+      boxShadow: {
+        '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
+      },
       colors: {
+        white: '#FFF',
+        'white-1': '#F9F9F9',
+        'white-green': '#F1FFF2',
+
         pink: '#FF385C',
         red: '#ff0000',
+        gray: '#AFAFAF',
       },
       backgroundImage: {
         'gradient-radial':
           'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+      maxWidth: {
+        shell: '1512px',
       },
     },
   },

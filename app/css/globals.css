@@ -16,9 +16,44 @@
   }
 }
 
-body {
+body,
+html,
+#__next {
+  
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb)); /* Updated to use a solid color */
+  background: rgb(
+    var(--background-start-rgb)
+  ); /* Updated to use a solid color */
+
+  height: 100%;
+  max-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+html,
+body textarea:hover,
+input:hover,
+textarea:active,
+input:active,
+textarea:focus,
+input:focus,
+button:focus,
+button:active,
+button:hover,
+label:focus,
+.btn:active,
+.btn.active {
+  outline: 0px !important;
+  -webkit-appearance: none;
+  box-shadow: none !important;
+}
+
+textarea {
+  resize: none;
+}
+
+input {
+  background-color: transparent;
 }
 
 @layer utilities {
@@ -28,20 +63,30 @@ body {
 }
 
 .bg-floral-white {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .secondary-color {
-  background-color: #D4C4C5;
+  background-color: #d4c4c5;
 }
 
 .button-color {
   /* background-color: #034E35; */
-  background-color: #FF385C;
+  background-color: #ff385c;
 }
 
 @layer components {
   .button-green {
     @apply button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded;
   }
+}
+
+h1.title {
+  color: #000;
+  font-family: var(--font-sans);
+  font-size: 29.348px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 23.059px; /* 78.571% */
+  letter-spacing: -1.146px;
 }

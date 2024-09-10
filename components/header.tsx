@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import daltonLogo from '../public/daltonLogo.png';
 import Link from 'next/link';
 import SignInButton from './signInButton';
 import QuoteButton from './quoteButton';
@@ -11,6 +10,8 @@ import {
   signOut,
 } from 'firebase/auth';
 import AccountButton from './accountButton';
+import { cx } from 'class-variance-authority';
+import { IconsLogo } from '@/components/icons/logo';
 
 const Header = () => {
   const [isUserLoggedIn, setIsUserLoggedIn] =
@@ -60,33 +61,45 @@ const Header = () => {
 
   return (
     <header
-      className={`${
-        isHomePage ? 'fixed top-0 w-full z-50' : ''
-      } secondary-color flex items-center justify-between border-b px-4 py-2 sm:px-6 lg:px-8`}
+      className={cx(
+        'top-0 inset-x-0 pt-3.5 px-9 z-50',
+        isHomePage ? 'fixed max-w-shell w-full mx-auto' : 'relative',
+      )}
     >
-      <Link
-        href="/"
-        className="flex items-center space-x-2"
+      <div
+        className={cx(
+          'flex items-center justify-between w-full',
+          'bg-white',
+          'rounded-15.1875',
+          'px-4 py-2 sm:px-6 lg:px-8',
+          'shadow-08'
+        )}
       >
-        <img
+        <Link
+          href="/"
+          className="flex items-center space-x-2"
+        >
+          <IconsLogo />
+          {/* <img
           src={daltonLogo.src}
           alt="Logo"
           className="h-10 w-10 md:h-16 md:w-16"
-        />{' '}
-        {/* Adjusted size for mobile */}
-        <h1 className="text-base md:text-xl font-bold">
-          TakeShape
-        </h1>
-      </Link>
-      <div className="flex items-center space-x-4 sm:space-x-2">
-        {!isUserLoggedIn && (
-          <SignInButton className="text-md hover:underline" />
-        )}
-        <QuoteButton
-          text="Get Quote"
-          className="text-sm sm:text-base md:text-lg py-2 px-3"
-        />
-        {isUserLoggedIn && <AccountButton />}
+        />{' '} */}
+          {/* Adjusted size for mobile */}
+          <h1 className="title">
+            TakeShape
+          </h1>
+        </Link>
+        <div className="flex items-center space-x-4 sm:space-x-2">
+          {!isUserLoggedIn && (
+            <SignInButton className="text-md hover:underline" />
+          )}
+          <QuoteButton
+            text="Get Quote"
+            className="text-sm sm:text-base md:text-lg py-2 px-3"
+          />
+          {isUserLoggedIn && <AccountButton />}
+        </div>
       </div>
     </header>
   );

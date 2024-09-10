@@ -1,14 +1,10 @@
 import type { Metadata } from 'next';
-import { Montserrat } from 'next/font/google';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { cx } from 'class-variance-authority';
-import './globals.css';
-
-const montserrat = Montserrat({ subsets: ['latin'] });
+import { CssGlobal } from '@/app/css/global';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -23,15 +19,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body
-          className={cx(
-            montserrat.className,
-            'bg-floral-white'
-          )}
-        >
-          <Header />
-          {children}
-          <Footer />
+        <body>
+          <CssGlobal />
+          <div className="fixed inset-0 bg-white-1" />
+          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto bg-red">
+            <Header />
+            {children}
+            <Footer />
+          </div>
 
           <Script
             id="facebook-pixel"
