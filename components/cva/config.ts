@@ -1,24 +1,28 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  ['relative', 'flex items-center', 'box-content', 'gap-2'],
+  ['relative', 'flex items-center', 'box-content', 'gap-2', 'text-base', 'leading-7'],
   {
     variants: {
+      weight: {
+        semibold: 'font-semibold',
+        bold: 'font-bold'
+      },
       size: {
-        sm: ['px-7', 'py-2.5'],
-        md: ['px-6', 'py-2'],
+        sm: ['px-7', 'py-2.5', 'rounded-4xl'],
+        md: ['px-6', 'py-4', 'rounded-5xl'],
       },
       isDisabled: {
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
       },
       isIconOnly: {
-        true: 'size-[36px]',
+        true: 'size-9',
       },
       rounded: {
         none: [],
-        left: ['rounded-l-md box-content'],
-        right: ['-ml-px', 'rounded-r-md box-content'],
-        normal: ['rounded-md'],
+        left: ['rounded-l-xl box-content'],
+        right: ['-ml-px', 'rounded-r-xl box-content'],
+        normal: ['rounded-xl'],
       },
       intent: {
         primary: ['bg-pink', 'text-white'],
@@ -49,7 +53,7 @@ export const buttonsCvaConfig = cva(
       },
     ],
     defaultVariants: {
-      rounded: 'normal',
+      weight: 'semibold',
       intent: 'none',
       isDisabled: false,
       isIconOnly: false,

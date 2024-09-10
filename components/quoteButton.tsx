@@ -26,7 +26,13 @@ const QuoteButton: React.FC<QuoteButtonProps> = ({
   }
   const title = 'Get Quote';
   return (
-    <ButtonsCvaLink href="quote" title={title} intent="primary" size="sm">
+    <ButtonsCvaLink
+      href="/quote"
+      title={title}
+      intent="primary"
+      size="sm"
+      weight='bold'
+    >
       {title}
     </ButtonsCvaLink>
     // <Link href="/quote">

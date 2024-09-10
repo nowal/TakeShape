@@ -22,7 +22,7 @@ export default function RootLayout({
         <body>
           <CssGlobal />
           <div className="fixed inset-0 bg-white-1" />
-          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto bg-red">
+          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
             <Header />
             {children}
             <Footer />

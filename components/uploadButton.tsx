@@ -1,9 +1,13 @@
-
-
 // UploadButton.tsx
-import React, { useState } from 'react';
-import firebase from '../lib/firebase'
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import React, { ChangeEvent, useState } from 'react';
+import firebase from '../lib/firebase';
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
+import { ButtonsCvaInput } from '@/components/cva/input';
 
 type UploadButtonProps = {
   text: string;
@@ -11,11 +15,15 @@ type UploadButtonProps = {
   inputId: string;
 };
 
-const UploadButton: React.FC<UploadButtonProps> = ({ text, onUploadSuccess, inputId }) => {
-    const [uploading, setUploading] = useState(false);
-    const storage = getStorage(firebase);
-  
-    /*const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+const UploadButton: React.FC<UploadButtonProps> = ({
+  text,
+  onUploadSuccess,
+  inputId,
+}) => {
+  const [uploading, setUploading] = useState(false);
+  const storage = getStorage(firebase);
+
+  /*const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
   
@@ -37,16 +45,37 @@ const UploadButton: React.FC<UploadButtonProps> = ({ text, onUploadSuccess, inpu
       }
     };*/
 
-    const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-          onUploadSuccess(file); // Pass the file to the parent component
+  const handleFileSelection = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onUploadSuccess(file); // Pass the file to the parent component
+    }
+  };
+  const title = uploading ? 'Uploading...' : text;
+
+  return (
+    <div>
+      <ButtonsCvaInput
+        title={title}
+        onClick={() =>
+          document.getElementById(inputId)?.click()
         }
-      };
-  
-    return (
-        <div>
-            <button 
+        inputProps={{
+          type:'file',
+          id: inputId,
+          accept: 'video/*',
+          onChange: handleFileSelection,
+        }}
+        style={{ display: 'none' }}
+        isDisabled={uploading}
+        intent='primary'
+        size="sm"
+      >
+        {title}
+      </ButtonsCvaInput>
+      {/* <button 
             className="button-green"
             onClick={() => document.getElementById(inputId)?.click()}
             disabled={uploading}
@@ -59,9 +88,9 @@ const UploadButton: React.FC<UploadButtonProps> = ({ text, onUploadSuccess, inpu
             accept="video/*"
             style={{ display: 'none' }}
             onChange={handleFileSelection}
-            />
-        </div>
-    );
-  };
-  
-  export default UploadButton;
+            /> */}
+    </div>
+  );
+};
+
+export default UploadButton;

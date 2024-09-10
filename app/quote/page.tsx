@@ -190,7 +190,7 @@ export default function QuotePage() {
             </div>
           </div>
           <div className="image-upload-step mb-14 mt-10 flex justify-center items-center">
-            <UploadButton text="Upload Video" onUploadSuccess={handleUploadSuccess} inputId="imageUpload" />
+            <UploadButton text="Submit Video" onUploadSuccess={handleUploadSuccess} inputId="imageUpload" />
           </div>
         </div>
       )}

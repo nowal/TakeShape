@@ -1,21 +1,45 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import React, {
+  useState,
+  useEffect,
+  FormEvent,
+  ChangeEvent,
+} from 'react';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import firebase from '../lib/firebase';
 import Link from 'next/link';
-import { getFirestore, query, collection, where, addDoc, getDocs, doc, getDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  query,
+  collection,
+  where,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
+import { ButtonsCvaButton } from '@/components/cva/button';
 
 type SignInButtonProps = {
   className?: string;
 };
 
-const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
+const SignInButton: React.FC<SignInButtonProps> = ({
+  className,
+}) => {
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false); // Loading state for login button
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error message state
+  const [errorMessage, setErrorMessage] = useState<
+    string | null
+  >(null); // Error message state
   const auth = getAuth(firebase);
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -37,33 +61,47 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
     };
   }, [auth]);
 
-  const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
     const firestore = getFirestore(firebase);
-    
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       setShowModal(false);
 
       // Check if the signed-in user is in the reAgents collection
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDocRef = doc(
+          firestore,
+          'reAgents',
+          currentUser.uid
+        );
         const agentDoc = await getDoc(agentDocRef);
 
         if (agentDoc.exists()) {
           router.push('/agentDashboard');
         } else {
           // Link quote data to the user's account if they are not an agent
-          const quoteData = sessionStorage.getItem('quoteData');
+          const quoteData =
+            sessionStorage.getItem('quoteData');
           if (quoteData) {
             const quote = JSON.parse(quoteData);
-            await addDoc(collection(firestore, "userImages"), {
-              ...quote,
-              userId: auth.currentUser.uid,
-            });
+            await addDoc(
+              collection(firestore, 'userImages'),
+              {
+                ...quote,
+                userId: auth.currentUser.uid,
+              }
+            );
             sessionStorage.removeItem('quoteData'); // Clean up
           }
 
@@ -72,7 +110,9 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      setErrorMessage('Incorrect email or password. Please try again.'); // Set error message
+      setErrorMessage(
+        'Incorrect email or password. Please try again.'
+      ); // Set error message
     } finally {
       setIsLoading(false); // Reset loading state
     }
@@ -88,35 +128,49 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
     sessionStorage.clear();
   };
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleEmailChange = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
     setEmail(e.target.value);
   };
 
-  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handlePasswordChange = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
     setPassword(e.target.value);
   };
 
   if (authLoading) {
     return <div>Loading...</div>; // Or any other loading indicator
   }
-
+  const title = isSignedIn ? 'Sign Out' : 'Sign In';
+  const handler = isSignedIn
+    ? handleSignOut
+    : () => setShowModal(true);
   return (
     <div>
-      {isSignedIn ? (
-        <button onClick={handleSignOut} className={`${className || ''}`}>
-          Sign Out
-        </button>
-      ) : (
-        <button onClick={() => setShowModal(true)} className={`${className || ''}`}>
-          Sign In
-        </button>
-      )}
-
+      <ButtonsCvaButton
+        onClick={handler}
+        className={`${className || ''}`}
+        title={title}
+        intent="ghost"
+        size="sm"
+      >
+        {title}
+      </ButtonsCvaButton>
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content secondary-color">
-            <button onClick={() => setShowModal(false)} className="close-modal">X</button>
-            <form onSubmit={handleSignIn} className="flex flex-col space-y-4">
+            <button
+              onClick={() => setShowModal(false)}
+              className="close-modal"
+            >
+              X
+            </button>
+            <form
+              onSubmit={handleSignIn}
+              className="flex flex-col space-y-4"
+            >
               <input
                 type="email"
                 value={email}
@@ -131,15 +185,28 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
                 placeholder="Password"
                 className="p-2 border rounded w-full"
               />
-              {errorMessage && <p className="text-red-600">{errorMessage}</p>} {/* Display error message */}
-              <button 
-                type="submit" 
-                className={`text-sm sm:text-bas button-green ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              {errorMessage && (
+                <p className="text-red-600">
+                  {errorMessage}
+                </p>
+              )}{' '}
+              {/* Display error message */}
+              <button
+                type="submit"
+                className={`text-sm sm:text-bas button-green ${
+                  isLoading
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                }`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging In...' : 'Log in'}
               </button>
-              <Link className="text-center text-blue-600 underline" onClick={() => setShowModal(false)} href="/signup">
+              <Link
+                className="text-center text-blue-600 underline"
+                onClick={() => setShowModal(false)}
+                href="/signup"
+              >
                 Sign Up
               </Link>
             </form>
@@ -180,8 +247,8 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
         }
 
         .shadow {
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-          }
+          box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        }
       `}</style>
     </div>
   );

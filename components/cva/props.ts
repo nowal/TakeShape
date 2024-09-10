@@ -9,7 +9,8 @@ import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 export const useButtonsCvaProps = ({
   children,
   icon,
-  hierarchy,
+  intent,
+  size,
   rounded,
   isDisabled,
   classValue,
@@ -22,7 +23,8 @@ export const useButtonsCvaProps = ({
       layout: true,
       className: cx(
         buttonsCvaConfig({
-          hierarchy,
+          intent,
+          size,
           rounded,
           isDisabled,
           isIconOnly:

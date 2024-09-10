@@ -17,6 +17,8 @@ const config: Config = {
       },
       borderRadius: {
         '15.1875': '15.1875rem',
+        '4xl': '2rem',
+        '5xl': '2.25rem',
       },
       boxShadow: {
         '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',

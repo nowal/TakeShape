@@ -19,12 +19,12 @@
 body,
 html,
 #__next {
-  
+  font-family: var(--font-sans);
+  font-style: normal;
   color: rgb(var(--foreground-rgb));
   background: rgb(
     var(--background-start-rgb)
   ); /* Updated to use a solid color */
-
   height: 100%;
   max-height: 100vh;
   max-width: 100%;
@@ -81,12 +81,3 @@ input {
   }
 }
 
-h1.title {
-  color: #000;
-  font-family: var(--font-sans);
-  font-size: 29.348px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 23.059px; /* 78.571% */
-  letter-spacing: -1.146px;
-}
