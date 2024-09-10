@@ -167,7 +167,7 @@ export default function Home() {
             placeholder="Email address"
             className="p-2 border rounded w-full sm:w-auto"
           />
-          <button onClick={handleSubscription} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+          <button onClick={handleSubscription} className="button-green">
             Subscribe
           </button>
         </div>

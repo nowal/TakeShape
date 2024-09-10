@@ -52,13 +52,13 @@ const QuoteTypeSelection = () => {
                 <div className="options-row flex gap-4 justify-center">
                     <button 
                         onClick={() => handleSelection(true)} 
-                        className="labor-material-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300"
+                        className="labor-material-btn button-green transition duration-300"
                     >
                         Labor and Material
                     </button>
                     <button 
                         onClick={() => handleSelection(false)} 
-                        className="labor-only-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300"
+                        className="labor-only-btn button-green transition duration-300"
                     >
                         Labor Only
                     </button>

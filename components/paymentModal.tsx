@@ -55,8 +55,8 @@ const Modal: React.FC<ModalProps> = ({ showModal, setShowModal, price, phoneNumb
                 try {
                     if (documentId && phoneNumber && address) {
                         const userImageRef = doc(firestore, "userImages", documentId);
-                        let prices = userImageDoc.data().prices;
-                        let updatedPrices = prices.map((price: Price) => {
+                        const prices = userImageDoc.data().prices;
+                        const updatedPrices = prices.map((price: Price) => {
                             if (price.painterId === painterId) {
                                 return { ...price, accepted: true };
                             }

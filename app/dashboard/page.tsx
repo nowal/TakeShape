@@ -283,7 +283,7 @@ const Dashboard = () => {
                                 </div>
                                 <button 
                                     onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
-                                    className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300 mt-2 sm:mt-0">
+                                    className="button-green transition duration-300 mt-2 sm:mt-0">
                                     Accept Quote
                                 </button>
                             </div>

@@ -215,7 +215,7 @@ const RoomPreferences = () => {
         videoRef.current.pause();
         const currentTime = videoRef.current.currentTime;
     
-        let updatedPairs = timestampPairs ? [...timestampPairs] : [];
+        const updatedPairs = timestampPairs ? [...timestampPairs] : [];
     
         const newRoomNumber = updatedPairs.length + 1; // Dynamically calculate the new room number
     
@@ -514,7 +514,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
     
         if (endingPairIndex !== -1) {
             // Clone the current timestampPairs to avoid direct state mutation.
-            let updatedTimestampPairs = [...timestampPairs];
+            const updatedTimestampPairs = [...timestampPairs];
             updatedTimestampPairs[endingPairIndex] = {
                 ...updatedTimestampPairs[endingPairIndex],
                 endTime: currentTime, // Update only the endTime.
@@ -608,7 +608,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                     </p>
                     <button 
                         onClick={() => handleAcceptQuote(price.painterId, price.amount)} 
-                        className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                        className="button-green transition duration-300">
                         Accept Quote
                     </button>
                 </div>
@@ -684,7 +684,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                                     <label>Do you want any doors and trim painted?</label>
                                     <input type="checkbox" checked={doorsAndTrimPaint} onChange={(e) => setDoorsAndTrimPaint(e.target.checked)} />
                                 </div>
-                                <button onClick={updateAdditionalInfo} className="ml-4 button mt-4 button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                <button onClick={updateAdditionalInfo} className="ml-4 button mt-4 button-green transition duration-300">
                                     Set Defaults
                                 </button>*/
 
@@ -716,7 +716,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
                                                     </div>
                                                 )}
                                                 <div className="new-room-container text-center mt-4 mb-4">
-                                                    <button onClick={changePreferences} className="button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                                                    <button onClick={changePreferences} className="button-green transition duration-300">
                                                         New Room
                                                     </button>
                                                     <div className="tooltip-container ml-2 inline-block relative">
@@ -1076,7 +1076,7 @@ const RoomPreferences = () => {
                     )}
                     <div className="new-room-container text-center">
                     <p>{"Add any room or area that does not match your defaults"}</p>
-                        <button onClick={handleNewRoomSelection} className="new-room-btn button-color hover:bg-green-900 text-white py-2 px-4 rounded transition duration-300">
+                        <button onClick={handleNewRoomSelection} className="new-room-btn button-green transition duration-300">
                             {"New Room"}
                         </button>
                     </div>

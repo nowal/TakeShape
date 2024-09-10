@@ -134,7 +134,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({ className }) => {
               {errorMessage && <p className="text-red-600">{errorMessage}</p>} {/* Display error message */}
               <button 
                 type="submit" 
-                className={`text-sm sm:text-bas button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`text-sm sm:text-bas button-green ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging In...' : 'Log in'}

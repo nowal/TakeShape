@@ -565,7 +565,7 @@ export default function AccountSettingsPage() {
         
                 <button
                   type="submit"
-                  className={`button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`button-green ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isLoading ? 'Updating...' : 'Update'}
                 </button>

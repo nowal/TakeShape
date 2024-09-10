@@ -2,11 +2,14 @@
 module.exports = {
   content: [
     './app/**/*.{html,js,tsx}',
-    './components/**/*.{html,js,tsx}'
+    './components/**/*.{html,js,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        pink: '#FF385C',
+      },
+    },
   },
   plugins: [],
-}
-
+};

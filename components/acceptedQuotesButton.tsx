@@ -9,7 +9,7 @@ type AcceptedQuotesButtonProps = {
 const AcceptedQuotesButton: React.FC<AcceptedQuotesButtonProps> = ({ text, className }) => {
   return (
     <Link href="/acceptedQuotes">
-      <button className={`button-color hover:bg-green-900 text-white py-2 px-4 rounded ${className || ''}`}>
+      <button className={`button-green ${className || ''}`}>
         {text}
       </button>
     </Link>

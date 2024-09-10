@@ -224,7 +224,7 @@ export default function AgentDashboard() {
       <div className="flex justify-center mt-12 mb-8">
         <button
           onClick={generateInviteLink}
-          className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded"
+          className="button-green"
         >
           Get Invite Link
         </button>
@@ -240,7 +240,7 @@ export default function AgentDashboard() {
       <h2 className="text-3xl text-center font-bold underline mb-8 mt-14">Recommended Painters</h2>
       
       <div className="flex justify-center mb-4">
-        <button onClick={() => setAddingPainter(true)} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+        <button onClick={() => setAddingPainter(true)} className="button-green">
           Add new +
         </button>
       </div>
@@ -254,7 +254,7 @@ export default function AgentDashboard() {
             placeholder="Painter Phone Number"
             className="p-2 border rounded w-full mb-2"
           />
-          <button onClick={handleAddPainter} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+          <button onClick={handleAddPainter} className="button-green">
             Submit
           </button>
           {searchError && (
@@ -267,7 +267,7 @@ export default function AgentDashboard() {
                 placeholder="Painter Name"
                 className="p-2 border rounded w-full mb-2"
               />
-              <button onClick={handleInvitePainter} className="button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+              <button onClick={handleInvitePainter} className="button-green">
                 Send Invite
               </button>
             </div>
