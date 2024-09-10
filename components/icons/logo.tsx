@@ -2,7 +2,6 @@ import type { FC } from 'react';
 
 export const IconsLogo: FC = () => {
   return (
-    <div>
       <svg
         width="48"
         height="32"
@@ -63,6 +62,5 @@ export const IconsLogo: FC = () => {
           fill="#FF385C"
         />
       </svg>
-    </div>
   );
 };
