@@ -1,9 +1,9 @@
 import type {FC} from 'react';
 import {AnimatePresence} from 'framer-motion';
-import {ButtonsCvaIconLeading} from '@/components/buttons/icon/leading';
-import {ButtonsCvaIconTrailing} from '@/components/buttons/icon/trailing';
-import {TButtonsCvaContentProps} from '@/components/buttons/types';
-import {ButtonsCvaChildren} from '@/components/buttons/children';
+import {ButtonsCvaIconLeading} from '@/components/cva/icon/leading';
+import {ButtonsCvaIconTrailing} from '@/components/cva/icon/trailing';
+import {TButtonsCvaContentProps} from '@/components/cva/types';
+import {ButtonsCvaChildren} from '@/components/cva/children';
 
 export const ButtonsCvaContent: FC<TButtonsCvaContentProps> = ({
   Icon,

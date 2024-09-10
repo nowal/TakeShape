@@ -3,11 +3,11 @@ import {
   forwardRef,
 } from 'react';
 import Link from 'next/link';
-import { useButtonsCvaProps } from '@/components/buttons/props';
-import { ButtonsCvaContent } from '@/components/buttons/content';
-import { TButtonsCvaProps } from '@/components/buttons/types';
+import { useButtonsCvaProps } from '@/components/cva/props';
+import { ButtonsCvaContent } from '@/components/cva/content';
+import { TButtonsCvaProps } from '@/components/cva/types';
 import { motion } from 'framer-motion';
-import { TButtonsCvaChildrenProps } from '@/components/buttons/children';
+import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 import { TClassValueProps } from '@/types/dom';
 
 const LinkMotion = motion(Link);

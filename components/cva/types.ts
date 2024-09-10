@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { VariantProps } from 'class-variance-authority';
-import { buttonsCvaConfig } from '@/components/buttons/config';
-import { useButtonsCvaProps } from '@/components/buttons/props';
-import { TButtonsCvaChildrenProps } from '@/components/buttons/children';
+import { buttonsCvaConfig } from '@/components/cva/config';
+import { useButtonsCvaProps } from '@/components/cva/props';
+import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 import { MotionProps } from 'framer-motion';
 import { TCommonIconProps } from '@/components/icons';
 

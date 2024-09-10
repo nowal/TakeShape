@@ -1,4 +1,4 @@
-import { TButtonsCvaIcon } from '@/components/buttons/types';
+import { TButtonsCvaIcon } from '@/components/cva/types';
 import {isDefined} from '@/utils/validation/is/defined';
 import {isNull} from '@/utils/validation/is/null';
 
