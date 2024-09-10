@@ -143,7 +143,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
   if (authLoading) {
     return <div>Loading...</div>; // Or any other loading indicator
   }
-  const title = isSignedIn ? 'Sign Out' : 'Sign In';
+  const title = isSignedIn ? 'Sign Out' : 'Get work';
   const handler = isSignedIn
     ? handleSignOut
     : () => setShowModal(true);

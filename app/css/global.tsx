@@ -2,6 +2,7 @@
 import { Montserrat, Open_Sans } from 'next/font/google';
 import './reset.css';
 import './globals.css';
+import './typography.css';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 const openSans = Open_Sans({ subsets: ['latin'] });

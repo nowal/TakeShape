@@ -71,7 +71,7 @@ const Header = () => {
           'flex items-center justify-between w-full',
           'bg-white',
           'rounded-15.1875',
-          'px-4 py-2 sm:px-6 lg:px-8',
+          'px-4 py-2 sm:px-6 lg:pl-7 lg:pr-2 lg:py-3',
           'shadow-08'
         )}
       >
