@@ -1,17 +1,14 @@
-import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
-import "./globals.css";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
+import type { Metadata } from 'next';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import Script from "next/script";
-
-const montserrat = Montserrat({ subsets: ["latin"] });
+import { CssGlobal } from '@/app/css/global';
 
 export const metadata: Metadata = {
-  title: "TakeShape",
-  description: "Your home, your style, your terms",
+  title: 'TakeShape',
+  description: 'Your home, your style, your terms',
 };
 
 export default function RootLayout({
@@ -22,11 +19,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body className={`${montserrat.className} bg-floral-white`}>
-          
-          <Header/>
-          {children}
-          <Footer/>
+        <body>
+          <CssGlobal />
+          <div className="fixed inset-0 bg-white-1" />
+          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
+            <Header />
+            {children}
+            <Footer />
+          </div>
 
           <Script
             id="facebook-pixel"
@@ -49,11 +49,10 @@ export default function RootLayout({
             <img
               height="1"
               width="1"
-              style={{ display: "none" }}
+              style={{ display: 'none' }}
               src={`https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1`}
             />
           </noscript>
-          
         </body>
         <GoogleAnalytics gaId="G-47EYLN83WE" />
       </Provider>
