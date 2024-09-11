@@ -1,16 +1,24 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  ['relative', 'flex items-center', 'box-content', 'gap-2', 'text-base', 'leading-7'],
+  [
+    'flex items-center',
+    'box-content',
+    'gap-1',
+    'text-base',
+    'leading-7',
+  ],
   {
     variants: {
       weight: {
         semibold: 'font-semibold',
-        bold: 'font-bold'
+        bold: 'font-bold',
       },
       size: {
-        sm: ['px-7', 'py-2.5', 'rounded-4xl'],
-        md: ['px-6', 'py-4', 'rounded-5xl'],
+        none: [],
+        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
+        md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
+        fill: ['absolute inset-0', 'justify-center'],
       },
       isDisabled: {
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
@@ -20,13 +28,17 @@ export const buttonsCvaConfig = cva(
       },
       rounded: {
         none: [],
-        left: ['rounded-l-xl box-content'],
-        right: ['-ml-px', 'rounded-r-xl box-content'],
-        normal: ['rounded-xl'],
+        lg: ['rounded-lg'],
+        xl: ['rounded-xl'],
       },
       intent: {
         primary: ['bg-pink', 'text-white'],
         ghost: ['bg-white', 'border-gray', 'border'],
+        'ghost-1': [
+          'bg-white-pink',
+          'border-pink',
+          'border',
+        ],
         none: ['text-inherit', 'size-auto'],
       },
     },
@@ -42,12 +54,10 @@ export const buttonsCvaConfig = cva(
         className: ['text-pink'],
       },
       {
-        rounded: ['left', 'right'],
         isDisabled: true,
         className: ['z-0'],
       },
       {
-        rounded: ['left', 'right'],
         isDisabled: false,
         className: ['z-10'],
       },

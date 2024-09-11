@@ -66,3 +66,31 @@ h1.title {
   font-weight: 600;
   line-height: 24px; /* 171.429% */
 }
+
+.quote-instructions-title {
+  color: #ff385c;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 19.2px */
+}
+
+.quote-instructions {
+  color: #5d5d5d;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 14.4px */
+}
+
+.quote-instructions-button {
+  color: #ff385c;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 28px; /* 233.333% */
+}

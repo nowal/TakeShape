@@ -93,10 +93,13 @@ input {
     @apply typography-footer font-open-sans;
   }
   .typography-quote-title {
-    @apply text-black-1 font-bold font-montserrat tracking-tight-06;
+    @apply text-black-1 text-2xl font-bold font-montserrat tracking-tight-06;
   }
   .typography-quote-subtitle {
     @apply text-black-2 text-base font-semibold font-open-sans;
+  }
+  .typography-quote-see-video {
+    @apply text-pink text-xs leading-7 font-semibold font-open-sans;
   }
 }
 

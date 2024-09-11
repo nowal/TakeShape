@@ -4,6 +4,7 @@ import firebase from '../lib/firebase';
 import { getStorage } from 'firebase/storage';
 import { ButtonsCvaInput } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
+import { IconsUpload } from '@/components/icons/upload';
 
 type UploadButtonProps = {
   onUploadSuccess: (file: File) => void;
@@ -54,7 +55,7 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
     : 'Upload your video';
 
   return (
-    <div>
+    <div className="h-[7.25rem]">
       <ButtonsCvaInput
         title={title}
         onClick={() =>
@@ -98,8 +99,10 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
         }}
         style={{ display: 'none' }}
         isDisabled={uploading}
-        intent="primary"
-        size="sm"
+        intent="ghost-1"
+        size="fill"
+        rounded="lg"
+        icon={{ Leading: IconsUpload }}
       >
         {title}
       </ButtonsCvaInput>
