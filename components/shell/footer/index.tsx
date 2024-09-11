@@ -1,19 +1,22 @@
 'use client';
+import { ButtonsCvaLink } from '@/components/cva/link';
+import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';
 import { ShellFooterList } from '@/components/shell/footer/list';
 import { ShellLogo } from '@/components/shell/logo';
+import { title } from 'process';
 
 export const ShellFooter = () => {
   return (
     <footer className="max-w-shell w-full px-9 py-10 mx-auto">
       <div className="flex flex-row items-end w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]">
-
-        <div className="flex flex-row w-4/12">
-          <div className="flex flex-col gap-[69px]">
+        <div className="flex flex-row w-7/12">
+          <div className="flex flex-col gap-[69px] w-6/12">
             <div className="flex flex-col gap-[27px]">
               <ShellLogo />
               <div className="flex flex-col items-start typography-footer gap-[14px]">
-                <div>
-                  123 Main Street New York, NY 10001
+                <div className="whitespace-pre">
+                  123 Main Street New York,{'\n'}
+                  NY 10001
                 </div>
                 <a href="tel:+16158096429">
                   (615) 809-6429
@@ -25,7 +28,7 @@ export const ShellFooter = () => {
             </div>
           </div>
 
-          <div className="flex flex-row w-3/12">
+          <div className="flex flex-row justify-between w-6/12">
             <ShellFooterList
               title="For Clients"
               items={[
@@ -44,12 +47,13 @@ export const ShellFooter = () => {
           </div>
         </div>
 
-        <ul className="flex flex-row w-5/12 typography-footer-poppins">
-          <li>Cookie Settings</li>
-          <li>Terms of Service</li>
-          <li>Privacy Policy</li>
+        <ul className="flex flex-row justify-between w-5/12 typography-footer-poppins">
+          {FOOTER_RIGHT_MENU_LINKS.map((item) => (
+            <li key={item.title}>
+              <ButtonsCvaLink {...item} />
+            </li>
+          ))}
         </ul>
-
       </div>
     </footer>
   );

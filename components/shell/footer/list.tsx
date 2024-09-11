@@ -1,4 +1,7 @@
-import { TButtonsCvaLinkProps } from '@/components/cva/link';
+import {
+  ButtonsCvaLink,
+  TButtonsCvaLinkProps,
+} from '@/components/cva/link';
 import type { FC } from 'react';
 
 type TProps = {
@@ -10,11 +13,13 @@ export const ShellFooterList: FC<TProps> = ({
   items,
 }) => {
   return (
-    <div className="flex flex-col gap-8 typography-footer-title">
-      <h4>{title}</h4>
+    <div className="flex flex-col gap-8">
+      <h4 className="typography-footer-title">{title}</h4>
       <ul className="flex flex-col gap-5 typography-footer-open-sans">
         {items.map((item) => (
-          <li key={item.title}>{item.title}</li>
+          <li key={item.title}>
+            <ButtonsCvaLink {...item} />
+          </li>
         ))}
       </ul>
     </div>

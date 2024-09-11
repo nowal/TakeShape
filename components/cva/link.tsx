@@ -9,6 +9,7 @@ import { TButtonsCvaProps } from '@/components/cva/types';
 import { motion } from 'framer-motion';
 import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 import { TClassValueProps } from '@/types/dom';
+import { cx } from 'class-variance-authority';
 
 const LinkMotion = motion(Link);
 
@@ -25,12 +26,22 @@ const ButtonsCvaLink = forwardRef<
   TLinkMotionElement,
   TButtonsCvaLinkProps
 >(({ href, ...props }, ref) => {
-  const { Icon, ...cvaProps } = useButtonsCvaProps(props);
+  const isDisabled = props.isDisabled ?? !Boolean(href);
+  const { Icon, className, ...cvaProps } =
+    useButtonsCvaProps({ isDisabled, ...props });
 
   return (
-    <LinkMotion href={href} ref={ref} {...cvaProps}>
+    <LinkMotion
+      href={href ?? ''}
+      className={cx(
+        className,
+        isDisabled && 'pointer-events-none'
+      )}
+      ref={ref}
+      {...cvaProps}
+    >
       <ButtonsCvaContent Icon={Icon}>
-        {props.children}
+        {props.children ?? props.title ?? ''}
       </ButtonsCvaContent>
     </LinkMotion>
   );

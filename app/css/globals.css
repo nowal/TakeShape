@@ -81,7 +81,7 @@ input {
   }
 
   .typography-footer-title {
-    @apply font-medium text-pink text-base leading-7 font-open-sans;
+    @apply font-medium text-pink text-base leading-7 font-poppins;
   }
   .typography-footer {
     @apply font-normal text-black text-base leading-7;

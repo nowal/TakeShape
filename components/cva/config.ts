@@ -27,7 +27,7 @@ export const buttonsCvaConfig = cva(
       intent: {
         primary: ['bg-pink', 'text-white'],
         ghost: ['bg-white', 'border-gray', 'border'],
-        none: [],
+        none: ['text-inherit', 'size-auto'],
       },
     },
     compoundVariants: [
@@ -53,7 +53,6 @@ export const buttonsCvaConfig = cva(
       },
     ],
     defaultVariants: {
-      weight: 'semibold',
       intent: 'none',
       isDisabled: false,
       isIconOnly: false,
