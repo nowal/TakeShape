@@ -19,7 +19,6 @@
 body,
 html,
 #__next {
-  font-family: var(--font-sans);
   font-style: normal;
   color: rgb(var(--foreground-rgb));
   background: rgb(
@@ -75,9 +74,23 @@ input {
   background-color: #ff385c;
 }
 
+
 @layer components {
   .button-green {
     @apply button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded;
+  }
+
+  .typography-footer-title {
+    @apply font-medium text-pink text-base leading-7 font-open-sans;
+  }
+  .typography-footer {
+    @apply font-normal text-black text-base leading-7;
+  }
+  .typography-footer-poppins {
+    @apply typography-footer font-poppins;
+  }
+  .typography-footer-open-sans {
+    @apply typography-footer font-open-sans;
   }
 }
 

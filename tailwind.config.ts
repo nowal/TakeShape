@@ -10,10 +10,15 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          'Montserrat',
+        montserrat: [
+          'var(--font-montserrat)',
           ...defaultTheme.fontFamily.sans,
         ],
+        'open-sans': [
+          'var(--font-open-sans)',
+          ...defaultTheme.fontFamily.sans,
+        ],
+        poppins: 'var(--font-poppins)',
       },
       borderRadius: {
         '15.1875': '15.1875rem',
@@ -25,7 +30,7 @@ const config: Config = {
       },
       colors: {
         white: '#FFF',
-        'white-1': '#F9F9F9',
+        'white-1': '#F8F8F8',
         'white-green': '#F1FFF2',
 
         pink: '#FF385C',
