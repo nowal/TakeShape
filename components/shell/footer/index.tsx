@@ -4,9 +4,10 @@ import { ShellLogo } from '@/components/shell/logo';
 
 export const ShellFooter = () => {
   return (
-    <footer className="max-w-shell w-full px-9 pb-10 mx-auto">
-      <div className="flex flex-row items-end bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]">
-        <div className="flex flex-row">
+    <footer className="max-w-shell w-full px-9 py-10 mx-auto">
+      <div className="flex flex-row items-end w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]">
+
+        <div className="flex flex-row w-4/12">
           <div className="flex flex-col gap-[69px]">
             <div className="flex flex-col gap-[27px]">
               <ShellLogo />
@@ -23,7 +24,8 @@ export const ShellFooter = () => {
               ©2024 Takeshape®
             </div>
           </div>
-          <div className="flex flex-row">
+
+          <div className="flex flex-row w-3/12">
             <ShellFooterList
               title="For Clients"
               items={[
@@ -41,11 +43,13 @@ export const ShellFooter = () => {
             />
           </div>
         </div>
-        <ul className="flex flex-row typography-footer-poppins">
+
+        <ul className="flex flex-row w-5/12 typography-footer-poppins">
           <li>Cookie Settings</li>
           <li>Terms of Service</li>
           <li>Privacy Policy</li>
         </ul>
+
       </div>
     </footer>
   );
