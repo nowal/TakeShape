@@ -4,7 +4,7 @@ import { ShellFooter } from '@/components/shell/footer';
 import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { CssGlobal } from '@/app/css/global';
+import { CssGlobal } from '@/css/global';
 
 export const metadata: Metadata = {
   title: 'TakeShape',

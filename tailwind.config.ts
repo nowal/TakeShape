@@ -28,14 +28,24 @@ const config: Config = {
       boxShadow: {
         '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
       },
+
       colors: {
+        black: '#000',
+        'black-1': '#0F0F0F',
+        'black-2': '#484848',
         white: '#FFF',
         'white-1': '#F8F8F8',
         'white-green': '#F1FFF2',
-
+        'white-pink': '#FFF9FA',
+        'white-pink-1': '#FFF6F7',
+        'white-pink-2': '#FFCDD3',
         pink: '#FF385C',
+
         red: '#ff0000',
+
         gray: '#AFAFAF',
+        'gray-1': '#D3D3D3',
+        'gray-2': '#858585',
       },
       backgroundImage: {
         'gradient-radial':
@@ -43,8 +53,26 @@ const config: Config = {
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
+      keyframes: {
+        'ant-walk': {
+          to: { strokeDashoffset: '0' },
+        },
+      },
       maxWidth: {
         shell: '1512px',
+      },
+      letterSpacing: {
+        'tight-06': '-0.06em',
+      },
+      spacing: {
+        0.25: '0.0625rem',
+        2.75: '0.6875rem',
+        3.75: '0.9375rem',
+        4.5: '1.125rem',
+        5.5: '1.375rem',
+        7.5: '1.875rem',
+        9.5: '2.375rem',
+        12.5: '3.125rem',
       },
     },
   },

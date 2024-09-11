@@ -1,4 +1,4 @@
-import { TCommonIconProps, CommonIcon } from '@/components/icons';
+import { TCommonIconProps, CommonIcon } from '@/components/icon';
 import type {FC} from 'react';
 
 export const CommonIcon12: FC<TCommonIconProps> = (props) => {

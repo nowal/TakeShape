@@ -14,15 +14,13 @@ const poppins = Poppins({
   subsets: ['latin'],
   weight: ['500'],
 });
-console.log(montserrat)
 export const CssGlobal = () => {
   return (
     <style jsx global>
       {`
         :root {
           --font-montserrat: ${montserrat.style.fontFamily};
-          --font-open-sans: ${openSans.style
-            .fontFamily};
+          --font-open-sans: ${openSans.style.fontFamily};
           --font-poppins: ${poppins.style.fontFamily};
         }
 

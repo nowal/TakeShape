@@ -1,10 +1,13 @@
 import clsx from 'clsx';
-import {SVGAttributes, FC} from 'react';
-import {isDefined} from '@/utils/validation/is/defined';
+import { SVGAttributes, FC } from 'react';
+import { isDefined } from '@/utils/validation/is/defined';
 import { TSvgProps, TClassValueProps } from '@/types/dom';
 import { resolveSquare } from '@/utils/measure/resolve-square';
 
-export type TCommonIconProps = Omit<TSvgProps, 'fill' | 'd'> &
+export type TCommonIconProps = Omit<
+  TSvgProps,
+  'fill' | 'd'
+> &
   TClassValueProps & {
     defs?: JSX.Element;
     svgProps?: TSvgProps;
@@ -13,7 +16,9 @@ export type TCommonIconProps = Omit<TSvgProps, 'fill' | 'd'> &
     fill?: string;
     d?: string;
   };
-export const CommonIcon: FC<TCommonIconProps> = ({
+export type TCommonIconFC = FC<TCommonIconProps>;
+
+export const CommonIcon: TCommonIconFC = ({
   svgProps,
   pathProps,
   className,

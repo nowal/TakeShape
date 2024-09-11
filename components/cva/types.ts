@@ -4,7 +4,7 @@ import { buttonsCvaConfig } from '@/components/cva/config';
 import { useButtonsCvaProps } from '@/components/cva/props';
 import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 import { MotionProps } from 'framer-motion';
-import { TCommonIconProps } from '@/components/icons';
+import { TCommonIconProps } from '@/components/icon';
 
 export type TButtonsCvaIcon = {
   Leading?: FC<TCommonIconProps> | null | false;
