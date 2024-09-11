@@ -1,0 +1,68 @@
+h1.title {
+  color: #000;
+  font-size: 29.348px;
+  font-weight: 700;
+  line-height: 23.059px; /* 78.571% */
+  letter-spacing: -1.146px;
+}
+
+.quote {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 28px; /* 175% */
+}
+
+.sign-in {
+  color: #ff385c;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 100%; /* 16px */
+}
+
+.submit-video {
+  text-align: center;
+  font-family: var(--font-open-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 28px; /* 175% */
+}
+
+.quote-title {
+  color: #0f0f0f;
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 28.8px */
+  letter-spacing: -0.96px;
+}
+
+.quote-subtitle {
+  color: #484848;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 150% */
+}
+
+.quote-file-input {
+  color: #484848;
+  font-family: 'Open Sans';
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 150% */
+}
+
+.quote-text-input {
+  color: #858585;
+  font-family: 'Open Sans';
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 171.429% */
+}

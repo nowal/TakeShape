@@ -92,5 +92,11 @@ input {
   .typography-footer-open-sans {
     @apply typography-footer font-open-sans;
   }
+  .typography-quote-title {
+    @apply text-black-1 font-bold font-montserrat tracking-tight-06;
+  }
+  .typography-quote-subtitle {
+    @apply text-black-2 text-base font-semibold font-open-sans;
+  }
 }
 
