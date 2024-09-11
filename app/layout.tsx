@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+import { ShellHeader } from '@/components/shell/header';
+import { ShellFooter } from '@/components/shell/footer';
 import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -19,13 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body>
+        <body className='font-montserrat'>
           <CssGlobal />
-          <div className="fixed inset-0 bg-white-1" />
+          <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            <Header />
+            <ShellHeader />
             {children}
-            <Footer />
+            <ShellFooter />
           </div>
 
           <Script

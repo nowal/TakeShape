@@ -2,18 +2,19 @@
 import { useEffect, useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import SignInButton from './signInButton';
-import QuoteButton from './quoteButton';
+import SignInButton from '../signInButton';
+import QuoteButton from '../quoteButton';
 import {
   getAuth,
   onAuthStateChanged,
   signOut,
 } from 'firebase/auth';
-import AccountButton from './accountButton';
+import AccountButton from '../accountButton';
 import { cx } from 'class-variance-authority';
 import { IconsLogo } from '@/components/icons/logo';
+import { ShellLogo } from '@/components/shell/logo';
 
-const Header = () => {
+export const ShellHeader = () => {
   const [isUserLoggedIn, setIsUserLoggedIn] =
     useState(false);
   const isHomePage = usePathname() === '/';
@@ -63,7 +64,9 @@ const Header = () => {
     <header
       className={cx(
         'top-0 inset-x-0 pt-3.5 px-9 z-50',
-        isHomePage ? 'fixed max-w-shell w-full mx-auto' : 'relative',
+        isHomePage
+          ? 'fixed max-w-shell w-full mx-auto'
+          : 'relative'
       )}
     >
       <div
@@ -75,20 +78,8 @@ const Header = () => {
           'shadow-08'
         )}
       >
-        <Link
-          href="/"
-          className="flex items-center space-x-2"
-        >
-          <IconsLogo />
-          {/* <img
-          src={daltonLogo.src}
-          alt="Logo"
-          className="h-10 w-10 md:h-16 md:w-16"
-        />{' '} */}
-          {/* Adjusted size for mobile */}
-          <h1 className="title">
-            TakeShape
-          </h1>
+        <Link href="/">
+          <ShellLogo />
         </Link>
         <div className="flex items-center space-x-4 sm:space-x-2">
           {!isUserLoggedIn && (
@@ -104,5 +95,3 @@ const Header = () => {
     </header>
   );
 };
-
-export default Header;
