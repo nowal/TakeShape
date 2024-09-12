@@ -11,6 +11,7 @@ export const useButtonsCvaProps = ({
   icon,
   intent,
   size,
+  center,
   rounded,
   classValue,
   isIconOnly,
@@ -30,6 +31,7 @@ export const useButtonsCvaProps = ({
         buttonsCvaConfig({
           intent,
           size,
+          center,
           rounded,
           isDisabled,
           isIconOnly:

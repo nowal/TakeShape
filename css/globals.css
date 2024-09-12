@@ -24,12 +24,6 @@ html,
   background: rgb(
     var(--background-start-rgb)
   ); /* Updated to use a solid color */
-  /* height: 100%;
-  max-height: 100vh;
-  max-width: 100%; */
-  /* overflow-x: hidden; */
-  scroll-behavior: smooth;
-
 }
 html,
 body textarea:hover,
@@ -105,14 +99,17 @@ input {
   .typography-footer-open-sans {
     @apply typography-footer font-open-sans;
   }
-  .typography-quote-title {
+  .typography-page-title {
     @apply text-center text-black-1 text-2xl font-bold font-montserrat tracking-tight-06;
   }
-  .typography-quote-subtitle {
+  .typography-page-subtitle {
     @apply text-center text-black-2 text-base font-semibold font-open-sans;
   }
   .typography-quote-see-video {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
+  }
+  .typography-sign-up-notification {
+    @apply text-pink text-xs leading-[18px] font-semibold font-open-sans;
   }
   .typography-logo-title {
     @apply font-montserrat font-bold text-black;
@@ -128,5 +125,8 @@ input {
   }
   .typography-logo-title-footer--responsive {
     @apply typography-logo-title--sm sm:typography-logo-title--lg;
+  }
+  .typography-sign-up-input {
+    @apply text-black-4 font-medium text-sm;
   }
 }

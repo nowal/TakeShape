@@ -104,28 +104,13 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
         rounded="lg"
         icon={{ Leading: IconsUpload }}
         layout={false}
-
+        center={true}
       >
-        <span className="typography-quote-subtitle">
+        <span className="typography-page-subtitle">
           {title}
         </span>
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
-
-      {/* <button 
-            className="button-green"
-            onClick={() => document.getElementById(inputId)?.click()}
-            disabled={uploading}
-            >
-            {uploading ? 'Uploading...' : text}
-            </button>
-            <input 
-            type="file"
-            id={inputId}
-            accept="video/*"
-            style={{ display: 'none' }}
-            onChange={handleFileSelection}
-            /> */}
     </div>
   );
 };

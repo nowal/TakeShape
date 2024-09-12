@@ -255,10 +255,10 @@ export default function QuotePage() {
       {currentStep === 1 && (
         <div className="flex flex-col items-center gap-6 lg:gap-4 xl:gap-0">
           <div className="flex flex-col items-center gap-1">
-            <h2 className="typography-quote-title">
+            <h2 className="typography-page-title">
               Get an Instant Painting Quote Today
             </h2>
-            <h3 className="typography-quote-subtitle">
+            <h3 className="typography-page-subtitle">
               Upload a Video, Receive a Quote Within Minutes
             </h3>
           </div>
@@ -291,7 +291,7 @@ export default function QuotePage() {
                   className={cx(
                     'w-full',
                     'shadow-08',
-                    'border border-gray-2',
+                    'border border-black-3',
                     'rounded-lg'
                   )}
                 >

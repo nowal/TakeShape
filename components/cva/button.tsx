@@ -10,7 +10,7 @@ type TProps = TButtonsCvaProps<TButtonMotionProps>;
 const ButtonsCvaButton = forwardRef<
   HTMLButtonElement,
   TProps
->(({ onTap, title, ...props }, ref) => {
+>(({ type, onTap, title, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
 
   const { Icon, ...cvaProps } = useButtonsCvaProps({
@@ -26,6 +26,7 @@ const ButtonsCvaButton = forwardRef<
       disabled={isDisabled}
       title={title}
       onTap={isDisabled ? NOOP : onTap}
+      type={type}
       {...cvaProps}
     >
       <ButtonsCvaContent Icon={Icon} {...cvaProps}>

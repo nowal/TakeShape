@@ -33,18 +33,24 @@ const config: Config = {
         black: '#000',
         'black-1': '#0F0F0F',
         'black-2': '#484848',
+        'black-3': '#858585',
+
+        'black-4': '#949494',
+        'black-5': '#838383',
         white: '#FFF',
         'white-1': '#F8F8F8',
+
         'white-green': '#F1FFF2',
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',
         'white-pink-2': '#FFCDD3',
+        'white-pink-3': '#FFF2F5',
         pink: '#FF385C',
         red: '#ff0000',
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
-        'gray-2': '#858585',
         'gray-3': '#D7D7D7',
+        'gray-4': '#DEDEDE',
       },
       backgroundImage: {
         'gradient-radial':
@@ -74,9 +80,9 @@ const config: Config = {
         12.5: '3.125rem',
       },
       screens: {
-        'xxs': '375px',
-        'xs': '450px'
-      }
+        xxs: '375px',
+        xs: '450px',
+      },
     },
   },
   plugins: [],
