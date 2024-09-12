@@ -106,7 +106,7 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
         layout={false}
 
       >
-        <span className="typography-quote-subtitle">
+        <span className="typography-page-subtitle">
           {title}
         </span>
       </ButtonsCvaInput>

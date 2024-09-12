@@ -24,12 +24,6 @@ html,
   background: rgb(
     var(--background-start-rgb)
   ); /* Updated to use a solid color */
-  /* height: 100%;
-  max-height: 100vh;
-  max-width: 100%; */
-  /* overflow-x: hidden; */
-  scroll-behavior: smooth;
-
 }
 html,
 body textarea:hover,
@@ -105,10 +99,10 @@ input {
   .typography-footer-open-sans {
     @apply typography-footer font-open-sans;
   }
-  .typography-quote-title {
+  .typography-page-title {
     @apply text-center text-black-1 text-2xl font-bold font-montserrat tracking-tight-06;
   }
-  .typography-quote-subtitle {
+  .typography-page-subtitle {
     @apply text-center text-black-2 text-base font-semibold font-open-sans;
   }
   .typography-quote-see-video {
