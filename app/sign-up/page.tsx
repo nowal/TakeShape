@@ -1,5 +1,4 @@
 'use client';
-
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -33,7 +32,9 @@ import {
 import SignInButton from '@/components/buttons/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
-import { cx } from 'class-variance-authority';
+import { InputsText } from '@/components/inputs/text';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { NotificationsHighlight } from '@/components/notifications/highlight';
 
 function SignupAccountForm() {
   const [email, setEmail] = useState('');
@@ -321,146 +322,118 @@ function SignupAccountForm() {
     );
   }
 
+  const submitButtonTitle = isLoading
+    ? 'Signing up...'
+    : 'Sign Up';
+
   return (
-    <div className="flex flex-col items-stretch gap-6 p-8">
+    <div className="flex flex-col items-stretch gap-6 mt-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
-      {errorMessage && (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">
-            {errorMessage}
-          </span>
-        </div>
-      )}
       <h2 className="typography-page-title">
         Sign Up for Your Free Quote
       </h2>
-      {/* <p className="mb-4">None of this information will be shared with painters until you accept a quote.</p> */}
-      <div className="flex flex-col items-center">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-y-4 w-[382px]"
-        >
-          <label
-            htmlFor="email"
-            className="block text-md font-medium text-gray-700"
-          >
-            {/* Email Address */}
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              className={cx(
-                'px-6 py-4 border border-gray-4 rounded-4xl w-full bg-white-1',
-                'typography-sign-up-input'
-              )}
-            />
-          </label>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-md font-medium text-gray-700"
+      <div className="relative flex flex-col items-center">
+        <div className="relative flex flex-col gap-5 items-center w-[320px] sm:w-[382px]">
+          {errorMessage && (
+            <NotificationsHighlight role="alert">
+              <strong className="font-bold">Error: </strong>
+              <span className="block sm:inline">
+                {errorMessage}
+              </span>
+            </NotificationsHighlight>
+          )}
+          <div className="rounded-3xl bg-white shadow-08 px-4 py-6 w-full">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-y-4"
             >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
+              <InputsText
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                required
+              />
+              <InputsText
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                placeholder="Password"
+                required
+              />
 
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-md font-medium text-gray-700"
-            >
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
+              <InputsText
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
 
-          <div>
-            <label
-              htmlFor="phoneNumber"
-              className="block text-md font-medium text-gray-700"
-            >
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) =>
-                setPhoneNumber(e.target.value)
-              }
-              placeholder="Enter your phone number"
-              required
-              className="p-2 border rounded w-full"
-            />
+              <InputsText
+                type="tel"
+                id="phoneNumber"
+                value={phoneNumber}
+                onChange={(e) =>
+                  setPhoneNumber(e.target.value)
+                }
+                placeholder="Phone Number"
+                required
+              />
+              <InputsText
+                type="text"
+                id="address"
+                ref={addressInputRef}
+                value={address}
+                onChange={handleAddressChange}
+                placeholder="Address"
+                required
+              />
+              <ButtonsCvaButton
+                type="submit"
+                isDisabled={isLoading}
+                title={submitButtonTitle}
+                intent="primary"
+                size="md"
+                center={true}
+              >
+                <div className="text-base font-bold">
+                  {submitButtonTitle}
+                </div>
+              </ButtonsCvaButton>
+            </form>
+            <div className="mt-3.5 text-center">
+              <p>
+                <span className="text-black-5">
+                  Already have an account?
+                </span>{' '}
+                <ButtonsCvaButton
+                  type="submit"
+                  isDisabled={isLoading}
+                  title={submitButtonTitle}
+                  onClick={() => setShowLoginInstead(true)}
+                  className="text-blue-600 hover:underline"
+                >
+                  <div className="text-pink text-base font-bold">
+                    Log in
+                  </div>
+                </ButtonsCvaButton>
+              </p>
+            </div>
           </div>
-
-          <div>
-            <label
-              htmlFor="address"
-              className="block text-md font-medium text-gray-700"
-            >
-              Address
-            </label>
-            <input
-              type="text"
-              id="address"
-              ref={addressInputRef}
-              value={address}
-              onChange={handleAddressChange}
-              placeholder="Enter your address"
-              required
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={`button-green ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed'
-                : ''
-            }`}
-          >
-            {isLoading ? 'Signing up...' : 'Sign Up'}
-          </button>
-        </form>
-      </div>
-      <div className="mt-4 text-center">
-        <p>
-          Already have an account?{' '}
-          <button
-            onClick={() => setShowLoginInstead(true)}
-            className="text-blue-600 hover:underline"
-          >
-            Log in
-          </button>
-        </p>
+          <NotificationsHighlight>
+            None of your information will be shared with
+            painters until you accept a quote. Rest assured,
+            your privacy is our priority.
+          </NotificationsHighlight>
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ export const ShellHeaderMobileMenu = () => {
         title="Menu"
         size="fill"
         layout={false}
+        center={true}
         onTap={() => setMenuOpen((prev) => !prev)}
       >
         <IconsHamburger />
@@ -38,7 +39,6 @@ export const ShellHeaderMobileMenu = () => {
                 className={cx(
                   'relative flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
                   'gap-2.5',
-                  // 'w-[23.875rem]',
                   'shadow-08'
                 )}
               >

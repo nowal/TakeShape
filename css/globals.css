@@ -108,6 +108,9 @@ input {
   .typography-quote-see-video {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
   }
+  .typography-sign-up-notification {
+    @apply text-pink text-xs leading-[18px] font-semibold font-open-sans;
+  }
   .typography-logo-title {
     @apply font-montserrat font-bold text-black;
   }

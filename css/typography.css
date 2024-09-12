@@ -67,6 +67,23 @@
   font-weight: 500;
   line-height: 100%; /* 14px */
 }
+.sign-up-input-button {
+  color: #fff;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 100%; /* 16px */
+}
+.sign-up-instructions {
+  color: #ff385c;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 152%; /* 18.24px */
+}
 .quote-instructions-title {
   color: #ff385c;
   font-family: Montserrat;

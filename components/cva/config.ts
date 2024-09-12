@@ -17,7 +17,11 @@ export const buttonsCvaConfig = cva(
         none: [],
         sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
         md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
-        fill: ['absolute inset-0', 'justify-center'],
+
+        fill: ['absolute inset-0'],
+      },
+      center: {
+        true: 'justify-center',
       },
       isDisabled: {
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
