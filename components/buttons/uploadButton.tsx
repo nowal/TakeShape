@@ -1,6 +1,6 @@
 // UploadButton.tsx
 import React, { ChangeEvent, useState } from 'react';
-import firebase from '../lib/firebase';
+import firebase from '../../lib/firebase';
 import { getStorage } from 'firebase/storage';
 import { ButtonsCvaInput } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
@@ -103,8 +103,12 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
         size="fill"
         rounded="lg"
         icon={{ Leading: IconsUpload }}
+        layout={false}
+
       >
-        {title}
+        <span className="typography-quote-subtitle">
+          {title}
+        </span>
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
 

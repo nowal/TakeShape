@@ -27,11 +27,13 @@ import {
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { UploadButton } from '@/components/uploadButton';
+import { UploadButton } from '@/components/buttons/uploadButton';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { cx } from 'class-variance-authority';
 import { IconsTick } from '@/components/icons/tick';
 import { IconsVideo } from '@/components/icons/video';
+import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
+import { LinesHorizontal } from '@/components/lines/horizontal';
 
 const SEE_VIDEO_TITLE = 'See Video Example';
 
@@ -241,9 +243,11 @@ export default function QuotePage() {
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
       {isLoading && currentStep === 2 && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <p>Uploading, please wait...</p>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-50">
+          <div className="bg-white p-6 rounded w-21">
+            <p className="text-center">
+              Uploading, please wait...
+            </p>
           </div>
         </div>
       )}
@@ -259,17 +263,24 @@ export default function QuotePage() {
             </h3>
           </div>
           <div className="flex flex-col items-center justify-center gap-[31px] mx-auto lg:flex-row">
-            <div className="hidden bg-pink w-[21rem] h-0 xl:flex" />
+            <div
+              className={cx(
+                'hidden xl:flex',
+                'w-0 h-0 ',
+                'xs:w-[21rem]',
+              )}
+            />
             <div className="flex flex-col items-center gap-[26px]">
               <div
                 className={cx(
-                  'flex flex-col py-9 px-6 bg-white rounded-2xl',
+                  'flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
                   'gap-2.5',
-                  'w-[23.875rem]',
+                  'xs:w-[23.875rem]',
+                  'w-full',
                   'shadow-08'
                 )}
               >
-                <div className="relative">
+                <div className="relative w-full">
                   <UploadButton
                     onUploadSuccess={handleUploadSuccess}
                     inputId="imageUpload"
@@ -278,6 +289,7 @@ export default function QuotePage() {
                 <label
                   htmlFor="title"
                   className={cx(
+                    'w-full',
                     'shadow-08',
                     'border border-gray-2',
                     'rounded-lg'
@@ -300,14 +312,22 @@ export default function QuotePage() {
                     )}
                   />
                 </label>
-                {/* I will check if we even need this button
-            <ButtonsCvaButton
-            onClick={}
-            >Submit Video</ButtonsCvaButton> */}
+                <ButtonsQuoteSubmit
+                  title="Submit Video"
+                  isDisabled
+                />
               </div>
             </div>
-            <div className="relative w-[21rem]">
-              <div className="absolute w-full left-0 top-0">
+            <div
+              className={cx(
+                'relative',
+                'xs:w-[21rem]',
+                'w-full',
+                'bg-white-pink-1',
+                'rounded-md'
+              )}
+            >
+              <div className="hidden absolute w-full left-0 top-0 lg:block">
                 <svg
                   width="327"
                   height="335"
@@ -322,8 +342,8 @@ export default function QuotePage() {
                 </svg>
               </div>
               <div className="relative flex flex-col px-9 py-5.5">
-                <h2 className="text-xl text-pink font-bold">
-                  How to Take Your Video
+                <h2 className="text-sm text-pink font-semibold">
+                  How to Record Your Video
                 </h2>
                 <ul className="flex flex-col gap-3 mt-3.5">
                   {(
@@ -345,7 +365,10 @@ export default function QuotePage() {
                     </li>
                   ))}
                 </ul>
-                <hr className="w-full h-px border-white-pink-2 mt-5" />
+                <LinesHorizontal
+                  colorClass="border-white-pink-2"
+                  classValue="mt-5"
+                />
                 <ButtonsCvaButton
                   title={SEE_VIDEO_TITLE}
                   icon={{ Trailing: IconsVideo }}
@@ -361,56 +384,6 @@ export default function QuotePage() {
           </div>
         </div>
       )}
-
-      {/* <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-
-        .box-color {
-          background-color: #f7e4de;
-        }
-
-        .title-box {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          margin: 0 auto;
-        }
-
-        .modal-content {
-          background: white;
-          padding: 20px;
-          border-radius: 5px;
-          width: 300px;
-          text-align: center;
-        }
-      `}</style> */}
     </div>
   );
 }
-// [
-//   `Use the back camera. Hold the phone
-// horizontally. Zoom out as far as
-// possible.`,
-//   `Go around the edge of the room as best
-// as possible with camera facing the
-// center. Move camera up and down
-// occasionally to capture ceilings and
-// trim.`,
-//   `Walk through all areas that you would
-// like painted, taking 15-30 seconds for
-// each full room. You can exclude an area
-// in your video from the quote in the next
-// step.`,
-// ] as const

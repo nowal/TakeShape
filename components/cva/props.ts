@@ -14,6 +14,7 @@ export const useButtonsCvaProps = ({
   rounded,
   classValue,
   isIconOnly,
+  layout,
   ...rest
 }: TButtonsCvaProps &
   TButtonsCvaChildrenProps &
@@ -24,7 +25,7 @@ export const useButtonsCvaProps = ({
     const Icon = iconResolve(icon);
     return {
       Icon,
-      layout: true,
+      layout,
       className: cx(
         buttonsCvaConfig({
           intent,

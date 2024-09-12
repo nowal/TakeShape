@@ -2,10 +2,9 @@ import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
   [
-    'flex items-center',
+    'inline-flex items-center',
     'box-content',
     'gap-1',
-    'text-base',
     'leading-7',
   ],
   {

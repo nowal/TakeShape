@@ -5,8 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Job, PaintPreferences } from '../types/types'; // Ensure this path is correct
-import AcceptedQuotesButton from './acceptedQuotesButton';
-import CompletedQuotesButton from './completedQuotesButton';
+import AcceptedQuotesButton from './buttons/acceptedQuotesButton';
+import CompletedQuotesButton from './buttons/completedQuotesButton';
 
 const PainterDashboard = () => {
   const [jobList, setJobList] = useState<Job[]>([]);
