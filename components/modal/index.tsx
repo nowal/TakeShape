@@ -36,7 +36,7 @@ export const Modal: FC<TProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{
-          delay: ANIMATION_INITIAL_DURATION / 4,
+          // delay: ANIMATION_INITIAL_DURATION / 4,
           duration: ANIMATION_INITIAL_DURATION / 4,
           ease: 'linear',
         }}

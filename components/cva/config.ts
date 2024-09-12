@@ -5,7 +5,6 @@ export const buttonsCvaConfig = cva(
     'inline-flex items-center',
     'box-content',
     'gap-1',
-    'text-base',
     'leading-7',
   ],
   {

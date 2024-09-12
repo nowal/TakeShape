@@ -41,7 +41,7 @@ export const ShellFooter = () => {
             </div>
           </div>
 
-          <ul className="flex flex-row justify-between w-full pl-0 xl:pl-8 2xl:pl-0">
+          <ul className="flex flex-col gap-12 justify-between w-full pl-0 md:gap-0 md:flex-row xl:pl-8 2xl:pl-0">
             {(
               [
                 {
@@ -77,10 +77,10 @@ export const ShellFooter = () => {
         </ul>
 
         <div className="flex flex-col items-stretch lg:hidden">
-          <div className="h-9" />
+          <div className="h-18 sm:h-9" />
           <LinesHorizontal colorClass="border-gray-3" />
-          <div className="h-4.5" />
-          <div className="flex flex-row items-center gap-4">
+          <div className="h-9 sm:h-4.5" />
+          <div className="flex flex-col items-center gap-8 sm:gap-4 sm:flex-row">
             <QuoteButton />
             <ShellFooterTelephone />
           </div>

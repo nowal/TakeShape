@@ -95,7 +95,7 @@ input {
     @apply font-medium text-pink text-base leading-7 font-poppins;
   }
   .typography-footer {
-    @apply font-normal text-black text-base leading-7;
+    @apply text-base font-normal text-black leading-7;
   }
   .typography-footer-poppins {
     @apply typography-footer font-poppins;
