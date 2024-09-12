@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ButtonsCvaLink } from '@/components/cva/link';
 
-type QuoteButtonProps = {
-  text: string;
-  className?: string;
-};
-
-const QuoteButton: React.FC<QuoteButtonProps> = ({
-  text,
-  className,
-}) => {
+const QuoteButton: FC = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const auth = getAuth();
 
@@ -31,7 +23,7 @@ const QuoteButton: React.FC<QuoteButtonProps> = ({
       title={title}
       intent="primary"
       size="sm"
-      weight='bold'
+      weight="bold"
     >
       {title}
     </ButtonsCvaLink>

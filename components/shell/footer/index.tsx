@@ -1,16 +1,31 @@
 'use client';
+import QuoteButton from '@/components/buttons/quote/quoteButton';
 import { ButtonsCvaLink } from '@/components/cva/link';
+import { LinesHorizontal } from '@/components/lines/horizontal';
 import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';
 import { ShellFooterList } from '@/components/shell/footer/list';
+import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
 import { ShellLogo } from '@/components/shell/logo';
-import { title } from 'process';
+import { cx } from 'class-variance-authority';
 
 export const ShellFooter = () => {
   return (
     <footer className="max-w-shell w-full px-9 py-10 mx-auto">
-      <div className="flex flex-row items-end w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]">
-        <div className="flex flex-row w-7/12">
-          <div className="flex flex-col gap-[69px] w-6/12">
+      <div
+        className={cx(
+          'flex flex-col items-stretch gap-6 w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]',
+          'lg:flex-row lg:items-end lg:gap-0'
+        )}
+      >
+        <div className="flex flex-col items-stretch lg:hidden">
+          <ShellLogo isLarge />
+          <div className="h-9" />
+          <LinesHorizontal colorClass="border-gray-3" />
+          <div className="h-4.5" />
+        </div>
+
+        <div className="flex flex-row w-full w-10/12 xl:w-7/12">
+          <div className="hidden flex-col gap-[69px] w-6/12 lg:flex">
             <div className="flex flex-col gap-[27px]">
               <ShellLogo />
               <div className="flex flex-col items-start typography-footer gap-[14px]">
@@ -18,9 +33,7 @@ export const ShellFooter = () => {
                   123 Main Street New York,{'\n'}
                   NY 10001
                 </div>
-                <a href="tel:+16158096429">
-                  (615) 809-6429
-                </a>
+                <ShellFooterTelephone />
               </div>
             </div>
             <div className="typography-footer-poppins">
@@ -28,32 +41,50 @@ export const ShellFooter = () => {
             </div>
           </div>
 
-          <div className="flex flex-row justify-between w-6/12">
-            <ShellFooterList
-              title="For Clients"
-              items={[
-                { title: 'How to Hire' },
-                { title: 'Talent Marketplace' },
-                { title: 'Project Catalog' },
-              ]}
-            />
-            <ShellFooterList
-              title="For Talent"
-              items={[
-                { title: 'How to Find Work' },
-                { title: 'Help & Support' },
-              ]}
-            />
-          </div>
+          <ul className="flex flex-row justify-between w-full pl-0 xl:pl-8 2xl:pl-0">
+            {(
+              [
+                {
+                  title: 'For Clients',
+                  items: [
+                    { title: 'How to Hire' },
+                    { title: 'Talent Marketplace' },
+                    { title: 'Project Catalog' },
+                  ],
+                },
+                {
+                  title: 'For Talent',
+                  items: [
+                    { title: 'How to Find Work' },
+                    { title: 'Help & Support' },
+                  ],
+                },
+              ] as const
+            ).map((listListProps) => (
+              <li key={listListProps.title} className='px-0 w-1/2'>
+                <ShellFooterList {...listListProps} />
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <ul className="flex flex-row justify-between w-5/12 typography-footer-poppins">
+        <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
           {FOOTER_RIGHT_MENU_LINKS.map((item) => (
-            <li key={item.title}>
+            <li key={item.title} className='self-end'>
               <ButtonsCvaLink {...item} />
             </li>
           ))}
         </ul>
+
+        <div className="flex flex-col items-stretch lg:hidden">
+          <div className="h-9" />
+          <LinesHorizontal colorClass="border-gray-3" />
+          <div className="h-4.5" />
+          <div className="flex flex-row items-center gap-4">
+            <QuoteButton />
+            <ShellFooterTelephone />
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -74,8 +74,19 @@ input {
   background-color: #ff385c;
 }
 
-
 @layer components {
+  .logo-title {
+    font-size: 1.83425rem;
+    line-height: 1.44119rem; /* 78.571% */
+    letter-spacing: -0.07163rem;
+  }
+
+  .logo-title-sm {
+    font-size: 1.28569rem;
+    line-height: 1.01019rem; /* 78.571% */
+    letter-spacing: -0.05019rem;
+  }
+
   .button-green {
     @apply button-color hover:bg-green-900 text-white font-bold py-2 px-4 rounded;
   }
@@ -101,5 +112,16 @@ input {
   .typography-quote-see-video {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
   }
+  .typography-logo-title {
+    @apply font-montserrat font-bold text-black;
+  }
+  .typography-logo-title--sm {
+    @apply logo-title-sm typography-logo-title;
+  }
+  .typography-logo-title--lg {
+    @apply logo-title typography-logo-title;
+  }
+  .typography-logo-title--responsive {
+    @apply typography-logo-title--sm lg:typography-logo-title--lg;
+  }
 }
-

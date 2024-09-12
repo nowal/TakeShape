@@ -5,8 +5,8 @@ import {
   Poppins,
 } from 'next/font/google';
 import './reset.css';
-import './globals.css';
 import './typography.css';
+import './globals.css';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 const openSans = Open_Sans({ subsets: ['latin'] });

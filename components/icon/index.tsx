@@ -16,7 +16,7 @@ export type TCommonIconProps = Omit<
     fill?: string;
     d?: string;
   };
-export type TCommonIconFC = FC<TCommonIconProps>;
+export type TCommonIconFC<P extends object = object> = FC<TCommonIconProps & P>;
 
 export const CommonIcon: TCommonIconFC = ({
   svgProps,

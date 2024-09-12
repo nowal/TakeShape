@@ -6,7 +6,7 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, deleteDoc, setDoc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom, documentIdAtom } from '../../atom/atom';
-import SignInButton from '@/components/signInButton';
+import SignInButton from '@/components/buttons/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript';  // Adjust the import path as needed
 

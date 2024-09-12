@@ -27,8 +27,8 @@ const config: Config = {
       },
       boxShadow: {
         '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
+        '09': '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
       },
-
       colors: {
         black: '#000',
         'black-1': '#0F0F0F',
@@ -40,12 +40,11 @@ const config: Config = {
         'white-pink-1': '#FFF6F7',
         'white-pink-2': '#FFCDD3',
         pink: '#FF385C',
-
         red: '#ff0000',
-
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
         'gray-2': '#858585',
+        'gray-3': '#D7D7D7',
       },
       backgroundImage: {
         'gradient-radial':

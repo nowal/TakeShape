@@ -11,7 +11,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import firebase from '../lib/firebase';
+import firebase from '../../lib/firebase';
 import Link from 'next/link';
 import {
   getFirestore,

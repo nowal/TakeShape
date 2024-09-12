@@ -8,7 +8,7 @@ import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userType
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, setDoc, getDoc, arrayUnion, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
-import QuoteButtonDashboard from '../../components/quoteButtonDashboard';
+import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
 import RoomCard from '@/components/roomCard';
 import { TimestampPair, UserData, PaintPreferences } from '@/types/types';

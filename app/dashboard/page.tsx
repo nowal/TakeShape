@@ -8,7 +8,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, getDoc, query, where, getDocs, collection, doc, updateDoc, DocumentReference } from 'firebase/firestore';
 import PainterDashboard from '../../components/painterDashboard';
 import PainterCard from '../../components/painterCard';
-import CheckoutButton from '../../components/checkoutButton';
+import CheckoutButton from '../../components/buttons/checkoutButton';
 import { TimestampPair, UserData, PaintPreferences, UserImage } from '@/types/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
 

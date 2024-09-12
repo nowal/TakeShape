@@ -7,8 +7,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import axios from 'axios';
 import { Job, PaintPreferences } from '../../types/types'; // Adjust the import path as needed
-import CompletedQuotesButton from '../../components/completedQuotesButton';
-import AvailableQuotesButton from '@/components/availableQuotesButton';
+import CompletedQuotesButton from '../../components/buttons/completedQuotesButton';
+import AvailableQuotesButton from '@/components/buttons/availableQuotesButton';
 
 const AcceptedQuotes = () => {
   const [jobList, setJobList] = useState<Job[]>([]);

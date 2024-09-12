@@ -6,7 +6,7 @@ import type { FC } from 'react';
 
 type TProps = {
   title: string;
-  items: TButtonsCvaLinkProps[];
+  items: readonly TButtonsCvaLinkProps[];
 };
 export const ShellFooterList: FC<TProps> = ({
   title,

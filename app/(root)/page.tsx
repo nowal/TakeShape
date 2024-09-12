@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import happyPic from '../../public/TakeShapeHappyPic.png';
 import takingVideo from '../../public/takingVideo.jpg';
 import muddyBoots from '../../public/muddyBoots.jpeg'
-import QuoteButton from '../../components/quoteButton';
+import QuoteButton from '../../components/buttons/quote/quoteButton';
 import Faq from '../../components/faq';
-import DashboardButton from '@/components/dashboardButton';
+import DashboardButton from '@/components/buttons/dashboardButton';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 export default function Home() {
