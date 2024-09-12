@@ -3,6 +3,7 @@ import React, {
   useEffect,
   FormEvent,
   ChangeEvent,
+  MouseEventHandler,
 } from 'react';
 import {
   getAuth,
@@ -24,13 +25,17 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { ButtonsCvaButton } from '@/components/cva/button';
+import { createPortal } from 'react-dom';
+import { Modal } from '@/components/modal';
+import { TTapEvent } from '@/types/dom';
+import { THeaderOptionsProps } from '@/components/shell/header/options';
 
-type SignInButtonProps = {
+type SignInButtonProps = THeaderOptionsProps & {
   className?: string;
 };
-
 const SignInButton: React.FC<SignInButtonProps> = ({
   className,
+  ...props
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -144,74 +149,99 @@ const SignInButton: React.FC<SignInButtonProps> = ({
     return <div>Loading...</div>; // Or any other loading indicator
   }
   const title = isSignedIn ? 'Sign Out' : 'Get work';
-  const handler = isSignedIn
-    ? handleSignOut
-    : () => setShowModal(true);
+  const handleClick = (e: TTapEvent) => {
+    if (isSignedIn) {
+      handleSignOut();
+      return;
+    } else {
+      setShowModal(true);
+    }
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    if (props.onClose) {
+      props.onClose();
+    }
+  };
+
   return (
-    <div>
+    <>
       <ButtonsCvaButton
-        onClick={handler}
+        onTap={handleClick}
         className={`${className || ''}`}
         title={title}
         intent="ghost"
+        layout={false}
         size="sm"
       >
         {title}
       </ButtonsCvaButton>
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content secondary-color">
-            <button
-              onClick={() => setShowModal(false)}
-              className="close-modal"
-            >
-              X
-            </button>
-            <form
-              onSubmit={handleSignIn}
-              className="flex flex-col space-y-4"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                placeholder="Email"
-                className="p-2 border rounded w-full"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={handlePasswordChange}
-                placeholder="Password"
-                className="p-2 border rounded w-full"
-              />
-              {errorMessage && (
-                <p className="text-red-600">
-                  {errorMessage}
-                </p>
-              )}{' '}
-              {/* Display error message */}
-              <button
-                type="submit"
-                className={`text-sm sm:text-bas button-green ${
-                  isLoading
-                    ? 'opacity-50 cursor-not-allowed'
-                    : ''
-                }`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Logging In...' : 'Log in'}
-              </button>
-              <Link
-                className="text-center text-blue-600 underline"
-                onClick={() => setShowModal(false)}
-                href="/signup"
-              >
-                Sign Up
-              </Link>
-            </form>
-          </div>
-        </div>
+        <>
+          {createPortal(
+            <div>
+              <Modal onTap={handleClose}>
+                <div className="modal-overlay">
+                  <div className="modal-content secondary-color">
+                    <button
+                      onClick={handleClose}
+                      className="close-modal"
+                    >
+                      X
+                    </button>
+                    <form
+                      onSubmit={handleSignIn}
+                      className="flex flex-col space-y-4"
+                    >
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        placeholder="Email"
+                        className="p-2 border rounded w-full"
+                      />
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        placeholder="Password"
+                        className="p-2 border rounded w-full"
+                      />
+                      {errorMessage && (
+                        <p className="text-red-600">
+                          {errorMessage}
+                        </p>
+                      )}{' '}
+                      {/* Display error message */}
+                      <button
+                        type="submit"
+                        className={`text-sm sm:text-bas button-green ${
+                          isLoading
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        disabled={isLoading}
+                      >
+                        {isLoading
+                          ? 'Logging In...'
+                          : 'Log in'}
+                      </button>
+                      <Link
+                        className="text-center text-blue-600 underline"
+                        onClick={handleClose}
+                        href="/signup"
+                      >
+                        Sign Up
+                      </Link>
+                    </form>
+                  </div>
+                </div>
+              </Modal>
+            </div>,
+            document.body
+          )}
+        </>
       )}
 
       <style jsx>{`
@@ -250,7 +280,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
           box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         }
       `}</style>
-    </div>
+    </>
   );
 };
 

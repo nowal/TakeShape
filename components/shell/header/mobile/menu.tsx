@@ -13,9 +13,10 @@ export const ShellHeaderMobileMenu = () => {
 
   const viewport = useViewport();
 
+  const handleClose = () => setMenuOpen(false);
   useEffect(() => {
     if (viewport.isResizing) {
-      setMenuOpen(false);
+      handleClose();
     }
   }, [viewport.isResizing]);
 
@@ -24,14 +25,15 @@ export const ShellHeaderMobileMenu = () => {
       <ButtonsCvaButton
         title="Menu"
         size="fill"
-        onClick={() => setMenuOpen((prev) => !prev)}
+        layout={false}
+        onTap={() => setMenuOpen((prev) => !prev)}
       >
         <IconsHamburger />
       </ButtonsCvaButton>
       {isMenuOpen && (
         <>
           {createPortal(
-            <Modal onTap={() => setMenuOpen(false)}>
+            <Modal onTap={handleClose}>
               <div
                 className={cx(
                   'relative flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
@@ -40,7 +42,7 @@ export const ShellHeaderMobileMenu = () => {
                   'shadow-08'
                 )}
               >
-                <HeaderOptions />
+                <HeaderOptions onClose={handleClose} />
               </div>
             </Modal>,
             document.body

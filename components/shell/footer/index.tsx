@@ -10,7 +10,7 @@ import { cx } from 'class-variance-authority';
 
 export const ShellFooter = () => {
   return (
-    <footer className="max-w-shell w-full px-9 py-10 mx-auto">
+    <footer className="max-w-shell w-full mx-auto px-6 py-10 z-20 lg:px-9">
       <div
         className={cx(
           'flex flex-col items-stretch gap-6 w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]',
@@ -18,7 +18,7 @@ export const ShellFooter = () => {
         )}
       >
         <div className="flex flex-col items-stretch lg:hidden">
-          <ShellLogo isLarge />
+          <ShellLogo isFooter />
           <div className="h-9" />
           <LinesHorizontal colorClass="border-gray-3" />
           <div className="h-4.5" />

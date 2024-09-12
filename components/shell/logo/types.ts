@@ -1,1 +1,1 @@
-export type TShellLogoProps = { isLarge?: boolean };
+export type TShellLogoProps = { isFooter?: boolean };

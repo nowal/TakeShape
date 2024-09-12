@@ -6,14 +6,14 @@ import { FC } from 'react';
 
 type TProps = TShellLogoProps;
 export const ShellLogo: FC<TProps> = (props) => {
-  const { isLarge } = props;
+  const { isFooter } = props;
   return (
     <div className="flex items-center space-x-2">
       <IconsLogo {...props} />
       <h1
         className={cx(
-          isLarge
-            ? 'typography-logo-title--lg'
+          isFooter
+            ? 'typography-logo-title-footer--responsive'
             : 'typography-logo-title--responsive'
         )}
       >

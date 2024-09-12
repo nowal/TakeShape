@@ -6,14 +6,14 @@ import { TShellLogoProps } from '@/components/shell/logo/types';
 import { cx } from 'class-variance-authority';
 
 export const IconsLogo: TCommonIconFC<TShellLogoProps> = (
-  {isLarge, ...props}
+  {isFooter, ...props}
 ) => {
   return (
     <CommonIcon
       width="48"
       height="32"
       viewBox="0 0 48 32"
-      classValue={cx(isLarge ? '' : "w-[34px] h-[23px] lg:w-[48px] lg:h-[32px]")}
+      classValue={cx(isFooter ? '' : "w-[34px] h-[23px] lg:w-[48px] lg:h-[32px]")}
       fill="none"
       {...props}
     >

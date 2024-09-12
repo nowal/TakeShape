@@ -73,6 +73,10 @@ const config: Config = {
         9.5: '2.375rem',
         12.5: '3.125rem',
       },
+      screens: {
+        'xxs': '375px',
+        'xs': '450px'
+      }
     },
   },
   plugins: [],

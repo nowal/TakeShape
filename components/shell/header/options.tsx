@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import {
   useEffect,
   useState,
@@ -13,12 +13,19 @@ import {
   signOut,
 } from 'firebase/auth';
 import AccountButton from '../../buttons/accountButton';
+import { usePathname } from 'next/navigation';
 
-export const HeaderOptions: FC = () => {
+export type THeaderOptionsProps = Partial<{
+  onClose(): void;
+}>;
+export const HeaderOptions: FC<THeaderOptionsProps> = (
+  props
+) => {
   const [isUserLoggedIn, setIsUserLoggedIn] =
     useState(false);
   const auth = getAuth();
   const TIMEOUT_DURATION = 1800 * 1000;
+  const isQuotePage = usePathname() === '/quote';
 
   const handleSignOut = useCallback(() => {
     signOut(auth)
@@ -62,9 +69,9 @@ export const HeaderOptions: FC = () => {
   return (
     <>
       {!isUserLoggedIn && (
-        <SignInButton className="text-md hover:underline" />
+        <SignInButton className="text-md hover:underline" {...props} />
       )}
-      <QuoteButton />
+      {!isQuotePage && <QuoteButton {...props} />}
       {isUserLoggedIn && <AccountButton />}
     </>
   );

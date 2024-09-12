@@ -1,8 +1,10 @@
 import { useState, useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ButtonsCvaLink } from '@/components/cva/link';
+import { THeaderOptionsProps } from '@/components/shell/header/options';
 
-const QuoteButton: FC = () => {
+type TProps = THeaderOptionsProps
+const QuoteButton: FC<TProps> = ({onClose}) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const auth = getAuth();
 
@@ -24,6 +26,7 @@ const QuoteButton: FC = () => {
       intent="primary"
       size="sm"
       weight="bold"
+      onTap={onClose}
     >
       {title}
     </ButtonsCvaLink>

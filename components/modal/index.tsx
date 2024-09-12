@@ -15,11 +15,10 @@ export const Modal: FC<TProps> = ({
 
   return (
     <motion.div
+      layout="size"
       className={cx(
         'flex items-center justify-center fixed inset-0 z-20'
       )}
-      {...props}
-
     >
       <motion.div
         className="absolute inset-0 bg-black bg-opacity-40 cursor-pointer"
@@ -30,8 +29,10 @@ export const Modal: FC<TProps> = ({
           duration: ANIMATION_INITIAL_DURATION / 4,
           ease: 'linear',
         }}
+        {...props}
       />
       <motion.div
+        className="relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

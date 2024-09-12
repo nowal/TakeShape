@@ -103,6 +103,8 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
         size="fill"
         rounded="lg"
         icon={{ Leading: IconsUpload }}
+        layout={false}
+
       >
         <span className="typography-quote-subtitle">
           {title}

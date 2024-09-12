@@ -11,7 +11,7 @@ import { TButtonsCvaChildrenProps } from '@/components/cva/children';
 import { TClassValueProps } from '@/types/dom';
 import { cx } from 'class-variance-authority';
 
-const LinkMotion = motion(Link);
+const LinkMotion = motion.create(Link);
 
 export type TLinkMotionElement = typeof LinkMotion &
   HTMLAnchorElement;
@@ -25,7 +25,7 @@ export type TButtonsCvaLinkProps =
 const ButtonsCvaLink = forwardRef<
   TLinkMotionElement,
   TButtonsCvaLinkProps
->(({ href, ...props }, ref) => {
+>(({ href, onTap, ...props }, ref) => {
   const isDisabled = props.isDisabled ?? !Boolean(href);
   const { Icon, className, ...cvaProps } =
     useButtonsCvaProps({ isDisabled, ...props });
@@ -38,6 +38,7 @@ const ButtonsCvaLink = forwardRef<
         isDisabled && 'pointer-events-none'
       )}
       ref={ref}
+      onTap={onTap}
       {...cvaProps}
     >
       <ButtonsCvaContent Icon={Icon}>

@@ -1,5 +1,4 @@
-'use client';
-import { usePathname } from 'next/navigation';
+'use client';;
 import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
@@ -7,15 +6,11 @@ import { HeaderOptions } from '@/components/shell/header/options';
 import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 
 export const ShellHeader = () => {
-  const isHomePage = usePathname() === '/';
-
   return (
     <header
       className={cx(
-        'top-0 inset-x-0 pt-3.5 px-9 z-50',
-        isHomePage
-          ? 'fixed max-w-shell w-full mx-auto'
-          : 'relative'
+        'sticky max-w-shell w-full',
+        'top-0 inset-x-0 pt-3.5 px-6 z-20 lg:px-9'
       )}
     >
       <div
@@ -30,7 +25,7 @@ export const ShellHeader = () => {
         <Link href="/">
           <ShellLogo />
         </Link>
-        <div className="hidden items-center space-x-4 sm:space-x-2 lg:flex">
+        <div className="hidden items-center px-4 gap-2.5 sm:px-2 lg:flex">
           <HeaderOptions />
         </div>
         <ShellHeaderMobileMenu />

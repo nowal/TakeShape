@@ -263,13 +263,20 @@ export default function QuotePage() {
             </h3>
           </div>
           <div className="flex flex-col items-center justify-center gap-[31px] mx-auto lg:flex-row">
-            <div className="hidden bg-pink w-[21rem] h-0 xl:flex" />
+            <div
+              className={cx(
+                'hidden xl:flex',
+                'w-0 h-0 ',
+                'xs:w-[21rem]',
+              )}
+            />
             <div className="flex flex-col items-center gap-[26px]">
               <div
                 className={cx(
                   'flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
                   'gap-2.5',
-                  'w-[23.875rem]',
+                  'xs:w-[23.875rem]',
+                  'w-full',
                   'shadow-08'
                 )}
               >
@@ -311,8 +318,16 @@ export default function QuotePage() {
                 />
               </div>
             </div>
-            <div className="relative w-[21rem]">
-              <div className="absolute w-full left-0 top-0">
+            <div
+              className={cx(
+                'relative',
+                'xs:w-[21rem]',
+                'w-full',
+                'bg-white-pink-1',
+                'rounded-md'
+              )}
+            >
+              <div className="hidden absolute w-full left-0 top-0 lg:block">
                 <svg
                   width="327"
                   height="335"
@@ -327,8 +342,8 @@ export default function QuotePage() {
                 </svg>
               </div>
               <div className="relative flex flex-col px-9 py-5.5">
-                <h2 className="text-xl text-pink font-bold">
-                  How to Take Your Video
+                <h2 className="text-sm text-pink font-semibold">
+                  How to Record Your Video
                 </h2>
                 <ul className="flex flex-col gap-3 mt-3.5">
                   {(
@@ -354,7 +369,6 @@ export default function QuotePage() {
                   colorClass="border-white-pink-2"
                   classValue="mt-5"
                 />
-                {/* <hr className="w-full` h-px border-white-pink-2 mt-5" /> */}
                 <ButtonsCvaButton
                   title={SEE_VIDEO_TITLE}
                   icon={{ Trailing: IconsVideo }}
