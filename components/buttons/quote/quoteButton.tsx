@@ -1,10 +1,13 @@
 import { useState, useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { ButtonsCvaLink } from '@/components/cva/link';
+import {
+  ButtonsCvaLink,
+  TButtonsCvaLinkProps,
+} from '@/components/cva/link';
 import { THeaderOptionsProps } from '@/components/shell/header/options';
 
-type TProps = THeaderOptionsProps
-const QuoteButton: FC<TProps> = ({onClose}) => {
+type TProps = THeaderOptionsProps & TButtonsCvaLinkProps;
+const QuoteButton: FC<TProps> = ({ onClose, ...props }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const auth = getAuth();
 
@@ -18,7 +21,7 @@ const QuoteButton: FC<TProps> = ({onClose}) => {
   if (isSignedIn) {
     return null; // Don't render the button if user is not signed in
   }
-  const title = 'Get Quote';
+  const title = props.title ?? 'Get Quote';
   return (
     <ButtonsCvaLink
       href="/quote"
@@ -27,19 +30,10 @@ const QuoteButton: FC<TProps> = ({onClose}) => {
       size="sm"
       weight="bold"
       onTap={onClose}
+      {...props}
     >
       {title}
     </ButtonsCvaLink>
-    // <Link href="/quote">
-    //   <button className={`shadow button-color hover:bg-green-900 text-white rounded ${className || ''}`}>
-    //     {text}
-    //   </button>
-    //   <style jsx>{`
-    //     .shadow {
-    //       box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-    //     }
-    //   `}</style>
-    // </Link>
   );
 };
 

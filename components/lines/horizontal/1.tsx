@@ -1,5 +1,5 @@
+import { TDivProps } from "@/types/dom";
 import type { FC } from "react";
-import { TDivProps } from "@brysonandrew/config-types";
 
 export const LinesHorizontal1: FC<
   TDivProps
