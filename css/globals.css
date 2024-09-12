@@ -123,4 +123,7 @@ input {
   .typography-logo-title-footer--responsive {
     @apply typography-logo-title--sm sm:typography-logo-title--lg;
   }
+  .typography-sign-up-input {
+    @apply text-black-4 font-medium text-sm;
+  }
 }

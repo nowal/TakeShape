@@ -291,7 +291,7 @@ export default function QuotePage() {
                   className={cx(
                     'w-full',
                     'shadow-08',
-                    'border border-gray-2',
+                    'border border-black-3',
                     'rounded-lg'
                   )}
                 >

@@ -33,6 +33,7 @@ import {
 import SignInButton from '@/components/buttons/signInButton';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { cx } from 'class-variance-authority';
 
 function SignupAccountForm() {
   const [email, setEmail] = useState('');
@@ -321,7 +322,7 @@ function SignupAccountForm() {
   }
 
   return (
-    <div className="p-8">
+    <div className="flex flex-col items-stretch gap-6 p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
       {errorMessage && (
@@ -339,112 +340,117 @@ function SignupAccountForm() {
         Sign Up for Your Free Quote
       </h2>
       {/* <p className="mb-4">None of this information will be shared with painters until you accept a quote.</p> */}
-
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col space-y-4"
-      >
-        <div>
+      <div className="flex flex-col items-center">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-y-4 w-[382px]"
+        >
           <label
             htmlFor="email"
             className="block text-md font-medium text-gray-700"
           >
-            Email Address
+            {/* Email Address */}
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+              className={cx(
+                'px-6 py-4 border border-gray-4 rounded-4xl w-full bg-white-1',
+                'typography-sign-up-input'
+              )}
+            />
           </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-md font-medium text-gray-700"
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-md font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+              className="p-2 border rounded w-full"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-md font-medium text-gray-700"
+            >
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              required
+              className="p-2 border rounded w-full"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="phoneNumber"
+              className="block text-md font-medium text-gray-700"
+            >
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={(e) =>
+                setPhoneNumber(e.target.value)
+              }
+              placeholder="Enter your phone number"
+              required
+              className="p-2 border rounded w-full"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="address"
+              className="block text-md font-medium text-gray-700"
+            >
+              Address
+            </label>
+            <input
+              type="text"
+              id="address"
+              ref={addressInputRef}
+              value={address}
+              onChange={handleAddressChange}
+              placeholder="Enter your address"
+              required
+              className="p-2 border rounded w-full"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className={`button-green ${
+              isLoading
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
+            }`}
           >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-md font-medium text-gray-700"
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="phoneNumber"
-            className="block text-md font-medium text-gray-700"
-          >
-            Phone Number
-          </label>
-          <input
-            type="tel"
-            id="phoneNumber"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Enter your phone number"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="address"
-            className="block text-md font-medium text-gray-700"
-          >
-            Address
-          </label>
-          <input
-            type="text"
-            id="address"
-            ref={addressInputRef}
-            value={address}
-            onChange={handleAddressChange}
-            placeholder="Enter your address"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className={`button-green ${
-            isLoading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoading ? 'Signing up...' : 'Sign Up'}
-        </button>
-      </form>
-
+            {isLoading ? 'Signing up...' : 'Sign Up'}
+          </button>
+        </form>
+      </div>
       <div className="mt-4 text-center">
         <p>
           Already have an account?{' '}
