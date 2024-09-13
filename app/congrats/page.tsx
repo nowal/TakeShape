@@ -10,6 +10,7 @@ import {
   arrayUnion 
 } from 'firebase/firestore';
 import PainterCard from '../../components/painterCard';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 const Congrats = () => {
   const [painterUserId, setPainterUserId] = useState<string | null>(null);
@@ -90,7 +91,7 @@ const Congrats = () => {
     <div className="text-center my-10">
       <h2 className="text-2xl font-medium">Congrats on accepting your quote with:</h2>
       {isLoading ? (
-        <p>Loading...</p>
+        <FallbacksLoading />
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : painterUserId && <PainterCard painterId={painterUserId} />} 
@@ -103,7 +104,7 @@ const Congrats = () => {
 }
 
 const CongratsWithSuspense: React.FC = () => (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<FallbacksLoading />}>
         <Congrats />
     </Suspense>
 );

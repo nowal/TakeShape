@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import PainterCard from '../../components/painterCard';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 // Define the type for Painter data
 interface Painter {
@@ -277,7 +278,7 @@ export default function AgentDashboard() {
   
       <div>
         {loading ? (
-          <p>Loading...</p>
+         <FallbacksLoading />
         ) : error ? (
           <p className="text-red-600">{error}</p>
         ) : preferredPainters.length > 0 ? (

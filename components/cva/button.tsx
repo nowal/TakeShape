@@ -28,8 +28,13 @@ const ButtonsCvaButton = forwardRef<
       onTap={isDisabled ? NOOP : onTap}
       type={type}
       {...cvaProps}
+      layout={false}
     >
-      <ButtonsCvaContent Icon={Icon} {...cvaProps}>
+      <ButtonsCvaContent
+        Icon={Icon}
+        {...cvaProps}
+        layout={false}
+      >
         {props.children}
       </ButtonsCvaContent>
     </motion.button>

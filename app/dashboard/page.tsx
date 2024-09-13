@@ -11,6 +11,7 @@ import PainterCard from '../../components/painterCard';
 import CheckoutButton from '../../components/buttons/checkoutButton';
 import { TimestampPair, UserData, PaintPreferences, UserImage } from '@/types/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 type Price = {
     painterId: string;
@@ -518,7 +519,7 @@ const Dashboard = () => {
 };
 
 const DashboardWithSuspense: React.FC = () => (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<FallbacksLoading />}>
         <Dashboard />
     </Suspense>
 );
