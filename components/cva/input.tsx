@@ -9,10 +9,11 @@ import { TLabelMotionProps } from '@/types/dom/motion';
 type TElementProps = TLabelMotionProps & {
   inputProps: TInputMotionProps;
 };
-type TProps = TButtonsCvaProps<TElementProps>;
-const ButtonsCvaInput = forwardRef<HTMLLabelElement, TProps>(
+export type TButtonsCvaInputProps = TButtonsCvaProps<TElementProps>;
+const ButtonsCvaInput = forwardRef<HTMLLabelElement, TButtonsCvaInputProps>(
   ({inputProps, ...props}, ref) => {
     const {Icon, ...cvaProps} = useButtonsCvaProps(props);
+    console.log(props.children)
     return (
       <motion.label ref={ref} {...cvaProps}>
         <motion.input

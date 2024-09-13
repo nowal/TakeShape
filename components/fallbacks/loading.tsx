@@ -1,9 +1,9 @@
-import { IconsLoading } from "@/components/icons/loading";
-import type { FC } from "react";
+import type { FC } from 'react';
 
 export const FallbacksLoading: FC = () => {
   return (
-    <IconsLoading/>
-    // <div>Loading...</div>
+    <div className="flex flex-row items-center gap-2 text-black">
+      Loading...
+    </div>
   );
 };

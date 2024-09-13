@@ -21,6 +21,13 @@ import {
 import { defaultPreferencesAtom } from '../../atom/atom';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { cx } from 'class-variance-authority';
+import { InputsCheckbox } from '@/components/inputs/checkbox';
+import { ButtonsCvaInput } from '@/components/cva/input';
+import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
+import { IconsLabor } from '@/components/icons/labor';
+import { InputsRadioYesNo } from '@/components/inputs/radio/yes-no';
 
 const DefaultPreferences: React.FC = () => {
   const firestore = getFirestore();
@@ -42,6 +49,7 @@ const DefaultPreferences: React.FC = () => {
     useState<string>('');
   const [moveFurniture, setMoveFurniture] =
     useState<boolean>(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
@@ -266,13 +274,26 @@ const DefaultPreferences: React.FC = () => {
     );
   };
 
+  const isLaborAndMaterials = laborAndMaterial === true;
+
+  const isTrimAndDoorsPainted =
+    defaultPreferences.trim || false;
+  const isCeilingsPainted =
+    defaultPreferences.ceilings || false;
+  const isMoveFurniture = Boolean(moveFurniture);
+
   return (
     <div className="defaultPreferences flex flex-col justify-start items-center h-screen mb-32">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-      <div className="form-container text-center mt-10 md:mt-20">
-        <h2 className="text-2xl font-bold mb-8">
-          Set Your Paint Preferences
+      <div className="flex flex-col items-center">
+        <h2 className="typography-page-title-preferences">
+          We want to make sure your quote is accurate.
         </h2>
+        <NotificationsHighlight classValue="mt-2">
+          None of your information will be shared with
+          painters until you accept a quote. Rest assured,
+          your privacy is our priority.
+        </NotificationsHighlight>
         {showPopup && (
           <div className="popup-message bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4">
             <strong className="font-bold">Warning: </strong>
@@ -282,35 +303,111 @@ const DefaultPreferences: React.FC = () => {
             </span>
           </div>
         )}
-        <div className="flex flex-col items-center gap-2 mb-6">
-          <p>
-            Do you want the painters to quote you for labor
-            only or labor and material?
-          </p>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={laborAndMaterial === false}
-                onChange={() =>
-                  handleLaborMaterialChange(false)
-                }
-                className="form-checkbox"
-              />
-              Labor Only
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={laborAndMaterial === true}
-                onChange={() =>
-                  handleLaborMaterialChange(true)
-                }
-                className="form-checkbox"
-              />
-              Labor and Material
-            </label>
-          </div>
+        <div
+          className={cx(
+            'fill-column-white',
+            'gap-2',
+            'mt-4'
+          )}
+        >
+          <h4 className="typography-form-title">
+            What type of service would you like quoted?
+          </h4>
+          <ul className="flex gap-4">
+            <div className="grow relative bg-red">
+              <ButtonsCvaInput
+                icon={{ Leading: IconsLabor }}
+                classValue="border border-transparent has-[:checked]:border-pink has-[:checked]:bg-indigo-50"
+                size="fill"
+                inputProps={{
+                  name: 'labor',
+                  value: 'labor',
+                  type: 'radio',
+                  checked: !isLaborAndMaterials,
+                  onChange: () =>
+                    handleLaborMaterialChange(false),
+                }}
+              >
+                Labor
+              </ButtonsCvaInput>
+            </div>
+            <div>OR</div>
+            <div className="grow w-full relative">
+              <ButtonsCvaInput
+                icon={{ Leading: IconsLaborAndMaterials }}
+                classValue="border border-transparent has-[:checked]:border-pink has-[:checked]:bg-indigo-50"
+                size="fill"
+                inputProps={{
+                  name: 'labor-and-materials',
+                  value: 'labor-and-materials',
+                  type: 'radio',
+                  checked: isLaborAndMaterials,
+                  onChange: () =>
+                    handleLaborMaterialChange(true),
+                  // className: 'form-checkbox',
+                }}
+              >
+                Labor and Material
+              </ButtonsCvaInput>
+            </div>
+          </ul>
+          <h4 className="typography-form-subtitle">
+            Do you need additional help?
+          </h4>
+          <ul className="flex flex-col gap-2.5 w-full">
+            {(
+              [
+                [
+                  isCeilingsPainted,
+                  'Do you want your ceilings painted?',
+                ],
+                [
+                  isTrimAndDoorsPainted,
+                  'Do you want your trim and doors painted?',
+                ],
+                [
+                  isMoveFurniture,
+                  'Will the painters need to move any furniture?',
+                ],
+              ] as const
+            ).map(([isChecked, text]) => (
+              <li
+                className="relative fill-row-gray w-full"
+                key={text}
+              >
+                <span>{text}</span>
+                <InputsRadioYesNo
+                  yesProps={{
+                    inputProps: {
+                      type: 'radio',
+                      checked: isChecked,
+                    },
+                  }}
+                  noProps={{
+                    inputProps: {
+                      type: 'radio',
+                      checked: !isChecked,
+                    },
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+          <label className="flex flex-col items-center gap-2 w-full">
+            <h4 className="typography-form-subtitle">
+              Special Request
+            </h4>
+            <textarea
+              name="specialRequests"
+              placeholder="E.g. Don't paint ceilings in bedrooms, don't remove nails in the wall"
+              value={specialRequests}
+              onChange={(e) =>
+                setSpecialRequests(e.target.value)
+              }
+              rows={3}
+              className="rounded-lg border border-white-3 bg-white-2 w-full px-4.5 py-3.5 outline-none"
+            />
+          </label>
         </div>
         {laborAndMaterial && (
           <div className="preferences-row flex flex-col items-center gap-2 mb-6">
@@ -389,7 +486,7 @@ const DefaultPreferences: React.FC = () => {
           <input
             type="checkbox"
             name="ceilings"
-            checked={defaultPreferences.ceilings || false}
+            checked={isCeilingsPainted}
             onChange={handleChange}
           />
           Do you want your ceilings painted?
@@ -444,7 +541,7 @@ const DefaultPreferences: React.FC = () => {
           <input
             type="checkbox"
             name="trim"
-            checked={defaultPreferences.trim || false}
+            checked={isTrimAndDoorsPainted}
             onChange={handleChange}
           />
           Do you want your trim and doors painted?
@@ -505,7 +602,7 @@ const DefaultPreferences: React.FC = () => {
           />
           Will the painters need to move any furniture?
         </label>
-        <label className="text-left">
+        {/* <label className="text-left">
           Special Requests:
           <textarea
             name="specialRequests"
@@ -517,7 +614,7 @@ const DefaultPreferences: React.FC = () => {
             rows={3}
             className="input-field"
           />
-        </label>
+        </label> */}
         <div className="preferences-buttons flex justify-center gap-4 my-4">
           <button
             onClick={() => router.push('/quote')}
@@ -652,3 +749,33 @@ const DefaultPreferencesWithSuspense: React.FC = () => (
 );
 
 export default DefaultPreferencesWithSuspense;
+{
+  /* <InputsCheckbox
+            >
+              <div className="row gap-2">
+
+                <span>Labor Only</span>
+              </div>
+            </InputsCheckbox> */
+}
+{
+  /* <InputsCheckbox
+              type="radio"
+              classValue='has-[:checked]:bg-indigo-50'
+
+              checked={laborAndMaterial === true}
+              onChange={() =>
+                handleLaborMaterialChange(true)
+              }
+            >
+              <div className="flex-row flex gap-2">
+                <IconsLaborAndMaterials />
+                <span>Labor and Material</span>
+              </div>
+            </InputsCheckbox> */
+}
+{
+  /* <label className="flex items-center gap-2">
+              <input type="checkbox" />
+            </label> */
+}

@@ -273,11 +273,9 @@ export default function QuotePage() {
             <div className="flex flex-col items-center gap-[26px]">
               <div
                 className={cx(
-                  'flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
+                  'fill-column-white',
                   'gap-2.5',
                   'xs:w-[23.875rem]',
-                  'w-full',
-                  'shadow-08'
                 )}
               >
                 <div className="relative w-full">
