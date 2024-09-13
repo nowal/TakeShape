@@ -29,7 +29,7 @@ export default function Home() {
         JSON.stringify(imageUrls)
       );
       console.log('hello');
-      router.push('/signup');
+      router.push('/sign-up');
     }
   }, [imageUrls, router]);
 

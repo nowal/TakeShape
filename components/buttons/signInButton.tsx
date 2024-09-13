@@ -230,7 +230,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
                       <Link
                         className="text-center text-blue-600 underline"
                         onClick={handleClose}
-                        href="/signup"
+                        href="/sign-up"
                       >
                         Sign Up
                       </Link>
