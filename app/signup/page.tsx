@@ -357,16 +357,6 @@ function SignupAccountForm() {
                 placeholder="Email Address"
                 required
               />
-              <InputsText
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-                placeholder="Password"
-                required
-              />
 
               <InputsText
                 type="text"
@@ -377,7 +367,7 @@ function SignupAccountForm() {
                 required
               />
 
-              <InputsText
+              {/* <InputsText
                 type="tel"
                 id="phoneNumber"
                 value={phoneNumber}
@@ -386,7 +376,7 @@ function SignupAccountForm() {
                 }
                 placeholder="Phone Number"
                 required
-              />
+              /> */}
               <InputsText
                 type="text"
                 id="address"
@@ -394,6 +384,16 @@ function SignupAccountForm() {
                 value={address}
                 onChange={handleAddressChange}
                 placeholder="Address"
+                required
+              />
+              <InputsText
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                placeholder="Password"
                 required
               />
               <ButtonsCvaButton
