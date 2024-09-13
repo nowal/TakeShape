@@ -11,7 +11,7 @@ export const NotificationsHighlight: FC<TProps> = ({
   return (
     <p
       className={cx(
-        'typography-sign-up-notification text-center rounded-xl py-3 px-4 bg-white-pink-3',
+        'typography-signup-notification text-center rounded-xl py-3 px-4 bg-white-pink-3',
         classValue
       )}
       {...props}

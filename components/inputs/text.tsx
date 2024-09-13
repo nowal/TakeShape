@@ -12,7 +12,7 @@ const InputsText = forwardRef<HTMLInputElement, TProps>(
             ref={ref}
             className={cx(
               'px-6 py-4 border border-gray-4 rounded-4xl w-full bg-white-1',
-              'typography-sign-up-input'
+              'typography-signup-input'
             )}
             {...props}
           />

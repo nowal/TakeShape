@@ -208,7 +208,7 @@ export default function AgentDashboard() {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 
-    const inviteLink = `${window.location.origin}/sign-up?agentId=${currentUser.uid}`;
+    const inviteLink = `${window.location.origin}/signup?agentId=${currentUser.uid}`;
     setInviteLink(inviteLink);
     try {
       await navigator.clipboard.writeText(inviteLink);
