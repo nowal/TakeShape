@@ -108,7 +108,7 @@ input {
   .typography-quote-see-video {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
   }
-  .typography-sign-up-notification {
+  .typography-signup-notification {
     @apply text-pink text-xs leading-[18px] font-semibold font-open-sans;
   }
   .typography-logo-title {
@@ -126,7 +126,7 @@ input {
   .typography-logo-title-footer--responsive {
     @apply typography-logo-title--sm sm:typography-logo-title--lg;
   }
-  .typography-sign-up-input {
+  .typography-signup-input {
     @apply text-black-4 font-medium text-sm;
   }
 }

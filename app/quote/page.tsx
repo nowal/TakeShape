@@ -155,7 +155,7 @@ export default function QuotePage() {
           'quoteData',
           JSON.stringify(userImageData)
         );
-        router.push(`/sign-up?userImageId=${docRef.id}`);
+        router.push(`/signup?userImageId=${docRef.id}`);
       }
     } catch (error) {
       console.error(

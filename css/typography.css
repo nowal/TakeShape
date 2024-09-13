@@ -20,7 +20,7 @@
   line-height: 28px; /* 175% */
 }
 
-.sign-up-title,
+.signup-title,
 .quote-title {
   color: #0f0f0f;
   text-align: center;
@@ -59,7 +59,7 @@
   font-weight: 600;
   line-height: 24px; /* 171.429% */
 }
-.sign-up-input {
+.signup-input {
   color: #949494;
   font-family: Montserrat;
   font-size: 14px;
@@ -67,7 +67,7 @@
   font-weight: 500;
   line-height: 100%; /* 14px */
 }
-.sign-up-input-button {
+.signup-input-button {
   color: #fff;
   font-family: Montserrat;
   font-size: 16px;
@@ -75,7 +75,7 @@
   font-weight: 700;
   line-height: 100%; /* 16px */
 }
-.sign-up-instructions {
+.signup-instructions {
   color: #ff385c;
   text-align: center;
   font-family: 'Open Sans';

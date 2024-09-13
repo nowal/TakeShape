@@ -148,7 +148,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
   if (authLoading) {
     return <div>Loading...</div>; // Or any other loading indicator
   }
-  const title = isSignedIn ? 'Sign Out' : 'Get work';
+  const title = isSignedIn ? 'Sign Out' : 'Login';
   const handleClick = (e: TTapEvent) => {
     if (isSignedIn) {
       handleSignOut();
@@ -230,7 +230,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
                       <Link
                         className="text-center text-blue-600 underline"
                         onClick={handleClose}
-                        href="/sign-up"
+                        href="/signup"
                       >
                         Sign Up
                       </Link>
