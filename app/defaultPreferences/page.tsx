@@ -28,6 +28,11 @@ import { ButtonsCvaInput } from '@/components/cva/input';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
 import { IconsLabor } from '@/components/icons/labor';
 import { InputsRadioYesNo } from '@/components/inputs/radio/yes-no';
+import { LaborAndMaterials } from '@/app/defaultPreferences/_labor-and-materials';
+import { CeilingFieldsLaborAndMaterials } from '@/app/defaultPreferences/_ceiling-fields-with-labor-and-materials';
+import { ShowFieldsLaborAndMaterials } from '@/app/defaultPreferences/_show-fields-with-labor-and-materials';
+import { DefaultPreferencesFooter } from '@/app/defaultPreferences/_footer';
+import { DefaultPreferencesEnd } from '@/app/defaultPreferences/_end';
 
 const DefaultPreferences: React.FC = () => {
   const firestore = getFirestore();
@@ -409,335 +414,11 @@ const DefaultPreferences: React.FC = () => {
             />
           </label>
         </div>
-        {laborAndMaterial && (
-          <div className="preferences-row flex flex-col items-center gap-2 mb-6">
-            <div className="extra-fields-row flex justify-between w-full">
-              <label className="text-left">
-                Wall Color
-                <input
-                  type="text"
-                  name="color"
-                  placeholder="E.g. white"
-                  value={defaultPreferences.color || ''}
-                  onChange={handleChange}
-                  className="input-field"
-                />
-                <div className="tooltip-container">
-                  <span className="help-link text-sm">
-                    Undecided?
-                  </span>
-                  <span className="tooltiptext">
-                    Type "Undecided" in the color field and
-                    the painter you choose can help you with
-                    choosing a color.
-                  </span>
-                </div>
-              </label>
-              <label className="text-left">
-                Wall Finish
-                <select
-                  name="finish"
-                  value={defaultPreferences.finish || ''}
-                  onChange={handleChange}
-                  className="input-field select-field"
-                >
-                  <option value="Eggshell">Eggshell</option>
-                  <option value="Flat">Flat</option>
-                  <option value="Satin">Satin</option>
-                  <option value="Semi-gloss">
-                    Semi-Gloss
-                  </option>
-                  <option value="High-gloss">
-                    High Gloss
-                  </option>
-                </select>
-              </label>
-              <span className="tooltip">
-                ?
-                <span className="tooltiptext">
-                  We default to eggshell finish because of
-                  its versatility, but you are welcome to
-                  pick whatever finish you prefer
-                </span>
-              </span>
-            </div>
-            <label className="text-left">
-              Paint Quality
-              <select
-                name="paintQuality"
-                value={
-                  defaultPreferences.paintQuality || ''
-                }
-                onChange={handleChange}
-                className="input-field select-field"
-              >
-                <option value="Medium">
-                  Medium Quality
-                </option>
-                <option value="Budget">
-                  Budget Quality
-                </option>
-                <option value="High">High Quality</option>
-              </select>
-            </label>
-          </div>
-        )}
-        <label className="flex items-center gap-2 mb-2">
-          <input
-            type="checkbox"
-            name="ceilings"
-            checked={isCeilingsPainted}
-            onChange={handleChange}
-          />
-          Do you want your ceilings painted?
-        </label>
-        {showCeilingFields && laborAndMaterial && (
-          <div className="extra-fields-row flex justify-between w-full">
-            <label className="text-left">
-              Ceiling Color
-              <input
-                type="text"
-                name="ceilingColor"
-                placeholder="Ceiling Color"
-                value={
-                  defaultPreferences.ceilingColor || 'White'
-                }
-                onChange={handleChange}
-                className="input-field"
-              />
-            </label>
-            <label className="text-left">
-              Ceiling Finish
-              <select
-                name="ceilingFinish"
-                value={
-                  defaultPreferences.ceilingFinish || ''
-                }
-                onChange={handleChange}
-                className="input-field select-field"
-              >
-                <option value="Flat">Flat</option>
-                <option value="Eggshell">Eggshell</option>
-                <option value="Satin">Satin</option>
-                <option value="Semi-gloss">
-                  Semi-Gloss
-                </option>
-                <option value="High-gloss">
-                  High Gloss
-                </option>
-              </select>
-            </label>
-            <span className="tooltip">
-              ?
-              <span className="tooltiptext">
-                This color and finish are the most standard
-                for ceilings, but you are welcome to pick
-                your own.
-              </span>
-            </span>
-          </div>
-        )}
-        <label className="flex items-center gap-2 mt-2 mb-2">
-          <input
-            type="checkbox"
-            name="trim"
-            checked={isTrimAndDoorsPainted}
-            onChange={handleChange}
-          />
-          Do you want your trim and doors painted?
-        </label>
-        {showTrimFields && laborAndMaterial && (
-          <div className="extra-fields-row flex justify-between w-full">
-            <label className="text-left">
-              Trim Color
-              <input
-                type="text"
-                name="trimColor"
-                placeholder="Trim Color"
-                value={
-                  defaultPreferences.trimColor || 'White'
-                }
-                onChange={handleChange}
-                className="input-field"
-              />
-            </label>
-            <label className="text-left">
-              Trim Finish
-              <select
-                name="trimFinish"
-                value={defaultPreferences.trimFinish || ''}
-                onChange={handleChange}
-                className="input-field select-field"
-              >
-                <option value="Semi-gloss">
-                  Semi-Gloss
-                </option>
-                <option value="Flat">Flat</option>
-                <option value="Eggshell">Eggshell</option>
-                <option value="Satin">Satin</option>
-                <option value="High-gloss">
-                  High Gloss
-                </option>
-              </select>
-            </label>
-            <span className="tooltip">
-              ?
-              <span className="tooltiptext">
-                This color and finish are the most standard
-                for trim, but you are welcome to pick your
-                own.
-              </span>
-            </span>
-          </div>
-        )}
-        <label className="flex items-center gap-2 mb-4 mt-2">
-          <input
-            type="checkbox"
-            name="moveFurniture"
-            checked={moveFurniture}
-            onChange={(e) =>
-              setMoveFurniture(e.target.checked)
-            }
-            className="form-checkbox"
-          />
-          Will the painters need to move any furniture?
-        </label>
-        {/* <label className="text-left">
-          Special Requests:
-          <textarea
-            name="specialRequests"
-            placeholder="E.g. Don't paint ceilings in bedrooms, don't remove nails in the wall"
-            value={specialRequests}
-            onChange={(e) =>
-              setSpecialRequests(e.target.value)
-            }
-            rows={3}
-            className="input-field"
-          />
-        </label> */}
-        <div className="preferences-buttons flex justify-center gap-4 my-4">
-          <button
-            onClick={() => router.push('/quote')}
-            className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
-          >
-            Resubmit Video
-          </button>
-          <button
-            onClick={() =>
-              handlePreferenceSubmit('/dashboard', false)
-            }
-            className={`only-preferences-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300 ${
-              isLoading
-                ? 'opacity-50 cursor-not-allowed'
-                : ''
-            }`}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? 'Submitting...'
-              : 'Submit Preferences'}
-          </button>
-        </div>
+        <DefaultPreferencesFooter
+          isLoading={isLoading}
+          onPreferenceSubmit={handlePreferenceSubmit}
+        />
       </div>
-      <style jsx>{`
-        .disabled-btn {
-          background-color: grey;
-        }
-        .defaultPreferences {
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          align-items: center;
-          height: 120vh;
-        }
-        .form-container {
-          width: 100%;
-          max-width: 500px;
-          padding: 2rem;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 8px;
-          margin-top: 5vh;
-        }
-        .input-field,
-        .select-field {
-          width: 100%;
-          padding: 0.5rem;
-          margin-bottom: 0.5rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-        .preferences-row {
-          flex-direction: column;
-          gap: 1rem;
-        }
-        .button-group {
-          display: flex;
-          gap: 1rem;
-        }
-        .resubmit-btn,
-        .submit-btn {
-          padding: 0.75rem;
-          font-size: 1rem;
-        }
-        .tooltip {
-          position: relative;
-          display: inline-block;
-          border-bottom: 1px dotted black;
-        }
-        .tooltip .tooltiptext {
-          visibility: hidden;
-          width: 120px;
-          background-color: black;
-          color: #fff;
-          text-align: center;
-          border-radius: 6px;
-          padding: 5px 0;
-          position: absolute;
-          z-index: 1;
-          bottom: 100%;
-          left: 50%;
-          margin-left: -60px;
-        }
-        .tooltip:hover .tooltiptext {
-          visibility: visible;
-        }
-        .help-link {
-          color: blue;
-          text-decoration: underline;
-          cursor: pointer;
-        }
-        .tooltip-container {
-          position: relative;
-          display: inline-block;
-        }
-        .tooltip-container .tooltiptext {
-          visibility: hidden;
-          width: 200px;
-          background-color: black;
-          color: #fff;
-          text-align: center;
-          border-radius: 6px;
-          padding: 5px 0;
-          position: absolute;
-          z-index: 1;
-          bottom: 125%;
-          left: 50%;
-          margin-left: -100px;
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        .tooltip-container:hover .tooltiptext {
-          visibility: visible;
-          opacity: 1;
-        }
-        .note-text {
-          text-align: center;
-          color: #666;
-          font-size: 0.875rem;
-          max-width: 90%;
-          margin: 20px auto;
-        }
-      `}</style>
     </div>
   );
 };
@@ -749,33 +430,27 @@ const DefaultPreferencesWithSuspense: React.FC = () => (
 );
 
 export default DefaultPreferencesWithSuspense;
-{
-  /* <InputsCheckbox
-            >
-              <div className="row gap-2">
 
-                <span>Labor Only</span>
-              </div>
-            </InputsCheckbox> */
-}
-{
-  /* <InputsCheckbox
-              type="radio"
-              classValue='has-[:checked]:bg-indigo-50'
-
-              checked={laborAndMaterial === true}
-              onChange={() =>
-                handleLaborMaterialChange(true)
-              }
-            >
-              <div className="flex-row flex gap-2">
-                <IconsLaborAndMaterials />
-                <span>Labor and Material</span>
-              </div>
-            </InputsCheckbox> */
-}
-{
-  /* <label className="flex items-center gap-2">
-              <input type="checkbox" />
-            </label> */
-}
+// {laborAndMaterial && (
+//   <LaborAndMaterials
+//     onChange={handleChange}
+//     color={''}
+//     finish={''}
+//     paintQuality={''}
+//   />
+// )}
+// <CeilingFieldsLaborAndMaterials
+//   isCeilingsPainted={isCeilingsPainted}
+//   onChange={handleChange}
+//   ceilingColor={''}
+//   ceilingFinish={''}
+//   isSelected={showCeilingFields && laborAndMaterial}
+// />
+// <ShowFieldsLaborAndMaterials
+//   isTrimAndDoorsPainted={isTrimAndDoorsPainted}
+//   trimColor={''}
+//   trimFinish={''}
+//   onChange={handleChange}
+//   isSelected={showTrimFields && laborAndMaterial}
+// />
+// <DefaultPreferencesEnd />
