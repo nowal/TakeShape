@@ -37,11 +37,13 @@ const config: Config = {
         'black-4': '#949494',
         'black-5': '#838383',
         'black-6': '#181818',
-      
+        'black-7': '#404040',
+
         white: '#FFF',
         'white-1': '#F8F8F8',
         'white-2': '#F9F9F9',
         'white-3': '#F5F5F5',
+        'white-4': '#EDEDED',
 
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',
@@ -50,12 +52,12 @@ const config: Config = {
 
         pink: '#FF385C',
         red: '#ff0000',
-        
+
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
         'gray-3': '#D7D7D7',
         'gray-4': '#DEDEDE',
-        
+        'gray-5': '#999999',
       },
       backgroundImage: {
         'gradient-radial':

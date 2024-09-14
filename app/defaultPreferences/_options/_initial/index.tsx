@@ -1,4 +1,5 @@
-import { DefaultPreferencesInitialOptionsInput } from '@/app/defaultPreferences/_options/_initial-options/input';
+import { DefaultPreferencesOptionsInitialInput } from '@/app/defaultPreferences/_options/_initial/_input';
+import { DefaultPreferencesOptionsInitialText } from '@/app/defaultPreferences/_options/_initial/_text';
 import { IconsLabor } from '@/components/icons/labor';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
 import type { FC } from 'react';
@@ -12,30 +13,36 @@ type TProps = {
   isLaborAndMaterials: boolean;
   onChange(isLaborAndMaterials: boolean): void;
 };
-export const DefaultPreferencesInitialOptions: FC<
+export const DefaultPreferencesOptionsInitial: FC<
   TProps
 > = (props) => {
   return (
-    <ul className="flex flex-row items-stretch w-full gap-4">
-      <DefaultPreferencesInitialOptionsInput
+    <ul className="flex flex-row items-center gap-4 w-full">
+      <DefaultPreferencesOptionsInitialInput
         Icon={IconsLabor}
         inputProps={INPUT_PROPS}
         value={'labor'}
         isChecked={!props.isLaborAndMaterials}
         onChange={() => props.onChange(false)}
       >
-        Labor
-      </DefaultPreferencesInitialOptionsInput>
+        <DefaultPreferencesOptionsInitialText
+          title="Labor Only"
+          subtitle="You’ll handle the materials."
+        />
+      </DefaultPreferencesOptionsInitialInput>
       <div>OR</div>
-      <DefaultPreferencesInitialOptionsInput
+      <DefaultPreferencesOptionsInitialInput
         Icon={IconsLaborAndMaterials}
         inputProps={INPUT_PROPS}
         value={'labor-and-materials'}
         isChecked={props.isLaborAndMaterials}
         onChange={() => props.onChange(true)}
       >
-        Labor and Material
-      </DefaultPreferencesInitialOptionsInput>
+        <DefaultPreferencesOptionsInitialText
+          title="Labor and Material"
+          subtitle="We’ll provide everything."
+        />
+      </DefaultPreferencesOptionsInitialInput>
     </ul>
   );
 };

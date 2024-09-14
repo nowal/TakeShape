@@ -1,8 +1,9 @@
+import { CommonIcon } from '@/components/icon';
 import type { FC } from 'react';
 
 export const IconsLaborAndMaterials: FC = () => {
   return (
-    <svg
+    <CommonIcon
       width="66"
       height="52"
       viewBox="0 0 66 52"
@@ -117,6 +118,6 @@ export const IconsLaborAndMaterials: FC = () => {
         strokeMiterlimit="10"
         stroke-linejoin="round"
       />
-    </svg>
+    </CommonIcon>
   );
 };

@@ -16,7 +16,9 @@ export type TCommonIconProps = Omit<
     fill?: string;
     d?: string;
   };
-export type TCommonIconFC<P extends object = object> = FC<TCommonIconProps & P>;
+export type TCommonIconFC<P extends object = object> = FC<
+  TCommonIconProps & P
+>;
 
 export const CommonIcon: TCommonIconFC = ({
   svgProps,
@@ -32,17 +34,19 @@ export const CommonIcon: TCommonIconFC = ({
   children,
   ...props
 }) => {
+  const isPath = isDefined(d || pathProps);
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       className={clsx('shrink-0', className, classValue)}
       {...resolveSquare(size ? Number(size) : 24)}
       viewBox={viewBox ?? '0 0 24 24'}
+      {...(isPath ? {} : { fill, stroke })}
       {...svgProps}
       {...props}
     >
       {isDefined(defs) && <defs>{defs}</defs>}
-      {isDefined(d || pathProps) && (
+      {isPath && (
         <path
           d={d}
           stroke={stroke ?? 'none'}

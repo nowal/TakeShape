@@ -12,19 +12,21 @@ type TProps = {
   isChecked: boolean;
   onChange(isChecked: boolean): void;
 } & TButtonsCvaInputProps;
-export const DefaultPreferencesInitialOptionsInput: FC<
+export const DefaultPreferencesOptionsInitialInput: FC<
   TProps
 > = ({ Icon, value, isChecked, ...props }) => {
   const { children, inputProps, ...restProps } = props;
   console.log(inputProps)
   return (
-    <li className="w-full grow relative">
+    <li className="grow w-full relative">
       <ButtonsCvaInput
         icon={{ Leading: Icon }}
         classValue={cx(
-          'w-full p-5',
-          'border border-transparent cursor-pointer',
-          'has-[:checked]:border-pink has-[:checked]:bg-indigo-50',
+          'gap-4',
+          'w-full p-5 rounded-lg',
+          'border border-white-4 cursor-pointer',
+          'has-[:checked]:border-pink',
+          'has-[:checked]:text-pink',
         )}
         inputProps={{
           value: 'labor',

@@ -5,7 +5,7 @@ import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { cx } from 'class-variance-authority';
 import { DefaultPreferencesFooter } from '@/app/defaultPreferences/_footer';
-import { DefaultPreferencesInitialOptions } from '@/app/defaultPreferences/_options/_initial-options';
+import { DefaultPreferencesOptionsInitial } from '@/app/defaultPreferences/_options/_initial';
 import { DefaultPreferencesSpecialRequest } from '@/app/defaultPreferences/_special-request';
 import { DefaultPreferencesOptions } from '@/app/defaultPreferences/_options';
 import { useDefaultPreferences } from '@/app/defaultPreferences/_hook';
@@ -50,7 +50,7 @@ const DefaultPreferences: FC = () => {
           <h4 className="typography-form-title">
             What type of service would you like quoted?
           </h4>
-          <DefaultPreferencesInitialOptions
+          <DefaultPreferencesOptionsInitial
             onChange={handleLaborMaterialChange}
             isLaborAndMaterials={isLaborAndMaterials}
           />
@@ -68,11 +68,11 @@ const DefaultPreferences: FC = () => {
               setSpecialRequests(e.target.value)
             }
           />
+          <DefaultPreferencesFooter
+            isLoading={isLoading}
+            onPreferenceSubmit={handlePreferenceSubmit}
+          />
         </div>
-        <DefaultPreferencesFooter
-          isLoading={isLoading}
-          onPreferenceSubmit={handlePreferenceSubmit}
-        />
       </div>
     </div>
   );

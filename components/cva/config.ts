@@ -1,12 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  [
-    'inline-flex items-center',
-    'box-content',
-    'gap-1',
-    'leading-7',
-  ],
+  ['inline-flex', 'items-center', 'leading-7'],
   {
     variants: {
       weight: {
@@ -34,12 +29,24 @@ export const buttonsCvaConfig = cva(
         xl: ['rounded-xl'],
       },
       intent: {
-        primary: ['bg-pink', 'text-white'],
-        ghost: ['bg-white', 'border-gray', 'border'],
+        primary: [
+          'bg-pink',
+          'text-white',
+          'border',
+          'border-pink',
+          'gap-1',
+        ],
+        ghost: [
+          'bg-white',
+          'border-gray',
+          'border',
+          'gap-1',
+        ],
         'ghost-1': [
           'bg-white-pink',
           'border-pink',
           'border',
+          'gap-1',
         ],
         none: ['text-inherit', 'size-auto'],
       },
