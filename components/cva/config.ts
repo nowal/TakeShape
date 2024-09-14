@@ -6,7 +6,6 @@ export const buttonsCvaConfig = cva(
     'box-content',
     'gap-1',
     'leading-7',
-
   ],
   {
     variants: {

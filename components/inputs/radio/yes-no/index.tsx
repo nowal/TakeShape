@@ -5,10 +5,12 @@ import {
 } from '@/components/cva/input';
 
 type TProps = {
+  name: string;
   yesProps: TButtonsCvaInputProps;
   noProps: TButtonsCvaInputProps;
 };
 export const InputsRadioYesNo: FC<TProps> = ({
+  name,
   yesProps,
   noProps,
 }) => {
@@ -19,7 +21,7 @@ export const InputsRadioYesNo: FC<TProps> = ({
           ['Yes', yesProps],
           ['No', noProps],
         ] as const
-      ).map(([title, props]) => (
+      ).map(([title, { inputProps, ...restProps }]) => (
         <li key={title}>
           <ButtonsCvaInput
             // classValue="has-[:checked]:bg-indigo-50"
@@ -31,7 +33,8 @@ export const InputsRadioYesNo: FC<TProps> = ({
             //   // className: 'form-checkbox',
             // }}
             title={title}
-            {...props}
+            inputProps={{ name, ...inputProps }}
+            {...restProps}
           >
             {title}
           </ButtonsCvaInput>

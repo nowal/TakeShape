@@ -13,7 +13,7 @@ export type TButtonsCvaInputProps = TButtonsCvaProps<TElementProps>;
 const ButtonsCvaInput = forwardRef<HTMLLabelElement, TButtonsCvaInputProps>(
   ({inputProps, ...props}, ref) => {
     const {Icon, ...cvaProps} = useButtonsCvaProps(props);
-    console.log(props.children)
+    console.log(props.children, inputProps)
     return (
       <motion.label ref={ref} {...cvaProps}>
         <motion.input
