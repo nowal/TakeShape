@@ -1,12 +1,19 @@
-import { FC, Fragment } from 'react';
+import { FC } from 'react';
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { TSelectValues } from '@/components/inputs/select/types';
-import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { cx } from 'class-variance-authority';
 import clsx from 'clsx';
 import * as Select from '@radix-ui/react-select';
-import { SelectItem } from '@/components/inputs/select/item';
 import { TValueChangeHandler } from '@/components/inputs/types';
+import {
+  InputsSelectListIdTitle,
+  TInputsSelectListIdTitleProps,
+} from '@/components/inputs/select/list/id-title';
+import {
+  InputsSelectListBasic,
+  TInputsSelectListBasicProps,
+} from '@/components/inputs/select/list/basic';
+import { TSelectIdTitleItem } from '@/types/types';
 
 export type TInputsSelectProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
@@ -17,17 +24,24 @@ type TProps = TBaseInputsSelectProps & {
   title?: string | JSX.Element;
   name: string;
   placeholder: string;
-  values: TSelectValues;
+  values?: TSelectValues;
+
+  idValues?: TSelectIdTitleItem[];
   onValueChange: TValueChangeHandler;
+  ListFc?: FC<
+    | TInputsSelectListIdTitleProps
+    | TInputsSelectListBasicProps
+  >;
 };
-export const InputsSelect: FC<TProps> = ({
+export const InputsSelect = ({
   name,
   values,
+  idValues,
   title,
   placeholder,
   onValueChange,
   ...props
-}) => {
+}: TProps) => {
   return (
     <Select.Root
       onValueChange={(value) => onValueChange(name, value)}
@@ -77,16 +91,8 @@ export const InputsSelect: FC<TProps> = ({
           side="bottom"
         >
           <Select.Viewport>
-            {values.map((value, index) => {
-              return (
-                <Fragment key={value}>
-                  {index !== 0 && <LinesHorizontalLight />}
-                  <SelectItem value={value}>
-                    {value}
-                  </SelectItem>
-                </Fragment>
-              );
-            })}
+            <InputsSelectListIdTitle values={idValues} />
+            <InputsSelectListBasic values={values} />
           </Select.Viewport>
         </Select.Content>
       </Select.Portal>

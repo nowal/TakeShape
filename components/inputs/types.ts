@@ -1,9 +1,10 @@
 import { DEFAULT_MIN_MAX_100 } from '@/components/inputs/constants';
 import { ChangeEventHandler } from 'react';
 export type TChangeHandler = ChangeEventHandler<HTMLInputElement>;
-export type TValueChangeHandler = (
+export type TSelectValue = string | number | boolean
+export type TValueChangeHandler<T extends TSelectValue = TSelectValue> = (
   name: string,
-  value: string | number | boolean
+  value: T
 ) => void;
 export type TResolveNumberValue = (value: string) => number;
 export type TResolveUnitValue = (

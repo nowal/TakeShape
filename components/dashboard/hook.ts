@@ -1,9 +1,9 @@
 'use client';
-import React, {
+import {
+  ChangeEvent,
   useEffect,
   useRef,
   useState,
-  Suspense,
 } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -33,7 +33,6 @@ import {
   updateDoc,
   DocumentReference,
 } from 'firebase/firestore';
-import { DashboardPainter } from '../../components/dashboard/painter';
 import {
   TimestampPair,
   TUserData,
@@ -43,11 +42,9 @@ import {
   TAgentInfo,
   TUserImage,
   TAcceptQuoteHandler,
+  TQuoteChangeHandler,
 } from '@/types/types';
-import { GoogleAnalytics } from '@next/third-parties/google';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { DashboardModalQuoteAccepted } from '@/components/dashboard/modal/quote-accepted';
-import { DashboardClient } from '@/components/dashboard/client';
+import { TValueChangeHandler } from '@/components/inputs/types';
 
 type TConfig = any;
 export const useDashboard = (config?: TConfig) => {
@@ -121,7 +118,6 @@ export const useDashboard = (config?: TConfig) => {
     TUserImage[]
   >([]);
   const auth = getAuth();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const roomCardsContainerRef =
     useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -175,7 +171,6 @@ export const useDashboard = (config?: TConfig) => {
     if (userDoc.exists()) {
       const userDocData = userDoc.data() as TUserData;
       console.log('User data:', userDocData); // Add this log
-
       // Since the user exists in the users collection, we set isPainter to false
       setIsPainter(false);
 
@@ -340,10 +335,9 @@ export const useDashboard = (config?: TConfig) => {
     }
   }, [uploadStatus]);
 
-  const handleQuoteChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
+  const handleQuoteChange: TQuoteChangeHandler = async (
+    userImageId: string
   ) => {
-    const userImageId = e.target.value;
     setSelectedUserImage(userImageId);
     await fetchUserImageData(userImageId);
   };
@@ -386,12 +380,12 @@ export const useDashboard = (config?: TConfig) => {
     userData,
     uploadProgress,
     acceptedQuote,
-    videoRef,
     onAcceptQuote: handleAcceptQuote,
     preferredPainterUserIds,
     agentInfo,
     selectedUserImage,
     selectedQuote,
     dispatchShowModal: setShowModal,
+    onQuoteChange: handleQuoteChange
   };
 };

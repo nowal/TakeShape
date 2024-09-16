@@ -80,9 +80,16 @@ export type Job = {
 };
 
 
-export type TUserImage = { id: string; title: string };
+export type TSelectIdTitleItem = { id: string; title: string };
+
+export type TUserImage = TSelectIdTitleItem
 
 export type TAcceptQuoteHandler =  (
   painterId: string,
   price: number
+) => Promise<void>
+
+
+export type TQuoteChangeHandler =  (
+  userImageId: string
 ) => Promise<void>

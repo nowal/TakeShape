@@ -1,12 +1,13 @@
 'use client';
-import { FC, Suspense } from 'react';
+import { FC, Suspense, useRef } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { DashboardModalQuoteAccepted } from '@/components/dashboard/modal/quote-accepted';
-import { useDashboard } from '@/components/dashboard/hooks';
+import { useDashboard } from '@/components/dashboard/hook';
 import { ComponentsDashboard } from '@/components/dashboard';
 
 const Dashboard = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const dashboard = useDashboard();
   const {
     isShowModal,
@@ -17,8 +18,8 @@ const Dashboard = () => {
     userData,
     uploadProgress,
     acceptedQuote,
-    videoRef,
     onAcceptQuote,
+    onQuoteChange,
     preferredPainterUserIds,
     agentInfo,
     selectedUserImage,
@@ -37,6 +38,7 @@ const Dashboard = () => {
         acceptedQuote={acceptedQuote}
         videoRef={videoRef}
         onAcceptQuote={onAcceptQuote}
+        onQuoteChange={onQuoteChange}
         preferredPainterUserIds={preferredPainterUserIds}
         agentInfo={agentInfo}
         selectedUserImage={selectedUserImage}

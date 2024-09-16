@@ -30,7 +30,7 @@ export const AccountMenu = () => {
   const [profilePictureUrl, setProfilePictureUrl] =
     useState<string | null>(null);
   const [isLoading, setLoading] = useState(true);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isPainter, setIsPainter] = useState(false);
   const [isAgent, setIsAgent] = useState(false);
   const router = useRouter();
@@ -132,16 +132,14 @@ export const AccountMenu = () => {
   };
 
   const handleDropdownOpenToggle = () => {
-    setDropdownOpen(!dropdownOpen);
+    setDropdownOpen((prev) => !prev);
   };
 
-  const handleDropdownClose = () => {
-    setDropdownOpen(false);
-  };
+  const handleDropdownClose = () => setDropdownOpen(false);
 
   const handleMenuClick = (path: string) => {
     router.push(path);
-    setDropdownOpen(false);
+    handleDropdownClose();
   };
 
   const handleDashboardClick = () => {
@@ -165,19 +163,20 @@ export const AccountMenu = () => {
           'flex items-center justify-center',
           'bg-white',
           'rounded-full',
-          'shadow-md '
+          'shadow-md'
         )}
       >
         <AccountMenuButton
+          isDropdownOpen={isDropdownOpen}
           isLoading={isLoading}
           profilePictureUrl={profilePictureUrl}
         />
       </button>
-      {dropdownOpen && (
+      {isDropdownOpen && (
         <ul
           className={cx(
             'flex flex-col items-stretch',
-            'absolute right-0 top-full mt-2 w-48 z-10',
+            'absolute right-0 top-full mt-2 w-48 z-20',
             'rounded-xl',
             'border border-gray-8',
             'bg-white',

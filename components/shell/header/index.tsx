@@ -9,7 +9,8 @@ export const ShellHeader = () => {
     <header
       className={cx(
         'sticky max-w-shell w-full',
-        'top-0 inset-x-0 pt-3.5 px-6 z-20 lg:px-9'
+        'top-0 inset-x-0 pt-3.5 px-6 z-20 lg:px-9',
+        'z-10'
       )}
     >
       <div

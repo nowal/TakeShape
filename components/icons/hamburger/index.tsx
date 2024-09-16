@@ -13,11 +13,12 @@ export const IconsHamburger: FC<TProps> = ({
       width="1em"
       height="1em"
       classValue="size-9 shrink-0"
-      viewBox="0 0 48 48"
+      viewBox="0 0 32 32"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      d="M5.5 24h37m-37 13h37m-37-26h37"
+      // d="M5.5 24h37m-37 13h37m-37-26h37"
+      d="M5 8h22M5 16h22M5 24h22"
       {...props}
     />
   );
