@@ -1,175 +1,42 @@
-import React, {
-  useState,
-  useEffect,
-  FormEvent,
-  ChangeEvent,
-  MouseEventHandler,
-} from 'react';
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-} from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import firebase from '../../../lib/firebase';
+import { FC } from 'react';
 import Link from 'next/link';
-import {
-  getFirestore,
-  query,
-  collection,
-  where,
-  addDoc,
-  getDocs,
-  doc,
-  getDoc,
-} from 'firebase/firestore';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
-import { TTapEvent } from '@/types/dom';
 import { THeaderOptionsProps } from '@/components/shell/header/options';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { useSignIn } from '@/components/buttons/sign-in-button/hook';
+import { title } from 'process';
 
-type SignInButtonProps = THeaderOptionsProps & {
+export type TSignInButtonProps = THeaderOptionsProps & {
   className?: string;
 };
-const SignInButton: React.FC<SignInButtonProps> = ({
+const SignInButton: FC<TSignInButtonProps> = ({
   className,
   ...props
 }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authLoading, setAuthLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // Loading state for login button
-  const [errorMessage, setErrorMessage] = useState<
-    string | null
-  >(null); // Error message state
-  const auth = getAuth(firebase);
-  const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const signIn = useSignIn(props);
+  const {
+    isLoading,
+    isShowModal,
+    isAuthLoading,
+    email,
+    password,
+    errorMessage,
+    onEmailChange,
+    onPasswordChange,
+    onSignIn,
+    onClick,
+    onClose,
+  } = signIn;
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsSignedIn(!!user); // Set true if user exists, false otherwise
-      setAuthLoading(false); // Authentication state is confirmed, loading is done
-    });
-
-    const timeoutId = setTimeout(() => {
-      setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
-    }, 2000);
-
-    // Cleanup the listener and timeout on unmount
-    return () => {
-      unsubscribe();
-      clearTimeout(timeoutId);
-    };
-  }, [auth]);
-
-  const handleSignIn = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    setIsLoading(true); // Set loading state to true
-    setErrorMessage(null); // Reset error message state
-    const firestore = getFirestore(firebase);
-
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      setShowModal(false);
-
-      // Check if the signed-in user is in the reAgents collection
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const agentDocRef = doc(
-          firestore,
-          'reAgents',
-          currentUser.uid
-        );
-        const agentDoc = await getDoc(agentDocRef);
-
-        if (agentDoc.exists()) {
-          router.push('/agentDashboard');
-        } else {
-          // Link quote data to the user's account if they are not an agent
-          const quoteData =
-            sessionStorage.getItem('quoteData');
-          if (quoteData) {
-            const quote = JSON.parse(quoteData);
-            await addDoc(
-              collection(firestore, 'userImages'),
-              {
-                ...quote,
-                userId: auth.currentUser.uid,
-              }
-            );
-            sessionStorage.removeItem('quoteData'); // Clean up
-          }
-
-          router.push('/dashboard');
-        }
-      }
-    } catch (error) {
-      console.error('Error signing in:', error);
-      setErrorMessage(
-        'Incorrect email or password. Please try again.'
-      ); // Set error message
-    } finally {
-      setIsLoading(false); // Reset loading state
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      router.push('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-    sessionStorage.clear();
-  };
-
-  const handleEmailChange = (
-    e: ChangeEvent<HTMLInputElement>
-  ) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (
-    e: ChangeEvent<HTMLInputElement>
-  ) => {
-    setPassword(e.target.value);
-  };
-
-  if (authLoading) {
+  if (isAuthLoading) {
     return <FallbacksLoading />; // Or any other loading indicator
   }
-  const title = isSignedIn ? 'Sign Out' : 'Login';
-  const handleClick = (e: TTapEvent) => {
-    if (isSignedIn) {
-      handleSignOut();
-      return;
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    if (props.onClose) {
-      props.onClose();
-    }
-  };
-
   return (
     <>
       <ButtonsCvaButton
-        onTap={handleClick}
+        onTap={onClick}
         className={`${className || ''}`}
         title={title}
         intent="ghost"
@@ -178,33 +45,33 @@ const SignInButton: React.FC<SignInButtonProps> = ({
       >
         {title}
       </ButtonsCvaButton>
-      {showModal && (
+      {isShowModal && (
         <>
           {createPortal(
-            <Modal onTap={handleClose}>
+            <Modal onTap={onClose}>
               <div className="modal-overlay">
                 <div className="modal-content secondary-color">
                   <button
-                    onClick={handleClose}
+                    onClick={onClose}
                     className="close-modal"
                   >
                     X
                   </button>
                   <form
-                    onSubmit={handleSignIn}
+                    onSubmit={onSignIn}
                     className="flex flex-col space-y-4"
                   >
                     <input
                       type="email"
                       value={email}
-                      onChange={handleEmailChange}
+                      onChange={onEmailChange}
                       placeholder="Email"
                       className="p-2 border rounded w-full"
                     />
                     <input
                       type="password"
                       value={password}
-                      onChange={handlePasswordChange}
+                      onChange={onPasswordChange}
                       placeholder="Password"
                       className="p-2 border rounded w-full"
                     />
@@ -229,7 +96,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
                     </button>
                     <Link
                       className="text-center text-blue-600 underline"
-                      onClick={handleClose}
+                      onClick={onClose}
                       href="/signup"
                     >
                       Sign Up

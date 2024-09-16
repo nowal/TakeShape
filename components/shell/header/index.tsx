@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
 import { HeaderOptions } from '@/components/shell/header/options';
+import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 
 export const ShellHeader = () => {
   return (
@@ -20,10 +21,11 @@ export const ShellHeader = () => {
           'pl-4.5 pr-2.5 py-2.5 lg:pl-7 lg:pr-2 lg:py-3'
         )}
       >
-        <Link className='relative z-10' href="/">
+        <Link className="relative z-10" href="/">
           <ShellLogo />
         </Link>
         <HeaderOptions />
+        <ShellHeaderMobileMenu />
       </div>
     </header>
   );
