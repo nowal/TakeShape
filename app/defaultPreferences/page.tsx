@@ -4,13 +4,16 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { cx } from 'class-variance-authority';
-import { DefaultPreferencesFooter } from '@/app/defaultPreferences/_footer';
-import { DefaultPreferencesOptionsInitial } from '@/app/defaultPreferences/_options/_initial';
-import { DefaultPreferencesSpecialRequest } from '@/app/defaultPreferences/_special-request';
-import { DefaultPreferencesOptions } from '@/app/defaultPreferences/_options';
-import { useDefaultPreferences } from '@/app/defaultPreferences/_hook';
-import { DefaultPreferencesOptionsPopup } from '@/app/defaultPreferences/_popup';
-import { LaborAndMaterials } from '@/app/defaultPreferences/_labor-and-materials';
+import { DefaultPreferencesFooter } from '@/components/preferences/footer';
+import { useDefaultPreferences } from '@/components/preferences/hook';
+import { OptionsLaborAndMaterials } from '@/components/preferences/options/labor-and-materials';
+import { DefaultPreferencesOptions } from '@/components/preferences/options';
+import { DefaultPreferencesOptionsInitial } from '@/components/preferences/options/initial';
+import { DefaultPreferencesOptionsPopup } from '@/components/preferences/popup';
+import { DefaultPreferencesSpecialRequest } from '@/components/preferences/special-request';
+import { LaborAndMaterialsCeilingFields } from '@/components/preferences/options/labor-and-materials/ceiling-fields';
+import { DefaultPreferencesEnd } from '@/components/preferences/end';
+import { LaborAndMaterialsShowFields } from '@/components/preferences/options/labor-and-materials/show-fields';
 
 const DefaultPreferences: FC = () => {
   const {
@@ -20,13 +23,22 @@ const DefaultPreferences: FC = () => {
     isLoading,
     isMoveFurniture,
     isTrimAndDoorsPainted,
-    handleChange,
-    handleLaborMaterialChange,
-    handlePreferenceSubmit,
-    laborAndMaterial,
-    setSpecialRequests,
+    onChange,
+    onValueChange,
+    onLaborMaterialChange,
+    onPreferenceSubmit,
+    onSpecialRequests,
     specialRequests,
+    // color,
+    // finish,
+    // trim,
+    // trimColor,
+    // trimFinish,
+    isShowTrimFields,
+    isShowCeilingFields,
+    ...paintPreferences
   } = useDefaultPreferences();
+  // console.log(isLaborAndMaterials, paintvPreferences);
 
   return (
     <div className="defaultPreferences flex flex-col justify-start items-center h-screen mb-32">
@@ -53,7 +65,7 @@ const DefaultPreferences: FC = () => {
               What type of service would you like quoted?
             </h4>
             <DefaultPreferencesOptionsInitial
-              onChange={handleLaborMaterialChange}
+              onChange={onLaborMaterialChange}
               isLaborAndMaterials={isLaborAndMaterials}
             />
             <h4 className="typography-form-subtitle">
@@ -63,25 +75,57 @@ const DefaultPreferences: FC = () => {
               isCeilingsPainted={isCeilingsPainted}
               isMoveFurniture={isMoveFurniture}
               isTrimAndDoorsPainted={isTrimAndDoorsPainted}
-              onChange={handleChange}
+              onChange={onChange}
             />
-            {laborAndMaterial && (
-              <LaborAndMaterials
-                onChange={handleChange}
-                color={''}
-                finish={''}
-                paintQuality={''}
-              />
+            {isLaborAndMaterials && (
+              <>
+                <OptionsLaborAndMaterials
+                  onValueChange={onValueChange}
+                  onChange={onChange}
+                  color={paintPreferences.color}
+                  finish={paintPreferences.finish}
+                  paintQuality={
+                    paintPreferences.paintQuality
+                  }
+                />
+                <LaborAndMaterialsCeilingFields
+                  isCeilingsPainted={isCeilingsPainted}
+                  onValueChange={onValueChange}
+                  ceilingColor={
+                    paintPreferences.ceilingColor
+                  }
+                  ceilingFinish={
+                    paintPreferences.ceilingFinish
+                  }
+                  isSelected={
+                    isShowCeilingFields &&
+                    isLaborAndMaterials
+                  }
+                />
+                <LaborAndMaterialsShowFields
+                  isTrimAndDoorsPainted={
+                    isTrimAndDoorsPainted
+                  }
+                  trimColor={paintPreferences.trimColor}
+                  trimFinish={paintPreferences.trimFinish}
+                  onChange={onChange}
+                  onValueChange={onValueChange}
+                  isSelected={
+                    isShowTrimFields && isLaborAndMaterials
+                  }
+                />
+                <DefaultPreferencesEnd />
+              </>
             )}
             <DefaultPreferencesSpecialRequest
               value={specialRequests}
               onChange={(e) =>
-                setSpecialRequests(e.target.value)
+                onSpecialRequests(e.target.value)
               }
             />
             <DefaultPreferencesFooter
               isLoading={isLoading}
-              onPreferenceSubmit={handlePreferenceSubmit}
+              onPreferenceSubmit={onPreferenceSubmit}
             />
           </div>
         </div>

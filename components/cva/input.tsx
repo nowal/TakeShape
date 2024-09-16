@@ -16,7 +16,6 @@ const ButtonsCvaInput = forwardRef<
   TButtonsCvaInputProps
 >(({ inputProps, ...props }, ref) => {
   const { Icon, ...cvaProps } = useButtonsCvaProps(props);
-  console.log(props, inputProps);
   return (
     <motion.label ref={ref} {...cvaProps}>
       <motion.input

@@ -40,7 +40,7 @@ import CheckoutButton from '../../components/buttons/checkoutButton';
 import {
   TimestampPair,
   UserData,
-  PaintPreferences,
+  TPaintPreferences,
   UserImage,
 } from '@/types/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -102,7 +102,7 @@ const Dashboard = () => {
       roomName: '',
     });
   const [currentPreferences, setCurrentPreferences] =
-    useState<PaintPreferences>({
+    useState<TPaintPreferences>({
       color: '',
       finish: '',
       ceilings: false,

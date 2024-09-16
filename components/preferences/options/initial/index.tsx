@@ -1,7 +1,7 @@
-import { DefaultPreferencesOptionsInitialInput } from '@/app/defaultPreferences/_options/_initial/_input';
-import { DefaultPreferencesOptionsInitialText } from '@/app/defaultPreferences/_options/_initial/_text';
 import { IconsLabor } from '@/components/icons/labor';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
+import { DefaultPreferencesOptionsInitialInput } from '@/components/preferences/options/initial/input';
+import { DefaultPreferencesOptionsInitialText } from '@/components/preferences/options/initial/text';
 import type { FC } from 'react';
 
 const INPUT_PROPS = {
@@ -21,7 +21,7 @@ export const DefaultPreferencesOptionsInitial: FC<
       <DefaultPreferencesOptionsInitialInput
         Icon={IconsLabor}
         inputProps={INPUT_PROPS}
-        value='labor'
+        value="labor"
         isChecked={!props.isLaborAndMaterials}
         onChange={() => props.onChange(false)}
       >
@@ -34,7 +34,7 @@ export const DefaultPreferencesOptionsInitial: FC<
       <DefaultPreferencesOptionsInitialInput
         Icon={IconsLaborAndMaterials}
         inputProps={INPUT_PROPS}
-        value='labor-and-materials'
+        value="labor-and-materials"
         isChecked={props.isLaborAndMaterials}
         onChange={() => props.onChange(true)}
       >

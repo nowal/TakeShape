@@ -11,7 +11,7 @@ import PainterDashboard from '../../components/painterDashboard';
 import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
 import RoomCard from '@/components/roomCard';
-import { TimestampPair, UserData, PaintPreferences } from '@/types/types';
+import { TimestampPair, UserData, TPaintPreferences } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";
@@ -52,7 +52,7 @@ const RoomPreferences = () => {
         trim: false,
         roomName:'',
       });
-    const [currentPreferences, setCurrentPreferences] = useState<PaintPreferences>({
+    const [currentPreferences, setCurrentPreferences] = useState<TPaintPreferences>({
         color: '', // Default values or fetched from your initial data
         finish: '',
         ceilings: false,
@@ -387,7 +387,7 @@ const RoomPreferences = () => {
 
     // ... (rest of your useEffect)
 
-    const displayPreferences = (preferences: PaintPreferences) => {
+    const displayPreferences = (preferences: TPaintPreferences) => {
         setCurrentPreferences(preferences);
     };
 

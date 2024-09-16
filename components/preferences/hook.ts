@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -14,6 +14,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { defaultPreferencesAtom } from '../../atom/atom';
+import { TValueChangeHandler } from '@/components/inputs/types';
+import { PAINT_PREFERENCES_DEFAULTS } from '@/atom/constants';
 
 export const useDefaultPreferences = () => {
   const firestore = getFirestore();
@@ -24,16 +26,16 @@ export const useDefaultPreferences = () => {
     useState(false);
   const [defaultPreferences, setDefaultPreferences] =
     useAtom(defaultPreferencesAtom);
-  const [showCeilingFields, setShowCeilingFields] =
+  const [isShowCeilingFields, setShowCeilingFields] =
     useState(defaultPreferences.ceilings || false);
-  const [showTrimFields, setShowTrimFields] = useState(
+  const [isShowTrimFields, setShowTrimFields] = useState(
     defaultPreferences.trim || false
   );
-  const [laborAndMaterial, setLaborAndMaterial] =
+  const [isLaborAndMaterials, setLaborAndMaterial] =
     useState<boolean>(true);
   const [specialRequests, setSpecialRequests] =
     useState<string>('');
-  const [moveFurniture, setMoveFurniture] =
+  const [isMoveFurniture, setMoveFurniture] =
     useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -45,13 +47,7 @@ export const useDefaultPreferences = () => {
 
   useEffect(() => {
     setDefaultPreferences({
-      color: '',
-      finish: 'Eggshell',
-      paintQuality: 'Medium',
-      ceilingColor: 'White',
-      ceilingFinish: 'Flat',
-      trimColor: 'White',
-      trimFinish: 'Semi-gloss',
+      ...PAINT_PREFERENCES_DEFAULTS,
       ...defaultPreferences,
     });
   }, []);
@@ -85,14 +81,14 @@ export const useDefaultPreferences = () => {
     if (userImageDoc.exists()) {
       const userImageDocData = userImageDoc.data();
       setLaborAndMaterial(
-        userImageDocData.laborAndMaterial ?? true
+        userImageDocData.isLaborAndMaterials ?? true
       ); // Default to labor and material if field is missing
       setSpecialRequests(
         userImageDocData.specialRequests || ''
       ); // Load special requests if available
       setMoveFurniture(
-        userImageDocData.moveFurniture ?? false
-      ); // Load moveFurniture if available
+        userImageDocData.isMoveFurniture ?? false
+      ); // Load isMoveFurniture if available
       if (userImageDocData.paintPreferencesId) {
         const paintPrefDocRef = doc(
           firestore,
@@ -104,14 +100,8 @@ export const useDefaultPreferences = () => {
         );
         if (paintPrefDocSnap.exists()) {
           setDefaultPreferences({
-            color: '',
-            finish: 'Eggshell',
-            paintQuality: 'Medium',
-            ceilingColor: 'White',
-            ceilingFinish: 'Flat',
-            trimColor: 'White',
-            trimFinish: 'Semi-gloss',
-            laborAndMaterial: laborAndMaterial,
+            laborAndMaterial: isLaborAndMaterials,
+            ...PAINT_PREFERENCES_DEFAULTS,
             ...paintPrefDocSnap.data(),
           });
           setShowCeilingFields(
@@ -126,14 +116,8 @@ export const useDefaultPreferences = () => {
     } else {
       setLaborAndMaterial(true); // Default to labor and material if no document found
       setDefaultPreferences({
-        color: '',
-        finish: 'Eggshell',
-        paintQuality: 'Medium',
-        ceilingColor: 'White',
-        ceilingFinish: 'Flat',
-        trimColor: 'White',
-        trimFinish: 'Semi-gloss',
-        laborAndMaterial: laborAndMaterial,
+        laborAndMaterial: isLaborAndMaterials,
+        ...PAINT_PREFERENCES_DEFAULTS,
       });
     }
   };
@@ -158,7 +142,7 @@ export const useDefaultPreferences = () => {
 
     // Build the updatedPreferences object conditionally
     const updatedPreferences = {
-      laborAndMaterial: laborAndMaterial, // Add laborAndMaterial field
+      laborAndMaterial: isLaborAndMaterials, // Add isLaborAndMaterials field
       color:
         (
           document.getElementsByName(
@@ -177,8 +161,8 @@ export const useDefaultPreferences = () => {
             'paintQuality'
           )[0] as HTMLSelectElement
         )?.value || defaultPreferences.paintQuality,
-      ceilings: showCeilingFields,
-      trim: showTrimFields,
+      ceilings: isShowCeilingFields,
+      trim: isShowTrimFields,
       ceilingColor:
         (
           document.getElementsByName(
@@ -214,9 +198,9 @@ export const useDefaultPreferences = () => {
     await updateDoc(userImageDocRef, {
       paintPreferencesId: paintPrefDocRef.id,
       morePreferences,
-      laborAndMaterial, // Update laborAndMaterial field
+      laborAndMaterial: isLaborAndMaterials, // Update laborAndMaterial field
       specialRequests, // Save special requests
-      moveFurniture, // Save moveFurniture
+      moveFurniture: isMoveFurniture, // Save moveFurniture
     });
 
     // Pass userImageId to the dashboard
@@ -224,22 +208,31 @@ export const useDefaultPreferences = () => {
     setIsLoading(false); // Reset loading state
   };
 
+  const handleValueChange: TValueChangeHandler = (
+    name,
+    value
+  ) => {
+    setDefaultPreferences((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleChange = (
-    e:
+    event:
       | React.ChangeEvent<HTMLInputElement>
       | React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement;
+    const target = event.target as HTMLInputElement;
     const value: string | boolean =
       target.type === 'checkbox'
         ? target.checked
         : target.value;
     const name = target.name;
 
-    setDefaultPreferences((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    handleValueChange(name, value);
+
+    console.log(name, value, target.type);
 
     if (target.type === 'checkbox') {
       if (name === 'ceilings') {
@@ -253,34 +246,35 @@ export const useDefaultPreferences = () => {
   const handleLaborMaterialChange = (value: boolean) => {
     setLaborAndMaterial(value);
     setShowCeilingFields(
-      defaultPreferences.ceilings ?? showCeilingFields
+      defaultPreferences.ceilings ?? isShowCeilingFields
     );
     setShowTrimFields(
-      defaultPreferences.trim ?? showTrimFields
+      defaultPreferences.trim ?? isShowTrimFields
     );
   };
-
-  const isLaborAndMaterials = laborAndMaterial === true;
 
   const isTrimAndDoorsPainted =
     defaultPreferences.trim || false;
   const isCeilingsPainted =
     defaultPreferences.ceilings || false;
-  const isMoveFurniture = Boolean(moveFurniture);
 
   return {
-    laborAndMaterial,
     isPopup,
     isCeilingsPainted,
-    isLaborAndMaterials,
     isLoading,
-    isMoveFurniture,
     isTrimAndDoorsPainted,
-    handleLaborMaterialChange,
-    handleChange,
-    handlePreferenceSubmit,
+    onValueChange: handleValueChange,
+    onLaborMaterialChange: handleLaborMaterialChange,
+    onChange: handleChange,
+    onPreferenceSubmit: handlePreferenceSubmit,
     specialRequests,
-    setSpecialRequests
-    
+    onSpecialRequests: setSpecialRequests,
+    isMoveFurniture: Boolean(isMoveFurniture),
+    onMoveFurniture: setMoveFurniture,
+    isLaborAndMaterials: isLaborAndMaterials === true,
+    onLaborAndMaterial: setLaborAndMaterial,
+    isShowCeilingFields,
+    isShowTrimFields,
+    ...defaultPreferences,
   };
 };

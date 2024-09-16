@@ -16,7 +16,6 @@ export const DefaultPreferencesOptionsInitialInput: FC<
   TProps
 > = ({ Icon, value, isChecked, onChange, ...props }) => {
   const { children, inputProps, ...restProps } = props;
-  console.log(inputProps);
   return (
     <li className="grow w-full relative">
       <ButtonsCvaInput

@@ -3,7 +3,7 @@ import type { FC } from 'react';
 export const _Prev: FC = () => {
   return (
     <>
-          {/* <button
+      {/* <button
             onClick={() => router.push('/quote')}
             className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
           >

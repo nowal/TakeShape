@@ -10,7 +10,7 @@ import PainterDashboard from './painterDashboard';
 import QuoteButtonDashboard from './buttons/quote/quoteButtonDashboard';
 import PainterCard from './painterCard';
 import RoomCard from '@/components/roomCard';
-import { TimestampPair, UserData, PaintPreferences } from '@/types/types';
+import { TimestampPair, UserData, TPaintPreferences } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";

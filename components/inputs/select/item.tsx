@@ -18,7 +18,7 @@ export const SelectItem = forwardRef<
   ) => {
     return (
       <Select.Item
-        className={cx('row grow', 'p-2', classValue)}
+        className={cx('flex flex-row items-center grow', 'p-2', classValue)}
         style={{
           ...style,
         }}
@@ -30,9 +30,9 @@ export const SelectItem = forwardRef<
             {children}
           </Select.ItemText>
         </h4>
-        <Select.ItemIndicator>
+        {/* <Select.ItemIndicator>
           <IconsCheckboxChecked />
-        </Select.ItemIndicator>
+        </Select.ItemIndicator> */}
       </Select.Item>
     );
   }

@@ -59,6 +59,7 @@ const config: Config = {
         'gray-6': '#D6D6D6',
         'gray-7': '#5F5F5F',
         'gray-8': '#f8f8f8',
+        'gray-9': '#AAAAAA',
       },
       borderRadius: {
         '15.1875': '15.1875rem',

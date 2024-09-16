@@ -1,0 +1,16 @@
+import type { FC } from 'react';
+
+export const LaborAndMaterialsNotificationsFinish: FC = () => {
+  return (
+    <div>
+      <span className="tooltip">
+        ?
+        <span className="tooltiptext">
+          We default to eggshell finish because of its
+          versatility, but you are welcome to pick whatever
+          finish you prefer
+        </span>
+      </span>
+    </div>
+  );
+};

@@ -28,12 +28,13 @@ export const InputsRadioYesNo: FC<TProps> = ({
         <li key={title}>
           <ButtonsCvaInput
             classValue={cx(
+              'relative',
               'font-medium',
               'leading-none',
               'w-[57px]',
               'py-3',
               'text-sm',
-              'border border-gray-6 has-[:checked]:border-pink',
+              'border border-gray-6 has-[:checked]:border-pink'
             )}
             title={title}
             center

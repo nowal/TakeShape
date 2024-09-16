@@ -1,5 +1,10 @@
 import type { FC } from 'react';
 import { InputsRadioYesNo } from '@/components/inputs/radio/yes-no';
+import {
+  PREFERENCES_NAME_BOOLEAN_CEILINGS,
+  PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
+  PREFERENCES_NAME_BOOLEAN_TRIM,
+} from '@/atom/constants';
 
 type TProps = {
   isCeilingsPainted: boolean;
@@ -18,17 +23,17 @@ export const DefaultPreferencesOptions: FC<TProps> = ({
       {(
         [
           [
-            'ceilings-painted',
+            PREFERENCES_NAME_BOOLEAN_CEILINGS,
             isCeilingsPainted,
             'Do you want your ceilings painted?',
           ],
           [
-            'trim-and-doors-painted',
+            PREFERENCES_NAME_BOOLEAN_TRIM,
             isTrimAndDoorsPainted,
             'Do you want your trim and doors painted?',
           ],
           [
-            'move-furniture',
+            PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
             isMoveFurniture,
             'Will the painters need to move any furniture?',
           ],

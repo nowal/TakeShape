@@ -4,7 +4,7 @@ import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Job, PaintPreferences } from '../types/types'; // Ensure this path is correct
+import { Job, TPaintPreferences } from '../types/types'; // Ensure this path is correct
 import AcceptedQuotesButton from './buttons/acceptedQuotesButton';
 import CompletedQuotesButton from './buttons/completedQuotesButton';
 
@@ -52,7 +52,7 @@ const PainterDashboard = () => {
                   const paintPrefDocRef = doc(firestore, "paintPreferences", jobData.paintPreferencesId);
                   const paintPrefDocSnap = await getDoc(paintPrefDocRef);
                   if (paintPrefDocSnap.exists()) {
-                    jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
+                    jobData.paintPreferences = paintPrefDocSnap.data() as TPaintPreferences;
                   }
                 }
 
