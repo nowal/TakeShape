@@ -5,11 +5,13 @@ type TProps = {
   isCeilingsPainted: boolean;
   isTrimAndDoorsPainted: boolean;
   isMoveFurniture: boolean;
+  onChange: any;
 };
 export const DefaultPreferencesOptions: FC<TProps> = ({
   isCeilingsPainted,
   isMoveFurniture,
   isTrimAndDoorsPainted,
+  onChange,
 }) => {
   return (
     <ul className="flex flex-col gap-2.5 w-full">
@@ -39,6 +41,7 @@ export const DefaultPreferencesOptions: FC<TProps> = ({
           <span>{text}</span>
           <InputsRadioYesNo
             name={name}
+            onChange={onChange}
             yesProps={{
               inputProps: {
                 type: 'radio',

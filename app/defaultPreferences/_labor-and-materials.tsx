@@ -1,3 +1,4 @@
+import { InputsSelect } from '@/components/inputs/select';
 import type { FC } from 'react';
 
 type TProps = {
@@ -31,8 +32,21 @@ export const LaborAndMaterials: FC<TProps> = (props) => {
             </span>
           </div>
         </label>
-        <label className="text-left">
-          Wall Finish
+        <InputsSelect
+          placeholder="Wall finish"
+          name="finish"
+          value={props.finish || ''}
+          onValueChange={(value) => props.onChange}
+          values={[
+            'Eggshell',
+            'Flat',
+            'Satin',
+            'Semi-Gloss',
+            'High Gloss',
+          ]}
+        />
+        {/* <label className="text-left">
+        Wall finish
           <select
             name="finish"
             value={props.finish || ''}
@@ -45,7 +59,7 @@ export const LaborAndMaterials: FC<TProps> = (props) => {
             <option value="Semi-gloss">Semi-Gloss</option>
             <option value="High-gloss">High Gloss</option>
           </select>
-        </label>
+        </label> */}
         <span className="tooltip">
           ?
           <span className="tooltiptext">
@@ -55,7 +69,7 @@ export const LaborAndMaterials: FC<TProps> = (props) => {
           </span>
         </span>
       </div>
-      <label className="text-left">
+      {/* <label className="text-left">
         Paint Quality
         <select
           name="paintQuality"
@@ -67,7 +81,18 @@ export const LaborAndMaterials: FC<TProps> = (props) => {
           <option value="Budget">Budget Quality</option>
           <option value="High">High Quality</option>
         </select>
-      </label>
+      </label> */}
+      <InputsSelect
+        placeholder="Paint Quality"
+        name="paintQuality"
+        value={props.paintQuality || ''}
+        onValueChange={(value) => props.onChange}
+        values={[
+          'Medium Quality',
+          'Budget Quality',
+          'High Quality',
+        ]}
+      />
     </div>
   );
 };

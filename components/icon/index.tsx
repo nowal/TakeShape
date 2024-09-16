@@ -1,16 +1,19 @@
-import clsx from 'clsx';
 import { SVGAttributes, FC } from 'react';
 import { isDefined } from '@/utils/validation/is/defined';
-import { TSvgProps, TClassValueProps } from '@/types/dom';
+import {
+  TSvgIconProps,
+  TClassValueProps,
+} from '@/types/dom';
 import { resolveSquare } from '@/utils/measure/resolve-square';
+import { cx } from 'class-variance-authority';
 
 export type TCommonIconProps = Omit<
-  TSvgProps,
+  TSvgIconProps,
   'fill' | 'd'
 > &
   TClassValueProps & {
     defs?: JSX.Element;
-    svgProps?: TSvgProps;
+    svgProps?: TCommonIconProps;
     pathProps?: SVGAttributes<SVGPathElement>;
     size?: number | string;
     fill?: string;
@@ -38,7 +41,7 @@ export const CommonIcon: TCommonIconFC = ({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className={clsx('shrink-0', className, classValue)}
+      className={cx('shrink-0 stroke-pink', className, classValue)}
       {...resolveSquare(size ? Number(size) : 24)}
       viewBox={viewBox ?? '0 0 24 24'}
       {...(isPath ? {} : { fill, stroke })}

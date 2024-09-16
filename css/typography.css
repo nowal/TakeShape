@@ -122,7 +122,14 @@
   line-height: 150%; /* 21px */
 }
 
-
+.yes-no {
+  color: var(--202020, #202020);
+font-family: Montserrat;
+font-size: 14px;
+font-style: normal;
+font-weight: 500;
+line-height: 100%; /* 14px */
+}
 .preferences-form-subtitle {
 color: #000;
 text-align: center;
@@ -131,4 +138,15 @@ font-size: 14px;
 font-style: normal;
 font-weight: 500;
 line-height: 100%; /* 14px */
+}
+.dropdown {
+  color: var(--5-f-5-f-5-f, #5F5F5F);
+
+/* D4 */
+font-family: Montserrat;
+font-size: 12px;
+font-style: normal;
+font-weight: 600;
+line-height: 100%; /* 12px */
+letter-spacing: -0.24px;
 }

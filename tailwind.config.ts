@@ -20,17 +20,8 @@ const config: Config = {
         ],
         poppins: 'var(--font-poppins)',
       },
-      borderRadius: {
-        '15.1875': '15.1875rem',
-        '4xl': '2rem',
-        '5xl': '2.25rem',
-      },
-      boxShadow: {
-        '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
-        '09': '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
-      },
       colors: {
-        black: '#000',
+        black: '#020202',
         'black-1': '#0F0F0F',
         'black-2': '#484848',
         'black-3': '#858585',
@@ -38,6 +29,11 @@ const config: Config = {
         'black-5': '#838383',
         'black-6': '#181818',
         'black-7': '#404040',
+        'black-8': '#424242',
+
+        'black-05': 'var(--black-05)',
+        'black-08': 'var(--black-08)',
+        'black-09': 'var(--black-09)',
 
         white: '#FFF',
         'white-1': '#F8F8F8',
@@ -50,7 +46,9 @@ const config: Config = {
         'white-pink-2': '#FFCDD3',
         'white-pink-3': '#FFF2F5',
 
-        pink: '#FF385C',
+        pink: 'var(--pink)',
+        'pink-1': '#E73152',
+
         red: '#ff0000',
 
         gray: '#AFAFAF',
@@ -58,6 +56,23 @@ const config: Config = {
         'gray-3': '#D7D7D7',
         'gray-4': '#DEDEDE',
         'gray-5': '#999999',
+        'gray-6': '#D6D6D6',
+        'gray-7': '#5F5F5F',
+        'gray-8': '#f8f8f8',
+      },
+      borderRadius: {
+        '15.1875': '15.1875rem',
+        '4xl': '2rem',
+        '5xl': '2.25rem',
+      },
+      dropShadow: {
+        '05': '0px 4px 90.8px rgba(0, 0, 0, 0.05)',
+      },
+      boxShadow: {
+        '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
+        '09': '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
+        'pink-bottom-08':
+          '0px 42px 32px 0px rgba(255, 56, 92, 0.08)',
       },
       backgroundImage: {
         'gradient-radial':

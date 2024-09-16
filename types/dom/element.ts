@@ -47,7 +47,7 @@ export type TTdProps = TdHTMLAttributes<HTMLTableCellElement> &
 export type TSource = SourceHTMLAttributes<HTMLSourceElement> &
   TClassValueProps;
 
-export type TSvgProps = SVGAttributes<SVGElement> & TClassValueProps;
+export type TSvgIconProps = SVGAttributes<SVGElement> & TClassValueProps;
 
 export type TSvgCircleProps = SVGAttributes<SVGCircleElement> &
   TClassValueProps;

@@ -3,14 +3,17 @@ import {
   ButtonsCvaInput,
   TButtonsCvaInputProps,
 } from '@/components/cva/input';
+import { cx } from 'class-variance-authority';
 
 type TProps = {
   name: string;
+  onChange: any;
   yesProps: TButtonsCvaInputProps;
   noProps: TButtonsCvaInputProps;
 };
 export const InputsRadioYesNo: FC<TProps> = ({
   name,
+  onChange,
   yesProps,
   noProps,
 }) => {
@@ -24,16 +27,23 @@ export const InputsRadioYesNo: FC<TProps> = ({
       ).map(([title, { inputProps, ...restProps }]) => (
         <li key={title}>
           <ButtonsCvaInput
-            // classValue="has-[:checked]:bg-indigo-50"
-            // inputProps={{
-            //   type: 'radio',
-            //   checked: laborAndMaterial === true,
-            //   onChange: () =>
-            //     handleLaborMaterialChange(true),
-            //   // className: 'form-checkbox',
-            // }}
+            classValue={cx(
+              'font-medium',
+              'leading-none',
+              'w-[57px]',
+              'py-3',
+              'text-sm',
+              'border border-gray-6 has-[:checked]:border-pink',
+            )}
             title={title}
-            inputProps={{ name, ...inputProps }}
+            center
+            inputProps={{
+              type: 'radio',
+              name,
+              onChange,
+              ...inputProps,
+            }}
+            rounded="4xl"
             {...restProps}
           >
             {title}

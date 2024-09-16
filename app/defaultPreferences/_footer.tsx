@@ -1,4 +1,5 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
+import { IconsRedo } from '@/components/icons/redo';
 import { useRouter } from 'next/navigation';
 import type { FC } from 'react';
 
@@ -17,13 +18,15 @@ export const DefaultPreferencesFooter: FC<TProps> = ({
     : 'Submit Preferences';
   const resubmitTitle = 'Resubmit Video';
   return (
-    <footer className='flex flex-row items-center justify-between w-full'>
+    <footer className="flex flex-row items-center justify-between w-full">
       <div className="flex flex-row items-end gap-4 my-4">
-        <div>preferences go here...</div>
+        <div>[preferences go here...]</div>
         <ButtonsCvaButton
+          icon={{ Leading: IconsRedo }}
           title={resubmitTitle}
           onTap={() => router.push('/quote')}
-          className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+          classValue="gap-2"
+          // className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
         >
           {resubmitTitle}
         </ButtonsCvaButton>
@@ -35,10 +38,12 @@ export const DefaultPreferencesFooter: FC<TProps> = ({
         className={`only-preferences-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300 ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
+        intent="primary"
+        size="sm"
         disabled={isLoading}
         title={submitTitle}
       >
-        {submitTitle}
+        <strong>{submitTitle}</strong>
       </ButtonsCvaButton>
     </footer>
   );

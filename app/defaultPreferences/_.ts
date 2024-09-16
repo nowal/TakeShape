@@ -1,12 +1,5 @@
 
-// {laborAndMaterial && (
-//   <LaborAndMaterials
-//     onChange={handleChange}
-//     color={''}
-//     finish={''}
-//     paintQuality={''}
-//   />
-// )}
+
 // <CeilingFieldsLaborAndMaterials
 //   isCeilingsPainted={isCeilingsPainted}
 //   onChange={handleChange}

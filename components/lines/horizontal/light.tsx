@@ -14,7 +14,7 @@ export const LinesHorizontalLight: FC<
         classValue
       )}
       sizeClass="border-t"
-      colorClass="border-white dark:border-gray"
+      colorClass="border-gray-8"
       {...props}
     />
   );

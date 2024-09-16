@@ -21,7 +21,7 @@ export const DefaultPreferencesOptionsInitial: FC<
       <DefaultPreferencesOptionsInitialInput
         Icon={IconsLabor}
         inputProps={INPUT_PROPS}
-        value={'labor'}
+        value='labor'
         isChecked={!props.isLaborAndMaterials}
         onChange={() => props.onChange(false)}
       >
@@ -34,7 +34,7 @@ export const DefaultPreferencesOptionsInitial: FC<
       <DefaultPreferencesOptionsInitialInput
         Icon={IconsLaborAndMaterials}
         inputProps={INPUT_PROPS}
-        value={'labor-and-materials'}
+        value='labor-and-materials'
         isChecked={props.isLaborAndMaterials}
         onChange={() => props.onChange(true)}
       >

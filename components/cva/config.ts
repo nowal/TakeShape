@@ -27,13 +27,16 @@ export const buttonsCvaConfig = cva(
         none: [],
         lg: ['rounded-lg'],
         xl: ['rounded-xl'],
+        '4xl': ['rounded-4xl'],
       },
       intent: {
         primary: [
           'bg-pink',
+          'hover:bg-pink-1',
+          'active:bg-black',
           'text-white',
           'border',
-          'border-pink',
+          'border-gray-4',
           'gap-1',
         ],
         ghost: [

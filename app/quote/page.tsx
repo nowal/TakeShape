@@ -371,6 +371,7 @@ export default function QuotePage() {
                   title={SEE_VIDEO_TITLE}
                   icon={{ Trailing: IconsVideo }}
                   size="none"
+                  classValue='gap-2'
                   isDisabled
                 >
                   <span className="typography-quote-see-video">

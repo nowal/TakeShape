@@ -10,7 +10,7 @@ export type {
   TThProps,
   TTdProps,
   TSource,
-  TSvgProps,
+  TSvgIconProps,
 } from './element';
 export type {TTapEvent} from './event';
 export type {
