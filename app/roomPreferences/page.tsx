@@ -3,8 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { useRouter } from 'next/navigation';
-import { timestampPairsAtom } from '../../atom/atom';
-import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
+import { timestampPairsAtom } from '../../atom';
+import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, setDoc, getDoc, arrayUnion, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import PainterDashboard from '../../components/dashboard/painter';

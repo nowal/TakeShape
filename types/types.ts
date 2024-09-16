@@ -9,7 +9,7 @@ export type TPrice = {
   accepted?: boolean;
 };
 
-export type UserImage = {
+export type TUserImageRecord = {
   userImageId: string;
   video?: string;
   prices?: TPrice[];
@@ -44,7 +44,7 @@ export type TAgentInfo = {
   profilePictureUrl: string;
   preferredPainters: string[];
 } | null;
-export type TimestampPair = {
+export type TTimestampPair = {
   startTime: number;
   endTime?: number;
   color?: string;

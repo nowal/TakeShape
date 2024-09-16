@@ -30,8 +30,8 @@ import {
   isPainterAtom,
   painterInfoAtom,
   documentIdAtom,
-} from '../../atom/atom';
-import SignInButton from '@/components/buttons/signInButton';
+} from '../../atom';
+import SignInButton from '@/components/buttons/sign-in-button';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 import { InputsText } from '@/components/inputs/text';

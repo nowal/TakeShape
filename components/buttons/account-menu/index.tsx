@@ -1,10 +1,6 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  Fragment,
-} from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, signOut } from 'firebase/auth';
 import {
@@ -31,8 +27,8 @@ export const AccountMenu = () => {
     useState<string | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [isPainter, setIsPainter] = useState(false);
-  const [isAgent, setIsAgent] = useState(false);
+  const [isPainter, setPainter] = useState(false);
+  const [isAgent, setAgent] = useState(false);
   const router = useRouter();
   const auth = getAuth();
   const firestore = getFirestore();
@@ -57,7 +53,7 @@ export const AccountMenu = () => {
       const painterSnapshot = await getDocs(painterQuery);
 
       if (!painterSnapshot.empty) {
-        setIsPainter(true);
+        setPainter(true);
         const painterData = painterSnapshot.docs[0].data();
         if (painterData.logoUrl) {
           setProfilePictureUrl(painterData.logoUrl);
@@ -65,7 +61,7 @@ export const AccountMenu = () => {
           return;
         }
       } else {
-        setIsPainter(false);
+        setPainter(false);
       }
 
       // Check if the user is an agent
@@ -77,7 +73,7 @@ export const AccountMenu = () => {
       const agentDoc = await getDoc(agentDocRef);
 
       if (agentDoc.exists()) {
-        setIsAgent(true);
+        setAgent(true);
         const agentData = agentDoc.data();
         if (agentData.profilePictureUrl) {
           setProfilePictureUrl(agentData.profilePictureUrl);
@@ -96,7 +92,7 @@ export const AccountMenu = () => {
           return;
         }
       } else {
-        setIsAgent(false);
+        setAgent(false);
       }
 
       // Retry fetching profile picture if not found and retry limit not reached

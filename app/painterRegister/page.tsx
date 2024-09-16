@@ -7,7 +7,7 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
-import { painterInfoAtom, isPainterAtom } from '../../atom/atom';
+import { painterInfoAtom, isPainterAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 
 export default function PainterRegisterPage() {

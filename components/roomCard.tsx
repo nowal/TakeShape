@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { timestampPairsAtom } from '../atom/atom';
+import { timestampPairsAtom } from '../atom';
 import { updateDoc, DocumentReference, getDoc } from 'firebase/firestore';
 
 interface TimestampPair {

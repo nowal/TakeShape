@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import {
   TUserData,
-  TimestampPair,
+  TTimestampPair,
   TPaintPreferences,
 } from '../types/types';
 import {
@@ -29,7 +29,7 @@ export const videoURLAtom = atom<string>('');
 export const uploadStatusAtom =
   atom<TUploadStatusKey>('idle');
 export const documentIdAtom = atom<string | null>(null);
-export const timestampPairsAtom = atom<TimestampPair[]>([]);
+export const timestampPairsAtom = atom<TTimestampPair[]>([]);
 export const defaultPreferencesAtom =
   atom<TPaintPreferences>({
     color: '',

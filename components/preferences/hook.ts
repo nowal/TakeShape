@@ -13,7 +13,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { defaultPreferencesAtom } from '../../atom/atom';
+import { defaultPreferencesAtom } from '../../atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   PAINT_PREFERENCES_DEFAULTS,

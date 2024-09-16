@@ -12,7 +12,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import firebase from '../../lib/firebase';
+import firebase from '../../../lib/firebase';
 import Link from 'next/link';
 import {
   getFirestore,
@@ -181,106 +181,67 @@ const SignInButton: React.FC<SignInButtonProps> = ({
       {showModal && (
         <>
           {createPortal(
-            <div>
-              <Modal onTap={handleClose}>
-                <div className="modal-overlay">
-                  <div className="modal-content secondary-color">
+            <Modal onTap={handleClose}>
+              <div className="modal-overlay">
+                <div className="modal-content secondary-color">
+                  <button
+                    onClick={handleClose}
+                    className="close-modal"
+                  >
+                    X
+                  </button>
+                  <form
+                    onSubmit={handleSignIn}
+                    className="flex flex-col space-y-4"
+                  >
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      placeholder="Email"
+                      className="p-2 border rounded w-full"
+                    />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={handlePasswordChange}
+                      placeholder="Password"
+                      className="p-2 border rounded w-full"
+                    />
+                    {errorMessage && (
+                      <p className="text-red-600">
+                        {errorMessage}
+                      </p>
+                    )}{' '}
+                    {/* Display error message */}
                     <button
-                      onClick={handleClose}
-                      className="close-modal"
+                      type="submit"
+                      className={`text-sm sm:text-bas button-green ${
+                        isLoading
+                          ? 'opacity-50 cursor-not-allowed'
+                          : ''
+                      }`}
+                      disabled={isLoading}
                     >
-                      X
+                      {isLoading
+                        ? 'Logging In...'
+                        : 'Log in'}
                     </button>
-                    <form
-                      onSubmit={handleSignIn}
-                      className="flex flex-col space-y-4"
+                    <Link
+                      className="text-center text-blue-600 underline"
+                      onClick={handleClose}
+                      href="/signup"
                     >
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={handleEmailChange}
-                        placeholder="Email"
-                        className="p-2 border rounded w-full"
-                      />
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        placeholder="Password"
-                        className="p-2 border rounded w-full"
-                      />
-                      {errorMessage && (
-                        <p className="text-red-600">
-                          {errorMessage}
-                        </p>
-                      )}{' '}
-                      {/* Display error message */}
-                      <button
-                        type="submit"
-                        className={`text-sm sm:text-bas button-green ${
-                          isLoading
-                            ? 'opacity-50 cursor-not-allowed'
-                            : ''
-                        }`}
-                        disabled={isLoading}
-                      >
-                        {isLoading
-                          ? 'Logging In...'
-                          : 'Log in'}
-                      </button>
-                      <Link
-                        className="text-center text-blue-600 underline"
-                        onClick={handleClose}
-                        href="/signup"
-                      >
-                        Sign Up
-                      </Link>
-                    </form>
-                  </div>
+                      Sign Up
+                    </Link>
+                  </form>
                 </div>
-              </Modal>
-            </div>,
+              </div>
+            </Modal>,
             document.body
           )}
         </>
       )}
-
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          padding: 40px; /* Increased padding for more white space */
-          border-radius: 5px;
-          position: relative; /* For absolute positioning of close button */
-          width: 400px; /* Adjust as needed */
-          max-width: 90%;
-        }
-
-        .close-modal {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          border: none;
-          background: transparent;
-          font-size: 18px;
-          cursor: pointer;
-        }
-
-        .shadow {
-          box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-        }
-      `}</style>
     </>
   );
 };

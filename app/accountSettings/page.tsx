@@ -8,7 +8,7 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { GoogleAnalytics } from '@next/third-parties/google';
 import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
-import { isPainterAtom, painterInfoAtom } from '../../atom/atom';
+import { isPainterAtom, painterInfoAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 

@@ -5,7 +5,7 @@ import {
   useCallback,
   FC,
 } from 'react';
-import SignInButton from '../../buttons/signInButton';
+import SignInButton from '../../buttons/sign-in-button';
 import QuoteButton from '../../buttons/quote/quoteButton';
 import {
   getAuth,
@@ -71,16 +71,14 @@ export const HeaderOptions: FC<THeaderOptionsProps> = (
   return (
     <>
       <div className="hidden items-center px-4 gap-2.5 sm:px-2 lg:flex">
-        {
-          <div
-            className={cx(
-              'absolute inset-0',
-              'shadow-09 lg:shadow-08',
-              'rounded-[0.70013rem] lg:rounded-15.1875',
-              isUserLoggedIn ? 'bg-white-5' : 'bg-white'
-            )}
-          />
-        }
+        <div
+          className={cx(
+            'absolute inset-0',
+            'shadow-09 lg:shadow-08',
+            'rounded-[0.70013rem] lg:rounded-15.1875',
+            isUserLoggedIn ? 'bg-white-5' : 'bg-white'
+          )}
+        />
         {!isUserLoggedIn && (
           <SignInButton
             className="text-md hover:underline"

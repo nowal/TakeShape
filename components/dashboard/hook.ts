@@ -1,26 +1,15 @@
 'use client';
-import {
-  ChangeEvent,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
+import { useSearchParams } from 'next/navigation';
 import {
-  useRouter,
-  useSearchParams,
-} from 'next/navigation';
-import {
-  timestampPairsAtom,
   userDataAtom,
   isPainterAtom,
-  documentIdAtom,
   checkingAuthAtom,
   userTypeLoadingAtom,
-  videoURLAtom,
   uploadStatusAtom,
   uploadProgressAtom,
-} from '../../atom/atom';
+} from '../../atom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -31,20 +20,16 @@ import {
   collection,
   doc,
   updateDoc,
-  DocumentReference,
 } from 'firebase/firestore';
 import {
-  TimestampPair,
   TUserData,
-  TPaintPreferences,
-  UserImage,
+  TUserImageRecord,
   TPrice,
   TAgentInfo,
   TUserImage,
   TAcceptQuoteHandler,
   TQuoteChangeHandler,
 } from '@/types/types';
-import { TValueChangeHandler } from '@/components/inputs/types';
 
 type TConfig = any;
 export const useDashboard = (config?: TConfig) => {
@@ -52,9 +37,6 @@ export const useDashboard = (config?: TConfig) => {
   const [isShowModal, setShowModal] = useState(false);
   const [selectedQuote, setSelectedQuote] =
     useState<number>(0);
-  const [timestampPairs, setTimestampPairs] = useAtom(
-    timestampPairsAtom
-  );
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [checkingAuth, setCheckingAuth] = useAtom(
     checkingAuthAtom
@@ -63,64 +45,23 @@ export const useDashboard = (config?: TConfig) => {
     userTypeLoadingAtom
   );
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
   const [painterId, setPainterId] = useState('');
   const [uploadProgress, setUploadProgress] = useAtom(
     uploadProgressAtom
   );
-  const [videoURL, setVideoURL] = useAtom(videoURLAtom);
   const [uploadStatus, setUploadStatus] = useAtom(
     uploadStatusAtom
   );
-  const [documentId] = useAtom(documentIdAtom);
   const [acceptedQuote, setAcceptedQuote] =
     useState<TPrice | null>(null);
-  const [acceptedQuoteBool, setAcceptedQuoteBool] =
-    useState(false);
-  const [defaultPaintColor, setDefaultPaintColor] =
-    useState('');
-  const [defaultPaintFinish, setDefaultPaintFinish] =
-    useState('');
-  const [ceilingPaint, setCeilingPaint] = useState(false);
-  const [doorsAndTrimPaint, setDoorsAndTrimPaint] =
-    useState(false);
-  const [currentTimestampPair, setCurrentTimestampPair] =
-    useState<TimestampPair>({
-      startTime: 0,
-      endTime: 0,
-      color: '',
-      finish: '',
-      ceilings: false,
-      trim: false,
-      roomName: '',
-    });
-  const [currentPreferences, setCurrentPreferences] =
-    useState<TPaintPreferences>({
-      color: '',
-      finish: '',
-      ceilings: false,
-      trim: false,
-      laborAndMaterial: false,
-    });
-  const [addingRoom, setAddingRoom] = useState(false);
-  const [laborAndMaterial, setLaborAndMaterial] =
-    useState(true);
-  const [morePreferences, setMorePreferences] =
-    useState(true);
-  const [videoSelectionStart, setVideoSelectionStart] =
-    useState<number | null>(null);
   const firestore = getFirestore();
-  const [userImageRef, setUserImageRef] =
-    useState<DocumentReference | null>(null);
   const [selectedUserImage, setSelectedUserImage] =
     useState<string>(''); // Initialize as empty string
   const [userImageList, setUserImageList] = useState<
     TUserImage[]
   >([]);
   const auth = getAuth();
-  const roomCardsContainerRef =
-    useRef<HTMLDivElement>(null);
-  const router = useRouter();
+
   const searchParams = useSearchParams();
   const [agentInfo, setAgentInfo] =
     useState<TAgentInfo>(null);
@@ -294,7 +235,7 @@ export const useDashboard = (config?: TConfig) => {
 
     if (userImageDoc.exists()) {
       const userImageData =
-        userImageDoc.data() as UserImage;
+        userImageDoc.data() as TUserImageRecord;
       const prices = userImageData.prices;
       const video = userImageData.video;
       const title = userImageData.title || 'Untitled'; // Ensure title is fetched
@@ -386,6 +327,6 @@ export const useDashboard = (config?: TConfig) => {
     selectedUserImage,
     selectedQuote,
     dispatchShowModal: setShowModal,
-    onQuoteChange: handleQuoteChange
+    onQuoteChange: handleQuoteChange,
   };
 };

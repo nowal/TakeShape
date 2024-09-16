@@ -7,7 +7,7 @@ import {
   uploadStatusAtom,
   videoURLAtom,
   documentIdAtom,
-} from '@/atom/atom';
+} from '@/atom';
 import { useAtom } from 'jotai';
 import {
   getFirestore,
