@@ -1,6 +1,7 @@
 import type { FC, PropsWithChildren } from 'react';
 import { motion } from 'framer-motion';
 import { TDivMotionProps } from '@/types/dom';
+import { cx } from 'class-variance-authority';
 
 export const ButtonsCvaIcon: FC<
   PropsWithChildren<TDivMotionProps>
@@ -8,7 +9,7 @@ export const ButtonsCvaIcon: FC<
   return (
     <motion.div
       layout
-      className="flex items-center justify-center size-6 pointer-events-none"
+      className={cx("flex items-center justify-center pointer-events-none")}
       {...props}
     >
       {children}

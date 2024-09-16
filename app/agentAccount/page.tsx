@@ -6,6 +6,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 export default function AgentAccount() {
   const [name, setName] = useState('');
@@ -104,7 +105,7 @@ export default function AgentAccount() {
       )}
 
       {isLoading ? (
-        <p>Loading...</p>
+        <FallbacksLoading />
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
           <div>

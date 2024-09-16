@@ -1,0 +1,1 @@
+export type TSelectValues = readonly string[]|string[];

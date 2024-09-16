@@ -29,6 +29,7 @@ import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
 import { TTapEvent } from '@/types/dom';
 import { THeaderOptionsProps } from '@/components/shell/header/options';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 type SignInButtonProps = THeaderOptionsProps & {
   className?: string;
@@ -146,7 +147,7 @@ const SignInButton: React.FC<SignInButtonProps> = ({
   };
 
   if (authLoading) {
-    return <div>Loading...</div>; // Or any other loading indicator
+    return <FallbacksLoading />; // Or any other loading indicator
   }
   const title = isSignedIn ? 'Sign Out' : 'Login';
   const handleClick = (e: TTapEvent) => {

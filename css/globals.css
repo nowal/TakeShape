@@ -6,6 +6,10 @@
   --foreground-rgb: 0, 0, 0; /* Black for text */
   --background-start-rgb: 255, 255, 255; /* White for background */
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
+  --pink: #ff385c;
+  --black-05: rgba(0, 0, 0, 0.05);
+  --black-08: rgba(0, 0, 0, 0.08);
+  --black-09: rgba(0, 0, 0, 0.09);
 }
 
 @media (prefers-color-scheme: light-mode) {
@@ -20,7 +24,7 @@ body,
 html,
 #__next {
   font-style: normal;
-  color: rgb(var(--foreground-rgb));
+  /* color: rgb(var(--foreground-rgb)); */
   background: rgb(
     var(--background-start-rgb)
   ); /* Updated to use a solid color */
@@ -99,11 +103,17 @@ input {
   .typography-footer-open-sans {
     @apply typography-footer font-open-sans;
   }
+  .typography-page-title-base {
+    @apply text-center text-2xl font-bold font-montserrat tracking-tight-06;
+  }
   .typography-page-title {
-    @apply text-center text-black-1 text-2xl font-bold font-montserrat tracking-tight-06;
+    @apply typography-page-title-base text-black-1;
   }
   .typography-page-subtitle {
     @apply text-center text-black-2 text-base font-semibold font-open-sans;
+  }
+  .typography-page-title-preferences {
+    @apply text-center text-black-6 text-2xl font-bold font-montserrat tracking-tight-06;
   }
   .typography-quote-see-video {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
@@ -128,5 +138,29 @@ input {
   }
   .typography-signup-input {
     @apply text-black-4 font-medium text-sm;
+  }
+  .typography-form-title-base {
+    @apply text-black text-center text-base font-montserrat;
+  }
+  .typography-form-title {
+    @apply typography-form-title-base font-semibold;
+  }
+  .typography-form-subtitle {
+    @apply typography-form-title-base font-bold;
+  }
+  .typography-form-notification {
+    @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
+  }
+  .fill-column-white {
+    @apply flex flex-col items-stretch w-full shadow-08 py-9 px-6 bg-white rounded-2xl;
+  }
+  .fill-gray-base {
+    @apply flex w-full bg-white-2 rounded-lg w-full;
+  }
+  .fill-gray-row {
+    @apply fill-gray-base flex-row items-center justify-between;
+  }
+  .fill-gray-col {
+    @apply fill-gray-base flex-col items-stretch;
   }
 }

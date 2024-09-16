@@ -5,6 +5,8 @@ import {
 } from 'firebase/auth';
 
 import {
+  ChangeEvent,
+  FormEvent,
   Suspense,
   useEffect,
   useRef,
@@ -35,6 +37,7 @@ import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adju
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 function SignupAccountForm() {
   const [email, setEmail] = useState('');
@@ -57,6 +60,8 @@ function SignupAccountForm() {
 
   const agentId = searchParams.get('agentId');
   const userImageId = searchParams.get('userImageId');
+
+  console.log(email, password, address, name);
 
   useEffect(() => {
     console.log('searchParams:', searchParams.toString());
@@ -110,7 +115,7 @@ function SignupAccountForm() {
   }, [agentId, userImageId, searchParams]);
 
   const handleAddressChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>
   ) => {
     setAddress(e.target.value);
     setErrorMessage(''); // Clear the error message when the user starts typing
@@ -134,11 +139,10 @@ function SignupAccountForm() {
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
+    event.preventDefault();
     setIsLoading(true); // Set loading state to true
-
     if (!validateAddress()) {
       setErrorMessage('Please enter a valid address.');
       setIsLoading(false);
@@ -155,6 +159,7 @@ function SignupAccountForm() {
           email,
           password
         );
+      
       const user = userCredential.user;
 
       // Create user document in "users" collection
@@ -357,27 +362,17 @@ function SignupAccountForm() {
                 placeholder="Email Address"
                 required
               />
-              <InputsText
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-                placeholder="Password"
-                required
-              />
 
               <InputsText
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder="Name"
                 required
               />
 
-              <InputsText
+              {/* <InputsText
                 type="tel"
                 id="phoneNumber"
                 value={phoneNumber}
@@ -386,7 +381,7 @@ function SignupAccountForm() {
                 }
                 placeholder="Phone Number"
                 required
-              />
+              /> */}
               <InputsText
                 type="text"
                 id="address"
@@ -394,6 +389,16 @@ function SignupAccountForm() {
                 value={address}
                 onChange={handleAddressChange}
                 placeholder="Address"
+                required
+              />
+              <InputsText
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                placeholder="Password"
                 required
               />
               <ButtonsCvaButton
@@ -441,7 +446,7 @@ function SignupAccountForm() {
 
 export default function SignupAccountPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<FallbacksLoading />}>
       <SignupAccountForm />
     </Suspense>
   );

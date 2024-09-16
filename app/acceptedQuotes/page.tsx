@@ -6,7 +6,7 @@ import { getFirestore, collection, query, where, getDoc, getDocs, doc } from 'fi
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import axios from 'axios';
-import { Job, PaintPreferences } from '../../types/types'; // Adjust the import path as needed
+import { Job, TPaintPreferences } from '../../types/types'; // Adjust the import path as needed
 import CompletedQuotesButton from '../../components/buttons/completedQuotesButton';
 import AvailableQuotesButton from '@/components/buttons/availableQuotesButton';
 
@@ -60,7 +60,7 @@ const AcceptedQuotes = () => {
                   const paintPrefDocRef = doc(firestore, "paintPreferences", jobData.paintPreferencesId);
                   const paintPrefDocSnap = await getDoc(paintPrefDocRef); // Corrected variable usage
                   if (paintPrefDocSnap.exists()) {
-                    jobData.paintPreferences = paintPrefDocSnap.data() as PaintPreferences;
+                    jobData.paintPreferences = paintPrefDocSnap.data() as TPaintPreferences;
                   }
                 }
 

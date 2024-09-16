@@ -273,11 +273,9 @@ export default function QuotePage() {
             <div className="flex flex-col items-center gap-[26px]">
               <div
                 className={cx(
-                  'flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
+                  'fill-column-white',
                   'gap-2.5',
                   'xs:w-[23.875rem]',
-                  'w-full',
-                  'shadow-08'
                 )}
               >
                 <div className="relative w-full">
@@ -373,6 +371,7 @@ export default function QuotePage() {
                   title={SEE_VIDEO_TITLE}
                   icon={{ Trailing: IconsVideo }}
                   size="none"
+                  classValue='gap-2'
                   isDisabled
                 >
                   <span className="typography-quote-see-video">

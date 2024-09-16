@@ -10,6 +10,7 @@ import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
 import { isPainterAtom, painterInfoAtom } from '../../atom/atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 export default function AccountSettingsPage() {
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
@@ -348,7 +349,7 @@ export default function AccountSettingsPage() {
   };
 
   if (isDataLoading) {
-    return <div>Loading...</div>;
+    return <FallbacksLoading />;
   }
 
   return (
