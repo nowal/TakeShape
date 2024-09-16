@@ -20,7 +20,7 @@ export const PreferencesFooter: FC<TProps> = ({
   return (
     <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
       <div className="flex flex-col items-end gap-4 my-4 xs:flex-row">
-        <div>[preferences go here...]</div>
+        {/* <div>video.mp4</div> */}
         <ButtonsCvaButton
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}

@@ -13,7 +13,7 @@ type TProps = Pick<
   onChange: ChangeEventHandler<HTMLInputElement>;
   onValueChange: TValueChangeHandler;
 };
-export const OptionsLaborAndMaterials: FC<TProps> = ({
+export const PreferencesLaborAndMaterials: FC<TProps> = ({
   onValueChange,
   ...props
 }) => {

@@ -75,7 +75,7 @@ export const InputsSelect: FC<TProps> = ({
             'overflow-hidden'
           )}
           align="center"
-          side="top"
+          side="bottom"
         >
           <Select.Viewport>
             {values.map((value, index) => {
@@ -83,11 +83,7 @@ export const InputsSelect: FC<TProps> = ({
                 <Fragment key={value}>
                   {index !== 0 && <LinesHorizontalLight />}
                   <SelectItem
-                    className={cx(
-                      'relative row-space cursor-pointer outline-none select-none',
-                      'data-[highlighted]:bg-white-1 data-[highlighted]:bg-opacity-50',
-                      'drop-shadow-05'
-                    )}
+                 
                     value={value}
                   >
                     {value}

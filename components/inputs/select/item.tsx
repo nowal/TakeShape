@@ -18,7 +18,15 @@ export const SelectItem = forwardRef<
   ) => {
     return (
       <Select.Item
-        className={cx('flex flex-row items-center grow', 'p-2', classValue)}
+        className={cx(
+          'relative flex flex-row items-center grow',
+          'p-2',
+          'cursor-pointer outline-none select-none',
+          'data-[highlighted]:bg-white-1 data-[highlighted]:bg-opacity-50',
+          'drop-shadow-05',
+          'text-sm',
+          classValue
+        )}
         style={{
           ...style,
         }}

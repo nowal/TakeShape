@@ -1,17 +1,12 @@
-'use client';
+'use client';;
 import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { cx } from 'class-variance-authority';
-import { OptionsLaborAndMaterials } from '@/components/preferences/labor-and-materials';
+import { PreferencesLaborAndMaterials } from '@/components/preferences/labor-and-materials';
 import { PreferencesCeilingFields } from '@/components/preferences/ceiling-fields';
 import { PreferencesTrimFields } from '@/components/preferences/trim-fields';
-import {
-  PREFERENCES_NAME_BOOLEAN_CEILINGS,
-  PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE,
-  PREFERENCES_NAME_BOOLEAN_TRIM,
-} from '@/atom/constants';
+import { PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE } from '@/atom/constants';
 import { PreferencesFooter } from '@/components/preferences/footer';
 import { usePreferences } from '@/components/preferences/hook';
 import { PreferencesInitial } from '@/components/preferences/initial';
@@ -20,6 +15,7 @@ import { PreferencesNotificationsPaintPreferences } from '@/components/preferenc
 import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
 
 const Preferences: FC = () => {
+  const preferences = usePreferences();
   const {
     isPopup,
     isCeilingsPainted,
@@ -37,23 +33,18 @@ const Preferences: FC = () => {
     isShowTrimFields,
     isShowCeilingFields,
     ...paintPreferences
-  } = usePreferences();
-
+  } = preferences
   return (
-    <div className="flex flex-col justify-start items-center mb-32">
+    <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <div className="flex flex-col items-center">
-        <div className="flex flex-col items-stretch w-full sm:w-[718px]">
+        <div className="flex flex-col items-stretch w-full sm:w-[709px]">
           <div className="h-6" />
           <h2 className="typography-page-title-preferences">
             We want to make sure your quote is accurate.
           </h2>
           <div className="h-20" />
-          <NotificationsHighlight>
-            None of your information will be shared with
-            painters until you accept a quote. Rest assured,
-            your privacy is our priority.
-          </NotificationsHighlight>
+
           {isPopup && (
             <>
               <PreferencesNotificationsPaintPreferences />
@@ -61,7 +52,7 @@ const Preferences: FC = () => {
             </>
           )}
 
-          <div className={cx('fill-column-white')}>
+          <div className={cx('flex flex-col items-stretch w-full shadow-08 py-9 px-6 bg-white')}>
             <h4 className="typography-form-title">
               What type of service would you like quoted?
             </h4>
@@ -77,12 +68,12 @@ const Preferences: FC = () => {
                   Please select your preferences
                 </h4>
                 <h5 className="typography-form-notification">
-                  If you have diffuculties with chosing the
+                  If you have difficulties with chosing the
                   option, please pick the “uncertain” in the
                   menu.
                 </h5>
                 <div className="h-4" />
-                <OptionsLaborAndMaterials
+                <PreferencesLaborAndMaterials
                   onValueChange={onValueChange}
                   onChange={onChange}
                   color={paintPreferences.color}
@@ -137,7 +128,6 @@ const Preferences: FC = () => {
                 furniture?
               </PreferencesRowYesNo>
             </div>
-
             <PreferencesSpecialRequest
               value={specialRequests}
               onChange={(event) =>
@@ -147,7 +137,6 @@ const Preferences: FC = () => {
               }
             />
             <div className="h-5" />
-
             <PreferencesFooter
               isLoading={isLoading}
               onPreferenceSubmit={onPreferenceSubmit}
