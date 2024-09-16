@@ -6,16 +6,17 @@ const pwd = resolvePwd();
 
 export const TEST_SCREENS_DIR = `${pwd}/test/screens/prev`;
 
-(async () => {
+const init = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
   for await (const size of TEST_SCREENS_SIZES) {
     await page.setViewport(size);
 
-    const website_url = 'https://www.takeshapehome.com/quote';
+    const website_url =
+      'https://www.takeshapehome.com/defaultPreferences?userImageId=2Cpkl81uM1joK7VBWsvs';
     await page.goto(website_url, {
-      waitUntil: 'networkidle0',
+      waitUntil: ['load', 'networkidle0'],
     });
     // Capture screenshot
     await page.screenshot({
@@ -24,4 +25,6 @@ export const TEST_SCREENS_DIR = `${pwd}/test/screens/prev`;
   }
 
   await browser.close();
-})();
+};
+
+init();

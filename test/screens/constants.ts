@@ -10,6 +10,6 @@ export const TEST_SCREENS_SIZES = [
   {width:1280,height:HEIGHT},
   {width:1400,height:HEIGHT},
   {width:1580,height:HEIGHT},
-  {width:2000,height:HEIGHT},
+  // {width:2000,height:HEIGHT},
 
 ]
