@@ -140,18 +140,27 @@ input {
     @apply text-black-4 font-medium text-sm;
   }
   .typography-form-title-base {
-    @apply text-black text-sm font-montserrat;
+    @apply text-black text-center text-base font-montserrat;
   }
   .typography-form-title {
     @apply typography-form-title-base font-semibold;
   }
   .typography-form-subtitle {
-    @apply typography-form-title-base font-medium;
+    @apply typography-form-title-base font-bold;
+  }
+  .typography-form-notification {
+    @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
   }
   .fill-column-white {
-    @apply flex flex-col items-center w-full shadow-08 py-9 px-6 bg-white rounded-2xl;
+    @apply flex flex-col items-stretch w-full shadow-08 py-9 px-6 bg-white rounded-2xl;
   }
-  .fill-row-gray {
-    @apply flex flex-row items-center justify-between w-full py-2 px-4 bg-white-2 rounded-lg w-full;
+  .fill-gray-base {
+    @apply flex w-full bg-white-2 rounded-lg w-full;
+  }
+  .fill-gray-row {
+    @apply fill-gray-base flex-row items-center justify-between;
+  }
+  .fill-gray-col {
+    @apply fill-gray-base flex-col items-stretch;
   }
 }

@@ -12,9 +12,13 @@ type TProps = {
   isChecked: boolean;
   onChange(isChecked: boolean): void;
 } & TButtonsCvaInputProps;
-export const DefaultPreferencesOptionsInitialInput: FC<
-  TProps
-> = ({ Icon, value, isChecked, onChange, ...props }) => {
+export const PreferencesInitialInput: FC<TProps> = ({
+  Icon,
+  value,
+  isChecked,
+  onChange,
+  ...props
+}) => {
   const { children, inputProps, ...restProps } = props;
   return (
     <li className="grow w-full relative">

@@ -1,5 +1,6 @@
 import { DEFAULT_MIN_MAX_100 } from '@/components/inputs/constants';
-
+import { ChangeEventHandler } from 'react';
+export type TChangeHandler = ChangeEventHandler<HTMLInputElement>;
 export type TValueChangeHandler = (
   name: string,
   value: string | number | boolean

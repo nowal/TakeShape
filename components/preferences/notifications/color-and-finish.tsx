@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-export const OptionsLaborAndMaterialsNotificationsColorAndFinish: FC = () => {
+export const PreferencesNotificationsColorAndFinish: FC = () => {
   return (
     <span className="tooltip">
       ?

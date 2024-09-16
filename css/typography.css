@@ -150,3 +150,16 @@ font-weight: 600;
 line-height: 100%; /* 12px */
 letter-spacing: -0.24px;
 }
+
+.x {
+  color: var(--Input-Text, #858585);
+text-align: center;
+
+/* D3 */
+font-family: Montserrat;
+font-size: 14px;
+font-style: normal;
+font-weight: 600;
+line-height: 24px; /* 171.429% */
+letter-spacing: -0.28px;
+}

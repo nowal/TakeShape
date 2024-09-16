@@ -1,21 +1,25 @@
 'use client';
-import React, { FC, Suspense } from 'react';
+import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { cx } from 'class-variance-authority';
-import { DefaultPreferencesFooter } from '@/components/preferences/footer';
-import { useDefaultPreferences } from '@/components/preferences/hook';
-import { OptionsLaborAndMaterials } from '@/components/preferences/options/labor-and-materials';
-import { DefaultPreferencesOptions } from '@/components/preferences/options';
-import { DefaultPreferencesOptionsInitial } from '@/components/preferences/options/initial';
-import { DefaultPreferencesOptionsPopup } from '@/components/preferences/popup';
-import { DefaultPreferencesSpecialRequest } from '@/components/preferences/special-request';
-import { LaborAndMaterialsCeilingFields } from '@/components/preferences/options/labor-and-materials/ceiling-fields';
-import { DefaultPreferencesEnd } from '@/components/preferences/end';
-import { LaborAndMaterialsShowFields } from '@/components/preferences/options/labor-and-materials/show-fields';
+import { OptionsLaborAndMaterials } from '@/components/preferences/labor-and-materials';
+import { PreferencesCeilingFields } from '@/components/preferences/ceiling-fields';
+import { PreferencesTrimFields } from '@/components/preferences/trim-fields';
+import {
+  PREFERENCES_NAME_BOOLEAN_CEILINGS,
+  PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE,
+  PREFERENCES_NAME_BOOLEAN_TRIM,
+} from '@/atom/constants';
+import { PreferencesFooter } from '@/components/preferences/footer';
+import { usePreferences } from '@/components/preferences/hook';
+import { PreferencesInitial } from '@/components/preferences/initial';
+import { PreferencesSpecialRequest } from '@/components/preferences/special-request';
+import { PreferencesNotificationsPaintPreferences } from '@/components/preferences/notifications/paint-preferences';
+import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
 
-const DefaultPreferences: FC = () => {
+const Preferences: FC = () => {
   const {
     isPopup,
     isCeilingsPainted,
@@ -25,60 +29,59 @@ const DefaultPreferences: FC = () => {
     isTrimAndDoorsPainted,
     onChange,
     onValueChange,
-    onLaborMaterialChange,
+    onLaborAndMaterialsChange,
     onPreferenceSubmit,
-    onSpecialRequests,
+    dispatchMoveFurniture,
+    dispatchSpecialRequests,
     specialRequests,
-    // color,
-    // finish,
-    // trim,
-    // trimColor,
-    // trimFinish,
     isShowTrimFields,
     isShowCeilingFields,
     ...paintPreferences
-  } = useDefaultPreferences();
-  // console.log(isLaborAndMaterials, paintvPreferences);
+  } = usePreferences();
 
   return (
-    <div className="defaultPreferences flex flex-col justify-start items-center h-screen mb-32">
+    <div className="flex flex-col justify-start items-center mb-32">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <div className="flex flex-col items-center">
-        <div className="flex flex-col items-center w-[718px]">
+        <div className="flex flex-col items-stretch w-full sm:w-[718px]">
+          <div className="h-6" />
           <h2 className="typography-page-title-preferences">
             We want to make sure your quote is accurate.
           </h2>
-          <NotificationsHighlight classValue="mt-2">
+          <div className="h-20" />
+          <NotificationsHighlight>
             None of your information will be shared with
             painters until you accept a quote. Rest assured,
             your privacy is our priority.
           </NotificationsHighlight>
-          {isPopup && <DefaultPreferencesOptionsPopup />}
-          <div
-            className={cx(
-              'fill-column-white',
-              'gap-2',
-              'mt-4'
-            )}
-          >
+          {isPopup && (
+            <>
+              <PreferencesNotificationsPaintPreferences />
+              <div className="h-6" />
+            </>
+          )}
+
+          <div className={cx('fill-column-white')}>
             <h4 className="typography-form-title">
               What type of service would you like quoted?
             </h4>
-            <DefaultPreferencesOptionsInitial
-              onChange={onLaborMaterialChange}
+            <div className="h-4" />
+            <PreferencesInitial
+              onChange={onLaborAndMaterialsChange}
               isLaborAndMaterials={isLaborAndMaterials}
-            />
-            <h4 className="typography-form-subtitle">
-              Do you need additional help?
-            </h4>
-            <DefaultPreferencesOptions
-              isCeilingsPainted={isCeilingsPainted}
-              isMoveFurniture={isMoveFurniture}
-              isTrimAndDoorsPainted={isTrimAndDoorsPainted}
-              onChange={onChange}
             />
             {isLaborAndMaterials && (
               <>
+                <div className="h-14" />
+                <h4 className="typography-form-subtitle">
+                  Please select your preferences
+                </h4>
+                <h5 className="typography-form-notification">
+                  If you have diffuculties with chosing the
+                  option, please pick the “uncertain” in the
+                  menu.
+                </h5>
+                <div className="h-4" />
                 <OptionsLaborAndMaterials
                   onValueChange={onValueChange}
                   onChange={onChange}
@@ -88,42 +91,64 @@ const DefaultPreferences: FC = () => {
                     paintPreferences.paintQuality
                   }
                 />
-                <LaborAndMaterialsCeilingFields
-                  isCeilingsPainted={isCeilingsPainted}
-                  onValueChange={onValueChange}
-                  ceilingColor={
-                    paintPreferences.ceilingColor
-                  }
-                  ceilingFinish={
-                    paintPreferences.ceilingFinish
-                  }
-                  isSelected={
-                    isShowCeilingFields &&
-                    isLaborAndMaterials
-                  }
-                />
-                <LaborAndMaterialsShowFields
-                  isTrimAndDoorsPainted={
-                    isTrimAndDoorsPainted
-                  }
-                  trimColor={paintPreferences.trimColor}
-                  trimFinish={paintPreferences.trimFinish}
-                  onChange={onChange}
-                  onValueChange={onValueChange}
-                  isSelected={
-                    isShowTrimFields && isLaborAndMaterials
-                  }
-                />
-                <DefaultPreferencesEnd />
               </>
             )}
-            <DefaultPreferencesSpecialRequest
+            <div className="h-14" />
+            <h4 className="typography-form-subtitle">
+              Do you need additional help?
+            </h4>
+            <div className="h-4" />
+            <div className="flex flex-col items-stretch gap-2">
+              <PreferencesCeilingFields
+                isCeilingsPainted={isCeilingsPainted}
+                onValueChange={onValueChange}
+                onChange={onChange}
+                ceilingColor={paintPreferences.ceilingColor}
+                ceilingFinish={
+                  paintPreferences.ceilingFinish
+                }
+                isSelected={
+                  isShowCeilingFields && isLaborAndMaterials
+                }
+              />
+              <PreferencesTrimFields
+                isTrimAndDoorsPainted={
+                  isTrimAndDoorsPainted
+                }
+                trimColor={paintPreferences.trimColor}
+                trimFinish={paintPreferences.trimFinish}
+                onChange={onChange}
+                onValueChange={onValueChange}
+                isSelected={
+                  isShowTrimFields && isLaborAndMaterials
+                }
+              />
+              <PreferencesRowYesNo
+                name={
+                  PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE
+                }
+                isChecked={isMoveFurniture}
+                onChange={() => {
+                  dispatchMoveFurniture((prev) => !prev);
+                }}
+                classValue="fill-gray-base"
+              >
+                Will the painters need to move any
+                furniture?
+              </PreferencesRowYesNo>
+            </div>
+
+            <PreferencesSpecialRequest
               value={specialRequests}
-              onChange={(e) =>
-                onSpecialRequests(e.target.value)
+              onChange={(event) =>
+                dispatchSpecialRequests(
+                  event.currentTarget.value
+                )
               }
             />
-            <DefaultPreferencesFooter
+            <div className="h-5" />
+
+            <PreferencesFooter
               isLoading={isLoading}
               onPreferenceSubmit={onPreferenceSubmit}
             />
@@ -134,10 +159,10 @@ const DefaultPreferences: FC = () => {
   );
 };
 
-const DefaultPreferencesWithSuspense: FC = () => (
+const PreferencesWithSuspense: FC = () => (
   <Suspense fallback={<FallbacksLoading />}>
-    <DefaultPreferences />
+    <Preferences />
   </Suspense>
 );
 
-export default DefaultPreferencesWithSuspense;
+export default PreferencesWithSuspense;

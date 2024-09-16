@@ -7,7 +7,7 @@ type TProps = {
   isLoading: boolean;
   onPreferenceSubmit(path: string, flag: boolean): void;
 };
-export const DefaultPreferencesFooter: FC<TProps> = ({
+export const PreferencesFooter: FC<TProps> = ({
   isLoading,
   onPreferenceSubmit,
 }) => {
@@ -18,15 +18,14 @@ export const DefaultPreferencesFooter: FC<TProps> = ({
     : 'Submit Preferences';
   const resubmitTitle = 'Resubmit Video';
   return (
-    <footer className="flex flex-row items-center justify-between w-full">
-      <div className="flex flex-row items-end gap-4 my-4">
+    <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
+      <div className="flex flex-col items-end gap-4 my-4 xs:flex-row">
         <div>[preferences go here...]</div>
         <ButtonsCvaButton
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}
           onTap={() => router.push('/quote')}
           classValue="gap-2"
-          // className="resubmit-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
         >
           {resubmitTitle}
         </ButtonsCvaButton>

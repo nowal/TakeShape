@@ -60,6 +60,7 @@ const config: Config = {
         'gray-7': '#5F5F5F',
         'gray-8': '#f8f8f8',
         'gray-9': '#AAAAAA',
+        'gray-10': '#ececec'
       },
       borderRadius: {
         '15.1875': '15.1875rem',
@@ -91,6 +92,7 @@ const config: Config = {
       },
       letterSpacing: {
         'tight-06': '-0.06em',
+        'tight-02':'-0.02em'
       },
       spacing: {
         0.25: '0.0625rem',

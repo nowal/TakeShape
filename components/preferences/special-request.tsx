@@ -4,14 +4,17 @@ import { TTextareaMotionProps } from '@/types/dom';
 import { cx } from 'class-variance-authority';
 
 type TProps = TTextareaMotionProps;
-export const DefaultPreferencesSpecialRequest: FC<
-  TProps
-> = ({ classValue, ...props }) => {
+export const PreferencesSpecialRequest: FC<TProps> = ({
+  classValue,
+  ...props
+}) => {
   return (
-    <label className="flex flex-col items-center gap-2 w-full">
+    <label className="flex flex-col items-center w-full">
+      <div className="h-14" />
       <h4 className="typography-form-subtitle">
         Special Request
       </h4>
+      <div className="h-4" />
       <motion.textarea
         name="specialRequests"
         placeholder="E.g. Don't paint ceilings in bedrooms, don't remove nails in the wall"

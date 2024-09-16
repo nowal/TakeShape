@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-export const OptionsLaborAndMaterialsNotificationsColorField: FC = () => {
+export const PreferencesNotificationsColorField: FC = () => {
   return (
     <div className="tooltip-container">
       <span className="help-link text-sm">Undecided?</span>

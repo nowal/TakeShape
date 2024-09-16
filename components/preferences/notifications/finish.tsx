@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-export const LaborAndMaterialsNotificationsFinish: FC = () => {
+export const PreferencesNotificationsFinish: FC = () => {
   return (
     <div>
       <span className="tooltip">

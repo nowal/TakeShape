@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
   useRouter,
@@ -15,17 +15,23 @@ import {
 } from 'firebase/firestore';
 import { defaultPreferencesAtom } from '../../atom/atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
-import { PAINT_PREFERENCES_DEFAULTS } from '@/atom/constants';
+import {
+  PAINT_PREFERENCES_DEFAULTS,
+  PREFERENCES_NAME_BOOLEAN_CEILINGS,
+  PREFERENCES_NAME_BOOLEAN_TRIM,
+} from '@/atom/constants';
+import { RADIO_VALUE_YES } from '@/components/preferences/row/yes-no';
 
-export const useDefaultPreferences = () => {
+export const usePreferences = () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authInitialized, setAuthInitialized] =
     useState(false);
-  const [defaultPreferences, setDefaultPreferences] =
-    useAtom(defaultPreferencesAtom);
+  const [defaultPreferences, setPreferences] = useAtom(
+    defaultPreferencesAtom
+  );
   const [isShowCeilingFields, setShowCeilingFields] =
     useState(defaultPreferences.ceilings || false);
   const [isShowTrimFields, setShowTrimFields] = useState(
@@ -46,7 +52,7 @@ export const useDefaultPreferences = () => {
     sessionStorage.getItem('userImageId');
 
   useEffect(() => {
-    setDefaultPreferences({
+    setPreferences({
       ...PAINT_PREFERENCES_DEFAULTS,
       ...defaultPreferences,
     });
@@ -65,11 +71,11 @@ export const useDefaultPreferences = () => {
 
   useEffect(() => {
     if (authInitialized && auth.currentUser) {
-      fetchUserDefaultPreferences();
+      fetchUserPreferences();
     }
   }, [authInitialized, auth.currentUser, firestore]);
 
-  const fetchUserDefaultPreferences = async () => {
+  const fetchUserPreferences = async () => {
     if (!auth.currentUser || !userImageId) return;
 
     const userImageDocRef = doc(
@@ -99,7 +105,7 @@ export const useDefaultPreferences = () => {
           paintPrefDocRef
         );
         if (paintPrefDocSnap.exists()) {
-          setDefaultPreferences({
+          setPreferences({
             laborAndMaterial: isLaborAndMaterials,
             ...PAINT_PREFERENCES_DEFAULTS,
             ...paintPrefDocSnap.data(),
@@ -115,7 +121,7 @@ export const useDefaultPreferences = () => {
       }
     } else {
       setLaborAndMaterial(true); // Default to labor and material if no document found
-      setDefaultPreferences({
+      setPreferences({
         laborAndMaterial: isLaborAndMaterials,
         ...PAINT_PREFERENCES_DEFAULTS,
       });
@@ -189,7 +195,7 @@ export const useDefaultPreferences = () => {
         )?.value || defaultPreferences.trimFinish,
     };
 
-    setDefaultPreferences(updatedPreferences);
+    setPreferences(updatedPreferences);
 
     await setDoc(paintPrefDocRef, updatedPreferences, {
       merge: true,
@@ -212,7 +218,7 @@ export const useDefaultPreferences = () => {
     name,
     value
   ) => {
-    setDefaultPreferences((prev) => ({
+    setPreferences((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -220,30 +226,32 @@ export const useDefaultPreferences = () => {
 
   const handleChange = (
     event:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<HTMLSelectElement>
+      | ChangeEvent<HTMLInputElement>
+      | ChangeEvent<HTMLSelectElement>
   ) => {
-    const target = event.target as HTMLInputElement;
-    const value: string | boolean =
-      target.type === 'checkbox'
-        ? target.checked
-        : target.value;
-    const name = target.name;
-
-    handleValueChange(name, value);
-
-    console.log(name, value, target.type);
+    const target = event.currentTarget as HTMLInputElement;
+    let value: string | boolean = target.value;
 
     if (target.type === 'checkbox') {
-      if (name === 'ceilings') {
-        setShowCeilingFields(target.checked);
-      } else if (name === 'trim') {
-        setShowTrimFields(target.checked);
+      value = target.checked;
+    }
+
+    const name = target.name;
+
+    if (target.type === 'radio') {
+      value = target.value === RADIO_VALUE_YES;
+      if (name === PREFERENCES_NAME_BOOLEAN_CEILINGS) {
+        setShowCeilingFields(value);
+      } else if (name === PREFERENCES_NAME_BOOLEAN_TRIM) {
+        setShowTrimFields(value);
       }
     }
+    handleValueChange(name, value);
   };
 
-  const handleLaborMaterialChange = (value: boolean) => {
+  const handleLaborAndMaterialsChange = (
+    value: boolean
+  ) => {
     setLaborAndMaterial(value);
     setShowCeilingFields(
       defaultPreferences.ceilings ?? isShowCeilingFields
@@ -254,9 +262,11 @@ export const useDefaultPreferences = () => {
   };
 
   const isTrimAndDoorsPainted =
-    defaultPreferences.trim || false;
+    defaultPreferences[PREFERENCES_NAME_BOOLEAN_TRIM] ??
+    false;
   const isCeilingsPainted =
-    defaultPreferences.ceilings || false;
+    defaultPreferences[PREFERENCES_NAME_BOOLEAN_CEILINGS] ??
+    false;
 
   return {
     isPopup,
@@ -264,15 +274,17 @@ export const useDefaultPreferences = () => {
     isLoading,
     isTrimAndDoorsPainted,
     onValueChange: handleValueChange,
-    onLaborMaterialChange: handleLaborMaterialChange,
+    onLaborAndMaterialsChange:
+      handleLaborAndMaterialsChange,
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
     specialRequests,
-    onSpecialRequests: setSpecialRequests,
+    dispatchSpecialRequests: setSpecialRequests,
     isMoveFurniture: Boolean(isMoveFurniture),
-    onMoveFurniture: setMoveFurniture,
+    dispatchShowCeilingFields: setShowCeilingFields,
+    dispatchShowTrimFields: setShowTrimFields,
+    dispatchMoveFurniture: setMoveFurniture,
     isLaborAndMaterials: isLaborAndMaterials === true,
-    onLaborAndMaterial: setLaborAndMaterial,
     isShowCeilingFields,
     isShowTrimFields,
     ...defaultPreferences,

@@ -40,9 +40,11 @@ export const InputsSelect: FC<TProps> = ({
             'text-left',
             'truncate',
             'ring-0 outline-0',
-            'py-3',
+            'py-2',
             'px-4',
-            'border border-gray-1 rounded-4xl'
+            'border border-gray-1 rounded-4xl',
+            'text-sm',
+            'font-medium'
           )}
           aria-label={placeholder}
         >
