@@ -40,6 +40,8 @@ const config: Config = {
         'white-2': '#F9F9F9',
         'white-3': '#F5F5F5',
         'white-4': '#EDEDED',
+        'white-5': '#FDFDFD',
+
 
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',

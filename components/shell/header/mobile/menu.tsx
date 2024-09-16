@@ -1,12 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { IconsHamburger } from '@/components/icons/hamburger';
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
 import { HeaderOptions } from '@/components/shell/header/options';
 import { cx } from 'class-variance-authority';
 import { useViewport } from '@/context/viewport';
+import { ShellHeaderMobileButton } from '@/components/shell/header/mobile/button';
 
 export const ShellHeaderMobileMenu = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -22,15 +21,9 @@ export const ShellHeaderMobileMenu = () => {
 
   return (
     <div className="relative flex items-center justify-center size-12 text-pink shrink-0 shadow-09 rounded-md lg:hidden">
-      <ButtonsCvaButton
-        title="Menu"
-        size="fill"
-        layout={false}
-        center={true}
+      <ShellHeaderMobileButton
         onTap={() => setMenuOpen((prev) => !prev)}
-      >
-        <IconsHamburger />
-      </ButtonsCvaButton>
+      />
       {isMenuOpen && (
         <>
           {createPortal(

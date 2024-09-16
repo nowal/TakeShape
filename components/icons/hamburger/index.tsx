@@ -1,0 +1,24 @@
+import {
+  CommonIcon,
+  TCommonIconProps,
+} from '@/components/icon';
+import type { FC } from 'react';
+
+type TProps = TCommonIconProps;
+export const IconsHamburger: FC<TProps> = ({
+  ...props
+}) => {
+  return (
+    <CommonIcon
+      width="1em"
+      height="1em"
+      classValue="size-9 shrink-0"
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      d="M5.5 24h37m-37 13h37m-37-26h37"
+      {...props}
+    />
+  );
+};

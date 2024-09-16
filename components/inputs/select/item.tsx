@@ -33,10 +33,8 @@ export const SelectItem = forwardRef<
         {...props}
         ref={forwardedRef}
       >
-        <h4 className={cx('text-gray-7', 'p-2')}>
-          <Select.ItemText className="p-2">
-            {children}
-          </Select.ItemText>
+        <h4 className={cx('text-gray-7')}>
+          <Select.ItemText>{children}</Select.ItemText>
         </h4>
         {/* <Select.ItemIndicator>
           <IconsCheckboxChecked />

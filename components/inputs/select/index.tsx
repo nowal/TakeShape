@@ -11,7 +11,7 @@ import { TValueChangeHandler } from '@/components/inputs/types';
 export type TInputsSelectProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
   TInputsSelectProps,
-  'defaultValue'|'value'
+  'defaultValue' | 'value'
 >;
 type TProps = TBaseInputsSelectProps & {
   title?: string | JSX.Element;
@@ -66,10 +66,9 @@ export const InputsSelect: FC<TProps> = ({
           position="popper"
           className={clsx(
             'column-stretch z-20',
-            'rounded-xl',
             'my-2',
+            'rounded-xl',
             'border border-gray-8',
-            // 'py-0.5',
             'bg-white',
             'drop-shadow-05',
             'overflow-hidden'
@@ -82,10 +81,7 @@ export const InputsSelect: FC<TProps> = ({
               return (
                 <Fragment key={value}>
                   {index !== 0 && <LinesHorizontalLight />}
-                  <SelectItem
-                 
-                    value={value}
-                  >
+                  <SelectItem value={value}>
                     {value}
                   </SelectItem>
                 </Fragment>

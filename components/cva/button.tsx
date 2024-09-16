@@ -6,10 +6,10 @@ import { TButtonsCvaProps } from '@/components/cva/types';
 import { TButtonMotionProps } from '@/types/dom';
 import { NOOP } from '@/constants/functions';
 
-type TProps = TButtonsCvaProps<TButtonMotionProps>;
+export type TButtonsCvaButtonProps = TButtonsCvaProps<TButtonMotionProps>;
 const ButtonsCvaButton = forwardRef<
   HTMLButtonElement,
-  TProps
+  TButtonsCvaButtonProps
 >(({ type, onTap, title, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
 

@@ -1,13 +1,17 @@
+import {
+  CommonIcon,
+  TCommonIconProps,
+} from '@/components/icon';
 import type { FC } from 'react';
 
-export const IconsLoading: FC = () => {
+type TProps = TCommonIconProps;
+export const IconsLoading: FC<TProps> = ({ ...props }) => {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
+    <CommonIcon
       width="1em"
       height="1em"
-      className="size-9 shrink-0"
       viewBox="0 0 24 24"
+      {...props}
     >
       <circle cx="12" cy="2" r="0" fill="currentColor">
         <animate
@@ -139,6 +143,6 @@ export const IconsLoading: FC = () => {
           values="0;2;0;0"
         />
       </circle>
-    </svg>
+    </CommonIcon>
   );
 };
