@@ -67,6 +67,7 @@ const Preferences: FC = () => {
                 <h4 className="typography-form-subtitle">
                   Please select your preferences
                 </h4>
+                <div className="h-1" />
                 <h5 className="typography-form-notification">
                   If you have difficulties with chosing the
                   option, please pick the “uncertain” in the

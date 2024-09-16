@@ -7,11 +7,11 @@ import { timestampPairsAtom } from '../../atom/atom';
 import { userDataAtom, isPainterAtom, documentIdAtom, checkingAuthAtom, userTypeLoadingAtom, videoURLAtom, uploadStatusAtom, uploadProgressAtom } from '../../atom/atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, setDoc, getDoc, arrayUnion, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import PainterDashboard from '../../components/painterDashboard';
+import PainterDashboard from '../../components/dashboard/painter';
 import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
 import PainterCard from '../../components/painterCard';
 import RoomCard from '@/components/roomCard';
-import { TimestampPair, UserData, TPaintPreferences } from '@/types/types';
+import { TimestampPair, TUserData, TPaintPreferences } from '@/types/types';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripePayment from "@/components/stripePayment";
@@ -579,7 +579,7 @@ const saveTimestampToFirestore = async (startTime: number, color: string = defau
         return <div className="loading">Please log in to view this page.</div>;
     }
 
-    const renderQuotes = (prices: UserData['prices']) => {
+    const renderQuotes = (prices: TUserData['prices']) => {
         if (!prices || prices.length === 0) {
             return (
                 <div className="text-2xl mb-14 mt-8 font-bold">
@@ -960,7 +960,7 @@ const RoomPreferences = () => {
     }, [auth.currentUser, firestore]);
 
     useEffect(() => {
-        console.log("UserData: ", userData);
+        console.log("TUserData: ", userData);
         console.log("Video URL: ", userData?.video);
     }, [userData]);
 

@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import {
-  UserData,
+  TUserData,
   TimestampPair,
   TPaintPreferences,
 } from '../types/types';
@@ -8,9 +8,11 @@ import {
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
   PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
   PREFERENCES_NAME_BOOLEAN_TRIM,
-} from '@/atom/constants';
 
-export const userDataAtom = atom<UserData | null>(null);
+} from '@/atom/constants';
+import { TUploadStatusKey } from '@/atom/types';
+
+export const userDataAtom = atom<TUserData | null>(null);
 export const isPainterAtom = atom<boolean>(false);
 export const checkingAuthAtom = atom<boolean>(true);
 export const userTypeLoadingAtom = atom<boolean>(true);
@@ -24,9 +26,8 @@ export const painterInfoAtom = atom({
 });
 export const uploadProgressAtom = atom<number>(0);
 export const videoURLAtom = atom<string>('');
-export const uploadStatusAtom = atom<
-  'idle' | 'uploading' | 'completed' | 'error'
->('idle');
+export const uploadStatusAtom =
+  atom<TUploadStatusKey>('idle');
 export const documentIdAtom = atom<string | null>(null);
 export const timestampPairsAtom = atom<TimestampPair[]>([]);
 export const defaultPreferencesAtom =

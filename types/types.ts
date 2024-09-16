@@ -1,8 +1,7 @@
-import { PREFERENCES_NAME_BOOLEAN_CEILINGS } from '@/atom/constants';
 import { TPreferencesNameBooleansKey } from '@/atom/types';
 
 // types.ts
-export type Price = {
+export type TPrice = {
   painterId: string;
   amount: number;
   invoiceUrl?: string;
@@ -13,18 +12,18 @@ export type Price = {
 export type UserImage = {
   userImageId: string;
   video?: string;
-  prices?: Price[];
+  prices?: TPrice[];
   title?: string;
 };
 
-export type UserData = {
+export type TUserData = {
   email?: string;
   quote?: string | null;
   video?: string;
   reAgent?: string;
   paintPreferencesId?: string;
   userImages?: string[]; // Array of userImage IDs
-  prices?: Price[];
+  prices?: TPrice[];
   title?: string;
 };
 export type TPaintPreferencesFlags = Record<
@@ -40,7 +39,11 @@ export type TPaintPreferences = TPaintPreferencesFlags & {
   trimFinish?: string;
   paintQuality?: string;
 };
-
+export type TAgentInfo = {
+  name: string;
+  profilePictureUrl: string;
+  preferredPainters: string[];
+} | null;
 export type TimestampPair = {
   startTime: number;
   endTime?: number;
@@ -75,3 +78,11 @@ export type Job = {
     acceptedQuoteId: string;
   }>;
 };
+
+
+export type TUserImage = { id: string; title: string };
+
+export type TAcceptQuoteHandler =  (
+  painterId: string,
+  price: number
+) => Promise<void>
