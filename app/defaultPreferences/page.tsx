@@ -52,7 +52,7 @@ const Preferences: FC = () => {
             </>
           )}
 
-          <div className={cx('flex flex-col items-stretch w-full shadow-08 py-9 px-6 bg-white')}>
+          <div className={cx('flex flex-col items-stretch w-full py-9 px-6')}>
             <h4 className="typography-form-title">
               What type of service would you like quoted?
             </h4>
