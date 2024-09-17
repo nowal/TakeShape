@@ -20,9 +20,11 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { TTapEvent } from '@/types/dom';
-import { TSignInButtonProps } from '@/components/buttons/sign-in-button';
+import { TAuthConfig } from '@/context/auth/types';
 
-export const useSignIn = (props: TSignInButtonProps) => {
+export const useSignIn = ({
+  dispatchUserLoggedIn,
+}: TAuthConfig) => {
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +39,8 @@ export const useSignIn = (props: TSignInButtonProps) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsSignedIn(!!user); // Set true if user exists, false otherwise
+      dispatchUserLoggedIn(Boolean(user));
+      // setIsSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
@@ -120,15 +123,15 @@ export const useSignIn = (props: TSignInButtonProps) => {
   };
 
   const handleEmailChange = (
-    e: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
-    setEmail(e.target.value);
+    setEmail(event.target.value);
   };
 
   const handlePasswordChange = (
-    e: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
-    setPassword(e.target.value);
+    setPassword(event.target.value);
   };
 
   const title = isSignedIn ? 'Sign Out' : 'Login';
@@ -143,9 +146,6 @@ export const useSignIn = (props: TSignInButtonProps) => {
 
   const handleClose = () => {
     setShowModal(false);
-    if (props.onClose) {
-      props.onClose();
-    }
   };
 
   return {

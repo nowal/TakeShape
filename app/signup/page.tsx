@@ -38,6 +38,8 @@ import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { SignUpLogin } from '@/components/sign-up/login';
+import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 
 const SignupAccountForm = () => {
   const [email, setEmail] = useState('');
@@ -51,7 +53,7 @@ const SignupAccountForm = () => {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [painterInfo] = useAtom(painterInfoAtom);
-  const [showLoginInstead, setShowLoginInstead] =
+  const [isShowLoginInstead, setShowLoginInstead] =
     useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
@@ -310,20 +312,11 @@ const SignupAccountForm = () => {
     }
   };
 
-  if (showLoginInstead) {
+  if (isShowLoginInstead) {
     return (
-      <div className="p-8">
-        <h2 className="text-center text-2xl font-bold mb-6">
-          Already have an account?
-        </h2>
-        <SignInButton />
-        <button
-          onClick={() => setShowLoginInstead(false)}
-          className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded"
-        >
-          Go Back
-        </button>
-      </div>
+      <SignUpLogin
+        onTap={() => setShowLoginInstead(false)}
+      />
     );
   }
 
@@ -417,8 +410,8 @@ const SignupAccountForm = () => {
             <div className="mt-3.5 text-center">
               <p>
                 <span className="text-black-5">
-                  Already have an account?
-                </span>{' '}
+                  {ALREADY_HAVE_AN_ACCOUNT_TEXT}
+                </span>
                 <ButtonsCvaButton
                   type="submit"
                   isDisabled={isLoading}

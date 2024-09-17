@@ -2,23 +2,15 @@ import { FC } from 'react';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
-import { THeaderOptionsProps } from '@/components/shell/header/options';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { useSignIn } from '@/components/buttons/sign-in-button/hook';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaLink } from '@/components/cva/link';
-import { CommonIconClose } from '@/components/icons/close';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { CommonIconCloseFat } from '@/components/icons/close/fat';
+import { useAuth } from '@/context/auth/provider';
 
-export type TSignInButtonProps = THeaderOptionsProps & {
-  className?: string;
-};
-const SignInButton: FC<TSignInButtonProps> = ({
-  className,
-  ...props
-}) => {
-  const signIn = useSignIn(props);
+const SignInButton: FC = () => {
+  const { signIn } = useAuth();
 
   const {
     isLoading,
@@ -47,7 +39,6 @@ const SignInButton: FC<TSignInButtonProps> = ({
     <>
       <ButtonsCvaButton
         onTap={onClick}
-        className={`${className || ''}`}
         title={title}
         intent="ghost"
         layout={false}
@@ -95,7 +86,6 @@ const SignInButton: FC<TSignInButtonProps> = ({
                       onChange={onPasswordChange}
                       placeholder="Password"
                       classRounded="rounded-lg"
-                      //  className="p-2 border rounded w-full"
                     />
                     {errorMessage && (
                       <NotificationsHighlight>
@@ -103,15 +93,10 @@ const SignInButton: FC<TSignInButtonProps> = ({
                       </NotificationsHighlight>
                     )}
                   </div>
-<div className='h-5'/>
+                  <div className="h-5" />
                   <ButtonsCvaButton
                     title={submitButtonTitle}
                     type="submit"
-                    // className={`text-sm sm:text-bas button-green ${
-                    //   isLoading
-                    //     ? 'opacity-50 cursor-not-allowed'
-                    //     : ''
-                    // }`}
                     center
                     classValue="w-full text-center"
                     intent="primary"
@@ -120,7 +105,7 @@ const SignInButton: FC<TSignInButtonProps> = ({
                   >
                     {submitButtonTitle}
                   </ButtonsCvaButton>
-                  <div className='h-2'/>
+                  <div className="h-2" />
 
                   <ButtonsCvaLink
                     onTap={onClose}

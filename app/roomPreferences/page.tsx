@@ -291,7 +291,7 @@ const RoomPreferences = () => {
   ]);
 
   useEffect(() => {
-    // Check for and potentially add an initial timestampPair when the component mounts
+    // Check for and potentially add an initial TTimestampPair when the component mounts
     // and only if the video has been fully uploaded
     if (
       timestampPairs.length === 0 &&
@@ -1160,7 +1160,7 @@ import { timestampPairsAtom, userDataAtom } from '../../atom/atom';
 import RoomCard from '@/components/roomCard';
 import { getFirestore, setDoc, getDoc, arrayUnion, arrayRemove, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { TimestampPair } from '@/types/types';
+import { TTimestampPair } from '@/types/types';
 
 const RoomPreferences = () => {
     const firestore = getFirestore();
@@ -1169,7 +1169,7 @@ const RoomPreferences = () => {
     const [userData, setUserData] = useAtom(userDataAtom);
     const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
     const [userImageRef, setUserImageRef] = useState<DocumentReference | null>(null);
-    const [currentTimestampPair, setCurrentTimestampPair] = useState<TimestampPair | null>(null);
+    const [currentTimestampPair, setCurrentTimestampPair] = useState<TTimestampPair | null>(null);
     const [defaultColor, setDefaultColor] = useState('DefaultColor');
     const [defaultFinish, setDefaultFinish] = useState('DefaultFinish');
     const [defaultCeilings, setDefaultCeilings] = useState(false);
