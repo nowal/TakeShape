@@ -6,7 +6,7 @@ import {
 } from 'firebase/auth';
 import { TAuthConfig } from '@/context/auth/types';
 
-export const useSignOut = ({dispatchUserLoggedIn}: TAuthConfig) => {
+export const useSignOut = ({dispatchUserSignedIn}: TAuthConfig) => {
   const auth = getAuth();
   const TIMEOUT_DURATION = 1800 * 1000;
 
@@ -22,7 +22,7 @@ export const useSignOut = ({dispatchUserLoggedIn}: TAuthConfig) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      dispatchUserLoggedIn(Boolean(user));
+      dispatchUserSignedIn(Boolean(user));
     });
 
     let signOutTimer = setTimeout(

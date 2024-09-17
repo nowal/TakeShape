@@ -51,7 +51,7 @@ export default function QuotePage() {
     useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isUserLoggedIn, setIsUserLoggedIn] =
+  const [isUserSignedIn, setIsUserLoggedIn] =
     useState(false); // State to keep track of user's authentication status
   const [fileUrl, setFileUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); // Add errorMessage state
@@ -141,7 +141,7 @@ export default function QuotePage() {
         });
       }
 
-      if (isUserLoggedIn) {
+      if (isUserSignedIn) {
         console.log(
           'Navigating to defaultPreferences with userImageId: ',
           docRef.id

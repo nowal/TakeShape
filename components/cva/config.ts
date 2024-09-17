@@ -21,7 +21,7 @@ export const buttonsCvaConfig = cva(
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
       },
       isIconOnly: {
-        true: 'size-9',
+        true: 'size-10',
       },
       rounded: {
         none: [],
@@ -52,7 +52,7 @@ export const buttonsCvaConfig = cva(
           'border',
           'gap-1',
         ],
-        none: ['text-inherit', 'size-auto'],
+        none: ['text-inherit'],
       },
     },
     compoundVariants: [

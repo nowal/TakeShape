@@ -8,6 +8,7 @@ import { CssGlobal } from '@/css/global';
 import { ViewportProvider } from '@/context/viewport';
 import { AuthProvider } from '@/context/auth/provider';
 import { ReactNode } from 'react';
+import { SignInModal } from '@/components/sign-in/modal';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -32,6 +33,7 @@ export default function RootLayout({
                 {children}
                 <ShellFooter />
               </div>
+              <SignInModal/>
 
               <Script
                 id="facebook-pixel"

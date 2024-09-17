@@ -19,13 +19,13 @@ import {
   doc,
   getDoc,
 } from 'firebase/firestore';
-import { TTapEvent } from '@/types/dom';
 import { TAuthConfig } from '@/context/auth/types';
 
 export const useSignIn = ({
-  dispatchUserLoggedIn,
+  dispatchUserSignedIn,
 }: TAuthConfig) => {
   const [isShowModal, setShowModal] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
@@ -39,7 +39,7 @@ export const useSignIn = ({
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      dispatchUserLoggedIn(Boolean(user));
+      dispatchUserSignedIn(Boolean(user));
       // setIsSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
@@ -134,8 +134,7 @@ export const useSignIn = ({
     setPassword(event.target.value);
   };
 
-  const title = isSignedIn ? 'Sign Out' : 'Login';
-  const handleClick = (e: TTapEvent) => {
+  const handleClick = () => {
     if (isSignedIn) {
       handleSignOut();
       return;
@@ -158,7 +157,8 @@ export const useSignIn = ({
     onEmailChange: handleEmailChange,
     onPasswordChange: handlePasswordChange,
     onClose: handleClose,
-    onClick: handleClick,
+    onModalOpen: handleClick,
     onSignIn: handleSignIn,
+    dispatchSignInModalOpen: setShowModal,
   };
 };

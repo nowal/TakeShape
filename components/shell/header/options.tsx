@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import SignInButton from '../../buttons/sign-in-button';
+import { SignInButton } from '../../buttons/sign-in-button';
 import QuoteButton from '../../buttons/quote/quoteButton';
 import { AccountMenu } from '../../buttons/account-menu';
 import { cx } from 'class-variance-authority';
@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
 
 export const HeaderOptions: FC = () => {
-  const { isUserLoggedIn } = useAuth();
+  const { isUserSignedIn } = useAuth();
   const isQuotePage = usePathname() === '/quote';
 
   return (
@@ -17,12 +17,12 @@ export const HeaderOptions: FC = () => {
           'absolute inset-0',
           'shadow-09 lg:shadow-08',
           'rounded-[0.70013rem] lg:rounded-15.1875',
-          isUserLoggedIn ? 'bg-white-5' : 'bg-white'
+          isUserSignedIn ? 'bg-white-5' : 'bg-white'
         )}
       />
-      {!isUserLoggedIn && <SignInButton />}
+      {!isUserSignedIn && <SignInButton />}
       {!isQuotePage && <QuoteButton />}
-      {isUserLoggedIn && <AccountMenu />}
+      {isUserSignedIn && <AccountMenu />}
     </div>
   );
 };
