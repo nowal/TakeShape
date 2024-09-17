@@ -43,7 +43,7 @@ export const DashboardClient: FC<TDashboardClientProps> = ({
   agentInfo,
   selectedUserImage,
 }) => {
-  console.log(userData);
+  // console.log(userData);
   return (
     <div className="flex flex-col items-center w-full max-w-4xl">
       <div className="flex items-center mb-4">
@@ -57,7 +57,6 @@ export const DashboardClient: FC<TDashboardClientProps> = ({
         />
         <ButtonsCvaButton
           onTap={() => router.push('/quote')}
-          // className="ml-2 text-3xl font-bold text-green-700 hover:text-green-900"
           title="Add New Quote"
         >
           <IconsPlus />
@@ -108,9 +107,9 @@ export const DashboardClient: FC<TDashboardClientProps> = ({
           />
         )
       )}
-      <DashboardFooter
+      {/* <DashboardFooter
         selectedUserImage={selectedUserImage}
-      />
+      /> */}
     </div>
   );
 };

@@ -1,12 +1,15 @@
 import { FC } from 'react';
-import Link from 'next/link';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
 import { THeaderOptionsProps } from '@/components/shell/header/options';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { useSignIn } from '@/components/buttons/sign-in-button/hook';
-import { title } from 'process';
+import { InputsText } from '@/components/inputs/text';
+import { ButtonsCvaLink } from '@/components/cva/link';
+import { CommonIconClose } from '@/components/icons/close';
+import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { CommonIconCloseFat } from '@/components/icons/close/fat';
 
 export type TSignInButtonProps = THeaderOptionsProps & {
   className?: string;
@@ -16,6 +19,7 @@ const SignInButton: FC<TSignInButtonProps> = ({
   ...props
 }) => {
   const signIn = useSignIn(props);
+
   const {
     isLoading,
     isShowModal,
@@ -33,6 +37,12 @@ const SignInButton: FC<TSignInButtonProps> = ({
   if (isAuthLoading) {
     return <FallbacksLoading />; // Or any other loading indicator
   }
+  const title = 'Login';
+  const submitButtonTitle = isLoading
+    ? 'Logging In...'
+    : title;
+  const signUpTitle = 'Sign Up';
+
   return (
     <>
       <ButtonsCvaButton
@@ -49,60 +59,82 @@ const SignInButton: FC<TSignInButtonProps> = ({
         <>
           {createPortal(
             <Modal onTap={onClose}>
-              <div className="modal-overlay">
-                <div className="modal-content secondary-color">
-                  <button
-                    onClick={onClose}
-                    className="close-modal"
+              <div className="fill-column-white-sm w-[345px]">
+                <h4 className="typography-page-title-semibold">
+                  Login
+                </h4>
+                <div className="h-4" />
+                <div className="absolute bottom-full -translate-y-3 right-0">
+                  <ButtonsCvaButton
+                    title="Close Login Modal"
+                    disabled={isLoading}
+                    onTap={onClose}
+                    isIconOnly
+                    rounded="full"
+                    center
+                    classValue="bg-black hover:bg-gray-7 active:bg-pink size-10 text-white"
                   >
-                    X
-                  </button>
-                  <form
-                    onSubmit={onSignIn}
-                    className="flex flex-col space-y-4"
-                  >
-                    <input
+                    <CommonIconCloseFat />
+                  </ButtonsCvaButton>
+                </div>
+                <form
+                  onSubmit={onSignIn}
+                  className="flex flex-col items-stretch"
+                >
+                  <div className="flex flex-col items-stretch gap-4">
+                    <InputsText
                       type="email"
                       value={email}
                       onChange={onEmailChange}
-                      placeholder="Email"
-                      className="p-2 border rounded w-full"
+                      placeholder="Email Address"
+                      classRounded="rounded-lg"
                     />
-                    <input
+                    <InputsText
                       type="password"
                       value={password}
                       onChange={onPasswordChange}
                       placeholder="Password"
-                      className="p-2 border rounded w-full"
+                      classRounded="rounded-lg"
+                      //  className="p-2 border rounded w-full"
                     />
                     {errorMessage && (
-                      <p className="text-red-600">
-                        {errorMessage}
-                      </p>
-                    )}{' '}
-                    {/* Display error message */}
-                    <button
-                      type="submit"
-                      className={`text-sm sm:text-bas button-green ${
-                        isLoading
-                          ? 'opacity-50 cursor-not-allowed'
-                          : ''
-                      }`}
-                      disabled={isLoading}
-                    >
-                      {isLoading
-                        ? 'Logging In...'
-                        : 'Log in'}
-                    </button>
-                    <Link
-                      className="text-center text-blue-600 underline"
-                      onClick={onClose}
-                      href="/signup"
-                    >
-                      Sign Up
-                    </Link>
-                  </form>
-                </div>
+                      <NotificationsHighlight>
+                        <p>{errorMessage}</p>
+                      </NotificationsHighlight>
+                    )}
+                  </div>
+<div className='h-5'/>
+                  <ButtonsCvaButton
+                    title={submitButtonTitle}
+                    type="submit"
+                    // className={`text-sm sm:text-bas button-green ${
+                    //   isLoading
+                    //     ? 'opacity-50 cursor-not-allowed'
+                    //     : ''
+                    // }`}
+                    center
+                    classValue="w-full text-center"
+                    intent="primary"
+                    size="sm"
+                    disabled={isLoading}
+                  >
+                    {submitButtonTitle}
+                  </ButtonsCvaButton>
+                  <div className='h-2'/>
+
+                  <ButtonsCvaLink
+                    onTap={onClose}
+                    href="/signup"
+                    title={signUpTitle}
+                    size="sm"
+                    center
+                    classValue="w-full"
+                  >
+                    <span className="text-pink font-bold">
+                      {signUpTitle}
+                    </span>
+                  </ButtonsCvaLink>
+                </form>
               </div>
             </Modal>,
             document.body

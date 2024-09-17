@@ -20,7 +20,6 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { TTapEvent } from '@/types/dom';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { TSignInButtonProps } from '@/components/buttons/sign-in-button';
 
 export const useSignIn = (props: TSignInButtonProps) => {

@@ -28,6 +28,7 @@ export const buttonsCvaConfig = cva(
         lg: ['rounded-lg'],
         xl: ['rounded-xl'],
         '4xl': ['rounded-4xl'],
+        full: ['rounded-full'],
       },
       intent: {
         primary: [

@@ -39,7 +39,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 
-function SignupAccountForm() {
+const SignupAccountForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
@@ -159,7 +159,7 @@ function SignupAccountForm() {
           email,
           password
         );
-      
+
       const user = userCredential.user;
 
       // Create user document in "users" collection
@@ -427,7 +427,7 @@ function SignupAccountForm() {
                   className="text-blue-600 hover:underline"
                 >
                   <div className="text-pink text-base font-bold">
-                    Log in
+                    Login
                   </div>
                 </ButtonsCvaButton>
               </p>
@@ -442,7 +442,7 @@ function SignupAccountForm() {
       </div>
     </div>
   );
-}
+};
 
 export default function SignupAccountPage() {
   return (

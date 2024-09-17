@@ -67,7 +67,7 @@ export const HeaderOptions: FC<THeaderOptionsProps> = (
       window.removeEventListener('keydown', resetTimer);
     };
   }, [auth, handleSignOut]);
-
+console.log(props)
   return (
       <div className="hidden items-center px-4 gap-2.5 sm:px-2 lg:flex">
         <div

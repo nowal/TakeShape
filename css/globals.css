@@ -104,10 +104,13 @@ input {
     @apply typography-footer font-open-sans;
   }
   .typography-page-title-base {
-    @apply text-center text-2xl font-bold font-montserrat tracking-tight-06;
+    @apply text-center text-2xl font-montserrat tracking-tight-06;
   }
   .typography-page-title {
-    @apply typography-page-title-base text-black-1;
+    @apply typography-page-title-base text-black-1 font-bold;
+  }
+  .typography-page-title-semibold {
+    @apply typography-page-title-base font-semibold;
   }
   .typography-page-subtitle {
     @apply text-center text-black-2 text-base font-semibold font-open-sans;
@@ -151,8 +154,14 @@ input {
   .typography-form-notification {
     @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
   }
+  .fill-column-white-base {
+    @apply flex flex-col items-stretch w-full shadow-08 bg-white rounded-2xl;
+  }
   .fill-column-white {
-    @apply flex flex-col items-stretch w-full shadow-08 py-9 px-6 bg-white rounded-2xl;
+    @apply fill-column-white-base py-9 px-6;
+  }
+  .fill-column-white-sm {
+    @apply fill-column-white-base py-5 px-4;
   }
   .fill-gray-base {
     @apply flex w-full bg-white-2 rounded-lg w-full;
