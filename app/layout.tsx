@@ -28,7 +28,6 @@ export default function RootLayout({
           <CssGlobal />
           <div className="fixed inset-0 bg-white-6" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            <ShellHeader />
             <Suspense fallback={<div>Loading...</div>}>
               <AuthProvider>
                 <Suspense fallback={<div>Loading...</div>}>
@@ -37,10 +36,18 @@ export default function RootLayout({
                       fallback={<div>Loading...</div>}
                     >
                       <ViewportProvider>
+                        <ShellHeader />
+
                         <Suspense
                           fallback={<div>Loading...</div>}
                         >
                           {children}
+                        </Suspense>
+                        <ShellFooter />
+                        <Suspense
+                          fallback={<div>Loading...</div>}
+                        >
+                          <SignInModal />
                         </Suspense>
                       </ViewportProvider>
                     </Suspense>
@@ -48,9 +55,7 @@ export default function RootLayout({
                 </Suspense>
               </AuthProvider>
             </Suspense>
-            <ShellFooter />
           </div>
-          <SignInModal />
           <Script
             id="facebook-pixel"
             strategy="afterInteractive"
