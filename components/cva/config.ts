@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  ['inline-flex', 'items-center', 'leading-7'],
+  ['inline-flex', 'items-center', 'leading-none'],
   {
     variants: {
       weight: {
@@ -10,6 +10,7 @@ export const buttonsCvaConfig = cva(
       },
       size: {
         none: [],
+        xs: ['relative', 'px-4', 'py-3', 'rounded-4xl'],
         sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
         md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
         iconXl: ['relative', 'size-12'],
@@ -42,6 +43,7 @@ export const buttonsCvaConfig = cva(
           'border',
           'border-gray-4',
           'gap-1',
+          'font-bold'
         ],
         ghost: [
           'bg-white',
@@ -78,10 +80,6 @@ export const buttonsCvaConfig = cva(
         isDisabled: false,
         className: ['z-10'],
       },
-      // {
-      //   isIconOnly: false,
-      //   className: ['size-auto'],
-      // },
     ],
     defaultVariants: {
       intent: 'none',

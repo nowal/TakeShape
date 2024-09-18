@@ -20,7 +20,7 @@ export const DashboardFooter: FC<TProps> = ({
       >
         {resubmitTitle}
       </ButtonsCvaButton>
-      <ButtonsCvaButton
+      {/* <ButtonsCvaButton
         title={resetTitle}
         onTap={() =>
           router.push(
@@ -31,7 +31,7 @@ export const DashboardFooter: FC<TProps> = ({
         intent="primary"
       >
         {resetTitle}
-      </ButtonsCvaButton>
+      </ButtonsCvaButton> */}
     </div>
   );
 };

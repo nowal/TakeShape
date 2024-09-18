@@ -9,7 +9,7 @@ import {
   updateDoc,
   arrayUnion 
 } from 'firebase/firestore';
-import PainterCard from '../../components/painterCard';
+import PainterCard from '../../components/painter-card';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 const Congrats = () => {

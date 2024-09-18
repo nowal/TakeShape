@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import PainterCard from '../../components/painterCard';
+import PainterCard from '../../components/painter-card';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 // Define the type for Painter data

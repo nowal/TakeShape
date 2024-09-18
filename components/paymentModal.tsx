@@ -30,7 +30,7 @@ import {
 } from 'firebase/firestore';
 import { DashboardPainter } from './dashboard/painter';
 import QuoteButtonDashboard from './buttons/quote/quoteButtonDashboard';
-import PainterCard from './painterCard';
+import PainterCard from './painter-card';
 import RoomCard from '@/components/roomCard';
 import {
   TTimestampPair,

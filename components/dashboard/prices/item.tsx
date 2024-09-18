@@ -1,67 +1,50 @@
 import type { FC } from 'react';
-import PainterCard from '@/components/painterCard';
+import { PainterCard } from '@/components/painter-card';
 import { TAgentInfo, TPrice } from '@/types/types';
-import {
-  ButtonsCvaButton,
-  TButtonsCvaButtonProps,
-} from '@/components/cva/button';
+import { cx } from 'class-variance-authority';
+import { DashboardPricesItemFooter } from '@/components/dashboard/prices/footer';
+import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
+import { useDashboard } from '@/context/dashboard/provider';
+import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
+import { TElementProps } from '@/types/dom';
 
-type TProps = TPrice & {
-  isPreferredPainter: boolean;
-  acceptQuoteButtonProps: Partial<TButtonsCvaButtonProps>;
-  agentInfo: TAgentInfo;
-};
+type TProps = TPrice & TElementProps
 export const DashboardPricesItem: FC<TProps> = ({
-  isPreferredPainter,
-  acceptQuoteButtonProps,
-  agentInfo,
+  children,
   ...price
 }) => {
-  const acceptQuoteTitle = 'Accept Quote';
+  const dashboard = useDashboard();
+  const {
+    userData,
+    onAcceptQuote,
+    preferredPainterUserIds,
+    agentInfo,
+  } = dashboard;
   return (
-    <div>
-      <div className="quote-item flex flex-col sm:flex-row items-center justify-between mb-5 p-3 border border-gray-300 rounded shadow-md">
+    <li
+      className={cx(
+        'flex flex-col items-stretch',
+        'border',
+        'border-gray-11',
+        'rounded-lg'
+      )}
+    >
+      <div className="flex flex-row items-center justify-between">
         <PainterCard painterId={price.painterId} />
-        <div className="quote-details flex-1 flex flex-col sm:flex-row items-center justify-between pl-5 border-l-2 border-gray-300 gap-4">
-          <div className="quote-info">
-            <p className="text-lg font-bold">
-              Quote:{' '}
-              <span className="text-xl">
-                ${price.amount.toFixed(2)}
-              </span>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <p className="flex flex-row items-start text-2xl font-medium">
+              <span className="text-base">$</span>
+              <span>{price.amount.toFixed(2)}</span>
             </p>
-            {price.invoiceUrl && (
-              <a
-                href={price.invoiceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline"
-              >
-                Invoice
-              </a>
-            )}
-            {agentInfo && isPreferredPainter && (
-              <div className="recommended flex items-center mt-2">
-                <img
-                  src={agentInfo.profilePictureUrl}
-                  alt="Agent"
-                  className="w-8 h-8 rounded-full mr-2"
-                />
-                <p className="text-sm text-green-600">
-                  Recommended by {agentInfo.name}
-                </p>
-              </div>
-            )}
+          
+            {children}
+            <DashboardPricesItemRecommended />
           </div>
-          <ButtonsCvaButton
-            title={acceptQuoteTitle}
-            className="button-green transition duration-300 mt-2 sm:mt-0"
-            {...acceptQuoteButtonProps}
-          >
-            {acceptQuoteTitle}
-          </ButtonsCvaButton>
         </div>
       </div>
-    </div>
+      <LinesHorizontalLight colorClass="border-gray-3" />
+      <DashboardPricesItemFooter {...price} />
+    </li>
   );
 };
