@@ -1,26 +1,8 @@
-'use client';
-
-import React, { useEffect, useRef, useState } from 'react';
-import { useAtom } from 'jotai';
-import { useRouter } from 'next/navigation';
-import {
-  timestampPairsAtom,
-  userDataAtom,
-  isPainterAtom,
-  documentIdAtom,
-  checkingAuthAtom,
-  userTypeLoadingAtom,
-  videoURLAtom,
-  uploadStatusAtom,
-  uploadProgressAtom,
-} from '../atom';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { FC, useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
-  setDoc,
-  getDoc,
   arrayUnion,
-  DocumentReference,
   collection,
   query,
   where,
@@ -28,22 +10,10 @@ import {
   doc,
   updateDoc,
 } from 'firebase/firestore';
-import { DashboardPainter } from './dashboard/painter';
-import QuoteButtonDashboard from './buttons/quote/quoteButtonDashboard';
-import {PainterCard} from './painter-card';
-import RoomCard from '@/components/roomCard';
-import {
-  TTimestampPair,
-  TUserData,
-  TPaintPreferences,
-} from '@/types/types';
+import { PainterCard } from '../painter-card';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '@/components/stripePayment';
-import {
-  GoogleAnalytics,
-  GoogleTagManager,
-} from '@next/third-parties/google';
 
 type ModalProps = {
   showModal: boolean;
@@ -63,7 +33,7 @@ type Price = {
   accepted?: boolean; // Optional because it will not exist on all objects initially
 };
 
-const Modal: React.FC<ModalProps> = ({
+export const PaymentModal: FC<ModalProps> = ({
   showModal,
   setShowModal,
   price,
@@ -73,9 +43,10 @@ const Modal: React.FC<ModalProps> = ({
   setAddress,
   painterId,
 }) => {
+  const [modalStep, 
+    // setModalStep
+  ] = useState(1);
   if (!showModal) return null;
-
-  const [modalStep, setModalStep] = useState(1);
   const firestore = getFirestore();
   const auth = getAuth();
 

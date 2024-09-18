@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC, FormEvent } from 'react';
 import { useAtom } from 'jotai';
 import { timestampPairsAtom } from '../atom';
 import { updateDoc, DocumentReference, getDoc } from 'firebase/firestore';
@@ -28,9 +28,9 @@ interface RoomCardProps {
   onClick: () => void; // Add this line
 }
 
-const RoomCard: React.FC<RoomCardProps> = ({
+const RoomCard: FC<RoomCardProps> = ({
   startTime,
-  endTime,
+  // endTime,
   userImageRef,
   defaultColor = '',
   defaultFinish = '',
@@ -49,7 +49,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [isRoomSet, setIsRoomSet] = useState(false);
   const [editableRoomName, setEditableRoomName] = useState(roomName); // State variable for editable roomName
 
-  const [timestampPairs, setTimestampPairs] = useAtom(timestampPairsAtom);
+  const [
+    // timestampPairs,
+    
+    setTimestampPairs] = useAtom(timestampPairsAtom);
 
   useEffect(() => {
     const fetchTimestampPair = async () => {
@@ -117,7 +120,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     await updateTimestampPairs();
     setIsRoomSet(true);

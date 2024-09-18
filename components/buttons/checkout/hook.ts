@@ -1,30 +1,28 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { useRouter } from 'next/navigation';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
-export type TCheckoutButtonProps = {
+export type TCheckoutButtonConfig = {
   amount: number;
   painterId: string;
   userImageId: string;
   userId: string;
 };
-export const CheckoutButton: FC<TCheckoutButtonProps> = ({
+export const useButtonsCheckout = ({
   amount,
   painterId,
   userImageId,
   userId,
-}) => {
+}: TCheckoutButtonConfig) => {
   const [sessionId, setSessionId] = useState<string | null>(
     null
   );
-  const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isRedirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     const fetchSessionId = async () => {
@@ -55,7 +53,7 @@ export const CheckoutButton: FC<TCheckoutButtonProps> = ({
     const stripe = await stripePromise;
 
     if (stripe && sessionId) {
-      setIsRedirecting(true); // Set the flag before redirecting
+      setRedirecting(true); // Set the flag before redirecting
 
       // Store parameters in session storage before redirecting to Stripe
       sessionStorage.setItem('userImageId', userImageId);
@@ -69,14 +67,14 @@ export const CheckoutButton: FC<TCheckoutButtonProps> = ({
         // ... (rest of your handleClick logic)
       } else {
         console.error(error.message);
-        setIsRedirecting(false); // Reset the flag if there's an error
+        setRedirecting(false); // Reset the flag if there's an error
       }
     } else {
       console.error('Stripe or sessionId is null');
     }
   };
 
-  const storePainterInfo = async () => {
+  const handleStorePainterInfo = async () => {
     try {
       // Store the accepted painter information
       const storeRes = await fetch(
@@ -105,28 +103,9 @@ export const CheckoutButton: FC<TCheckoutButtonProps> = ({
     }
   };
 
-  return (
-    <button
-      onClick={handleClick}
-      style={{
-        backgroundColor: '#6772E5', // Stripe's brand color
-        color: '#FFF',
-        padding: '12px 24px',
-        borderRadius: '4px',
-        fontSize: '16px',
-        border: 'none',
-        cursor: 'pointer',
-      }}
-    >
-      Pay securely with{' '}
-      <span
-        style={{
-          fontFamily: 'sans-serif',
-          fontWeight: 'bold',
-        }}
-      >
-        Stripe
-      </span>
-    </button>
-  );
+  return {
+    onHandleStorePainterInfo: handleStorePainterInfo,
+    onClick: handleClick,
+    dispatchSessionId: setSessionId,
+  };
 };

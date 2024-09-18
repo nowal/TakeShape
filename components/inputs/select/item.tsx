@@ -7,10 +7,7 @@ import { cx } from 'class-variance-authority';
 type TProps = TPropsWithChildren<
   TClassValueProps & Select.SelectItemProps & TDivProps
 >;
-export const SelectItem = forwardRef<
-  HTMLDivElement,
-  TProps
->(
+const SelectItem = forwardRef<HTMLDivElement, TProps>(
   (
     { children, classValue, style, ...props },
     forwardedRef
@@ -43,3 +40,5 @@ export const SelectItem = forwardRef<
     );
   }
 );
+SelectItem.displayName = 'SelectItem';
+export { SelectItem };
