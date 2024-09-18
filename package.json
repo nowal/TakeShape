@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test/screens": "esrun test/screens"
+    "test/screens": "esrun test/screens",
+    "erase": "esrun ops/eraser && npm i"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -25,7 +26,6 @@
     "@stripe/stripe-js": "^2.4.0",
     "axios": "^1.7.2",
     "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
     "firebase": "^10.7.2",
     "firebase-admin": "^12.1.1",
     "firebase-functions": "^5.0.1",
@@ -55,7 +55,9 @@
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "autoprefixer": "^10.0.1",
-    "eslint": "^9.10.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "14.2.12",
+    "favicons": "^7.2.0",
     "postcss": "^8",
     "puppeteer": "^23.3.0",
     "tailwindcss": "^3.4.10",

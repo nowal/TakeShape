@@ -1,7 +1,7 @@
 import type { FC } from "react";
-import clsx from "clsx";
 import { motion } from "framer-motion";
 import { TLinesOptions } from "@/components/lines/types";
+import { cx } from 'class-variance-authority';
 
 export type TLines_LineProps =TLinesOptions;
 export const Lines_Line: FC<TLines_LineProps> = ({
@@ -15,7 +15,7 @@ export const Lines_Line: FC<TLines_LineProps> = ({
 }) => {
   return (
     <motion.div
-      className={clsx(
+      className={cx(
         "grow pointer-events-none",
         positionClass ?? "relative",
         sizeClass ?? "border",

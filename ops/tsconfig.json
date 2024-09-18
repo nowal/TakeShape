@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "module": "NodeNext",
+    "target": "ESNext",
+    "types": ["node"],
+    "jsx": "react",
+    "esModuleInterop": true,
+    "moduleResolution": "NodeNext"
+  }
+}

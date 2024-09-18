@@ -2,13 +2,10 @@ import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { ButtonsCvaButton } from '@/components/cva/button';
 
-type TProps = { selectedUserImage: string };
-export const DashboardFooter: FC<TProps> = ({
-  selectedUserImage,
-}) => {
+export const DashboardFooter: FC = () => {
   const router = useRouter();
   const resubmitTitle = 'Resubmit Video';
-  const resetTitle = 'Reset Preferences';
+  // const resetTitle = 'Reset Preferences';
 
   return (
     <div className="button-group my-4 flex justify-center gap-4">

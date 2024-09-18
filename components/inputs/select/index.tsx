@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { cx } from 'class-variance-authority';
-import clsx from 'clsx';
 import * as Select from '@radix-ui/react-select';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
@@ -47,7 +46,7 @@ export const InputsSelect = ({
     >
       <div>
         <Select.Trigger
-          className={clsx(
+          className={cx(
             'column-start justify-start',
             'text-left',
             'truncate',
@@ -75,7 +74,7 @@ export const InputsSelect = ({
       <Select.Portal>
         <Select.Content
           position="popper"
-          className={clsx(
+          className={cx(
             'column-stretch',
             'my-2',
             'rounded-xl',

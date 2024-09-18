@@ -7,8 +7,8 @@ export const DashboardClientVideo: FC = () => {
   const dashboard = useDashboard();
   const { userData, videoRef } = dashboard;
   const viewport = useViewport();
-  const isSmall =
-    viewport.isDimensions && viewport.width < 1024;
+  // const isSmall =
+  //   viewport.isDimensions && viewport.width < 1024;
   const isVerySmall =
     viewport.isDimensions && viewport.width < 480;
   if (!userData) return null;

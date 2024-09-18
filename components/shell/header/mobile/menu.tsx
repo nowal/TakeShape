@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
-import { cx } from 'class-variance-authority';
 import { useViewport } from '@/context/viewport';
 import { ShellHeaderMobileButton } from '@/components/shell/header/mobile/button';
 import {
@@ -67,7 +66,10 @@ export const ShellHeaderMobileMenu = () => {
                   // 'shadow-08'
                 )}
               > */}
-                <AccountMenuList classPosition='relative' items={items} />
+              <AccountMenuList
+                classPosition="relative"
+                items={items}
+              />
               {/* </div> */}
             </Modal>,
             document.body

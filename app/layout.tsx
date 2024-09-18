@@ -7,7 +7,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { CssGlobal } from '@/css/global';
 import { ViewportProvider } from '@/context/viewport';
 import { AuthProvider } from '@/context/auth/provider';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { DashboardProvider } from '@/context/dashboard/provider';
 
@@ -32,11 +32,14 @@ export default function RootLayout({
                 <div className="fixed inset-0 bg-white-6" />
                 <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
                   <ShellHeader />
-                  {children}
+                  <Suspense
+                    fallback={<div>Loading...</div>}
+                  >
+                    {children}
+                  </Suspense>
                   <ShellFooter />
                 </div>
                 <SignInModal />
-
                 <Script
                   id="facebook-pixel"
                   strategy="afterInteractive"
