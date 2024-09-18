@@ -29,15 +29,14 @@ export const DashboardPricesItem: FC<TProps> = ({
         'rounded-lg'
       )}
     >
-      <div className="flex flex-row items-center justify-between">
+      <div className={cx("flex flex-row items-center justify-between", "px-6 pt-6 pb-2")}>
         <PainterCard painterId={price.painterId} />
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <p className="flex flex-row items-start text-2xl font-medium">
-              <span className="text-base">$</span>
+          <div className="flex flex-col items-end gap-2">
+            <p className="flex flex-row items-start text-2xl gap-1 font-medium">
+              <span className="relative top-[2px] text-sm">$</span>
               <span>{price.amount.toFixed(2)}</span>
             </p>
-          
             {children}
             <DashboardPricesItemRecommended />
           </div>

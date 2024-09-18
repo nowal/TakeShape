@@ -9,17 +9,22 @@ import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/re
 export const DashboardClientQuotesList: FC = () => {
   const dashboard = useDashboard();
   const { preferredPainterUserIds, agentInfo } = dashboard;
+  console.log(process.env);
+  console.log(process.env.MOCKS);
+
   const prices = MOCKS_PRICES; // userData?.prices ?? [];
   console.log('Rendering quotes with prices:', prices);
   console.log('Agent info:', agentInfo);
-
   const isGathering = !prices || prices.length === 0;
 
   return (
-    <div className="flex flex-col items-stretch gap-4">
+    <div className="flex flex-col items-stretch">
+      <div className="h-2" />
       <h3 className="typography-form-title text-left">
         Contractor Quotes
       </h3>
+      <div className="h-5" />
+
       {isGathering ? (
         <NotificationsHighlight>
           <>Gathering Quotes...</>
@@ -41,7 +46,10 @@ export const DashboardClientQuotesList: FC = () => {
               );
             }
             return (
-              <DashboardPricesItem {...price}>
+              <DashboardPricesItem
+                key={`${price.painterId}-${index}`}
+                {...price}
+              >
                 {isPreferredPainter && (
                   <DashboardPricesItemRecommended />
                 )}
@@ -50,6 +58,7 @@ export const DashboardClientQuotesList: FC = () => {
           })}
         </ul>
       )}
+      <div className="h-4" />
       <DashboardClientQuotesAccept />
     </div>
   );

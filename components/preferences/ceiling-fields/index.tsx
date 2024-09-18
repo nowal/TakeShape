@@ -63,7 +63,7 @@ export const PreferencesCeilingFields: FC<TProps> = ({
                 name="ceilingFinish"
                 value={props.ceilingFinish || ''}
                 onValueChange={onValueChange}
-                values={[
+                basicValues={[
                   'Flat',
                   'Eggshell',
                   'Satin',

@@ -44,6 +44,8 @@ const config: Config = {
         'white-6': '#f4f4f4',
         'white-7': '#EEEEEE',
 
+        'white-green': '#F0FFF5',
+
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',
         'white-pink-2': '#FFCDD3',
@@ -53,6 +55,9 @@ const config: Config = {
         'pink-1': '#E73152',
 
         red: '#ff0000',
+
+        green: '#83A68F',
+        'green-1': '#395A44',
 
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',

@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  ['inline-flex', 'items-center', 'leading-none'],
+  ['inline-flex', 'items-center'],
   {
     variants: {
       weight: {
@@ -10,9 +10,9 @@ export const buttonsCvaConfig = cva(
       },
       size: {
         none: [],
-        xs: ['relative', 'px-4', 'py-3', 'rounded-4xl'],
-        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
-        md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
+        xs: ['relative', 'px-4', 'py-3', 'rounded-4xl', 'leading-none'],
+        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl', 'leading-leading'],
+        md: ['relative', 'px-6', 'py-4', 'rounded-5xl', 'leading-leading'],
         iconXl: ['relative', 'size-12'],
         iconLg: ['relative', 'size-10'],
         iconMd: ['relative', 'size-8'],

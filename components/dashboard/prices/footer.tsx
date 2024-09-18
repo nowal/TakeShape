@@ -11,7 +11,7 @@ export const DashboardPricesItemFooter: FC<TProps> = (
 ) => {
   const dashboard = useDashboard();
   const { onAcceptQuote } = dashboard;
-  const acceptQuoteTitle = 'Accept Quote';
+  const acceptQuoteTitle = 'Accept';
   const invoiceTitle = 'Invoice';
 
   return (
@@ -39,7 +39,9 @@ export const DashboardPricesItemFooter: FC<TProps> = (
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span className="text-sm">{invoiceTitle}</span>
+          <span className="text-sm font-bold">
+            {invoiceTitle}
+          </span>
         </ButtonsCvaAnchor>
       )}
     </div>

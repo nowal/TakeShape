@@ -1,8 +1,10 @@
-import PainterCard from '@/components/painter-card';
+import { PainterCard } from '@/components/painter-card';
 import type { FC } from 'react';
 
-type TProps = {painterId:string}
-export const DashboardNotificationsQuoteAccepted: FC<TProps> = ({painterId}) => {
+type TProps = { painterId: string };
+export const DashboardNotificationsQuoteAccepted: FC<
+  TProps
+> = ({ painterId }) => {
   return (
     <div className="text-center my-10">
       <h2 className="text-2xl font-medium">

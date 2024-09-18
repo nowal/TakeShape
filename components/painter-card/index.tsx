@@ -11,12 +11,16 @@ import {
   StarHalf,
   StarBorder,
 } from '@mui/icons-material';
+import { IconsLoading } from '@/components/icons/loading';
+import { MOCKS_PAINTER_INFO } from '@/components/dashboard/client/quotes/mocks';
+import { IconsPhone } from '@/components/icons/phone';
+import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 
 type PainterCardProps = {
   painterId: string;
 };
 
-type PainterData = {
+export type TPainterData = {
   businessName: string;
   logoUrl?: string;
   phoneNumber?: string;
@@ -27,7 +31,10 @@ export const PainterCard: React.FC<PainterCardProps> = ({
   painterId,
 }) => {
   const [painterData, setPainterData] =
-    useState<PainterData | null>(null);
+    useState<TPainterData | null>(
+      MOCKS_PAINTER_INFO
+      // null
+    );
   const firestore = getFirestore();
 
   useEffect(() => {
@@ -43,7 +50,7 @@ export const PainterCard: React.FC<PainterCardProps> = ({
 
       if (!painterSnapshot.empty) {
         const painterDoc = painterSnapshot.docs[0].data();
-        setPainterData(painterDoc as PainterData);
+        setPainterData(painterDoc as TPainterData);
       } else {
         console.log('No such painter!');
       }
@@ -90,28 +97,41 @@ export const PainterCard: React.FC<PainterCardProps> = ({
   };
 
   if (!painterData) {
-    return <div>Loading painter data...</div>;
+    return (
+      <div className="flex flex-row gap-2 text-xs">
+        <IconsLoading classValue="text-white" />
+        Loading painter data...
+      </div>
+    );
   }
 
   return (
-    <div className="painter-card secondary-color">
+    <div className="flex flex-row gap-3">
       {painterData.logoUrl && (
         <img
           src={painterData.logoUrl}
           alt={`${painterData.businessName} Logo`}
-          className="painter-logo"
+          className="size-12 rounded-full"
         />
       )}
-      <div className="flex-col flex justify-between">
-        <h2 className="painter-name">
+      <div className="flex flex-col gap-1.5">
+        <h5 className="text-base font-semibold text-black">
           {painterData.businessName}
-        </h2>
-        <h2 className="painter-phone">
-          {painterData.phoneNumber}
-        </h2>
-        {calculateAverageRating(painterData.reviews)}
+        </h5>
+        <ButtonsCvaAnchor
+          href={`tel:${painterData.phoneNumber}`}
+          classValue="flex flex-row items-center gap-1 h-[16px]"
+          title={`Call ${painterData.phoneNumber}`}
+          icon={{Leading:IconsPhone}}
+        >
+
+          <h6 className="text-gray-9 text-xs font-medium">
+            {painterData.phoneNumber}
+          </h6>
+        </ButtonsCvaAnchor>
+
+        {/* {calculateAverageRating(painterData.reviews)} */}
       </div>
-      
     </div>
   );
 };
