@@ -2,17 +2,21 @@ import type { FC } from 'react';
 import { DashboardPricesItem } from '@/components/dashboard/prices/item';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { useDashboard } from '@/context/dashboard/provider';
-import { MOCKS_PRICES } from '@/components/dashboard/client/quotes/mocks';
+import {
+  isMocks,
+  MOCKS_PRICES,
+} from '@/components/dashboard/client/quotes/mocks';
 import { DashboardClientQuotesAccept } from '@/components/dashboard/client/quotes/accept';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 
 export const DashboardClientQuotesList: FC = () => {
   const dashboard = useDashboard();
-  const { preferredPainterUserIds, agentInfo } = dashboard;
-  console.log(process.env);
-  console.log(process.env.MOCKS);
+  const { preferredPainterUserIds, agentInfo, userData } =
+    dashboard;
 
-  const prices = MOCKS_PRICES; // userData?.prices ?? [];
+  const prices = isMocks()
+    ? MOCKS_PRICES
+    : userData?.prices ?? [];
   console.log('Rendering quotes with prices:', prices);
   console.log('Agent info:', agentInfo);
   const isGathering = !prices || prices.length === 0;

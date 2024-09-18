@@ -12,7 +12,10 @@ import {
   StarBorder,
 } from '@mui/icons-material';
 import { IconsLoading } from '@/components/icons/loading';
-import { MOCKS_PAINTER_INFO } from '@/components/dashboard/client/quotes/mocks';
+import {
+  isMocks,
+  MOCKS_PAINTER_INFO,
+} from '@/components/dashboard/client/quotes/mocks';
 import { IconsPhone } from '@/components/icons/phone';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 
@@ -30,10 +33,10 @@ export type TPainterData = {
 export const PainterCard: React.FC<PainterCardProps> = ({
   painterId,
 }) => {
+  console.log(isMocks(),process.env.NEXT_PUBLIC_MOCKS)
   const [painterData, setPainterData] =
     useState<TPainterData | null>(
-      MOCKS_PAINTER_INFO
-      // null
+      isMocks() ? MOCKS_PAINTER_INFO : null
     );
   const firestore = getFirestore();
 
@@ -122,9 +125,8 @@ export const PainterCard: React.FC<PainterCardProps> = ({
           href={`tel:${painterData.phoneNumber}`}
           classValue="flex flex-row items-center gap-1 h-[16px]"
           title={`Call ${painterData.phoneNumber}`}
-          icon={{Leading:IconsPhone}}
+          icon={{ Leading: IconsPhone }}
         >
-
           <h6 className="text-gray-9 text-xs font-medium">
             {painterData.phoneNumber}
           </h6>

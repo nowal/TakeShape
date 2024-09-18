@@ -1,6 +1,8 @@
 import { TPainterData } from '@/components/painter-card';
 import { TAgentInfo, TPrice } from '@/types/types';
 
+export const isMocks = () => (process.env.NEXT_PUBLIC_MOCKS === 'true')
+
 export const MOCKS_PRICES: TPrice[] = [
   {
     painterId: 'Thomas',
@@ -27,7 +29,7 @@ export const MOCKS_PRICES: TPrice[] = [
 ] as const;
 
 export const MOCKS_AGENT_INFO: TAgentInfo = {
-  name: 'Tim',
+  name: 'Alex',
   profilePictureUrl: 'https://i.imgur.com/2hakYvC.png',
   preferredPainters: ['Jonny', 'Sam'],
 } as const;
