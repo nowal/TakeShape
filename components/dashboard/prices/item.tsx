@@ -21,7 +21,7 @@ export const DashboardPricesItem: FC<TProps> = ({
         'rounded-lg'
       )}
     >
-      <div className={cx("flex flex-col items-stretch justify-between xs:flex-row lg:items-center", "px-6 pt-6 pb-2")}>
+      <div className={cx("flex flex-col items-stretch justify-between xs:flex-row lg:items-start", "px-6 pt-6 pb-2")}>
         <PainterCard painterId={price.painterId} />
         <div className={cx("flex flex-col items-stretch xs:flex-row xs:items-start justify-between gap-4")}>
           <div className="flex flex-col items-end gap-2">

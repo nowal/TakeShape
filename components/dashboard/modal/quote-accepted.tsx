@@ -1,13 +1,13 @@
 import {
-  CheckoutButton,
-  TCheckoutButtonProps,
-} from '@/components/buttons/checkoutButton';
+  ButtonsCheckout,
+  TButtonsCheckoutProps,
+} from '@/components/buttons/checkout';
 import { Modal } from '@/components/modal';
 import { TButtonProps } from '@/types/dom';
 import type { FC } from 'react';
 
 type TProps = {
-  checkoutButtonProps: TCheckoutButtonProps;
+  checkoutButtonProps: TButtonsCheckoutProps;
   closeButtonProps: TButtonProps;
 };
 export const DashboardModalQuoteAccepted: FC<TProps> = ({
@@ -28,10 +28,11 @@ export const DashboardModalQuoteAccepted: FC<TProps> = ({
           <h2>Congrats on accepting your quote!</h2>
           <p>
             We hold a 10% deposit in order to protect our
-            painter&apos;s time. This will be applied towards
-            your quoted price after the work is completed!
+            painter&apos;s time. This will be applied
+            towards your quoted price after the work is
+            completed!
           </p>
-          <CheckoutButton {...checkoutButtonProps} />
+          <ButtonsCheckout {...checkoutButtonProps} />
         </div>
       </div>
     </Modal>

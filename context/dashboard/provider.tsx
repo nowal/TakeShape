@@ -25,7 +25,6 @@ export const DashboardProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-
   const dashboard = useDashboardState();
   return (
     <DASHBOARD.Provider value={{ videoRef, ...dashboard }}>

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import {
   getFirestore,
@@ -6,11 +7,6 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import {
-  Star,
-  StarHalf,
-  StarBorder,
-} from '@mui/icons-material';
 import { IconsLoading } from '@/components/icons/loading';
 import {
   isMocks,
@@ -33,7 +29,6 @@ export type TPainterData = {
 export const PainterCard: React.FC<PainterCardProps> = ({
   painterId,
 }) => {
-  console.log(isMocks(),process.env.NEXT_PUBLIC_MOCKS)
   const [painterData, setPainterData] =
     useState<TPainterData | null>(
       isMocks() ? MOCKS_PAINTER_INFO : null
@@ -64,40 +59,40 @@ export const PainterCard: React.FC<PainterCardProps> = ({
     }
   }, [painterId, firestore]);
 
-  const calculateAverageRating = (
-    reviews: number[] | undefined
-  ) => {
-    if (!reviews || reviews.length === 0) {
-      return null;
-    }
-    const total = reviews.reduce(
-      (acc, rating) => acc + rating,
-      0
-    );
-    const average = total / reviews.length;
-    const fullStars = Math.floor(average);
-    const halfStar = average - fullStars >= 0.5;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+  // const calculateAverageRating = (
+  //   reviews: number[] | undefined
+  // ) => {
+  //   if (!reviews || reviews.length === 0) {
+  //     return null;
+  //   }
+  //   const total = reviews.reduce(
+  //     (acc, rating) => acc + rating,
+  //     0
+  //   );
+  //   const average = total / reviews.length;
+  //   const fullStars = Math.floor(average);
+  //   const halfStar = average - fullStars >= 0.5;
+  //   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
-    return (
-      <div className="painter-reviews">
-        {Array(fullStars)
-          .fill(0)
-          .map((_, i) => (
-            <Star key={`full-${i}`} className="star full" />
-          ))}
-        {halfStar && <StarHalf className="star half" />}
-        {Array(emptyStars)
-          .fill(0)
-          .map((_, i) => (
-            <StarBorder
-              key={`empty-${i}`}
-              className="star empty"
-            />
-          ))}
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="painter-reviews">
+  //       {Array(fullStars)
+  //         .fill(0)
+  //         .map((_, i) => (
+  //           <Star key={`full-${i}`} className="star full" />
+  //         ))}
+  //       {halfStar && <StarHalf className="star half" />}
+  //       {Array(emptyStars)
+  //         .fill(0)
+  //         .map((_, i) => (
+  //           <StarBorder
+  //             key={`empty-${i}`}
+  //             className="star empty"
+  //           />
+  //         ))}
+  //     </div>
+  //   );
+  // };
 
   if (!painterData) {
     return (
@@ -111,10 +106,12 @@ export const PainterCard: React.FC<PainterCardProps> = ({
   return (
     <div className="flex flex-row gap-3">
       {painterData.logoUrl && (
-        <img
+        <Image
           src={painterData.logoUrl}
           alt={`${painterData.businessName} Logo`}
           className="size-12 rounded-full"
+          width="48"
+          height="48"
         />
       )}
       <div className="flex flex-col gap-1.5">

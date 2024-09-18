@@ -6,6 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(request: NextRequest) {
+  console.log(request)
   try {
     const { amount, painterId, userImageId } = await request.json(); // Get painterId and userImageId
 
