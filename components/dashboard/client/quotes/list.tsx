@@ -26,7 +26,7 @@ export const DashboardClientQuotesList: FC = () => {
 
   return (
     <div className="flex flex-col items-stretch gap-4">
-      <h3 className="typography-form-title">
+      <h3 className="typography-form-title text-left">
         Contractor Quotes
       </h3>
       {isGathering ? (

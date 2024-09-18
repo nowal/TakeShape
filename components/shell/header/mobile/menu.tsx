@@ -5,12 +5,17 @@ import { Modal } from '@/components/modal';
 import { cx } from 'class-variance-authority';
 import { useViewport } from '@/context/viewport';
 import { ShellHeaderMobileButton } from '@/components/shell/header/mobile/button';
-import { AccountMenuList } from '@/components/buttons/account-menu/list';
+import {
+  AccountMenuList,
+  TAccountMenuListItem,
+} from '@/components/buttons/account-menu/list';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth/provider';
 
 export const ShellHeaderMobileMenu = () => {
-  const { signOut } = useAuth();
+  const { signOut, isUserSignedIn, menu } = useAuth();
+  const { onMenuClick, onDashboardClick } = menu;
+
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const viewport = useViewport();
@@ -22,6 +27,23 @@ export const ShellHeaderMobileMenu = () => {
     }
   }, [viewport.isResizing]);
 
+  const dashboardItems = [
+    ['Dashboard', onDashboardClick],
+    [
+      'Manage Account',
+      () => onMenuClick('/accountSettings'),
+    ],
+  ] as const satisfies TAccountMenuListItem[];
+
+  const quoteItems = [
+    ['Quote', () => router.push('/quote')],
+  ] as const satisfies TAccountMenuListItem[];
+
+  const items = [
+    ...(isUserSignedIn ? dashboardItems : quoteItems),
+    ['Sign Out', signOut.onSignOut],
+  ] as const satisfies TAccountMenuListItem[];
+
   return (
     <div className="relative flex items-center justify-center size-12 text-pink shrink-0 shadow-09 rounded-md lg:hidden">
       <ShellHeaderMobileButton
@@ -31,25 +53,22 @@ export const ShellHeaderMobileMenu = () => {
         <>
           {createPortal(
             <Modal onTap={handleClose}>
-              <div
+              {/* <div
                 className={cx(
-                  'relative flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
-                  'gap-2.5',
-                  'shadow-08'
+                  'relative',
+                  'inset-0',
+                  'w-full',
+                  'bg-red',
+                  'flex items-center justify-center'
+                  // 'left-1/2',
+                  // 'translate-x-1/2'
+                  // 'relative flex flex-col items-center py-9 px-6 bg-white rounded-2xl',
+                  // 'gap-2.5',
+                  // 'shadow-08'
                 )}
-              >
-                <AccountMenuList
-                  items={
-                    [
-                      [
-                        'Quote',
-                        () => router.push('/quote'),
-                      ],
-                      ['Sign Out', signOut.onSignOut],
-                    ] as const
-                  }
-                />
-              </div>
+              > */}
+                <AccountMenuList classPosition='relative' items={items} />
+              {/* </div> */}
             </Modal>,
             document.body
           )}

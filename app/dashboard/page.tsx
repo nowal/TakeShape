@@ -39,15 +39,17 @@ const Dashboard = () => {
       <div className="h-6" />
       <div
         className={cx(
-          'relative translate-x-0 left-0 lg:left-1/2 lg:-translate-x-1/2',
-          'w-full lg:w-0',
-          'w-[1px] bg-red'
+          'relative left-1/2 -translate-x-1/2',
+          'w-auto lg:w-0',
+          'flex flex-col items-center lg:block'
+
+          // 'w-[1px] bg-red'
         )}
       >
         <div
           className={cx(
             'relative',
-            'flex flex-col items-center lg:flex-row lg:items-start'
+            'flex flex-col lg:flex-row'
           )}
           style={{
             left: isSmall ? 0 : -largeWidth,

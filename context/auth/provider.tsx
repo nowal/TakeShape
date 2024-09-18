@@ -1,4 +1,5 @@
 'use client';
+import { useAuthMenu } from '@/context/auth/menu';
 import { useSignIn } from '@/context/auth/sign-in';
 import { useSignOut } from '@/context/auth/sign-out';
 import { useSignUp } from '@/context/auth/sign-up';
@@ -16,6 +17,7 @@ type TAuthContext = TAuthConfig & {
   signIn: ReturnType<typeof useSignIn>;
   signOut: ReturnType<typeof useSignOut>;
   signUp: ReturnType<typeof useSignUp>;
+  menu: ReturnType<typeof useAuthMenu>;
 };
 export const AUTH = createContext<TAuthContext>(
   {} as TAuthContext
@@ -33,6 +35,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({
   const signIn = useSignIn(config);
   const signOut = useSignOut(config);
   const signUp = useSignUp(config);
+  const menu = useAuthMenu(config);
 
   return (
     <AUTH.Provider
@@ -41,6 +44,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({
         signIn,
         signOut,
         signUp,
+        menu,
         ...config,
       }}
     >

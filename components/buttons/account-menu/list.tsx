@@ -2,17 +2,19 @@ import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { cx } from 'class-variance-authority';
 import { Fragment, type FC } from 'react';
 
-type TAccountMenuListItem = [
+export type TAccountMenuListItem = [
   name: string,
   handler: () => void
+
 ];
-type TProps = { items: readonly TAccountMenuListItem[] };
-export const AccountMenuList: FC<TProps> = ({ items }) => {
+type TProps = { items: readonly TAccountMenuListItem[], classPosition?:string };
+export const AccountMenuList: FC<TProps> = ({ classPosition,items }) => {
   return (
     <ul
       className={cx(
         'flex flex-col items-stretch',
-        'absolute right-0 top-full mt-2 w-48 z-20',
+        classPosition??'absolute right-0 top-full mt-2',
+        'w-48 z-20',
         'rounded-xl',
         'border border-gray-8',
         'bg-white',

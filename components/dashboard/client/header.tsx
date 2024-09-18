@@ -21,9 +21,10 @@ export const DashboardClientHeader: FC<TProps> = (
         'gap-2'
       )}
     >
+      <h3 className="typography-form-title">Your Quotes</h3>
       <InputsSelect
         name="quote-change"
-        placeholder="Your Quotes"
+        placeholder="Select Quote"
         {...props}
       />
       <ButtonsCvaButton
