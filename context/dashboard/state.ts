@@ -29,7 +29,7 @@ import {
   TUserImage,
   TAcceptQuoteHandler,
   TQuoteChangeHandler,
-} from '@/types/types';
+} from '@/types';
 
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);

@@ -1,7 +1,7 @@
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { useDashboard } from '@/context/dashboard/provider';
-import { TPrice } from '@/types/types';
+import { TPrice } from '@/types';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 

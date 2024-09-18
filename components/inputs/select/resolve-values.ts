@@ -1,5 +1,5 @@
 import { TSelectValues } from '@/components/inputs/select/types';
-import { TSelectIdTitleItem } from '@/types/types';
+import { TSelectIdTitleItem } from '@/types';
 
 export type TResolveValuesConfig = {
   basicValues?: TSelectValues;

@@ -3,7 +3,7 @@ import { InputsText } from '@/components/inputs/text';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { PreferencesRow } from '@/components/preferences/row';
-import { TPaintPreferences } from '@/types/types';
+import { TPaintPreferences } from '@/types';
 import type { ChangeEventHandler, FC } from 'react';
 
 type TProps = Pick<

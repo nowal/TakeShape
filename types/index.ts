@@ -52,6 +52,10 @@ export type TTimestampPair = {
   ceilings?: boolean;
   trim?: boolean;
   roomName: string;
+
+  paintCeilings?: boolean;
+  paintTrimAndDoors?: boolean;
+  dontPaintAtAll?: boolean;
 };
 
 export type Job = {
@@ -79,17 +83,18 @@ export type Job = {
   }>;
 };
 
+export type TSelectIdTitleItem = {
+  id: string;
+  title: string;
+};
 
-export type TSelectIdTitleItem = { id: string; title: string };
+export type TUserImage = TSelectIdTitleItem;
 
-export type TUserImage = TSelectIdTitleItem
-
-export type TAcceptQuoteHandler =  (
+export type TAcceptQuoteHandler = (
   painterId: string,
   price: number
-) => Promise<void>
+) => Promise<void>;
 
-
-export type TQuoteChangeHandler =  (
+export type TQuoteChangeHandler = (
   userImageId: string
-) => Promise<void>
+) => Promise<void>;

@@ -7,7 +7,7 @@ import {
 } from '@/components/inputs/types';
 import { PreferencesRow } from '@/components/preferences/row';
 import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
-import { TPaintPreferences } from '@/types/types';
+import { TPaintPreferences } from '@/types';
 import type { FC } from 'react';
 
 type TProps = Pick<

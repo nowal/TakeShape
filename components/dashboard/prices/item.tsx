@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { PainterCard } from '@/components/painter-card';
-import { TPrice } from '@/types/types';
+import { TPrice } from '@/types';
 import { cx } from 'class-variance-authority';
 import { DashboardPricesItemFooter } from '@/components/dashboard/prices/footer';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';

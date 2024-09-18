@@ -1,5 +1,5 @@
 import { TPainterData } from '@/components/painter-card';
-import { TAgentInfo, TPrice } from '@/types/types';
+import { TAgentInfo, TPrice } from '@/types';
 
 export const isMocks = () => (process.env.NEXT_PUBLIC_MOCKS === 'true')
 

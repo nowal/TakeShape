@@ -3,7 +3,7 @@ import {
   TUserData,
   TTimestampPair,
   TPaintPreferences,
-} from '../types/types';
+} from '../types';
 import {
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
   PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,

@@ -1,6 +1,6 @@
 import { SelectItem } from '@/components/inputs/select/item';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
-import { TSelectIdTitleItem } from '@/types/types';
+import { TSelectIdTitleItem } from '@/types';
 import { Fragment, type FC } from 'react';
 
 export type TInputsSelectListIdTitleProps = { values?: TSelectIdTitleItem[] };

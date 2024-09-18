@@ -31,12 +31,12 @@ import {
 import { DashboardPainter } from '../../components/dashboard/painter';
 import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
 import {PainterCard} from '../../components/painter-card';
-import RoomCard from '@/components/roomCard';
+import RoomCard from '@/components/room-card';
 import {
   TTimestampPair,
   TUserData,
   TPaintPreferences,
-} from '@/types/types';
+} from '@/types';
 import {
   GoogleAnalytics,
   GoogleTagManager,
