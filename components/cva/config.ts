@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonsCvaConfig = cva(
-  ['inline-flex', 'items-center', 'leading-7'],
+  ['inline-flex', 'items-center'],
   {
     variants: {
       weight: {
@@ -10,8 +10,12 @@ export const buttonsCvaConfig = cva(
       },
       size: {
         none: [],
-        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
-        md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
+        xs: ['relative', 'px-4', 'py-3', 'rounded-4xl', 'leading-none'],
+        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl', 'leading-leading'],
+        md: ['relative', 'px-6', 'py-4', 'rounded-5xl', 'leading-leading'],
+        iconXl: ['relative', 'size-12'],
+        iconLg: ['relative', 'size-10'],
+        iconMd: ['relative', 'size-8'],
         fill: ['absolute inset-0'],
       },
       center: {
@@ -21,13 +25,14 @@ export const buttonsCvaConfig = cva(
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
       },
       isIconOnly: {
-        true: 'size-9',
+        true: [],
       },
       rounded: {
         none: [],
         lg: ['rounded-lg'],
         xl: ['rounded-xl'],
         '4xl': ['rounded-4xl'],
+        full: ['rounded-full'],
       },
       intent: {
         primary: [
@@ -38,6 +43,7 @@ export const buttonsCvaConfig = cva(
           'border',
           'border-gray-4',
           'gap-1',
+          'font-bold'
         ],
         ghost: [
           'bg-white',
@@ -51,6 +57,7 @@ export const buttonsCvaConfig = cva(
           'border',
           'gap-1',
         ],
+        icon: [],
         none: ['text-inherit', 'size-auto'],
       },
     },

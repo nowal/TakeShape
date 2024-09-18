@@ -28,7 +28,7 @@ export const PreferencesTrimFields: FC<TProps> = ({
   onValueChange,
 }) => {
   return (
-    <div className='fill-gray-col'>
+    <div className="fill-gray-col">
       <PreferencesRowYesNo
         name={PREFERENCES_NAME_BOOLEAN_TRIM}
         isChecked={isTrimAndDoorsPainted}
@@ -64,7 +64,7 @@ export const PreferencesTrimFields: FC<TProps> = ({
                 name="trimFinish"
                 value={trimFinish || ''}
                 onValueChange={onValueChange}
-                values={[
+                basicValues={[
                   'Semi-Gloss',
                   'Flat',
                   'Eggshell',

@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import clsx from "clsx";
+import { cx } from 'class-variance-authority';
 import { TLines_LineProps, Lines_Line } from "@/components/lines/_line";
 
 type TProps = TLines_LineProps;
@@ -12,7 +12,7 @@ export const LinesVertical: FC<
 }) => {
   return (
     <Lines_Line
-      classValue={clsx(
+      classValue={cx(
         "h-full w-0",
         classValue
       )}

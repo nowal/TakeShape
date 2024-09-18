@@ -2,8 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import PainterCard from '../../components/painterCard';
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  setDoc,
+} from 'firebase/firestore';
+import { PainterCard } from '../../components/painter-card';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 // Define the type for Painter data
@@ -15,13 +25,17 @@ interface Painter {
 }
 
 export default function AgentDashboard() {
-  const [preferredPainters, setPreferredPainters] = useState<Painter[]>([]);
+  const [preferredPainters, setPreferredPainters] =
+    useState<Painter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingPainter, setAddingPainter] = useState(false);
-  const [newPainterPhone, setNewPainterPhone] = useState('');
+  const [newPainterPhone, setNewPainterPhone] =
+    useState('');
   const [newPainterName, setNewPainterName] = useState('');
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState<
+    string | null
+  >(null);
   const [inviteLink, setInviteLink] = useState('');
   const [agentName, setAgentName] = useState('');
   const auth = getAuth();
@@ -31,7 +45,11 @@ export default function AgentDashboard() {
     const fetchAgentName = async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDocRef = doc(
+          firestore,
+          'reAgents',
+          currentUser.uid
+        );
         const agentDoc = await getDoc(agentDocRef);
         if (agentDoc.exists()) {
           const agentData = agentDoc.data();
@@ -53,12 +71,17 @@ export default function AgentDashboard() {
       }
 
       try {
-        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDocRef = doc(
+          firestore,
+          'reAgents',
+          currentUser.uid
+        );
         const agentDoc = await getDoc(agentDocRef);
 
         if (agentDoc.exists()) {
           const agentData = agentDoc.data();
-          const painterPhoneNumbers: string[] = agentData.preferredPainters || [];
+          const painterPhoneNumbers: string[] =
+            agentData.preferredPainters || [];
 
           if (painterPhoneNumbers.length === 0) {
             setPreferredPainters([]);
@@ -69,12 +92,31 @@ export default function AgentDashboard() {
           const batchSize = 10;
           let paintersList: Painter[] = [];
 
-          for (let i = 0; i < painterPhoneNumbers.length; i += batchSize) {
-            const batch = painterPhoneNumbers.slice(i, i + batchSize);
-            const paintersQuery = query(collection(firestore, 'painters'), where('phoneNumber', 'in', batch));
-            const paintersSnapshot = await getDocs(paintersQuery);
-            const batchPaintersList = paintersSnapshot.docs.map(doc => ({ userId: doc.id, ...doc.data() })) as Painter[];
-            paintersList = [...paintersList, ...batchPaintersList];
+          for (
+            let i = 0;
+            i < painterPhoneNumbers.length;
+            i += batchSize
+          ) {
+            const batch = painterPhoneNumbers.slice(
+              i,
+              i + batchSize
+            );
+            const paintersQuery = query(
+              collection(firestore, 'painters'),
+              where('phoneNumber', 'in', batch)
+            );
+            const paintersSnapshot = await getDocs(
+              paintersQuery
+            );
+            const batchPaintersList =
+              paintersSnapshot.docs.map((doc) => ({
+                userId: doc.id,
+                ...doc.data(),
+              })) as Painter[];
+            paintersList = [
+              ...paintersList,
+              ...batchPaintersList,
+            ];
           }
 
           setPreferredPainters(paintersList);
@@ -82,15 +124,20 @@ export default function AgentDashboard() {
           setPreferredPainters([]);
         }
       } catch (error) {
-        console.error('Error fetching recommended painters:', error);
-        setError('Failed to fetch recommended painters. Please try again later.');
+        console.error(
+          'Error fetching recommended painters:',
+          error
+        );
+        setError(
+          'Failed to fetch recommended painters. Please try again later.'
+        );
       } finally {
         setLoading(false);
       }
     };
 
     // Check if user is authenticated before fetching data
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         fetchPreferredPainters();
       } else {
@@ -109,34 +156,54 @@ export default function AgentDashboard() {
     setSearchError(null);
 
     try {
-      const paintersQuery = query(collection(firestore, 'painters'), where('phoneNumber', '==', newPainterPhone));
+      const paintersQuery = query(
+        collection(firestore, 'painters'),
+        where('phoneNumber', '==', newPainterPhone)
+      );
       const paintersSnapshot = await getDocs(paintersQuery);
 
       if (!paintersSnapshot.empty) {
         const painterDoc = paintersSnapshot.docs[0];
-        const painterData = { userId: painterDoc.id, ...painterDoc.data() } as Painter;
+        const painterData = {
+          userId: painterDoc.id,
+          ...painterDoc.data(),
+        } as Painter;
 
-        const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+        const agentDocRef = doc(
+          firestore,
+          'reAgents',
+          currentUser.uid
+        );
         const agentDoc = await getDoc(agentDocRef);
 
         if (agentDoc.exists()) {
           const agentData = agentDoc.data();
-          const updatedPreferredPainters = [...(agentData.preferredPainters || []), newPainterPhone];
+          const updatedPreferredPainters = [
+            ...(agentData.preferredPainters || []),
+            newPainterPhone,
+          ];
 
           await updateDoc(agentDocRef, {
-            preferredPainters: updatedPreferredPainters
+            preferredPainters: updatedPreferredPainters,
           });
 
-          setPreferredPainters([...preferredPainters, painterData]);
+          setPreferredPainters([
+            ...preferredPainters,
+            painterData,
+          ]);
           setAddingPainter(false);
           setNewPainterPhone('');
         }
       } else {
-        setSearchError('Painter not found. Please input name and we will send them an invite.');
+        setSearchError(
+          'Painter not found. Please input name and we will send them an invite.'
+        );
       }
     } catch (error) {
       console.error('Error adding painter:', error);
-      setSearchError('Error adding painter. Please try again later.');
+      setSearchError(
+        'Error adding painter. Please try again later.'
+      );
     } finally {
       setLoading(false);
     }
@@ -144,30 +211,41 @@ export default function AgentDashboard() {
 
   const handleInvitePainter = async () => {
     const currentUser = auth.currentUser;
-    if (!currentUser || !newPainterPhone || !newPainterName) return;
+    if (!currentUser || !newPainterPhone || !newPainterName)
+      return;
 
     setLoading(true);
     setSearchError(null);
 
     try {
-      const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+      const agentDocRef = doc(
+        firestore,
+        'reAgents',
+        currentUser.uid
+      );
       const agentDoc = await getDoc(agentDocRef);
 
       if (agentDoc.exists()) {
         const agentData = agentDoc.data();
-        const updatedPreferredPainters = [...(agentData.preferredPainters || []), newPainterPhone];
+        const updatedPreferredPainters = [
+          ...(agentData.preferredPainters || []),
+          newPainterPhone,
+        ];
 
         await updateDoc(agentDocRef, {
-          preferredPainters: updatedPreferredPainters
+          preferredPainters: updatedPreferredPainters,
         });
 
         const inviteData = {
           name: newPainterName,
           phoneNumber: newPainterPhone,
-          agentId: currentUser.uid
+          agentId: currentUser.uid,
         };
 
-        await setDoc(doc(firestore, 'painterInvites', newPainterPhone), inviteData);
+        await setDoc(
+          doc(firestore, 'painterInvites', newPainterPhone),
+          inviteData
+        );
 
         setAddingPainter(false);
         setNewPainterPhone('');
@@ -175,33 +253,50 @@ export default function AgentDashboard() {
       }
     } catch (error) {
       console.error('Error inviting painter:', error);
-      setSearchError('Error inviting painter. Please try again later.');
+      setSearchError(
+        'Error inviting painter. Please try again later.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemovePainter = async (phoneNumber: string) => {
+  const handleRemovePainter = async (
+    phoneNumber: string
+  ) => {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 
     try {
-      const agentDocRef = doc(firestore, 'reAgents', currentUser.uid);
+      const agentDocRef = doc(
+        firestore,
+        'reAgents',
+        currentUser.uid
+      );
       const agentDoc = await getDoc(agentDocRef);
 
       if (agentDoc.exists()) {
         const agentData = agentDoc.data();
-        const updatedPreferredPainters = agentData.preferredPainters.filter((p: string) => p !== phoneNumber);
+        const updatedPreferredPainters =
+          agentData.preferredPainters.filter(
+            (p: string) => p !== phoneNumber
+          );
 
         await updateDoc(agentDocRef, {
-          preferredPainters: updatedPreferredPainters
+          preferredPainters: updatedPreferredPainters,
         });
 
-        setPreferredPainters(preferredPainters.filter(painter => painter.phoneNumber !== phoneNumber));
+        setPreferredPainters(
+          preferredPainters.filter(
+            (painter) => painter.phoneNumber !== phoneNumber
+          )
+        );
       }
     } catch (error) {
       console.error('Error removing painter:', error);
-      setError('Error removing painter. Please try again later.');
+      setError(
+        'Error removing painter. Please try again later.'
+      );
     }
   };
 
@@ -220,8 +315,9 @@ export default function AgentDashboard() {
   };
 
   return (
-    <div className="p-4 sm:p-8 mb-12">  {/* Reduced padding for small screens */}
-      
+    <div className="p-4 sm:p-8 mb-12">
+      {' '}
+      {/* Reduced padding for small screens */}
       <div className="flex justify-center mt-12 mb-8">
         <button
           onClick={generateInviteLink}
@@ -230,32 +326,38 @@ export default function AgentDashboard() {
           Get Invite Link
         </button>
       </div>
-      
       {inviteLink && (
         <div className="text-center mb-4">
           <p>Invite Link:</p>
           <p className="text-blue-600">{inviteLink}</p>
         </div>
       )}
-  
-      <h2 className="text-3xl text-center font-bold underline mb-8 mt-14">Recommended Painters</h2>
-      
+      <h2 className="text-3xl text-center font-bold underline mb-8 mt-14">
+        Recommended Painters
+      </h2>
       <div className="flex justify-center mb-4">
-        <button onClick={() => setAddingPainter(true)} className="button-green">
+        <button
+          onClick={() => setAddingPainter(true)}
+          className="button-green"
+        >
           Add new +
         </button>
       </div>
-  
       {addingPainter && (
         <div className="mb-4">
           <input
             type="text"
             value={newPainterPhone}
-            onChange={(e) => setNewPainterPhone(e.target.value)}
+            onChange={(e) =>
+              setNewPainterPhone(e.target.value)
+            }
             placeholder="Painter Phone Number"
             className="p-2 border rounded w-full mb-2"
           />
-          <button onClick={handleAddPainter} className="button-green">
+          <button
+            onClick={handleAddPainter}
+            className="button-green"
+          >
             Submit
           </button>
           {searchError && (
@@ -264,30 +366,39 @@ export default function AgentDashboard() {
               <input
                 type="text"
                 value={newPainterName}
-                onChange={(e) => setNewPainterName(e.target.value)}
+                onChange={(e) =>
+                  setNewPainterName(e.target.value)
+                }
                 placeholder="Painter Name"
                 className="p-2 border rounded w-full mb-2"
               />
-              <button onClick={handleInvitePainter} className="button-green">
+              <button
+                onClick={handleInvitePainter}
+                className="button-green"
+              >
                 Send Invite
               </button>
             </div>
           )}
         </div>
       )}
-  
       <div>
         {loading ? (
-         <FallbacksLoading />
+          <FallbacksLoading />
         ) : error ? (
           <p className="text-red-600">{error}</p>
         ) : preferredPainters.length > 0 ? (
           preferredPainters.map((painter) =>
             painter.userId ? (
-              <div key={painter.userId} className="flex items-center justify-between mb-4">
+              <div
+                key={painter.userId}
+                className="flex items-center justify-between mb-4"
+              >
                 <PainterCard painterId={painter.userId} />
                 <button
-                  onClick={() => handleRemovePainter(painter.phoneNumber)}
+                  onClick={() =>
+                    handleRemovePainter(painter.phoneNumber)
+                  }
                   className="ml-4 text-3xl font-bold"
                 >
                   &times;
@@ -296,9 +407,11 @@ export default function AgentDashboard() {
             ) : null
           )
         ) : (
-          <p className="text-center mt-12">No recommended painters added yet.</p>
+          <p className="text-center mt-12">
+            No recommended painters added yet.
+          </p>
         )}
       </div>
     </div>
   );
-}  
+}

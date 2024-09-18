@@ -1,10 +1,9 @@
-import clsx from 'clsx';
+import { cx } from 'class-variance-authority';
 import { motion } from 'framer-motion';
 import { FC } from 'react';
 import { ANIMATION_INITIAL_DURATION } from '@/components/modal/constants';
 import { useFreezeScrollBar } from '@/hooks/use-freeze-scroll';
 import { TDivMotionProps } from '@/types/dom';
-import { cx } from 'class-variance-authority';
 
 type TProps = TDivMotionProps;
 export const Modal: FC<TProps> = ({

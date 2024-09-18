@@ -4,10 +4,9 @@ import {
   ButtonsCvaLink,
   TButtonsCvaLinkProps,
 } from '@/components/cva/link';
-import { THeaderOptionsProps } from '@/components/shell/header/options';
 
-type TProps = THeaderOptionsProps & TButtonsCvaLinkProps;
-const QuoteButton: FC<TProps> = ({ onClose, ...props }) => {
+type TProps = TButtonsCvaLinkProps;
+const QuoteButton: FC<TProps> = ({ ...props }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const auth = getAuth();
 
@@ -29,7 +28,6 @@ const QuoteButton: FC<TProps> = ({ onClose, ...props }) => {
       intent="primary"
       size="sm"
       weight="bold"
-      onTap={onClose}
       {...props}
     >
       {title}

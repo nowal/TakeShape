@@ -46,7 +46,7 @@ export const PreferencesLaborAndMaterials: FC<TProps> = ({
             name="finish"
             value={props.finish || ''}
             onValueChange={onValueChange}
-            values={[
+            basicValues={[
               'Eggshell',
               'Flat',
               'Satin',
@@ -66,7 +66,7 @@ export const PreferencesLaborAndMaterials: FC<TProps> = ({
             name="paintQuality"
             value={props.paintQuality || ''}
             onValueChange={onValueChange}
-            values={[
+            basicValues={[
               'Medium Quality',
               'Budget Quality',
               'High Quality',

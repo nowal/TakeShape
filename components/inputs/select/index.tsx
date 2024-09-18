@@ -1,33 +1,44 @@
-import { FC, Fragment } from 'react';
+import { FC } from 'react';
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
-import { TSelectValues } from '@/components/inputs/select/types';
-import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { cx } from 'class-variance-authority';
-import clsx from 'clsx';
 import * as Select from '@radix-ui/react-select';
-import { SelectItem } from '@/components/inputs/select/item';
 import { TValueChangeHandler } from '@/components/inputs/types';
+import {
+  InputsSelectListIdTitle,
+  TInputsSelectListIdTitleProps,
+} from '@/components/inputs/select/list/id-title';
+import { TInputsSelectListBasicProps } from '@/components/inputs/select/list/basic';
+import {
+  resolveValues,
+  TResolveValuesConfig,
+} from '@/components/inputs/select/resolve-values';
 
-export type TInputsSelectProps = Select.SelectProps;
+export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
-  TInputsSelectProps,
-  'defaultValue'|'value'
+  TInputsSelectRootProps,
+  'defaultValue' | 'value'
 >;
-type TProps = TBaseInputsSelectProps & {
-  title?: string | JSX.Element;
-  name: string;
-  placeholder: string;
-  values: TSelectValues;
-  onValueChange: TValueChangeHandler;
-};
-export const InputsSelect: FC<TProps> = ({
+export type TInputsSelectProps = TBaseInputsSelectProps &
+  TResolveValuesConfig & {
+    title?: string | JSX.Element;
+    name: string;
+    placeholder: string;
+    onValueChange: TValueChangeHandler;
+    ListFc?: FC<
+      | TInputsSelectListIdTitleProps
+      | TInputsSelectListBasicProps
+    >;
+  };
+export const InputsSelect = ({
   name,
-  values,
+  basicValues,
+  idValues,
   title,
   placeholder,
   onValueChange,
   ...props
-}) => {
+}: TInputsSelectProps) => {
+  const values = resolveValues({ idValues, basicValues });
   return (
     <Select.Root
       onValueChange={(value) => onValueChange(name, value)}
@@ -35,7 +46,7 @@ export const InputsSelect: FC<TProps> = ({
     >
       <div>
         <Select.Trigger
-          className={clsx(
+          className={cx(
             'column-start justify-start',
             'text-left',
             'truncate',
@@ -53,7 +64,6 @@ export const InputsSelect: FC<TProps> = ({
             <div className="truncate w-full">
               <Select.Value placeholder={placeholder} />
             </div>
-
             <Select.Icon className="flex items-center justify-center">
               <IconsChevronsDown />
             </Select.Icon>
@@ -64,33 +74,21 @@ export const InputsSelect: FC<TProps> = ({
       <Select.Portal>
         <Select.Content
           position="popper"
-          className={clsx(
-            'column-stretch z-20',
-            'rounded-xl',
+          className={cx(
+            'column-stretch',
             'my-2',
+            'rounded-xl',
             'border border-gray-8',
-            // 'py-0.5',
             'bg-white',
             'drop-shadow-05',
-            'overflow-hidden'
+            'overflow-hidden',
+            'z-20'
           )}
           align="center"
           side="bottom"
         >
           <Select.Viewport>
-            {values.map((value, index) => {
-              return (
-                <Fragment key={value}>
-                  {index !== 0 && <LinesHorizontalLight />}
-                  <SelectItem
-                 
-                    value={value}
-                  >
-                    {value}
-                  </SelectItem>
-                </Fragment>
-              );
-            })}
+            <InputsSelectListIdTitle values={values} />
           </Select.Viewport>
         </Select.Content>
       </Select.Portal>

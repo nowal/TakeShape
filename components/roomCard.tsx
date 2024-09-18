@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { timestampPairsAtom } from '../atom/atom';
+import { timestampPairsAtom } from '../atom';
 import { updateDoc, DocumentReference, getDoc } from 'firebase/firestore';
 
-interface TimestampPair {
+interface TTimestampPair {
   startTime: number;
   endTime?: number;
   color: string;
@@ -56,7 +56,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       const docSnap = await getDoc(userImageRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const specificPair = data.timestampPairs.find((pair: TimestampPair) => pair.startTime === startTime);
+        const specificPair = data.timestampPairs.find((pair: TTimestampPair) => pair.startTime === startTime);
         if (specificPair) {
           setColor(specificPair.color || defaultColor);
           setFinish(specificPair.finish || defaultFinish);
@@ -75,10 +75,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
       const docSnap = await getDoc(userImageRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        let timestampPairs: TimestampPair[] = data.timestampPairs || [];
+        let timestampPairs: TTimestampPair[] = data.timestampPairs || [];
         timestampPairs = timestampPairs.filter(pair => pair.startTime !== startTime);
 
-        const newPair: TimestampPair = {
+        const newPair: TTimestampPair = {
           startTime, 
           color, 
           finish,
@@ -104,7 +104,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     try {
       const docSnap = await getDoc(userImageRef);
       if (docSnap.exists()) {
-        let timestampPairs: TimestampPair[] = docSnap.data().timestampPairs || [];
+        let timestampPairs: TTimestampPair[] = docSnap.data().timestampPairs || [];
         timestampPairs = timestampPairs.filter(pair => pair.startTime !== startTime);
         await updateDoc(userImageRef, { timestampPairs });
         console.log('Timestamp pair deleted successfully');

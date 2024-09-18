@@ -163,3 +163,14 @@ font-weight: 600;
 line-height: 24px; /* 171.429% */
 letter-spacing: -0.28px;
 }
+
+.y {
+  color: #0F0F0F;
+text-align: center;
+font-family: Montserrat;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 120%; /* 28.8px */
+letter-spacing: -0.96px;
+}

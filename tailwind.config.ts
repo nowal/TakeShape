@@ -40,6 +40,11 @@ const config: Config = {
         'white-2': '#F9F9F9',
         'white-3': '#F5F5F5',
         'white-4': '#EDEDED',
+        'white-5': '#FDFDFD',
+        'white-6': '#f4f4f4',
+        'white-7': '#EEEEEE',
+
+        'white-green': '#F0FFF5',
 
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',
@@ -51,6 +56,9 @@ const config: Config = {
 
         red: '#ff0000',
 
+        green: '#83A68F',
+        'green-1': '#395A44',
+
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
         'gray-3': '#D7D7D7',
@@ -60,7 +68,8 @@ const config: Config = {
         'gray-7': '#5F5F5F',
         'gray-8': '#f8f8f8',
         'gray-9': '#AAAAAA',
-        'gray-10': '#ececec'
+        'gray-10': '#ececec',
+        'gray-11': '#E2E2E2',
       },
       borderRadius: {
         '15.1875': '15.1875rem',
@@ -92,7 +101,7 @@ const config: Config = {
       },
       letterSpacing: {
         'tight-06': '-0.06em',
-        'tight-02':'-0.02em'
+        'tight-02': '-0.02em',
       },
       spacing: {
         0.25: '0.0625rem',

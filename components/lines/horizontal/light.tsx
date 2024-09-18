@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import clsx from "clsx";
+import { cx } from 'class-variance-authority';
 import { Lines_Line } from "@/components/lines/_line";
 import { TLinesOptions } from "@/components/lines/types";
 
@@ -9,7 +9,7 @@ export const LinesHorizontalLight: FC<
 > = ({ classValue, ...props }) => {
   return (
     <Lines_Line
-      classValue={clsx(
+      classValue={cx(
         "w-full h-0",
         classValue
       )}

@@ -20,3 +20,9 @@ export const PAINT_PREFERENCES_DEFAULTS = {
   trimColor: 'White',
   trimFinish: 'Semi-gloss',
 } as const;
+export const UPLOAD_STATUS_RECORD = {
+  idle: 'idle',
+  uploading: 'uploading',
+  completed: 'completed',
+  error: 'error',
+} as const;

@@ -13,15 +13,15 @@ const init = async () => {
   for await (const size of TEST_SCREENS_SIZES) {
     await page.setViewport(size);
 
-    const website_url =
-      'https://www.takeshapehome.com/defaultPreferences?userImageId=2Cpkl81uM1joK7VBWsvs';
+    const website_url = 'http://localhost:3000/dashboard';
     await page.goto(website_url, {
       waitUntil: ['load', 'networkidle0'],
     });
-    // Capture screenshot
-    await page.screenshot({
-      path: `${TEST_SCREENS_DIR}/_${size.width}x${size.height}.jpg`,
-    });
+    setTimeout(async () => {
+      await page.screenshot({
+        path: `${TEST_SCREENS_DIR}/_${size.width}x${size.height}.jpg`,
+      });
+    }, 1000);
   }
 
   await browser.close();

@@ -16,8 +16,8 @@ export const ShellFooterList: FC<TProps> = ({
     <div className="flex flex-col gap-8">
       <h4 className="typography-footer-title">{title}</h4>
       <ul className="flex flex-col gap-5 typography-footer-open-sans">
-        {items.map((item) => (
-          <li key={item.title}>
+        {items.map((item, index) => (
+          <li key={`${item.title}-${index}`}>
             <ButtonsCvaLink {...item} />
           </li>
         ))}
