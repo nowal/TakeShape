@@ -4,7 +4,6 @@ import {
 } from '@/components/dashboard/client/quotes/mocks';
 import { useDashboard } from '@/context/dashboard/provider';
 import type { FC } from 'react';
-import Image from "next/image"
 
 export const DashboardPricesItemRecommended: FC = () => {
   const dashboard = useDashboard();
@@ -22,7 +21,7 @@ export const DashboardPricesItemRecommended: FC = () => {
           {agentInfo.name}
         </div>
       </div>
-      <Image
+      <img
         src={agentInfo.profilePictureUrl}
         alt="Agent"
         className="size-6 rounded-full"
