@@ -1,14 +1,21 @@
 import type { FC } from 'react';
 import { useDashboard } from '@/context/dashboard/provider';
+import { DASHBOARD_VIDEO_WIDTH } from '@/components/dashboard/constants';
+import { useViewport } from '@/context/viewport';
 
 export const DashboardClientVideo: FC = () => {
   const dashboard = useDashboard();
   const { userData, videoRef } = dashboard;
+  const viewport = useViewport();
+  const isSmall =
+    viewport.isDimensions && viewport.width < 1024;
+  const isVerySmall =
+    viewport.isDimensions && viewport.width < 480;
   if (!userData) return null;
   return (
     <div
       style={{
-        width: 345,
+        width: isVerySmall ? '100%' : DASHBOARD_VIDEO_WIDTH,
       }}
       className="rounded-xl overflow-hidden"
     >

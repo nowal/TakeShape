@@ -49,6 +49,8 @@ export const SignInModal: FC = () => {
                 isIconOnly
                 rounded="full"
                 center
+                size='iconLg'
+                intent='icon'
                 classValue="bg-black hover:bg-gray-7 active:bg-pink text-white"
               >
                 <CommonIconCloseFat />

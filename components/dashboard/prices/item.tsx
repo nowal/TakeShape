@@ -13,13 +13,6 @@ export const DashboardPricesItem: FC<TProps> = ({
   children,
   ...price
 }) => {
-  const dashboard = useDashboard();
-  const {
-    userData,
-    onAcceptQuote,
-    preferredPainterUserIds,
-    agentInfo,
-  } = dashboard;
   return (
     <li
       className={cx(
@@ -29,9 +22,9 @@ export const DashboardPricesItem: FC<TProps> = ({
         'rounded-lg'
       )}
     >
-      <div className={cx("flex flex-row items-center justify-between", "px-6 pt-6 pb-2")}>
+      <div className={cx("flex flex-col items-stretch justify-between xs:flex-row lg:items-center", "px-6 pt-6 pb-2")}>
         <PainterCard painterId={price.painterId} />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className={cx("flex flex-col items-stretch xs:flex-row xs:items-start justify-between gap-4")}>
           <div className="flex flex-col items-end gap-2">
             <p className="flex flex-row items-start text-2xl gap-1 font-medium">
               <span className="relative top-[2px] text-sm">$</span>

@@ -1,10 +1,8 @@
 import { useRouter } from 'next/navigation';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { DashboardClientHeader } from '@/components/dashboard/client/header';
-import { DashboardClientQuotes } from '@/components/dashboard/client/quotes';
 import { DashboardClientUploading } from '@/components/dashboard/client/uploading';
 import { DashboardClientVideo } from '@/components/dashboard/client/video';
-import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/notifications';
 import { IconsQuote } from '@/components/icons/quote';
 import { useDashboard } from '@/context/dashboard/provider';
 import { isString } from '@/utils/validation/is/string';
@@ -19,12 +17,8 @@ export const DashboardClient: FC = () => {
     userImageList,
     uploadStatus,
     userData,
-    acceptedQuote,
-    onAcceptQuote,
     onQuoteChange,
-    preferredPainterUserIds,
     selectedUserImage,
-    agentInfo,
   } = dashboard;
   const preferencesTitle = 'Your Quote’s Preferences';
   return (

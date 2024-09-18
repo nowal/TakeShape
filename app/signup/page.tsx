@@ -5,7 +5,7 @@ import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { SignUpLogin } from '@/components/sign-up/login';
+import { SignUpSignIn } from '@/components/sign-up/sign-in';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useSignUp } from '@/context/auth/sign-up';
 import { useAuth } from '@/context/auth/provider';
@@ -39,7 +39,7 @@ const SignupAccountForm = () => {
 
   if (isShowLoginInstead) {
     return (
-      <SignUpLogin
+      <SignUpSignIn
         onTap={() => dispatchShowLoginInstead(false)}
       />
     );

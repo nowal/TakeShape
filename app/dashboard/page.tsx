@@ -31,6 +31,8 @@ const Dashboard = () => {
   const viewport = useViewport();
   const isSmall =
     viewport.isDimensions && viewport.width < 1024;
+  const isVerySmall =
+    viewport.isDimensions && viewport.width < 480;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
   return (
@@ -49,20 +51,36 @@ const Dashboard = () => {
         <div
           className={cx(
             'relative',
-            'flex flex-col lg:flex-row'
+            'flex flex-col items-center lg:flex-row lg:items-start'
           )}
           style={{
             left: isSmall ? 0 : -largeWidth,
-            width: isSmall
-              ? DASHBOARD_WIDTH_LEFT
+            width: isVerySmall
+              ? '100%'
+              : isSmall
+              ? DASHBOARD_WIDTH_RIGHT
               : DASHBOARD_WIDTH,
             gap: DASHBOARD_GAP,
           }}
         >
-          <div style={{ width: DASHBOARD_WIDTH_LEFT }}>
+          <div
+            style={{
+              width: isVerySmall
+                ? '100%'
+                : DASHBOARD_WIDTH_LEFT,
+              padding: isVerySmall ? '1rem' : '0',
+            }}
+          >
             <ComponentsDashboard isPainter={isPainter} />
           </div>
-          <div style={{ width: DASHBOARD_WIDTH_RIGHT }}>
+          <div
+            style={{
+              width: isVerySmall
+                ? '100%'
+                : DASHBOARD_WIDTH_RIGHT,
+              padding: isVerySmall ? '1rem' : '0',
+            }}
+          >
             {acceptedQuote ? (
               <DashboardNotificationsQuoteAccepted
                 painterId={acceptedQuote.painterId}
