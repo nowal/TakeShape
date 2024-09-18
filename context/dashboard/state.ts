@@ -36,21 +36,34 @@ export const useDashboardState = () => {
   const [isShowModal, setShowModal] = useState(false);
   const [selectedQuote, setSelectedQuote] =
     useState<number>(0);
-  const [isPainter, setIsPainter] = useAtom(isPainterAtom);
-  const [checkingAuth, setCheckingAuth] = useAtom(
-    checkingAuthAtom
-  );
-  const [userTypeLoading, setUserTypeLoading] = useAtom(
-    userTypeLoadingAtom
-  );
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [painterId, setPainterId] = useState('');
-  const [uploadProgress, setUploadProgress] = useAtom(
-    uploadProgressAtom
-  );
-  const [uploadStatus, setUploadStatus] = useAtom(
-    uploadStatusAtom
-  );
+  const [isPainter, setPainter] = useAtom(isPainterAtom);
+  const [
+    ,
+    // checkingAuth,
+    setCheckingAuth,
+  ] = useAtom(checkingAuthAtom);
+  const [
+    ,
+    // userTypeLoading,
+    setUserTypeLoading,
+  ] = useAtom(userTypeLoadingAtom);
+  const [
+    phoneNumber,
+    // , setPhoneNumber
+  ] = useState('');
+  const [
+    ,
+    // painterId,
+    setPainterId,
+  ] = useState('');
+  const [
+    uploadProgress,
+    //  setUploadProgress
+  ] = useAtom(uploadProgressAtom);
+  const [
+    uploadStatus,
+    // , setUploadStatus
+  ] = useAtom(uploadStatusAtom);
   const [acceptedQuote, setAcceptedQuote] =
     useState<TPrice | null>(null);
   const firestore = getFirestore();
@@ -76,7 +89,7 @@ export const useDashboardState = () => {
         fetchUserData();
       } else {
         setUserData(null);
-        setIsPainter(false);
+        setPainter(false);
         setCheckingAuth(false);
         setUserTypeLoading(false);
       }
@@ -112,7 +125,7 @@ export const useDashboardState = () => {
       const userDocData = userDoc.data() as TUserData;
       console.log('User data:', userDocData); // Add this log
       // Since the user exists in the users collection, we set isPainter to false
-      setIsPainter(false);
+      setPainter(false);
 
       const userImageIds = userDocData.userImages || [];
       const userImagesData = await Promise.all(
@@ -209,7 +222,7 @@ export const useDashboardState = () => {
 
       if (!paintersSnapshot.empty) {
         // User exists in the painters collection
-        setIsPainter(true);
+        setPainter(true);
         console.log('User is a painter'); // Add this log
       } else {
         console.error(
