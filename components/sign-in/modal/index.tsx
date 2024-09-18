@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import type { FC } from 'react';
 
 import { ButtonsCvaButton } from '@/components/cva/button';
@@ -84,7 +84,7 @@ export const SignInModal: FC = () => {
                 title={submitButtonTitle}
                 type="submit"
                 center
-                classValue="w-full text-center"
+                classValue="w-full text-center font-bold"
                 intent="primary"
                 size="sm"
                 disabled={isLoading}

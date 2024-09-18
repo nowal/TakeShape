@@ -9,7 +9,7 @@ type TProps = {
   isLoading: boolean;
   profilePictureUrl: string | null;
 };
-export const AccountMenuButton: FC<TProps> = ({
+export const AccountMenuIcon: FC<TProps> = ({
   isDropdownOpen,
   isLoading,
   profilePictureUrl,

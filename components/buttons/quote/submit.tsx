@@ -11,6 +11,8 @@ export const ButtonsQuoteSubmit: FC<
       title={title}
       intent="primary"
       size="sm"
+      center
+      classValue='font-bold'
       {...props}
     >
       {title}

@@ -48,4 +48,8 @@ export const useSignOut = ({dispatchUserSignedIn}: TAuthConfig) => {
       window.removeEventListener('keydown', resetTimer);
     };
   }, [auth, handleSignOut]);
+
+  return {
+    onSignOut:handleSignOut 
+  }
 };

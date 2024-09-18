@@ -12,6 +12,9 @@ export const buttonsCvaConfig = cva(
         none: [],
         sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl'],
         md: ['relative', 'px-6', 'py-4', 'rounded-5xl'],
+        iconXl: ['relative', 'size-12'],
+        iconLg: ['relative', 'size-10'],
+        iconMd: ['relative', 'size-8'],
         fill: ['absolute inset-0'],
       },
       center: {
@@ -21,7 +24,7 @@ export const buttonsCvaConfig = cva(
         true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
       },
       isIconOnly: {
-        true: 'size-10',
+        true: [],
       },
       rounded: {
         none: [],
@@ -52,7 +55,8 @@ export const buttonsCvaConfig = cva(
           'border',
           'gap-1',
         ],
-        none: ['text-inherit'],
+        icon: [],
+        none: ['text-inherit', 'size-auto'],
       },
     },
     compoundVariants: [
@@ -74,6 +78,10 @@ export const buttonsCvaConfig = cva(
         isDisabled: false,
         className: ['z-10'],
       },
+      // {
+      //   isIconOnly: false,
+      //   className: ['size-auto'],
+      // },
     ],
     defaultVariants: {
       intent: 'none',

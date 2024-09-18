@@ -2,19 +2,20 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Modal } from '@/components/modal';
-import { HeaderOptions } from '@/components/shell/header/options';
 import { cx } from 'class-variance-authority';
 import { useViewport } from '@/context/viewport';
 import { ShellHeaderMobileButton } from '@/components/shell/header/mobile/button';
 import { AccountMenuList } from '@/components/buttons/account-menu/list';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth/provider';
 
 export const ShellHeaderMobileMenu = () => {
+  const { signOut } = useAuth();
   const [isMenuOpen, setMenuOpen] = useState(false);
-const router = useRouter()
+  const router = useRouter();
   const viewport = useViewport();
-
   const handleClose = () => setMenuOpen(false);
+
   useEffect(() => {
     if (viewport.isResizing) {
       handleClose();
@@ -24,7 +25,7 @@ const router = useRouter()
   return (
     <div className="relative flex items-center justify-center size-12 text-pink shrink-0 shadow-09 rounded-md lg:hidden">
       <ShellHeaderMobileButton
-      onTap={() => setMenuOpen((prev) => !prev)}
+        onTap={() => setMenuOpen((prev) => !prev)}
       />
       {isMenuOpen && (
         <>
@@ -37,16 +38,17 @@ const router = useRouter()
                   'shadow-08'
                 )}
               >
-                {/* <HeaderOptions onClose={handleClose} /> */}
                 <AccountMenuList
-          items={
-            [
-              ['Quote', () => router.push("/quote")],
-          
-              ['Sign In', handleSignOut],
-            ] as const
-          }
-        />
+                  items={
+                    [
+                      [
+                        'Quote',
+                        () => router.push('/quote'),
+                      ],
+                      ['Sign Out', signOut.onSignOut],
+                    ] as const
+                  }
+                />
               </div>
             </Modal>,
             document.body

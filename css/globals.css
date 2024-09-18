@@ -25,9 +25,6 @@ html,
 #__next {
   font-style: normal;
   /* color: rgb(var(--foreground-rgb)); */
-  background: rgb(
-    var(--background-start-rgb)
-  ); /* Updated to use a solid color */
 }
 html,
 body textarea:hover,

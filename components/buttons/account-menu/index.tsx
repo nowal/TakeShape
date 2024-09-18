@@ -17,11 +17,12 @@ import {
   ref,
   getDownloadURL,
 } from 'firebase/storage';
-import { AccountMenuButton } from '@/components/buttons/account-menu/button';
+import { AccountMenuIcon } from '@/components/buttons/account-menu/icon';
 import { cx } from 'class-variance-authority';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { useOutsideClick } from '@/hooks/use-outside-click';
 import { AccountMenuList } from '@/components/buttons/account-menu/list';
+import { ButtonsCvaButton } from '@/components/cva/button';
 
 export const AccountMenu = () => {
   const [profilePictureUrl, setProfilePictureUrl] =
@@ -153,22 +154,21 @@ export const AccountMenu = () => {
 
   return (
     <div ref={outsideClickRef}>
-      <button
-        onClick={handleDropdownOpenToggle}
-        className={cx(
-          'relative size-12',
-          'flex items-center justify-center',
-          'bg-white',
-          'rounded-full',
-          'shadow-md'
-        )}
+      <ButtonsCvaButton
+        title="Title Open"
+        onTap={handleDropdownOpenToggle}
+        classValue={cx('bg-white', 'shadow-md', 'z-10')}
+        rounded="full"
+        size="iconXl"
+        intent='icon'
+        center
       >
-        <AccountMenuButton
+        <AccountMenuIcon
           isDropdownOpen={isDropdownOpen}
           isLoading={isLoading}
           profilePictureUrl={profilePictureUrl}
         />
-      </button>
+      </ButtonsCvaButton>
       {isDropdownOpen && (
         <AccountMenuList
           items={

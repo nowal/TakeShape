@@ -31,8 +31,7 @@ import {
   TQuoteChangeHandler,
 } from '@/types/types';
 
-type TConfig = any;
-export const useDashboard = (config?: TConfig) => {
+export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
   const [isShowModal, setShowModal] = useState(false);
   const [selectedQuote, setSelectedQuote] =

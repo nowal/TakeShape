@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-import { IconsCheckboxChecked } from '@/components/icons/inputs/checkbox/checked';
 import { TClassValueProps, TDivProps } from '@/types/dom';
 import { TPropsWithChildren } from '@/types/dom/main';
 import * as Select from '@radix-ui/react-select';
@@ -21,6 +20,7 @@ export const SelectItem = forwardRef<
         className={cx(
           'relative flex flex-row items-center grow',
           'p-2',
+          'px-3',
           'cursor-pointer outline-none select-none',
           'data-[highlighted]:bg-white-1 data-[highlighted]:bg-opacity-50',
           'drop-shadow-05',

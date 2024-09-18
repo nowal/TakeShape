@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
-import { TSelectValues } from '@/components/inputs/select/types';
 import { cx } from 'class-variance-authority';
 import clsx from 'clsx';
 import * as Select from '@radix-ui/react-select';
@@ -9,39 +8,38 @@ import {
   InputsSelectListIdTitle,
   TInputsSelectListIdTitleProps,
 } from '@/components/inputs/select/list/id-title';
+import { TInputsSelectListBasicProps } from '@/components/inputs/select/list/basic';
 import {
-  InputsSelectListBasic,
-  TInputsSelectListBasicProps,
-} from '@/components/inputs/select/list/basic';
-import { TSelectIdTitleItem } from '@/types/types';
+  resolveValues,
+  TResolveValuesConfig,
+} from '@/components/inputs/select/resolve-values';
 
-export type TInputsSelectProps = Select.SelectProps;
+export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
-  TInputsSelectProps,
+  TInputsSelectRootProps,
   'defaultValue' | 'value'
 >;
-type TProps = TBaseInputsSelectProps & {
-  title?: string | JSX.Element;
-  name: string;
-  placeholder: string;
-  values?: TSelectValues;
-
-  idValues?: TSelectIdTitleItem[];
-  onValueChange: TValueChangeHandler;
-  ListFc?: FC<
-    | TInputsSelectListIdTitleProps
-    | TInputsSelectListBasicProps
-  >;
-};
+export type TInputsSelectProps = TBaseInputsSelectProps &
+  TResolveValuesConfig & {
+    title?: string | JSX.Element;
+    name: string;
+    placeholder: string;
+    onValueChange: TValueChangeHandler;
+    ListFc?: FC<
+      | TInputsSelectListIdTitleProps
+      | TInputsSelectListBasicProps
+    >;
+  };
 export const InputsSelect = ({
   name,
-  values,
+  basicValues,
   idValues,
   title,
   placeholder,
   onValueChange,
   ...props
-}: TProps) => {
+}: TInputsSelectProps) => {
+  const values = resolveValues({ idValues, basicValues });
   return (
     <Select.Root
       onValueChange={(value) => onValueChange(name, value)}
@@ -67,7 +65,6 @@ export const InputsSelect = ({
             <div className="truncate w-full">
               <Select.Value placeholder={placeholder} />
             </div>
-
             <Select.Icon className="flex items-center justify-center">
               <IconsChevronsDown />
             </Select.Icon>
@@ -79,20 +76,20 @@ export const InputsSelect = ({
         <Select.Content
           position="popper"
           className={clsx(
-            'column-stretch z-20',
+            'column-stretch',
             'my-2',
             'rounded-xl',
             'border border-gray-8',
             'bg-white',
             'drop-shadow-05',
-            'overflow-hidden'
+            'overflow-hidden',
+            'z-20'
           )}
           align="center"
           side="bottom"
         >
           <Select.Viewport>
-            <InputsSelectListIdTitle values={idValues} />
-            <InputsSelectListBasic values={values} />
+            <InputsSelectListIdTitle values={values} />
           </Select.Viewport>
         </Select.Content>
       </Select.Portal>

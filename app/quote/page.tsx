@@ -267,7 +267,7 @@ export default function QuotePage() {
               className={cx(
                 'hidden xl:flex',
                 'w-0 h-0 ',
-                'xs:w-[21rem]',
+                'xs:w-[21rem]'
               )}
             />
             <div className="flex flex-col items-center gap-[26px]">
@@ -275,7 +275,7 @@ export default function QuotePage() {
                 className={cx(
                   'fill-column-white',
                   'gap-2.5',
-                  'xs:w-[23.875rem]',
+                  'xs:w-[23.875rem]'
                 )}
               >
                 <div className="relative w-full">
@@ -289,7 +289,7 @@ export default function QuotePage() {
                   className={cx(
                     'w-full',
                     'shadow-08',
-                    'border border-black-3',
+                    'border border-gray-1',
                     'rounded-lg'
                   )}
                 >
@@ -300,10 +300,11 @@ export default function QuotePage() {
                     onChange={(e) =>
                       setTitle(e.target.value)
                     }
-                    placeholder="Enter Title  (e.g. Bedroom Walls)"
+                    placeholder="Enter Title (e.g. Bedroom Walls)"
                     required
                     className={cx(
                       'px-5 py-3',
+                      'text-black-3',
                       'font-semibold font-base font-open-sans',
                       'w-full',
                       'truncate'
@@ -371,7 +372,7 @@ export default function QuotePage() {
                   title={SEE_VIDEO_TITLE}
                   icon={{ Trailing: IconsVideo }}
                   size="none"
-                  classValue='gap-2'
+                  classValue="gap-2"
                   isDisabled
                 >
                   <span className="typography-quote-see-video">
