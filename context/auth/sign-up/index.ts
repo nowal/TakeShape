@@ -39,7 +39,7 @@ export const useSignUp = (config: TConfig) => {
   const [address, setAddress] = useState('');
   const [addressComponents, setAddressComponents] =
     useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [docId, setDocId] = useAtom(documentIdAtom);
   const [name, setName] = useState('');
@@ -136,17 +136,18 @@ export const useSignUp = (config: TConfig) => {
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setLoading(true); // Set loading state to true
+    console.log(event, validateAddress())
     if (!validateAddress()) {
       setErrorMessage('Please enter a valid address.');
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
 
-    const auth = getAuth();
-    const firestore = getFirestore();
-
     try {
+      const auth = getAuth();
+      const firestore = getFirestore();
+
       const userCredential =
         await createUserWithEmailAndPassword(
           auth,
@@ -186,6 +187,10 @@ export const useSignUp = (config: TConfig) => {
       }
 
       const quoteData = sessionStorage.getItem('quoteData');
+console.log("▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁");
+console.dir(quoteData);
+console.log("██████████████▓▒░ 🧨 ░▒ line: 189, file: index.ts ▓▒░ 🧨 ░▒██████████████");
+      
       if (quoteData) {
         const quote = JSON.parse(quoteData);
         if (userImageId) {
@@ -265,7 +270,7 @@ export const useSignUp = (config: TConfig) => {
           break;
       }
     } finally {
-      setIsLoading(false); // Reset loading state
+      setLoading(false); // Reset loading state
     }
   };
 

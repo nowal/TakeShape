@@ -29,12 +29,11 @@ const Dashboard = () => {
   } = dashboard;
   const handleCloseModal = () => dispatchShowModal(false);
   const viewport = useViewport();
-  const isLg =
-    viewport.isDimensions && viewport.isLg
-  const isXs =
-    viewport.isDimensions && viewport.isXs;
+  const isLg = viewport.isDimensions && viewport.isLg;
+  const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
+  console.log('acceptedQuote', acceptedQuote, isShowModal);
   return (
     <>
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -44,8 +43,6 @@ const Dashboard = () => {
           'relative left-1/2 -translate-x-1/2',
           'w-auto lg:w-0',
           'flex flex-col items-center lg:block'
-
-          // 'w-[1px] bg-red'
         )}
       >
         <div
@@ -65,9 +62,7 @@ const Dashboard = () => {
         >
           <div
             style={{
-              width: isXs
-                ? '100%'
-                : DASHBOARD_WIDTH_LEFT,
+              width: isXs ? '100%' : DASHBOARD_WIDTH_LEFT,
               padding: isXs ? '1rem' : '0',
             }}
           >
@@ -75,9 +70,7 @@ const Dashboard = () => {
           </div>
           <div
             style={{
-              width: isXs
-                ? '100%'
-                : DASHBOARD_WIDTH_RIGHT,
+              width: isXs ? '100%' : DASHBOARD_WIDTH_RIGHT,
               padding: isXs ? '1rem' : '0',
             }}
           >

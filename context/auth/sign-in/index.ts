@@ -88,6 +88,9 @@ export const useSignIn = ({
             sessionStorage.getItem('quoteData');
           if (quoteData) {
             const quote = JSON.parse(quoteData);
+console.log("▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁");
+console.dir(quote);
+console.log("██████████████▓▒░ 🧨 ░▒ line: 90, file: index.ts ▓▒░ 🧨 ░▒██████████████");
             await addDoc(
               collection(firestore, 'userImages'),
               {

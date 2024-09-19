@@ -9,7 +9,7 @@ export const ButtonsCvaChildren: FC<
   return (
     <motion.div
       className="truncate mt-[-1px] pointer-events-none"
-      layout={layout}
+      // layout={layout}
     >
       {children}
     </motion.div>

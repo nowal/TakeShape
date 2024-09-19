@@ -11,7 +11,7 @@ export type TButtonsCvaAnchorProps =
 const ButtonsCvaAnchor = forwardRef<
   HTMLAnchorElement,
   TButtonsCvaAnchorProps
->(({ type, onTap, title, href, ...props }, ref) => {
+>(({ type, onTap, title, href, target, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
 
   const { Icon, ...cvaProps } = useButtonsCvaProps({
@@ -23,11 +23,12 @@ const ButtonsCvaAnchor = forwardRef<
   }
   return (
     <motion.a
-    href={href}
+      href={href}
       ref={ref}
       title={title}
       onTap={isDisabled ? NOOP : onTap}
       type={type}
+      target={target}
       {...cvaProps}
       layout={false}
     >

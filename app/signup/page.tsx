@@ -15,20 +15,17 @@ const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
   const {
     isLoading,
-    isPainter,
-    isPainterAtom,
     errorMessage,
     isShowLoginInstead,
     name,
     email,
     address,
     password,
-    dispatchEmail,
-    dispatchName,
-    dispatchAddress,
-    dispatchPassword,
     onSubmit,
     onAddressChange,
+    dispatchEmail,
+    dispatchName,
+    dispatchPassword,
     dispatchShowLoginInstead,
     addressInputRef,
   } = signUp;
@@ -121,7 +118,6 @@ const SignupAccountForm = () => {
                   {ALREADY_HAVE_AN_ACCOUNT_TEXT}
                 </span>
                 <ButtonsCvaButton
-                  type="submit"
                   isDisabled={isLoading}
                   title={submitButtonTitle}
                   onTap={() => {

@@ -32,7 +32,6 @@ import {
 } from '@/types';
 
 export const useDashboardState = () => {
-  console.log('userDataAtom', userDataAtom);
   const [userData, setUserData] = useAtom(userDataAtom);
   const [isShowModal, setShowModal] = useState(false);
   const [selectedQuote, setSelectedQuote] =
@@ -286,31 +285,49 @@ export const useDashboardState = () => {
 
   const handleAcceptQuote: TAcceptQuoteHandler = async (
     painterId: string,
-    price: number
+    amount: number
   ) => {
-    setPainterId(painterId);
-    if (auth.currentUser) {
-      if (selectedUserImage) {
-        const userImageDocRef = doc(
-          firestore,
-          'userImages',
-          selectedUserImage
-        );
-        await updateDoc(userImageDocRef, {
-          phoneNumber: phoneNumber,
-        });
-        console.log(
-          'Selected User Image:',
-          selectedUserImage
-        ); // Add this line
-        console.log('Painter ID:', painterId); // Add this line
-        setSelectedQuote(price);
-        setShowModal(true);
+    try {
+      console.log(
+        'auth.currentUser selectedUserImage',
+        auth.currentUser,
+        selectedUserImage
+      );
+
+      if (auth.currentUser) {
+        if (selectedUserImage) {
+          const userImageDocRef = doc(
+            firestore,
+            'userImages',
+            selectedUserImage
+          );
+          console.log('userImageDocRef ', userImageDocRef);
+          await updateDoc(userImageDocRef, {
+            phoneNumber: phoneNumber,
+          });
+          console.log(
+            'Selected User Image:',
+            selectedUserImage
+          ); // Add this line
+          console.log('Painter ID:', painterId); // Add this line
+          setSelectedQuote(amount);
+          setShowModal(true);
+          const nextAcceptedQuote = {
+            painterId,
+            amount,
+            timestamp: Date.now() ,
+            accepted: true,
+          };
+          setAcceptedQuote(nextAcceptedQuote);
+        } else {
+          console.error('No selected user image.');
+        }
       } else {
-        console.error('No selected user image.');
+        console.error('No authenticated user.');
       }
-    } else {
-      console.error('No authenticated user.');
+      setPainterId(painterId);
+    } catch (error) {
+      console.log(error);
     }
   };
 

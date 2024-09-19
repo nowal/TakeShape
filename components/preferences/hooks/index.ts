@@ -13,7 +13,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { defaultPreferencesAtom } from '../../atom';
+import { defaultPreferencesAtom } from '../../../atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   PAINT_PREFERENCES_DEFAULTS,
@@ -21,6 +21,7 @@ import {
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/preferences/row/yes-no';
+import { usePreferencesAddress } from '@/components/preferences/hooks/address';
 
 export const usePreferences = () => {
   const firestore = getFirestore();
@@ -44,12 +45,21 @@ export const usePreferences = () => {
   const [isMoveFurniture, setMoveFurniture] =
     useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const loadingState = useState<boolean>(false);
   const [isPopup, setShowPopup] = useState(false);
 
   const userImageId =
     searchParams.get('userImageId') ||
     sessionStorage.getItem('userImageId');
+
+  usePreferencesAddress({
+    loadingState,
+    firestore,
+    userImageId,
+    currentUser: auth.currentUser,
+  });
+
+  const [isLoading, setLoading] = loadingState;
 
   useEffect(() => {
     setPreferences({
@@ -133,7 +143,7 @@ export const usePreferences = () => {
     morePreferences: boolean
   ) => {
     if (!auth.currentUser || !userImageId) return;
-    setIsLoading(true); // Set loading state to true
+    setLoading(true); // Set loading state to true
 
     const userImageDocRef = doc(
       firestore,
@@ -211,7 +221,7 @@ export const usePreferences = () => {
 
     // Pass userImageId to the dashboard
     router.push(`${navigateTo}?userImageId=${userImageId}`);
-    setIsLoading(false); // Reset loading state
+    setLoading(false); // Reset loading state
   };
 
   const handleValueChange: TValueChangeHandler = (

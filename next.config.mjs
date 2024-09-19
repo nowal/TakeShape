@@ -1,5 +1,6 @@
 
 
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -13,6 +14,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.imgur.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      }
     ],
   },
   async headers() {

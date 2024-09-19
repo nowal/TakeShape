@@ -8,7 +8,7 @@ import { PreferencesCeilingFields } from '@/components/preferences/ceiling-field
 import { PreferencesTrimFields } from '@/components/preferences/trim-fields';
 import { PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE } from '@/atom/constants';
 import { PreferencesFooter } from '@/components/preferences/footer';
-import { usePreferences } from '@/components/preferences/hook';
+import { usePreferences } from '@/components/preferences/hooks';
 import { PreferencesInitial } from '@/components/preferences/initial';
 import { PreferencesSpecialRequest } from '@/components/preferences/special-request';
 import { PreferencesNotificationsPaintPreferences } from '@/components/preferences/notifications/paint-preferences';
