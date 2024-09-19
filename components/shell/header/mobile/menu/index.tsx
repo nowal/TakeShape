@@ -39,11 +39,11 @@ export const ShellHeaderMobileMenu = () => {
       'Manage Account',
       () => onMenuClick('/accountSettings'),
     ],
-  ] as const satisfies TAccountMenuListItem[];
+  ] satisfies TAccountMenuListItem[];
 
   const quoteItems = [
     ['Quote', () => router.push('/quote')],
-  ] as const satisfies TAccountMenuListItem[];
+  ] satisfies TAccountMenuListItem[];
 
   const items = [
     ...(isUserSignedIn
@@ -52,7 +52,7 @@ export const ShellHeaderMobileMenu = () => {
       ? []
       : quoteItems),
     [title, handler],
-  ] as const satisfies TAccountMenuListItem[];
+  ] satisfies TAccountMenuListItem[];
 
   return (
     <>

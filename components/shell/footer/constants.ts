@@ -10,4 +10,4 @@ export const FOOTER_RIGHT_MENU_LINKS = [
   {
     title: 'Privacy Policy',
   },
-] as const satisfies TButtonsCvaLinkProps[];
+] satisfies TButtonsCvaLinkProps[];

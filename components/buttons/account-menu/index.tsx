@@ -10,7 +10,7 @@ import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const AccountMenu = () => {
-  const { menu, signIn, isUserSignedIn } = useAuth();
+  const { menu } = useAuth();
   const {
     isMenuOpen,
     isLoading,
@@ -21,15 +21,19 @@ export const AccountMenu = () => {
     onMenuClick,
   } = menu;
   const signInButtonItem = useSignInButton();
-
+  const dashboardItem: TAccountMenuListItem = [
+    'Dashboard',
+    onDashboardClick,
+  ];
+  const manageAccountItem: TAccountMenuListItem = [
+    'Manage Account',
+    () => onMenuClick('/accountSettings'),
+  ];
   const items = [
-    ['Dashboard', onDashboardClick],
-    [
-      'Manage Account',
-      () => onMenuClick('/accountSettings'),
-    ],
+    dashboardItem,
+    manageAccountItem,
     signInButtonItem,
-  ] as const satisfies readonly TAccountMenuListItem[];
+  ] satisfies TAccountMenuListItem[];
 
   return (
     <div ref={outsideClickRef}>

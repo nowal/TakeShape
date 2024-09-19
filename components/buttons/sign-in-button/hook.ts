@@ -12,6 +12,6 @@ export const useSignInButton = (): TAccountMenuListItem => {
     router.push('/');
   };
   return isUserSignedIn
-    ? (['Sign Out', handleSignOut] as const)
-    : (['Login', signIn.onSignInButtonClick] as const);
+    ? ['Sign Out', handleSignOut]
+    : ['Login', signIn.onSignInButtonClick];
 };
