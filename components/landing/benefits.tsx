@@ -3,7 +3,7 @@ import Image from 'next/image';
 import type { FC } from 'react';
 import muddyBoots from '@/public/muddyBoots.jpeg';
 
-export const Benefits: FC = () => {
+export const LandingBenefits: FC = () => {
   const landing = useLanding()
 
   return (

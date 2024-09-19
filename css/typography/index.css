@@ -1,0 +1,176 @@
+.quote {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 28px; /* 175% */
+}
+
+.sign-in {
+  color: #ff385c;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 100%; /* 16px */
+}
+
+.submit-video {
+  text-align: center;
+  font-family: var(--font-open-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 28px; /* 175% */
+}
+
+.signup-title,
+.quote-title {
+  color: #0f0f0f;
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 28.8px */
+  letter-spacing: -0.96px;
+}
+
+.quote-subtitle {
+  color: #484848;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 150% */
+}
+
+.quote-file-input {
+  color: #484848;
+  font-family: 'Open Sans';
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 150% */
+}
+
+.quote-text-input {
+  color: #858585;
+  font-family: 'Open Sans';
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 171.429% */
+}
+.signup-input {
+  color: #949494;
+  font-family: Montserrat;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 100%; /* 14px */
+}
+.signup-input-button {
+  color: #fff;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 100%; /* 16px */
+}
+.signup-instructions {
+  color: #ff385c;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 152%; /* 18.24px */
+}
+.quote-instructions-title {
+  color: #ff385c;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 19.2px */
+}
+
+.quote-instructions {
+  color: #5d5d5d;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 14.4px */
+}
+
+.quote-instructions-button {
+  color: #ff385c;
+  text-align: center;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 28px; /* 233.333% */
+}
+
+.preferences-form-title {
+  color: #000;
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 21px */
+}
+
+.yes-no {
+  color: var(--202020, #202020);
+font-family: Montserrat;
+font-size: 14px;
+font-style: normal;
+font-weight: 500;
+line-height: 100%; /* 14px */
+}
+.preferences-form-subtitle {
+color: #000;
+text-align: center;
+font-family: Montserrat;
+font-size: 14px;
+font-style: normal;
+font-weight: 500;
+line-height: 100%; /* 14px */
+}
+.dropdown {
+  color: var(--5-f-5-f-5-f, #5F5F5F);
+
+/* D4 */
+font-family: Montserrat;
+font-size: 12px;
+font-style: normal;
+font-weight: 600;
+line-height: 100%; /* 12px */
+letter-spacing: -0.24px;
+}
+
+.x {
+  color: var(--Input-Text, #858585);
+text-align: center;
+
+/* D3 */
+font-family: Montserrat;
+font-size: 14px;
+font-style: normal;
+font-weight: 600;
+line-height: 24px; /* 171.429% */
+letter-spacing: -0.28px;
+}
+
+.y {
+  color: #0F0F0F;
+text-align: center;
+font-family: Montserrat;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 120%; /* 28.8px */
+letter-spacing: -0.96px;
+}
