@@ -10,7 +10,7 @@ export const ShellHeader = () => {
     <header
       className={cx(
         'sticky max-w-shell w-full',
-        'top-0 inset-x-0 pt-3.5 px-6 z-20 lg:px-9',
+        'top-0 inset-x-0 pt-3.5 px-6 z-20 sm:px-9',
         'z-10'
       )}
     >
@@ -18,7 +18,7 @@ export const ShellHeader = () => {
         className={cx(
           'relative',
           'flex items-center justify-between w-full',
-          'pl-4.5 pr-2.5 py-2.5 lg:pl-7 lg:pr-2 lg:py-3'
+          'pl-4.5 pr-2.5 py-2.5 sm:pl-7 sm:pr-2 sm:py-3'
         )}
       >
         <Link className="relative z-10" href="/">

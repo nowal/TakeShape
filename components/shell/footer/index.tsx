@@ -18,7 +18,7 @@ export const ShellFooter = () => {
         )}
       >
         <div className="flex flex-col items-stretch lg:hidden">
-          <ShellLogo isFooter />
+          <ShellLogo />
           <div className="h-9" />
           <LinesHorizontal colorClass="border-gray-3" />
           <div className="h-4.5" />
@@ -61,7 +61,10 @@ export const ShellFooter = () => {
                 },
               ] as const
             ).map((listListProps) => (
-              <li key={listListProps.title} className='px-0 w-1/2'>
+              <li
+                key={listListProps.title}
+                className="px-0 w-1/2"
+              >
                 <ShellFooterList {...listListProps} />
               </li>
             ))}
@@ -70,7 +73,7 @@ export const ShellFooter = () => {
 
         <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
           {FOOTER_RIGHT_MENU_LINKS.map((item) => (
-            <li key={item.title} className='self-end'>
+            <li key={item.title} className="self-end">
               <ButtonsCvaLink {...item} />
             </li>
           ))}

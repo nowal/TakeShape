@@ -124,17 +124,14 @@ input {
   .typography-logo-title {
     @apply font-montserrat font-bold text-black;
   }
-  .typography-logo-title--sm {
+  .typography-logo-title--xs {
     @apply logo-title-sm typography-logo-title;
   }
-  .typography-logo-title--lg {
+  .typography-logo-title--sm {
     @apply logo-title typography-logo-title;
   }
   .typography-logo-title--responsive {
-    @apply typography-logo-title--sm lg:typography-logo-title--lg;
-  }
-  .typography-logo-title-footer--responsive {
-    @apply typography-logo-title--sm sm:typography-logo-title--lg;
+    @apply typography-logo-title--xs sm:typography-logo-title--sm;
   }
   .typography-signup-input {
     @apply text-black-4 font-medium text-sm;

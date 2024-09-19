@@ -11,12 +11,12 @@ export const HeaderOptions: FC = () => {
   const isQuotePage = usePathname() === '/quote';
 
   return (
-    <div className="hidden items-center px-4 gap-2.5 sm:px-2 lg:flex">
+    <div className="hidden items-center px-4 gap-2.5 sm:px-2 sm:flex">
       <div
         className={cx(
           'absolute inset-0',
-          'shadow-09 lg:shadow-08',
-          'rounded-[0.70013rem] lg:rounded-15.1875',
+          'shadow-09 sm:shadow-08',
+          'rounded-[0.70013rem] sm:rounded-15.1875',
           isUserSignedIn ? 'bg-white-5' : 'bg-white'
         )}
       />
