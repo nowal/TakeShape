@@ -32,38 +32,27 @@ import {
 } from '@/types';
 
 export const useDashboardState = () => {
+  console.log('userDataAtom', userDataAtom);
   const [userData, setUserData] = useAtom(userDataAtom);
   const [isShowModal, setShowModal] = useState(false);
   const [selectedQuote, setSelectedQuote] =
     useState<number>(0);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
-  const [
-    ,
-    // checkingAuth,
-    setCheckingAuth,
-  ] = useAtom(checkingAuthAtom);
-  const [
-    ,
-    // userTypeLoading,
-    setUserTypeLoading,
-  ] = useAtom(userTypeLoadingAtom);
-  const [
-    phoneNumber,
-    // , setPhoneNumber
-  ] = useState('');
-  const [
-    ,
-    // painterId,
-    setPainterId,
-  ] = useState('');
+  const [checkingAuth, setCheckingAuth] = useAtom(
+    checkingAuthAtom
+  );
+  const [userTypeLoading, setUserTypeLoading] = useAtom(
+    userTypeLoadingAtom
+  );
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [painterId, setPainterId] = useState('');
   const [
     uploadProgress,
     //  setUploadProgress
   ] = useAtom(uploadProgressAtom);
-  const [
-    uploadStatus,
-    // , setUploadStatus
-  ] = useAtom(uploadStatusAtom);
+  const [uploadStatus, setUploadStatus] = useAtom(
+    uploadStatusAtom
+  );
   const [acceptedQuote, setAcceptedQuote] =
     useState<TPrice | null>(null);
   const firestore = getFirestore();

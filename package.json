@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test/screens": "esrun test/screens",
+    "screens": "esrun test/screens",
     "erase": "esrun ops/eraser && npm i"
   },
   "dependencies": {

@@ -126,7 +126,7 @@ const SignupAccountForm = () => {
                   title={submitButtonTitle}
                   onTap={() => {
                     //dispatchShowLoginInstead(true);
-                    signIn.onModalOpen();
+                    signIn.onSignInButtonClick();
                   }}
                   className="text-blue-600 hover:underline"
                 >

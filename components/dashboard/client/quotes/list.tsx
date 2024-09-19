@@ -13,13 +13,13 @@ export const DashboardClientQuotesList: FC = () => {
   const dashboard = useDashboard();
   const { preferredPainterUserIds, agentInfo, userData } =
     dashboard;
-
+console.log(userData)
   const prices = isMocks()
     ? MOCKS_PRICES
     : userData?.prices ?? [];
   console.log('Rendering quotes with prices:', prices);
   console.log('Agent info:', agentInfo);
-  const isGathering = !prices || prices.length === 0;
+  const isEmpty = !prices || prices.length === 0;
 
   return (
     <div className="flex flex-col items-stretch">
@@ -28,11 +28,13 @@ export const DashboardClientQuotesList: FC = () => {
         Contractor Quotes
       </h3>
       <div className="h-5" />
-
-      {isGathering ? (
-        <NotificationsHighlight>
-          <>Gathering Quotes...</>
-        </NotificationsHighlight>
+{isEmpty && (
+   <NotificationsHighlight>
+   <>No quotes</>
+ </NotificationsHighlight>
+)}
+      {false ? (
+     <div/>
       ) : (
         <ul className="flex flex-col items-stretch gap-2">
           {prices.map((price, index) => {

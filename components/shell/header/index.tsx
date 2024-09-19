@@ -7,6 +7,7 @@ import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 import { useViewport } from '@/context/viewport';
 import {
   HEADER_HEIGHT,
+  HEADER_HEIGHT_PADDING,
   HEADER_HEIGHT_SM,
 } from '@/components/shell/header/constants';
 import { useAuth } from '@/context/auth/provider';
@@ -15,9 +16,9 @@ export const ShellHeader = () => {
   const { isUserSignedIn } = useAuth();
   const viewport = useViewport();
   const isMobile = viewport.isDimensions && viewport.isSm;
-  const height = isMobile
-    ? HEADER_HEIGHT_SM
-    : HEADER_HEIGHT;
+  const height =
+    (isMobile ? HEADER_HEIGHT_SM : HEADER_HEIGHT) +
+    HEADER_HEIGHT_PADDING;
 
   return (
     <>
