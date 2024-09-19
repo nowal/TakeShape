@@ -10,7 +10,7 @@ const faqData = [
   { question: "Is the price guaranteed or is it subject to change?", answer: "We are able to get extremely accurate quotes with your one video. The price can shift slightly if something is not clear from the video, but unlike in person estimates, you have a video record of what was visible." }
 ];
 
-const FAQSection = () => {
+export const LandingFaq = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handleToggle = (index: number) => {
@@ -55,4 +55,4 @@ const FAQSection = () => {
   );
 };
 
-export default FAQSection;
+export default LandingFaq;
