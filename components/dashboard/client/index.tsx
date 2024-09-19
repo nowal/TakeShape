@@ -20,7 +20,9 @@ export const DashboardClient: FC = () => {
     onQuoteChange,
     selectedUserImage,
   } = dashboard;
+
   const preferencesTitle = 'Your Quote’s Preferences';
+  
   return (
     <div
       className={cx(

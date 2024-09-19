@@ -11,9 +11,12 @@ import {
   HEADER_HEIGHT_SM,
 } from '@/components/shell/header/constants';
 import { useAuth } from '@/context/auth/provider';
+import { usePathname } from 'next/navigation';
 
 export const ShellHeader = () => {
   const { isUserSignedIn } = useAuth();
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const viewport = useViewport();
   const isMobile = viewport.isDimensions && viewport.isSm;
   const height =
@@ -22,7 +25,7 @@ export const ShellHeader = () => {
 
   return (
     <>
-      <div style={{ height }} />
+      {!isHome && <div style={{ height }} />}
       <header
         className={cx(
           'fixed max-w-shell w-full',

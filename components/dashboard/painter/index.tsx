@@ -22,7 +22,7 @@ import {
 import {
   Job,
   TPaintPreferences,
-} from '../../../types'; // Ensure this path is correct
+} from '@/types'; // Ensure this path is correct
 
 export const DashboardPainter = () => {
   const [jobList, setJobList] = useState<Job[]>([]);

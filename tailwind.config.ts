@@ -79,6 +79,7 @@ const config: Config = {
         '15.1875': '15.1875rem',
         '4xl': '2rem',
         '5xl': '2.25rem',
+        footer: '0.9375rem',
       },
       dropShadow: {
         '05': '0px 4px 90.8px rgba(0, 0, 0, 0.05)',
@@ -107,7 +108,6 @@ const config: Config = {
         'tight-06': '-0.06em',
         'tight-02': '-0.02em',
         'tight-01': '-0.01em',
-
       },
       spacing: {
         0.25: '0.0625rem',

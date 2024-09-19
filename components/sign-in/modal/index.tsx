@@ -10,7 +10,7 @@ import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const SignInModal: FC = () => {
-  const { signIn, isUserSignedIn } = useAuth();
+  const { signIn } = useAuth();
   const {
     isLoading,
     isShowModal,
