@@ -9,7 +9,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { useAuth } from '@/context/auth/provider';
 
 export const AccountMenu = () => {
-  const { menu } = useAuth();
+  const { menu, isUserSignedIn } = useAuth();
   const {
     isDropdownOpen,
     isLoading,
@@ -20,6 +20,7 @@ export const AccountMenu = () => {
     onMenuClick,
     onSignOut,
   } = menu;
+  const title = isUserSignedIn ? 'Sign Out' : 'Login';
 
   const items = [
     ['Dashboard', onDashboardClick],
@@ -27,7 +28,7 @@ export const AccountMenu = () => {
       'Manage Account',
       () => onMenuClick('/accountSettings'),
     ],
-    ['Sign Out', onSignOut],
+    [title, onSignOut],
   ] as const satisfies TAccountMenuListItem[];
 
   return (

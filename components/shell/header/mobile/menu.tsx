@@ -14,6 +14,7 @@ import { useAuth } from '@/context/auth/provider';
 export const ShellHeaderMobileMenu = () => {
   const { signOut, isUserSignedIn, menu } = useAuth();
   const { onMenuClick, onDashboardClick } = menu;
+  const title = isUserSignedIn ? 'Sign Out' : 'Login';
 
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -40,7 +41,7 @@ export const ShellHeaderMobileMenu = () => {
 
   const items = [
     ...(isUserSignedIn ? dashboardItems : quoteItems),
-    ['Sign Out', signOut.onSignOut],
+    [title, signOut.onSignOut],
   ] as const satisfies TAccountMenuListItem[];
 
   return (
