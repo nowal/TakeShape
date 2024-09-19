@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import Image from "next/image"
 
 export default function AgentAccount() {
   const [name, setName] = useState('');
@@ -93,6 +94,8 @@ export default function AgentAccount() {
     }
   };
 
+  const src = newProfilePicturePreview || profilePictureUrl
+
   return (
     <div className="p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -136,9 +139,9 @@ export default function AgentAccount() {
 
           <div>
             <label htmlFor="profilePicture" className="block text-md font-medium text-gray-700">Profile Picture</label>
-            {(newProfilePicturePreview || profilePictureUrl) && (
-              <img 
-                src={newProfilePicturePreview || profilePictureUrl || undefined} 
+            {src && (
+              <Image 
+                src={src} 
                 alt="Profile Picture" 
                 className="mb-2 w-24 h-24 object-cover rounded-full" 
               />

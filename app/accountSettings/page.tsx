@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Image from "next/image"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -527,6 +528,12 @@ export default function AccountSettingsPage() {
     return <FallbacksLoading />;
   }
 
+  const profilePicSrc =  newProfilePicturePreview ||
+  profilePictureUrl;
+
+
+  const logoSrc = logoPreview || logoUrl
+
   return (
     <div className="p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -676,11 +683,13 @@ export default function AccountSettingsPage() {
               >
                 Company Logo (optional)
               </label>
-              {(logoPreview || logoUrl) && (
-                <img
-                  src={logoPreview || logoUrl || undefined}
+              {logoSrc && (
+                <Image
+                  src={logoSrc}
                   alt="Company Logo"
                   className="mb-2 w-24 h-24 object-cover rounded-full"
+                  width="96"
+                  height="96"
                 />
               )}
               <input
@@ -739,13 +748,10 @@ export default function AccountSettingsPage() {
               >
                 Profile Picture
               </label>
-              {(newProfilePicturePreview ||
-                profilePictureUrl) && (
-                <img
+              {profilePicSrc && (
+                <Image
                   src={
-                    newProfilePicturePreview ||
-                    profilePictureUrl ||
-                    undefined
+                    profilePicSrc
                   }
                   alt="Profile Picture"
                   className="mb-2 w-24 h-24 object-cover rounded-full"

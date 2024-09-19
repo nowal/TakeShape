@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import Image from "next/image"
 import { useRouter } from 'next/navigation';
 import happyPic from '../../public/TakeShapeHappyPic.png';
 import takingVideo from '../../public/takingVideo.jpg';
@@ -64,7 +65,7 @@ export default function Home() {
         {/* Text Section */}
         <div className="flex flex-col w-full md:w-1/2 justify-center md:mt-24">
           <h1 className="text-4xl font-bold mb-4 text-center md:text-left">
-            Love the walls you're with
+            Love the walls you&apos;re with
           </h1>
           <p className="text-xl mb-8 text-center md:text-left">
             Find the right paint color and painter for free
@@ -80,10 +81,11 @@ export default function Home() {
 
         {/* Image Section */}
         <div className="flex justify-center items-center w-full md:w-3/5">
-          <img
+          <Image
             src={happyPic.src}
             alt="Happy Pic"
             className="image-shadow max-w-sm md:max-w-md w-full h-auto object-contain rounded-xl"
+            layout='cover'
           />
         </div>
       </main>
@@ -106,10 +108,14 @@ export default function Home() {
 
           {/* Image Section - The default order here will be below the text on small screens */}
           <div className="w-full md:w-2/5 flex justify-center items-center mt-8 md:mt-0">
-            <img
+            {
+              // eslint-disable-next-line @next/next/no-img-element
+            }
+            <Image
               src={muddyBoots.src}
               alt="Room Photo"
               className="image-shadow w-4/5 max-w-md md:h-auto md:min-h-[20rem] object-cover rounded-xl"
+              layout="cover"
             />
           </div>
         </main>
@@ -124,17 +130,18 @@ export default function Home() {
               Your quote is only a couple of clicks away
             </h1>
             <p className="text-lg mb-6 text-center md:text-left">
-              We've done the hard work of finding the
+              We&apos;ve done the hard work of finding the
               painters, now just show us what you want done.
             </p>
           </div>
 
           {/* Image Section */}
           <div className="w-full md:w-2/5 flex justify-center items-center mt-8 md:mt-0">
-            <img
+            <Image
               src={takingVideo.src}
               alt="takingVideo"
               className="image-shadow w-4/5 max-w-md md:h-auto md:min-h-[20rem] object-cover rounded-xl"
+              layout="cover"
             />
           </div>
         </main>

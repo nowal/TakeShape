@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   getFirestore,
@@ -451,10 +452,12 @@ export default function PainterRegisterPage() {
             Company Logo (optional)
           </label>
           {logoPreview && (
-            <img
+            <Image
               src={logoPreview}
               alt="Company Logo Preview"
               className="mb-2 w-24 h-24 object-cover rounded-full"
+              width="96"
+              height="96"
             />
           )}
           <input
