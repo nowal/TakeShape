@@ -7,7 +7,7 @@ export const Benefits: FC = () => {
   const landing = useLanding()
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="mx-auto px-4">
       <div className="pt-16 flex flex-col md:flex-row-reverse gap-6 items-center">
         <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
           <h1 className="text-3xl font-bold mb-3 text-center md:text-left">

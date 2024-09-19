@@ -4,7 +4,7 @@ import takingVideo from '@/public/takingVideo.jpg';
 
 export const LandingProblemAndDecision: FC = () => {
   return (
-    <div className="container mx-auto px-4 mb-40">
+    <div className="mx-auto px-4 mb-40">
       <div className="pt-16 flex flex-col md:flex-row gap-6 items-center">
         {/* Text Section */}
         <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">

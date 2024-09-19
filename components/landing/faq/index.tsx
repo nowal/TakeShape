@@ -18,7 +18,7 @@ export const LandingFaq = () => {
   };
 
   return (
-    <div className="faq-section py-8">
+    <div className="py-8">
       <h2 className="text-center text-3xl font-bold mb-6 underline">Frequently Asked Questions</h2>
       <div className="mx-auto max-w-3xl">
         {faqData.map((faq, index) => (
@@ -38,19 +38,7 @@ export const LandingFaq = () => {
           </div>
         ))}
       </div>
-      <style jsx>{`
-        .faq-section {
-        /* Adjust the color as needed */
-        }
-        .answer {
-          transition: all 0.3s ease-in-out;
-        }
-        .bg-pale-pink {
-          background-color: #D0AD9F; /* Adjust the color as needed */
-          width: 100%;
-        }
-        /* ... (rest of your styles) ... */
-      `}</style>
+      
     </div>
   );
 };

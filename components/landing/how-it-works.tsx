@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 export const LandingHowItWorks: FC = () => {
   return (
-    <div className="how-it-works container mx-auto px-4">
+    <div className="mx-auto px-4">
       <h1 className="text-4xl font-bold text-center">
         How it works
       </h1>
