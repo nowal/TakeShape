@@ -1,7 +1,7 @@
 import { CommonIcon12 } from '@/components/icon/12';
 import type {FC} from 'react';
 
-export const CommonIconClose8: FC = () => {
+export const IconsClose8: FC = () => {
   return (
     <CommonIcon12
       size={8}

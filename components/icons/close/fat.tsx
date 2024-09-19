@@ -2,7 +2,7 @@ import { TCommonIconProps } from '@/components/icon';
 import { CommonIcon18 } from '@/components/icon/18';
 import type { FC } from 'react';
 
-export const CommonIconCloseFat: FC<TCommonIconProps> = (
+export const IconsCloseFat: FC<TCommonIconProps> = (
   props
 ) => {
   return (

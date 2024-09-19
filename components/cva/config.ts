@@ -22,7 +22,7 @@ export const buttonsCvaConfig = cva(
         true: 'justify-center',
       },
       isDisabled: {
-        true: 'cursor-not-allowed opacity-70 brightness-80 z-0',
+        true: 'cursor-not-allowed opacity-70 brightness-80',
       },
       isIconOnly: {
         true: [],
@@ -74,11 +74,11 @@ export const buttonsCvaConfig = cva(
       },
       {
         isDisabled: true,
-        className: ['z-0'],
+        className: [],
       },
       {
         isDisabled: false,
-        className: ['z-10'],
+        className: [],
       },
     ],
     defaultVariants: {

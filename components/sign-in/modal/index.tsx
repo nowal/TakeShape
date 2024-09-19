@@ -1,12 +1,13 @@
 'use client';
 import type { FC } from 'react';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { Modal } from '@/components/modal';
+import { ComponentsModal } from '@/components/modal';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaLink } from '@/components/cva/link';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
-import { CommonIconCloseFat } from '@/components/icons/close/fat';
+import { IconsCloseFat } from '@/components/icons/close/fat';
 import { useAuth } from '@/context/auth/provider';
+import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const SignInModal: FC = () => {
   const { signIn, isUserSignedIn } = useAuth();
@@ -21,7 +22,7 @@ export const SignInModal: FC = () => {
     onSignIn,
     onClose,
   } = signIn;
-  const title = isUserSignedIn ? 'Sign Out' : 'Login';
+  const [title] = useSignInButton();
 
   const submitButtonTitle = isLoading
     ? 'Logging In...'
@@ -30,7 +31,7 @@ export const SignInModal: FC = () => {
   const signUpTitle = 'Sign Up';
   if (!isShowModal) return null;
   return (
-    <Modal onTap={onClose}>
+    <ComponentsModal onTap={onClose}>
       <div className="fill-column-white-sm w-[345px]">
         <h4 className="typography-page-title-semibold">
           Login
@@ -48,7 +49,7 @@ export const SignInModal: FC = () => {
             intent="icon"
             classValue="bg-black hover:bg-gray-7 active:bg-pink text-white"
           >
-            <CommonIconCloseFat />
+            <IconsCloseFat />
           </ButtonsCvaButton>
         </div>
         <form
@@ -103,6 +104,6 @@ export const SignInModal: FC = () => {
           </ButtonsCvaLink>
         </form>
       </div>
-    </Modal>
+    </ComponentsModal>
   );
 };

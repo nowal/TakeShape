@@ -7,15 +7,13 @@ export const DashboardClientVideo: FC = () => {
   const dashboard = useDashboard();
   const { userData, videoRef } = dashboard;
   const viewport = useViewport();
-  // const isSmall =
-  //   viewport.isDimensions && viewport.width < 1024;
-  const isVerySmall =
-    viewport.isDimensions && viewport.width < 480;
+  const isXs =
+    viewport.isDimensions && viewport.isXs;
   if (!userData) return null;
   return (
     <div
       style={{
-        width: isVerySmall ? '100%' : DASHBOARD_VIDEO_WIDTH,
+        width: isXs ? '100%' : DASHBOARD_VIDEO_WIDTH,
       }}
       className="rounded-xl overflow-hidden"
     >

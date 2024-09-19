@@ -19,11 +19,11 @@ import {
 import { useOutsideClick } from '@/hooks/use-outside-click';
 import { TAuthConfig } from '@/context/auth/types';
 
-export const useAuthMenu = (config?: TAuthConfig) => {
+export const useAuthMenu = (config: TAuthConfig) => {
   const [profilePictureUrl, setProfilePictureUrl] =
     useState<string | null>(null);
   const [isLoading, setLoading] = useState(true);
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
   const [isPainter, setPainter] = useState(false);
   const [isAgent, setAgent] = useState(false);
   const router = useRouter();
@@ -115,20 +115,22 @@ export const useAuthMenu = (config?: TAuthConfig) => {
   }, [auth, firestore, storage]);
 
   const handleSignOut = async () => {
+    console.log('SIGN OUT');
     try {
       await signOut(auth);
       router.push('/');
+      config.dispatchUserSignedIn(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
     sessionStorage.clear();
   };
 
-  const handleDropdownOpenToggle = () => {
-    setDropdownOpen((prev) => !prev);
+  const handleMenuOpenToggle = () => {
+    setMenuOpen((prev) => !prev);
   };
 
-  const handleDropdownClose = () => setDropdownOpen(false);
+  const handleDropdownClose = () => setMenuOpen(false);
   const handleMenuClick = (path: string) => {
     router.push(path);
     handleDropdownClose();
@@ -145,13 +147,14 @@ export const useAuthMenu = (config?: TAuthConfig) => {
   );
 
   return {
-    isDropdownOpen,
+    isMenuOpen,
     isLoading,
     profilePictureUrl,
     outsideClickRef,
-    onDropdownOpenToggle: handleDropdownOpenToggle,
-    onDashboardClick:handleDashboardClick,
-onMenuClick:handleMenuClick,
-onSignOut:handleSignOut
+    onMenuOpenToggle: handleMenuOpenToggle,
+    onDashboardClick: handleDashboardClick,
+    onMenuClick: handleMenuClick,
+    onSignOut: handleSignOut,
+    dispatchMenuOpen: setMenuOpen,
   };
 };

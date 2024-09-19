@@ -1,10 +1,14 @@
 import { TCommonIconProps } from '@/components/icon';
-import { CommonIcon24 } from '@/components/icon/24';
+import { CommonIcon12 } from '@/components/icon/12';
 import type { FC } from 'react';
 
-export const IconsClose24: FC<TCommonIconProps> = (props) => {
+export const IconsCloseEm: FC<TCommonIconProps> = (
+  props
+) => {
   return (
-    <CommonIcon24
+    <CommonIcon12
+      width="1em"
+      height="1em"
       d="M11 1L1 11M1 1L11 11"
       pathProps={{
         strokeWidth: '2',

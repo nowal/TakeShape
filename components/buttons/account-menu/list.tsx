@@ -1,4 +1,6 @@
+import { ButtonsCvaButton } from '@/components/cva/button';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
+import { useAuth } from '@/context/auth/provider';
 import { cx } from 'class-variance-authority';
 import { Fragment, type FC } from 'react';
 
@@ -14,14 +16,16 @@ export const AccountMenuList: FC<TProps> = ({
   classPosition,
   items,
 }) => {
+  const { menu } = useAuth();
+  const { dispatchMenuOpen } = menu;
   return (
     <ul
       className={cx(
         'flex flex-col items-stretch',
         classPosition ?? 'absolute right-0 top-full mt-2',
-        'w-48 z-20',
+        'w-full sm:w-48 z-20',
         'bg-white',
-        'drop-shadow-05',
+        'drop-shadow-none sm:drop-shadow-05',
         'rounded-xl'
       )}
     >
@@ -32,25 +36,37 @@ export const AccountMenuList: FC<TProps> = ({
 
           return (
             <Fragment key={name}>
-              {!isFirst && <LinesHorizontalLight />}
               <li>
-                <button
-                  onClick={handler}
-                  className={cx(
-                    'relative group',
-                    'text-left',
+                {!isFirst && <LinesHorizontalLight />}
+                <ButtonsCvaButton
+                  onTap={() => {
+                    handler();
+                    dispatchMenuOpen(false);
+                  }}
+                  title={name}
+                  classValue={cx(
+                    'group',
                     'w-full',
-                    'p-2',
-                    'drop-shadow-05',
-                    'text-sm',
-                    isFirst && 'rounded-t-xl',
-                    isLast && 'rounded-b-xl',
-                    'hover:bg-white-1 hover:bg-opacity-50'
+                    'p-10 sm:p-2',
+                    isFirst && 'sm:rounded-t-xl',
+                    isLast && 'sm:rounded-b-xl',
+                    'active:bg-black',
+                    'hover:bg-pink hover:bg-opacity-100 sm:hover:bg-white-1 sm:hover:bg-opacity-50'
                   )}
                 >
-                  <div className="absolute inset-0 " />
-                  {name}
-                </button>
+                  <span
+                    className={cx(
+                      'text-left',
+                      'text-2xl sm:text-xs',
+                      'font-bold sm:font-semibold',
+                      'tight-01',
+                      'text-gray-7',
+                      'group-hover:text-white sm:group-hover:text-black'
+                    )}
+                  >
+                    {name}
+                  </span>
+                </ButtonsCvaButton>
               </li>
             </Fragment>
           );

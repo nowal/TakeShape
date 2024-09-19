@@ -7,20 +7,20 @@ import {
 } from '@/components/buttons/account-menu/list';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { useAuth } from '@/context/auth/provider';
+import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const AccountMenu = () => {
-  const { menu, isUserSignedIn } = useAuth();
+  const { menu, signIn, isUserSignedIn } = useAuth();
   const {
-    isDropdownOpen,
+    isMenuOpen,
     isLoading,
     profilePictureUrl,
     outsideClickRef,
-    onDropdownOpenToggle,
+    onMenuOpenToggle,
     onDashboardClick,
     onMenuClick,
-    onSignOut,
   } = menu;
-  const title = isUserSignedIn ? 'Sign Out' : 'Login';
+  const signInButtonItem = useSignInButton();
 
   const items = [
     ['Dashboard', onDashboardClick],
@@ -28,14 +28,14 @@ export const AccountMenu = () => {
       'Manage Account',
       () => onMenuClick('/accountSettings'),
     ],
-    [title, onSignOut],
-  ] as const satisfies TAccountMenuListItem[];
+    signInButtonItem,
+  ] as const satisfies readonly TAccountMenuListItem[];
 
   return (
     <div ref={outsideClickRef}>
       <ButtonsCvaButton
         title="Title Open"
-        onTap={onDropdownOpenToggle}
+        onTap={onMenuOpenToggle}
         classValue={cx('bg-white', 'shadow-md', 'z-10')}
         rounded="full"
         size="iconXl"
@@ -43,12 +43,12 @@ export const AccountMenu = () => {
         center
       >
         <AccountMenuIcon
-          isDropdownOpen={isDropdownOpen}
+          isMenuOpen={isMenuOpen}
           isLoading={isLoading}
           profilePictureUrl={profilePictureUrl}
         />
       </ButtonsCvaButton>
-      {isDropdownOpen && <AccountMenuList items={items} />}
+      {isMenuOpen && <AccountMenuList items={items} />}
     </div>
   );
 };

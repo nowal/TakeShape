@@ -29,10 +29,10 @@ const Dashboard = () => {
   } = dashboard;
   const handleCloseModal = () => dispatchShowModal(false);
   const viewport = useViewport();
-  const isSmall =
-    viewport.isDimensions && viewport.width < 1024;
-  const isVerySmall =
-    viewport.isDimensions && viewport.width < 480;
+  const isLg =
+    viewport.isDimensions && viewport.isLg
+  const isXs =
+    viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
   return (
@@ -54,10 +54,10 @@ const Dashboard = () => {
             'flex flex-col items-center lg:flex-row lg:items-start'
           )}
           style={{
-            left: isSmall ? 0 : -largeWidth,
-            width: isVerySmall
+            left: isLg ? 0 : -largeWidth,
+            width: isXs
               ? '100%'
-              : isSmall
+              : isLg
               ? DASHBOARD_WIDTH_RIGHT
               : DASHBOARD_WIDTH,
             gap: DASHBOARD_GAP,
@@ -65,20 +65,20 @@ const Dashboard = () => {
         >
           <div
             style={{
-              width: isVerySmall
+              width: isXs
                 ? '100%'
                 : DASHBOARD_WIDTH_LEFT,
-              padding: isVerySmall ? '1rem' : '0',
+              padding: isXs ? '1rem' : '0',
             }}
           >
             <ComponentsDashboard isPainter={isPainter} />
           </div>
           <div
             style={{
-              width: isVerySmall
+              width: isXs
                 ? '100%'
                 : DASHBOARD_WIDTH_RIGHT,
-              padding: isVerySmall ? '1rem' : '0',
+              padding: isXs ? '1rem' : '0',
             }}
           >
             {acceptedQuote ? (

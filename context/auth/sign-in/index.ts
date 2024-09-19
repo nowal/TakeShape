@@ -22,10 +22,10 @@ import {
 import { TAuthConfig } from '@/context/auth/types';
 
 export const useSignIn = ({
+  isUserSignedIn,
   dispatchUserSignedIn,
 }: TAuthConfig) => {
   const [isShowModal, setShowModal] = useState(false);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
@@ -35,12 +35,11 @@ export const useSignIn = ({
   >(null); // Error message state
   const auth = getAuth(firebase);
   const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       dispatchUserSignedIn(Boolean(user));
-      // setIsSignedIn(!!user); // Set true if user exists, false otherwise
+      // setSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
@@ -135,7 +134,7 @@ export const useSignIn = ({
   };
 
   const handleClick = () => {
-    if (isSignedIn) {
+    if (isUserSignedIn) {
       handleSignOut();
       return;
     } else {
@@ -157,7 +156,7 @@ export const useSignIn = ({
     onEmailChange: handleEmailChange,
     onPasswordChange: handlePasswordChange,
     onClose: handleClose,
-    onModalOpen: handleClick,
+    onSignInButtonClick: handleClick,
     onSignIn: handleSignIn,
     dispatchSignInModalOpen: setShowModal,
   };

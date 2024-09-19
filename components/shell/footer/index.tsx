@@ -10,7 +10,7 @@ import { cx } from 'class-variance-authority';
 
 export const ShellFooter = () => {
   return (
-    <footer className="relative max-w-shell w-full mx-auto px-6 py-10 z-20 lg:px-9">
+    <footer className="relative max-w-shell w-full mx-auto px-6 py-10 z-10 lg:px-9">
       <div
         className={cx(
           'flex flex-col items-stretch gap-6 w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-[15px]',

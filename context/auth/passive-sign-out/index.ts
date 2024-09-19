@@ -6,7 +6,9 @@ import {
 } from 'firebase/auth';
 import { TAuthConfig } from '@/context/auth/types';
 
-export const useSignOut = ({dispatchUserSignedIn}: TAuthConfig) => {
+export const usePassiveSignOut = ({
+  dispatchUserSignedIn,
+}: TAuthConfig) => {
   const auth = getAuth();
   const TIMEOUT_DURATION = 1800 * 1000;
 
@@ -48,8 +50,4 @@ export const useSignOut = ({dispatchUserSignedIn}: TAuthConfig) => {
       window.removeEventListener('keydown', resetTimer);
     };
   }, [auth, handleSignOut]);
-
-  return {
-    onSignOut:handleSignOut 
-  }
 };

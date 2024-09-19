@@ -2,19 +2,20 @@ import { FC } from 'react';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { useAuth } from '@/context/auth/provider';
+import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const SignInButton: FC = () => {
-  const { signIn, isUserSignedIn } = useAuth();
-  const { isAuthLoading, onModalOpen } = signIn;
+  const { signIn } = useAuth();
+  const { isAuthLoading } = signIn;
+  const [title, handler] = useSignInButton();
 
   if (isAuthLoading) {
     return <FallbacksLoading />; // Or any other loading indicator
   }
-  const title = isUserSignedIn ? 'Sign Out' : 'Login';
 
   return (
     <ButtonsCvaButton
-      onTap={onModalOpen}
+      onTap={handler}
       title={title}
       intent="ghost"
       layout={false}

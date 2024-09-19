@@ -2,7 +2,7 @@ import {
   ButtonsCheckout,
   TButtonsCheckoutProps,
 } from '@/components/buttons/checkout';
-import { Modal } from '@/components/modal';
+import { ComponentsModal } from '@/components/modal';
 import { TButtonProps } from '@/types/dom';
 import type { FC } from 'react';
 
@@ -15,7 +15,7 @@ export const DashboardModalQuoteAccepted: FC<TProps> = ({
   closeButtonProps,
 }) => {
   return (
-    <Modal>
+    <ComponentsModal>
       <div className="modal-overlay">
         <div className="modal-content">
           <button
@@ -35,6 +35,6 @@ export const DashboardModalQuoteAccepted: FC<TProps> = ({
           <ButtonsCheckout {...checkoutButtonProps} />
         </div>
       </div>
-    </Modal>
+    </ComponentsModal>
   );
 };

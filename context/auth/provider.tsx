@@ -1,7 +1,7 @@
 'use client';
 import { useAuthMenu } from '@/context/auth/menu';
 import { useSignIn } from '@/context/auth/sign-in';
-import { useSignOut } from '@/context/auth/sign-out';
+import { usePassiveSignOut } from '@/context/auth/passive-sign-out';
 import { useSignUp } from '@/context/auth/sign-up';
 import { TAuthConfig } from '@/context/auth/types';
 import {
@@ -15,7 +15,6 @@ import {
 type TAuthContext = TAuthConfig & {
   isUserSignedIn: boolean;
   signIn: ReturnType<typeof useSignIn>;
-  signOut: ReturnType<typeof useSignOut>;
   signUp: ReturnType<typeof useSignUp>;
   menu: ReturnType<typeof useAuthMenu>;
 };
@@ -30,19 +29,18 @@ export const AuthProvider: FC<PropsWithChildren> = ({
 }) => {
   const [isUserSignedIn, setUserSignedIn] = useState(false);
   const config: TAuthConfig = {
+    isUserSignedIn,
     dispatchUserSignedIn: setUserSignedIn,
   };
   const signIn = useSignIn(config);
-  const signOut = useSignOut(config);
+ usePassiveSignOut(config); 
   const signUp = useSignUp(config);
   const menu = useAuthMenu(config);
 
   return (
     <AUTH.Provider
       value={{
-        isUserSignedIn,
         signIn,
-        signOut,
         signUp,
         menu,
         ...config,

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import { useState } from 'react';
 import { useIsomorphicLayoutEffect } from 'framer-motion';
 import { measureContainer } from '@/context/viewport/measure-container';
@@ -8,6 +8,11 @@ import {
   TDimensionsInit,
   TDimensionsReady,
 } from '@/types/measure';
+import {
+  SCREEN_LG,
+  SCREEN_SM,
+  SCREEN_XS,
+} from '@/constants/theme';
 
 const RESIZE_COOLDOWN = 400;
 
@@ -29,9 +34,13 @@ type TReady = TDimensionsReady & {
   isResizing: boolean;
   halfWidth: number;
   halfHeight: number;
+  isSm: boolean;
+  isXs: boolean;
+  isLg: boolean;
   isVertical: boolean;
 };
-export type TViewport = TInit | (TReady & TContainerState);
+export type TViewport = TInit | TReady;
+
 type TConfig = { isContainer?: boolean };
 export const useViewportMeasure = (
   config: TConfig = {}
@@ -65,9 +74,12 @@ export const useViewportMeasure = (
         halfWidth: width * 0.5,
         halfHeight: height * 0.5,
         isVertical: width < height && width < 700,
+        isXs: width < SCREEN_XS,
+        isSm: width < SCREEN_SM,
+        isLg: width < SCREEN_LG,
         isDimensions,
         isResizing,
-      } as TReady;
+      } as const satisfies TReady;
       setViewport(ready);
       return;
     }

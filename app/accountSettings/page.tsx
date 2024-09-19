@@ -448,23 +448,23 @@ export default function AccountSettingsPage() {
 
             // Handle Real Estate Agent update
             if (newAgentName) {
-              console.log(newAgentName)
+              console.log(newAgentName);
               const agentQueryAll = query(
-                collection(firestore, 'reAgents'),
+                collection(firestore, 'reAgents')
                 // where('name', '==', newAgentName)
               );
               const agentQuery = query(
                 collection(firestore, 'reAgents'),
                 where('name', '==', newAgentName)
               );
-              console.log(agentQueryAll, agentQuery)
+              console.log(agentQueryAll, agentQuery);
               const agentSnapshotAll = await getDocs(
                 agentQueryAll
               );
               const agentSnapshot = await getDocs(
                 agentQuery
               );
-              console.log(agentSnapshotAll,agentSnapshot)
+              console.log(agentSnapshotAll, agentSnapshot);
 
               if (!agentSnapshot.empty) {
                 const agentDoc = agentSnapshot.docs[0];
@@ -650,7 +650,8 @@ export default function AccountSettingsPage() {
               />
             </div>
 
-            <div className="flex items-center">
+            {/* Removed per latest spec */}
+            {/* <div className="flex items-center">
               <input
                 type="checkbox"
                 id="isInsured"
@@ -666,7 +667,7 @@ export default function AccountSettingsPage() {
               >
                 Are you insured?
               </label>
-            </div>
+            </div> */}
 
             <div>
               <label

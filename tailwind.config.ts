@@ -1,5 +1,9 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
+// import { SCREEN_XS, SCREEN_XXS } from '@/constants/theme';
+
+export const SCREEN_XS = 450;
+export const SCREEN_XXS = 375;
 
 const config: Config = {
   content: [
@@ -102,6 +106,8 @@ const config: Config = {
       letterSpacing: {
         'tight-06': '-0.06em',
         'tight-02': '-0.02em',
+        'tight-01': '-0.01em',
+
       },
       spacing: {
         0.25: '0.0625rem',
@@ -114,8 +120,9 @@ const config: Config = {
         12.5: '3.125rem',
       },
       screens: {
-        xxs: '375px',
-        xs: '450px',
+        ...defaultTheme.screens,
+        xs: `${SCREEN_XS}px`,
+        xxs: `${SCREEN_XXS}px`,
       },
     },
   },
