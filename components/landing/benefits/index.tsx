@@ -1,16 +1,12 @@
-import { useLanding } from '@/context/landing/provider';
 import Image from 'next/image';
 import type { FC } from 'react';
-import muddyBoots from '@/public/muddyBoots.jpeg';
 
 export const LandingBenefits: FC = () => {
-  const landing = useLanding();
-
   return (
     <div>
       <h3>Benefits</h3>
       <div>
-        <ul className="flex flex-col">
+        <ul className="flex flex-row gap-5">
           {(
             [
               [

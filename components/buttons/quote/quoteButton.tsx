@@ -20,6 +20,7 @@ const QuoteButton: FC<TProps> = ({ ...props }) => {
   if (isSignedIn) {
     return null; // Don't render the button if user is not signed in
   }
+  
   const title = props.title ?? 'Get Quote';
   return (
     <ButtonsCvaLink
