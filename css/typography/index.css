@@ -124,53 +124,30 @@
 
 .yes-no {
   color: var(--202020, #202020);
-font-family: Montserrat;
-font-size: 14px;
-font-style: normal;
-font-weight: 500;
-line-height: 100%; /* 14px */
+  font-family: Montserrat;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 100%; /* 14px */
 }
 .preferences-form-subtitle {
-color: #000;
-text-align: center;
-font-family: Montserrat;
-font-size: 14px;
-font-style: normal;
-font-weight: 500;
-line-height: 100%; /* 14px */
+  color: #000;
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 100%; /* 14px */
 }
+
 .dropdown {
-  color: var(--5-f-5-f-5-f, #5F5F5F);
+  color: var(--5-f-5-f-5-f, #5f5f5f);
 
-/* D4 */
-font-family: Montserrat;
-font-size: 12px;
-font-style: normal;
-font-weight: 600;
-line-height: 100%; /* 12px */
-letter-spacing: -0.24px;
-}
-
-.x {
-  color: var(--Input-Text, #858585);
-text-align: center;
-
-/* D3 */
-font-family: Montserrat;
-font-size: 14px;
-font-style: normal;
-font-weight: 600;
-line-height: 24px; /* 171.429% */
-letter-spacing: -0.28px;
-}
-
-.y {
-  color: #0F0F0F;
-text-align: center;
-font-family: Montserrat;
-font-size: 24px;
-font-style: normal;
-font-weight: 600;
-line-height: 120%; /* 28.8px */
-letter-spacing: -0.96px;
+  /* D4 */
+  font-family: Montserrat;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 100%; /* 12px */
+  letter-spacing: -0.24px;
 }

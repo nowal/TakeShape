@@ -24,6 +24,9 @@ const config: Config = {
         ],
         poppins: 'var(--font-poppins)',
       },
+      fontSize: {
+        '4.5xl': '2.5rem',
+      },
       colors: {
         black: '#020202',
         'black-1': '#0F0F0F',
@@ -54,6 +57,7 @@ const config: Config = {
         'white-pink-1': '#FFF6F7',
         'white-pink-2': '#FFCDD3',
         'white-pink-3': '#FFF2F5',
+        'white-pink-4': '#FFF5F8',
 
         pink: 'var(--pink)',
         'pink-1': '#E73152',
@@ -105,6 +109,7 @@ const config: Config = {
         shell: '1512px',
       },
       letterSpacing: {
+        'tight-125': '-0.125em',
         'tight-06': '-0.06em',
         'tight-02': '-0.02em',
         'tight-01': '-0.01em',

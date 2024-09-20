@@ -10,7 +10,7 @@ export const LinesHorizontal: FC<
   return (
     <Lines_Line
       classValue={cx(
-        "w-full h-0",
+        "h-0",
         classValue
       )}
       sizeClass="border-t"

@@ -18,3 +18,35 @@ font-style: normal;
 font-weight: 400;
 line-height: 30.6px; /* 174.08% */
 }
+
+.landing-subtitle {
+  color: var(--202020, #202020);
+  font-family: Montserrat;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 48px */
+  letter-spacing: -2px;
+}
+
+.landing-text {
+  color: #181818;
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 28px; /* 175% */
+}
+
+.landing-subtitle-1 {
+  color: var(--202020, #202020);
+
+/* hh3 */
+font-family: Montserrat;
+font-size: 24px;
+font-style: normal;
+font-weight: 700;
+line-height: 100%; /* 24px */
+letter-spacing: -0.96px;
+}

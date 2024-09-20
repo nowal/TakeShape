@@ -4,23 +4,21 @@ import {
   TCommonIconProps,
 } from '@/components/icon';
 
-export const CHEVRON_DOWN =
-  'M2.125 2.09326L5.93842 5.90668L9.75183 2.09326';
-export const IconsChevronsDown: FC<TCommonIconProps> = (
-  props
-) => {
+export const CHEVRON_DOWN = 'M13 1L7 7L1 1';
+export const IconsChevronsDown: FC<
+  TCommonIconProps
+> = (props) => {
   return (
     <CommonIcon
-      width="12"
-      height="8"
-      viewBox="0 0 12 8"
+      width="14"
+      height="9"
+      viewBox="0 0 14 9"
+      d={CHEVRON_DOWN}
       fill="none"
       stroke="var(--pink)"
-      d={CHEVRON_DOWN}
       pathProps={{
-        strokeWidth: '2.86006',
+        strokeWidth: '2',
         strokeLinecap: 'round',
-        strokeLinejoin: 'round',
       }}
       {...props}
     />

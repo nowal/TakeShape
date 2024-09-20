@@ -148,6 +148,12 @@ input {
   .typography-form-notification {
     @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
   }
+  .typography-landing-subtitle {
+    @apply tracking-tight-06 text-black text-4.5xl font-bold;
+  }
+  .typography-landing-text {
+    @apply font-medium text-black-6 text-base;
+  }
   .fill-column-white-base {
     @apply flex flex-col items-stretch w-full shadow-08 bg-white rounded-2xl;
   }

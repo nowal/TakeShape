@@ -13,6 +13,7 @@ export const LandingHero: FC = () => {
         // height="100"
         quality="100"
         layout="fill"
+        objectFit='cover'
         // className="h-[676px] "
         // style={{
         //   height: 676,

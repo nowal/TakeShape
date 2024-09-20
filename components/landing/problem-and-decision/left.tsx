@@ -1,14 +1,13 @@
 import type { FC } from 'react';
 import QuoteButton from '@/components/buttons/quote/quoteButton';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
 
 export const LandingProblemAndDecisionLeft: FC = () => {
   return (
-    <div className="flex flex-col w-[538px]">
-      <NotificationsHighlight classDisplay='inline-flex'>
+    <div className="flex flex-col items-start w-[538px]">
+      <span className='py-2.5 px-4 bg-white-pink-4 rounded-xl'>
         Problem & Decision
-      </NotificationsHighlight>
-      <h2 className="">
+      </span>
+      <h2 className="typography-landing-subtitle">
         Your painting quote is only a couple of clicks away
       </h2>
       <div className="h-4" />
