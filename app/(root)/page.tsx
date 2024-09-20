@@ -7,6 +7,7 @@ import { LandingHowItWorks } from '@/components/landing/how-it-works';
 import { LandingProblemAndDecision } from '@/components/landing/problem-and-decision';
 import { LandingHero } from '@/components/landing/hero';
 import { LandingBenefits } from '@/components/landing/benefits';
+import { LandingDreamRoom } from '@/components/landing/dream-room';
 
 const Landing = () => {
   const landing = useLanding();
@@ -23,16 +24,20 @@ const Landing = () => {
       <section className="relative h-[676px] bg-fuchsia-600">
         <LandingProblemAndDecision />
       </section>
-      <section className="relative h-[645] bg-indigo-400">
-        {/* 572px + 73px */}
+      {/* <section className="relative h-[645] bg-indigo-400">
+        572px + 73px
         <LandingHowItWorks />
-      </section>
+      </section> */}
       <section className="relative h-[636px] bg-sky-600">
         {/* 560px + 76px */}
-        <LandingQuote />
-      </section>
-      <section className="relative h-[717px] bg-red">
+        {/* <LandingQuote /> */}
         <LandingFaq />
+      </section>
+      {/* <section className="relative h-[717px] bg-red">
+        <LandingFaq />
+      </section> */}
+      <section className="relative h-[717px] bg-green">
+        <LandingDreamRoom />
       </section>
     </>
   );
