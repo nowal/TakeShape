@@ -26,9 +26,15 @@ export const LandingBenefits: FC = () => {
                 'Review the quotes, approve the price, and get ready to enjoy the color you love.',
               ],
             ] as const
-          ).map(([title, description]) => {
+          ).map(([title, description], index) => {
             return (
               <li key={title}>
+                <Image
+                  alt={title}
+                  src={`/landing/benefits/${index}.png`}
+                  height="296"
+                  width="467"
+                />
                 <h4>{title}</h4>
                 <p>{description}</p>
               </li>
