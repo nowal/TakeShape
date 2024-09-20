@@ -13,7 +13,7 @@ export const DashboardClientQuotesList: FC = () => {
   const dashboard = useDashboard();
   const { preferredPainterUserIds, agentInfo, userData } =
     dashboard;
-console.log(userData)
+  console.log(userData);
   const prices = isMocks()
     ? MOCKS_PRICES
     : userData?.prices ?? [];
@@ -28,13 +28,13 @@ console.log(userData)
         Contractor Quotes
       </h3>
       <div className="h-5" />
-{isEmpty && (
-   <NotificationsHighlight>
-   <>No quotes</>
- </NotificationsHighlight>
-)}
+      {isEmpty && (
+        <NotificationsHighlight>
+          <>No quotes</>
+        </NotificationsHighlight>
+      )}
       {false ? (
-     <div/>
+        <div />
       ) : (
         <ul className="flex flex-col items-stretch gap-2">
           {prices.map((price, index) => {

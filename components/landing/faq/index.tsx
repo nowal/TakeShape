@@ -1,4 +1,6 @@
 'use client';
+import Image from 'next/image';
+import takingVideo from '@/public/landing/faq.png';
 
 import React, { useState } from 'react';
 
@@ -41,10 +43,17 @@ export const LandingFaq = () => {
   };
 
   return (
-    <div className="flex flex-col w-full py-12 px-16 gap-3">
-      <h2 className="text-center text-3xl font-bold mb-6 underline">
-        Frequently Asked Questions
-      </h2>
+    <div className="flex flex-row w-full py-12 px-16 gap-3">
+      <div className="flex-col">
+        <h2 className="text-center text-3xl font-bold mb-6 underline">
+          Frequently Asked Questions
+        </h2>
+        <Image
+          src={takingVideo.src}
+          alt="Taking Video"
+          fill
+        />
+      </div>
       <div className="mx-auto max-w-3xl">
         {faqData.map((faq, index) => (
           <div key={index} className="mb-4">
