@@ -3,41 +3,52 @@ import type { FC } from 'react';
 
 export const LandingBenefits: FC = () => {
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <h3>Benefits</h3>
-      <div>
-        <ul className="flex flex-row gap-5">
-          {(
+      <ul className="flex flex-row justify-stretch gap-5 px-9">
+        {(
+          [
             [
-              [
-                'Upload Your Video',
-                'Capture a video of your space and upload it. We only need 30 seconds per room.',
-              ],
-              [
-                'Receive Quotes',
-                'Local painters will see your video and provide you with their best price.',
-              ],
-              [
-                'Approve & Transform',
-                'Review the quotes, approve the price, and get ready to enjoy the color you love.',
-              ],
-            ] as const
-          ).map(([title, description], index) => {
-            return (
-              <li key={title}>
+              'Upload Your Video',
+              'Capture a video of your space and upload it. We only need 30 seconds per room.',
+            ],
+            [
+              'Receive Quotes',
+              'Local painters will see your video and provide you with their best price.',
+            ],
+            [
+              'Approve & Transform',
+              'Review the quotes, approve the price, and get ready to enjoy the color you love.',
+            ],
+          ] as const
+        ).map(([title, description], index) => {
+          const dimensions = {
+            height: 296,
+            width: 467,
+          } as const;
+          return (
+            <li
+              key={title}
+              style={{ width: dimensions.width }}
+            >
+              <div
+                className="relative"
+                style={{ ...dimensions }}
+              >
                 <Image
                   alt={title}
                   src={`/landing/benefits/${index}.png`}
-                  height="296"
-                  width="467"
+                  layout="fill"
+                  style={{ objectFit: 'cover' }}
                 />
-                <h4>{title}</h4>
-                <p>{description}</p>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+              </div>
+
+              <h4>{title}</h4>
+              <p>{description}</p>
+            </li>
+          );
+        })}
+      </ul>
     </div>
     // <div className="mx-auto px-4">
     //   <div className="pt-16 flex flex-col md:flex-row-reverse gap-6 items-center">
