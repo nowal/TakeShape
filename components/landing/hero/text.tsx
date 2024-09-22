@@ -22,7 +22,6 @@ export const LandingHeroText: FC = () => {
           home, your style, your terms.
         </p>
         <div className="h-7" />
-
         <div className="flex justify-center md:justify-start">
           <QuoteButton className="py-3 px-5 text-xl">
             Color Me Curious!

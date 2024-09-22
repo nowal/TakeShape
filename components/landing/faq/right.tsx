@@ -13,7 +13,7 @@ export const LandingFaqRight: FC = () => {
     setActiveIndex(activeIndex === index ? null : index);
   };
   return (
-    <div className="relative w-full p-12">
+    <div className="relative w-full p-12 text-left">
       <ul className="flex flex-col shadow-08 bg-white rounded-2xl">
         {FAQ_COPY_ROWS.map((faq, index) => {
           const isFirst = index === 0;
@@ -28,23 +28,26 @@ export const LandingFaqRight: FC = () => {
               <button
                 onClick={() => handleToggle(index)}
                 className={cx(
-                  'flex flex-row items-center justify-between w-full typography-landing-text px-16 py-9',
+                  'flex flex-row items-center justify-between w-full typography-landing-text',
+                  'px-16 py-9',
                   'gap-6'
                 )}
               >
-                <span>{faq.question}</span>
-                <span>
+                <div className='text-left'>{faq.question}</div>
+                <div>
                   {activeIndex === index ? (
                     <IconsChevronsUp />
                   ) : (
                     <IconsChevronsDown />
                   )}
-                </span>
+                </div>
               </button>
               <div
-                className={`typography-landing-text ${
-                  activeIndex === index ? 'block' : 'hidden'
-                }`}
+                className={cx(
+                  'typography-landing-text',
+                  'px-16 pb-9',
+                  activeIndex === index ? 'flex' : 'hidden'
+                )}
               >
                 {faq.answer}
               </div>

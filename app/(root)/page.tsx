@@ -6,9 +6,10 @@ import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
 import { LANDING_HERO_HEIGHT } from '@/components/landing/hero/constants';
 import { useViewport } from '@/context/viewport';
+import { cx } from 'class-variance-authority';
 
 const Landing = () => {
-  const viewport = useViewport()
+  const viewport = useViewport();
   return (
     <>
       <section
@@ -16,16 +17,20 @@ const Landing = () => {
         style={{ height: LANDING_HERO_HEIGHT }}
       >
         <div className="h-20" />
-       {viewport.isDimensions && <LandingHero {...viewport}/>}
+        {viewport.isDimensions && (
+          <LandingHero {...viewport} />
+        )}
       </section>
-      <section className="relative h-[676px] bg-fuchsia-600">
+      <section className="relative h-[676px]">
         <LandingBenefits />
       </section>
-      <section className="relative h-[645] bg-indigo-400">
+      <section className="relative h-[645]">
         {/* 572px + 73px */}
         <LandingProblemAndDecision />
       </section>
-      <section className="relative h-[636px] bg-sky-600">
+      <section className={cx('relative',
+        //  'h-[636px]'
+         )}>
         {/* 560px + 76px */}
         <LandingFaq />
       </section>
