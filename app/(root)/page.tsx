@@ -1,17 +1,22 @@
-'use client';;
+'use client';
 import { LandingFaq } from '@/components/landing/faq';
 import { LandingProblemAndDecision } from '@/components/landing/problem-and-decision';
 import { LandingHero } from '@/components/landing/hero';
 import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
+import { LANDING_HERO_HEIGHT } from '@/components/landing/hero/constants';
+import { useViewport } from '@/context/viewport';
 
 const Landing = () => {
-
+  const viewport = useViewport()
   return (
     <>
-      <section className="relative h-[700px]">
+      <section
+        className="relative"
+        style={{ height: LANDING_HERO_HEIGHT }}
+      >
         <div className="h-20" />
-        <LandingHero />
+       {viewport.isDimensions && <LandingHero {...viewport}/>}
       </section>
       <section className="relative h-[676px] bg-fuchsia-600">
         <LandingBenefits />

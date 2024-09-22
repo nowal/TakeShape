@@ -41,7 +41,8 @@ export const buttonsCvaConfig = cva(
           'active:bg-black',
           'text-white',
           'border',
-          'border-gray-4',
+          // 'border-gray-4',
+          'border-pink',
           'gap-1',
           'font-bold'
         ],

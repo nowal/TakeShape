@@ -20,6 +20,7 @@ export const LandingFaq = () => {
             alt="Taking Video"
             width={870}
             height={785}
+            
           />
         </div>
         <LandingFaqLeft />

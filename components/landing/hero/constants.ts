@@ -1,0 +1,2 @@
+export const LANDING_HERO_HEIGHT = 700;
+export const LANDING_HERO_HANDLE_SIZE = 76;

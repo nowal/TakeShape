@@ -26,6 +26,7 @@ export const LandingBenefitsItem: FC<TProps> = ({
           alt={title}
           src={`/landing/benefits/${index}.png`}
           layout="fill"
+          sizes="(max-width: 768px) 100vw, 33vw"	
           style={{ objectFit: 'cover' }}
         />
       </div>

@@ -9,7 +9,6 @@ export const LandingFaqRight: FC = () => {
   const [activeIndex, setActiveIndex] = useState<
     number | null
   >(null);
-
   const handleToggle = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };

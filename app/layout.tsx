@@ -11,6 +11,7 @@ import { AuthProvider } from '@/context/auth/provider';
 import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { DashboardProvider } from '@/context/dashboard/provider';
+import { FilterGrayscale } from '@/filters/grayscale';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
