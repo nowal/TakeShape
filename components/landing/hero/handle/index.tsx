@@ -3,7 +3,6 @@ import { motion, MotionValue } from 'framer-motion';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsResizeHorizontal } from '@/components/icons/resize/horizontal';
 import { resolveSquare } from '@/utils/measure/resolve-square';
-import { cx } from 'class-variance-authority';
 import { LANDING_HERO_HANDLE_SIZE } from '@/components/landing/hero/constants';
 import { useViewport } from '@/context/viewport';
 
@@ -11,6 +10,10 @@ type TProps = { x: MotionValue };
 export const LandingHeroHandle: FC<TProps> = ({ x }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const viewport = useViewport();
+  const halfY =
+    (viewport.landingHeroHeight -
+      LANDING_HERO_HANDLE_SIZE) /
+    2;
   return (
     <div
       ref={ref}
@@ -25,8 +28,8 @@ export const LandingHeroHandle: FC<TProps> = ({ x }) => {
           filter:
             'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
           bottom:
-            viewport.isDimensions && viewport.isLg
-              ? (viewport.landingHeroHeight - LANDING_HERO_HANDLE_SIZE)/2
+            viewport.isDimensions && viewport.isMd
+              ? halfY
               : LANDING_HERO_HANDLE_SIZE,
           left: `calc(${
             -LANDING_HERO_HANDLE_SIZE / 2

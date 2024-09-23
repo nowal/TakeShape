@@ -28,7 +28,16 @@
   line-height: 120%; /* 48px */
   letter-spacing: -2px;
 }
-
+.landing-subtitle {
+color: #181818;
+text-align: center;
+font-family: Montserrat;
+font-size: 32px;
+font-style: normal;
+font-weight: 700;
+line-height: 102%; /* 32.64px */
+letter-spacing: -2px;
+}
 .landing-text {
   color: #181818;
   text-align: center;

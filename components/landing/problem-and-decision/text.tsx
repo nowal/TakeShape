@@ -2,20 +2,37 @@ import type { FC } from 'react';
 import QuoteButton from '@/components/buttons/quote/quoteButton';
 import { cx } from 'class-variance-authority';
 
-export const LandingProblemAndDecisionLeft: FC = () => {
+export const LandingProblemAndDecisionText: FC = () => {
   return (
-    <div className="flex flex-col items-center w-[538px] lg:items-start">
+    <div
+      className={cx(
+        'flex flex-col items-center w-full pt-9',
+        'rounded-t-4xl bg-white-8',
+        'px-7',
+        'text-center',
+        'xl:items-start xl:text-left',
+        'sm:px-0 sm:pt-0 sm:pr-4',
+        'sm:rounded-t-0 sm:bg-transparent',
+        'sm:w-[538px] '
+      )}
+    >
       <span
         className={cx(
           'leading-none',
-          'py-2.5 px-4 bg-white-pink-4 rounded-xl',
-          'text-pink font-bold'
+          'py-2.5 px-4 rounded-xl',
+          'text-pink font-bold',
+          'bg-white sm:bg-white-pink-4'
         )}
       >
         Problem & Decision
       </span>
-      <div className='h-3'/>
-      <h2 className="typography-landing-subtitle">
+      <div className="h-3" />
+      <h2
+        className={cx(
+          'typography-landing-subtitle--responsive',
+          'px-0 xs:px-7 md:px-0',
+        )}
+      >
         Your painting quote is only a couple of clicks away
       </h2>
       <div className="h-4" />
@@ -31,7 +48,9 @@ export const LandingProblemAndDecisionLeft: FC = () => {
         you want done.
       </p>
       <div className="h-8" />
-      <QuoteButton />
+      <div className="hidden xl:flex">
+        <QuoteButton />
+      </div>
     </div>
   );
 };

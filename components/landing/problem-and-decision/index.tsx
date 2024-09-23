@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import Image from 'next/image';
 import takingVideo from '@/public/landing/problem-and-decision.png';
-import { LandingProblemAndDecisionLeft } from '@/components/landing/problem-and-decision/left';
+import { LandingProblemAndDecisionText } from '@/components/landing/problem-and-decision/text';
 
 export const LandingProblemAndDecision: FC = () => {
   const dimensions = {
@@ -9,9 +9,9 @@ export const LandingProblemAndDecision: FC = () => {
     height: 572,
   };
   return (
-    <div className="px-20 pb-20 h-full">
-      <div className="flex flex-row items-center justify-between h-full w-full">
-        <LandingProblemAndDecisionLeft />
+    <div className="spacing-landing pb-20 h-full">
+      <div className="flex flex-col items-center justify-between h-full w-full xl:flex-row">
+        <LandingProblemAndDecisionText />
         <Image
           src={takingVideo.src}
           alt="Taking Video"

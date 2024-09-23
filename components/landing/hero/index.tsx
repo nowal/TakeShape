@@ -27,12 +27,11 @@ export const LandingHero: FC<TProps> = ({ width }) => {
         src={happyPic.src}
         alt="Happy Pic"
         quality="100"
-        layout="fill"
+        fill
         objectFit="cover"
         priority
       />
       <LandingHeroHandleLine x={x} />
-
       <LandingHeroText />
       <LandingHeroHandle x={x} />
     </>

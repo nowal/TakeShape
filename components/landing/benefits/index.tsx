@@ -1,12 +1,14 @@
 import { LandingBenefitsItem } from '@/components/landing/benefits/item/item';
+import { useViewport } from '@/context/viewport';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
 export const LandingBenefits: FC = () => {
+  const viewport = useViewport();
   return (
     <div className="flex flex-col items-center w-full h-full overflow-hidden">
       <div className="h-20" />
-      <h3 className="typography-landing-subtitle">
+      <h3 className="typography-landing-subtitle--responsive">
         Benefits
       </h3>
       <div className="h-9" />
@@ -42,7 +44,10 @@ export const LandingBenefits: FC = () => {
                 className="flex-1"
                 key={title}
                 style={{
-                  width: `${(index / count) * 100}%`,
+                  width:
+                    viewport.isDimensions && viewport.isLg
+                      ? '100%'
+                      : `${(index / count) * 100}%`,
                 }}
               >
                 <LandingBenefitsItem

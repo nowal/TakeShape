@@ -1,10 +1,16 @@
 import QuoteButton from '@/components/buttons/quote/quoteButton';
+import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
 export const LandingHeroText: FC = () => {
   return (
-    <div className="relative flex flex-col w-full justify-end text-white h-full md:justify-start lg:w-1/2 md:mt-24">
-       <div
+    <div
+      className={cx(
+        'relative w-full h-full text-white lg:w-1/2 md:pt-24',
+        'flex flex-col justify-end md:justify-center lg:justify-start'
+      )}
+    >
+      <div
         className="flex absolute inset-0 lg:hidden"
         style={{
           background:
@@ -28,7 +34,6 @@ export const LandingHeroText: FC = () => {
           </QuoteButton>
         </div>
       </div>
-     
     </div>
   );
 };

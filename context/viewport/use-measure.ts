@@ -58,6 +58,7 @@ export const useViewportMeasure = (
     }
 
     const width = document.documentElement.clientWidth;
+    console.log(width)
     const height = document.documentElement.clientHeight;
 
     const isDimensions =

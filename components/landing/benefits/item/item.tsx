@@ -14,7 +14,7 @@ export const LandingBenefitsItem: FC<TProps> = ({
   index,
 }) => {
   return (
-    <>
+    <div className={cx("flex flex-col items-stretch gap-7", 'flex-col-reverse')}>
       <div
         className={cx('relative')}
         style={{
@@ -25,15 +25,20 @@ export const LandingBenefitsItem: FC<TProps> = ({
         <Image
           alt={title}
           src={`/landing/benefits/${index}.png`}
-          layout="fill"
-          sizes="(max-width: 768px) 100vw, 33vw"	
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
           style={{ objectFit: 'cover' }}
         />
       </div>
-      <div className="h-7" />
-      <h4 className='text-2xl font-bold text-black tight-02'>{title}</h4>
-      <div className="h-3" />
-      <p className='text-base font-medium text-gray-7'>{description}</p>
-    </>
+      <div>
+        <h4 className="text-2xl font-bold text-black tight-02">
+          {title}
+        </h4>
+        <div className="h-3" />
+        <p className="text-base font-medium text-gray-7">
+          {description}
+        </p>
+      </div>
+    </div>
   );
 };

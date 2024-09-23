@@ -149,7 +149,16 @@ input {
     @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
   }
   .typography-landing-subtitle {
-    @apply tracking-tight-06 text-black text-4.5xl font-bold;
+    @apply tracking-tight-06 text-black font-bold;
+  }
+  .typography-landing-subtitle--lg {
+    @apply typography-landing-subtitle text-4.5xl leading-[120%];
+  }
+  .typography-landing-subtitle--sm {
+    @apply typography-landing-subtitle text-3xl;
+  }
+  .typography-landing-subtitle--responsive {
+    @apply typography-landing-subtitle--sm lg:typography-landing-subtitle--lg;
   }
   .typography-landing-text {
     @apply font-medium text-black-6 text-base;
@@ -165,6 +174,12 @@ input {
   }
   .typography-landing-hero-title--responsive {
     @apply typography-landing-hero-title--sm md:typography-landing-hero-title--lg;
+  }
+}
+
+@layer components {
+  .spacing-landing {
+    @apply px-6 lg:px-20;
   }
 }
 

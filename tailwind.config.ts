@@ -50,6 +50,7 @@ const config: Config = {
         'white-5': '#FDFDFD',
         'white-6': '#f4f4f4',
         'white-7': '#EEEEEE',
+        'white-8': '#F6F6F6',
 
         'white-green': '#F0FFF5',
 
@@ -79,7 +80,6 @@ const config: Config = {
         'gray-10': '#ececec',
         'gray-11': '#E2E2E2',
         'gray-12': '#CCCCCC',
-
       },
       borderRadius: {
         '15.1875': '15.1875rem',

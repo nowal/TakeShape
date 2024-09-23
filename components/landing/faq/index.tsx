@@ -1,29 +1,21 @@
 'use client';
-import { LandingFaqLeft } from '@/components/landing/faq/left';
-import { LandingFaqRight } from '@/components/landing/faq/right';
-import Image from 'next/image';
-import image from '@/public/landing/faq.png';
+import { LandingFaqTitle } from '@/components/landing/faq/title';
+import { LandingFaqList } from '@/components/landing/faq/list';
+import { LandingFaqImage } from '@/components/landing/faq/image';
+import { cx } from 'class-variance-authority';
 
 export const LandingFaq = () => {
   return (
-    <div className="px-20 py-20 h-full">
-      <div className="flex flex-row w-full bg-white rounded-4xl h-full">
-        <div
-          className="absolute top-24 left-20"
-          style={{
-            width: 870,
-            height: 785,
-          }}
-        >
-          <Image
-            src={image.src}
-            alt="Taking Video"
-            width={870}
-            height={785}
-          />
-        </div>
-        <LandingFaqLeft />
-        <LandingFaqRight />
+    <div className="spacing-landing py-0 h-full lg:pb-20 lg:pt-0">
+      <div
+        className={cx(
+          'flex flex-col w-full bg-white rounded-4xl h-full pb-0',
+          'lg:flex-row lg:pb-20'
+        )}
+      >
+        <LandingFaqImage />
+        <LandingFaqTitle />
+        <LandingFaqList />
       </div>
     </div>
   );

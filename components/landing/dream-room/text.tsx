@@ -1,10 +1,16 @@
 import type { FC } from 'react';
 import QuoteButton from '@/components/buttons/quote/quoteButton';
+import { cx } from 'class-variance-authority';
 
 export const LandingDreamRoomText: FC = () => {
   return (
-    <div className="relative flex flex-col items-center w-1/2">
-      <h3 className="typography-landing-subtitle text-center sm:max-w-[437px]">
+    <div
+      className={cx(
+        'relative w-full lg:w-1/2',
+        'flex flex-col items-center'
+      )}
+    >
+      <h3 className="typography-landing-subtitle--responsive text-center max-w-[280px] lg:max-w-[437px]">
         Your dream room is only a few clicks away
       </h3>
       <div className="h-2" />
