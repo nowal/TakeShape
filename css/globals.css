@@ -148,6 +148,42 @@ input {
   .typography-form-notification {
     @apply text-black-3 text-sm font-semibold tracking-tight-02 text-center;
   }
+  .typography-landing-subtitle {
+    @apply tracking-tight-06 text-black font-bold;
+  }
+  .typography-landing-subtitle--lg {
+    @apply typography-landing-subtitle text-4.5xl leading-[120%];
+  }
+  .typography-landing-subtitle--sm {
+    @apply typography-landing-subtitle text-3xl;
+  }
+  .typography-landing-subtitle--responsive {
+    @apply typography-landing-subtitle--sm lg:typography-landing-subtitle--lg;
+  }
+  .typography-landing-text {
+    @apply font-medium text-black-6 text-base;
+  }
+  .typography-landing-hero-title {
+    @apply font-extrabold	text-[80px] tracking-tight-06;
+  }
+  .typography-landing-hero-title--lg {
+    @apply typography-landing-hero-title leading-none text-[80px];
+  }
+  .typography-landing-hero-title--sm {
+    @apply typography-landing-hero-title leading-normal text-[32px];
+  }
+  .typography-landing-hero-title--responsive {
+    @apply typography-landing-hero-title--sm md:typography-landing-hero-title--lg;
+  }
+}
+
+@layer components {
+  .spacing-landing {
+    @apply px-6 lg:px-20;
+  }
+}
+
+@layer components {
   .fill-column-white-base {
     @apply flex flex-col items-stretch w-full shadow-08 bg-white rounded-2xl;
   }

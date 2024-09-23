@@ -24,6 +24,9 @@ const config: Config = {
         ],
         poppins: 'var(--font-poppins)',
       },
+      fontSize: {
+        '4.5xl': '2.5rem',
+      },
       colors: {
         black: '#020202',
         'black-1': '#0F0F0F',
@@ -47,6 +50,7 @@ const config: Config = {
         'white-5': '#FDFDFD',
         'white-6': '#f4f4f4',
         'white-7': '#EEEEEE',
+        'white-8': '#F6F6F6',
 
         'white-green': '#F0FFF5',
 
@@ -54,6 +58,7 @@ const config: Config = {
         'white-pink-1': '#FFF6F7',
         'white-pink-2': '#FFCDD3',
         'white-pink-3': '#FFF2F5',
+        'white-pink-4': '#FFF5F8',
 
         pink: 'var(--pink)',
         'pink-1': '#E73152',
@@ -74,11 +79,13 @@ const config: Config = {
         'gray-9': '#AAAAAA',
         'gray-10': '#ececec',
         'gray-11': '#E2E2E2',
+        'gray-12': '#CCCCCC',
       },
       borderRadius: {
         '15.1875': '15.1875rem',
         '4xl': '2rem',
         '5xl': '2.25rem',
+        footer: '0.9375rem',
       },
       dropShadow: {
         '05': '0px 4px 90.8px rgba(0, 0, 0, 0.05)',
@@ -104,10 +111,10 @@ const config: Config = {
         shell: '1512px',
       },
       letterSpacing: {
+        'tight-125': '-0.125em',
         'tight-06': '-0.06em',
         'tight-02': '-0.02em',
         'tight-01': '-0.01em',
-
       },
       spacing: {
         0.25: '0.0625rem',

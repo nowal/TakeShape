@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { cx } from 'class-variance-authority';
 import * as Select from '@radix-ui/react-select';
 import { TValueChangeHandler } from '@/components/inputs/types';
@@ -12,6 +11,7 @@ import {
   resolveValues,
   TResolveValuesConfig,
 } from '@/components/inputs/select/resolve-values';
+import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
 
 export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
@@ -65,7 +65,7 @@ export const InputsSelect = ({
               <Select.Value placeholder={placeholder} />
             </div>
             <Select.Icon className="flex items-center justify-center">
-              <IconsChevronsDown />
+              <IconsSelectChevronDown />
             </Select.Icon>
           </div>
         </Select.Trigger>

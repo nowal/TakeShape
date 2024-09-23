@@ -1,11 +1,26 @@
 import type { FC } from 'react';
-import { TCommonIconProps } from '@/components/icon';
-import { CommonIcon16vb24 } from '@/components/icon/16vb24';
+import {
+  CommonIcon,
+  TCommonIconProps,
+} from '@/components/icon';
 
-export const CHEVRON_UP =
-  'M7 16H5v-2h2v-2h2v-2h2V8h2v2h2v2h2v2h2v2h-2v-2h-2v-2h-2v-2h-2v2H9v2H7z';
+export const CHEVRON_UP = 'M13 7.5L7 1.5L1 7.5';
 export const IconsChevronsUp: FC<TCommonIconProps> = (
   props
 ) => {
-  return <CommonIcon16vb24 d={CHEVRON_UP} {...props} />;
+  return (
+    <CommonIcon
+      width="14"
+      height="9"
+      viewBox="0 0 14 9"
+      d={CHEVRON_UP}
+      fill="none"
+      stroke="var(--pink)"
+      pathProps={{
+        strokeWidth: '2',
+        strokeLinecap: 'round',
+      }}
+      {...props}
+    />
+  );
 };

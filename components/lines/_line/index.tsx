@@ -8,7 +8,7 @@ export const Lines_Line: FC<TLines_LineProps> = ({
   positionClass,
   colorClass,
   classValue,
-  opacityClass,
+  // opacityClass,
   style,
   sizeClass,
   ...props
@@ -20,7 +20,7 @@ export const Lines_Line: FC<TLines_LineProps> = ({
         positionClass ?? "relative",
         sizeClass ?? "border",
         colorClass ?? "border-black",
-        opacityClass ??"opacity-50",
+        // opacityClass ??"opacity-50",
         classValue
       )}
       style={{ ...style }}
