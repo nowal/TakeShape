@@ -4,7 +4,7 @@ import { cx } from 'class-variance-authority';
 
 export const LandingProblemAndDecisionLeft: FC = () => {
   return (
-    <div className="flex flex-col items-start w-[538px]">
+    <div className="flex flex-col items-center w-[538px] lg:items-start">
       <span
         className={cx(
           'leading-none',

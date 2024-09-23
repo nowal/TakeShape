@@ -12,7 +12,7 @@ export const LandingBenefits: FC = () => {
       <div className="h-9" />
       <ul
         className={cx(
-          'flex flex-row justify-stretch',
+          'flex flex-col items-stretch w-full justify-stretch sm:flex-row',
           'gap-5 px-9'
         )}
       >

@@ -10,6 +10,7 @@ import {
 } from '@/types/measure';
 import {
   SCREEN_LG,
+  SCREEN_MD,
   SCREEN_SM,
   SCREEN_XS,
 } from '@/constants/theme';
@@ -36,6 +37,7 @@ type TReady = TDimensionsReady & {
   halfHeight: number;
   isSm: boolean;
   isXs: boolean;
+  isMd: boolean;
   isLg: boolean;
   isVertical: boolean;
 };
@@ -76,6 +78,7 @@ export const useViewportMeasure = (
         isVertical: width < height && width < 700,
         isXs: width < SCREEN_XS,
         isSm: width < SCREEN_SM,
+        isMd: width < SCREEN_MD,
         isLg: width < SCREEN_LG,
         isDimensions,
         isResizing,

@@ -11,12 +11,12 @@
 }
 
 .hero-subtitle {
-  color: #FFF;
-font-family: Inter;
-font-size: 17.578px;
-font-style: normal;
-font-weight: 400;
-line-height: 30.6px; /* 174.08% */
+  color: #fff;
+  font-family: Inter;
+  font-size: 17.578px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 30.6px; /* 174.08% */
 }
 
 .landing-subtitle {
@@ -42,11 +42,35 @@ line-height: 30.6px; /* 174.08% */
 .landing-subtitle-1 {
   color: var(--202020, #202020);
 
-/* hh3 */
-font-family: Montserrat;
-font-size: 24px;
-font-style: normal;
-font-weight: 700;
-line-height: 100%; /* 24px */
-letter-spacing: -0.96px;
+  /* hh3 */
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 100%; /* 24px */
+  letter-spacing: -0.96px;
+}
+
+.landing-hero {
+  /* fontSize: '5rem',
+  fontWeight: 800,
+  lineHeight: '5.0625rem'
+  letterSpacing: '-0.09375rem', */
+  /* hh1 */
+  font-family: Montserrat;
+  font-size: 80px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 81px; /* 101.25% */
+  letter-spacing: -1.5px;
+}
+
+.landing-hero-sm {
+  color: #fff;
+  font-family: Montserrat;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 100%; /* 32px */
+  letter-spacing: -1.5px;
 }

@@ -154,6 +154,21 @@ input {
   .typography-landing-text {
     @apply font-medium text-black-6 text-base;
   }
+  .typography-landing-hero-title {
+    @apply font-extrabold	text-[80px] tracking-tight-06;
+  }
+  .typography-landing-hero-title--lg {
+    @apply typography-landing-hero-title leading-none text-[80px];
+  }
+  .typography-landing-hero-title--sm {
+    @apply typography-landing-hero-title leading-normal text-[32px];
+  }
+  .typography-landing-hero-title--responsive {
+    @apply typography-landing-hero-title--sm md:typography-landing-hero-title--lg;
+  }
+}
+
+@layer components {
   .fill-column-white-base {
     @apply flex flex-col items-stretch w-full shadow-08 bg-white rounded-2xl;
   }

@@ -5,11 +5,6 @@ import { ShellLogo } from '@/components/shell/logo';
 import { HeaderOptions } from '@/components/shell/header/options';
 import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 import { useViewport } from '@/context/viewport';
-import {
-  HEADER_HEIGHT,
-  HEADER_HEIGHT_PADDING,
-  HEADER_HEIGHT_SM,
-} from '@/components/shell/header/constants';
 import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
 
@@ -18,10 +13,7 @@ export const ShellHeader = () => {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const viewport = useViewport();
-  const isMobile = viewport.isDimensions && viewport.isSm;
-  const height =
-    (isMobile ? HEADER_HEIGHT_SM : HEADER_HEIGHT) +
-    HEADER_HEIGHT_PADDING;
+  const height = viewport.headerHeight;
 
   return (
     <>
@@ -52,7 +44,7 @@ export const ShellHeader = () => {
           <Link className="relative z-10" href="/">
             <ShellLogo />
           </Link>
-          {isMobile ? (
+          {viewport.isDimensions && viewport.isSm ? (
             <ShellHeaderMobileMenu />
           ) : (
             <HeaderOptions />
