@@ -8,7 +8,7 @@ import { cx } from 'class-variance-authority';
 import { TDivProps } from '@/types/dom';
 
 type TProps = Omit<TDivProps, 'title'> & {
-  title: string | JSX.Element;
+  title?: string | JSX.Element;
   closeProps?: TComponentsModalPanelCloseProps;
 };
 export const ComponentsModalPanel: FC<TProps> = ({
@@ -19,6 +19,7 @@ export const ComponentsModalPanel: FC<TProps> = ({
   ...props
 }) => {
   const Title = () => {
+    if (!title) return null;
     if (isString(title)) {
       return (
         <h4 className="typography-page-title-semibold">
