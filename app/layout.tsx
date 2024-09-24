@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body className="flex font-montserrat">
+        <body className="font-montserrat">
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
-          <div className="relative flex flex-col items-stretch grow max-w-shell w-full mx-auto">
+          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
             <Suspense fallback={<div>Loading...</div>}>
               <AuthProvider>
                 <Suspense fallback={<div>Loading...</div>}>
@@ -39,11 +39,13 @@ export default function RootLayout({
                     >
                       <ViewportProvider>
                         <ShellHeader />
-                        <Suspense
-                          fallback={<div>Loading...</div>}
-                        >
-                          {children}
-                        </Suspense>
+                        <div className="relative min-h-[400px]">
+                          <Suspense
+                            fallback={<div>Loading...</div>}
+                          >
+                            {children}
+                          </Suspense>
+                        </div>
                         <ShellFooter />
                         <Suspense
                           fallback={<div>Loading...</div>}
