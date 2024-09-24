@@ -13,7 +13,7 @@ export const ShellFooter = () => {
   const pathname = usePathname();
   const isHome = pathname === '/';
   return (
-    <>
+    <div className='flex flex-col items-stretch'>
       {!isHome && <div className="h-8" />}
       <footer
         style={{
@@ -100,7 +100,7 @@ export const ShellFooter = () => {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 };
 {

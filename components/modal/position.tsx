@@ -1,7 +1,6 @@
 import { cx } from 'class-variance-authority';
 import { motion } from 'framer-motion';
 import { FC } from 'react';
-import { ANIMATION_INITIAL_DURATION } from '@/components/modal/constants';
 import { useFreezeScrollBar } from '@/hooks/use-freeze-scroll';
 import { TDivMotionProps } from '@/types/dom';
 
@@ -19,7 +18,7 @@ export const ComponentsModalPosition: FC<TProps> = ({
     <motion.div
       layout="size"
       className={cx(
-        'flex items-center justify-center fixed inset-0 z-20',
+        'flex items-center justify-center fixed inset-0 z-10',
         classValue
       )}
       {...props}
