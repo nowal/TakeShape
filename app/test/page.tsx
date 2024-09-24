@@ -1,9 +1,8 @@
-'use client';
+import { ComponentsCongrats } from '@/components/congrats';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { FC, Suspense } from 'react';
-import { ComponentsCongrats } from '@/components/congrats';
 
-const CongratsWithSuspense: FC = () => {
+const AppTestWithSuspense: FC = () => {
   return (
     <Suspense fallback={<FallbacksLoading />}>
       <ComponentsCongrats />
@@ -11,4 +10,4 @@ const CongratsWithSuspense: FC = () => {
   );
 };
 
-export default CongratsWithSuspense;
+export default AppTestWithSuspense;
