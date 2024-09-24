@@ -1,6 +1,7 @@
 'use client';
+
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
-import Image from "next/image"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -24,6 +25,7 @@ import { useAtom } from 'jotai';
 import { isPainterAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { ComponentsAccountSettings } from '@/components/account-settings';
 
 export default function AccountSettingsPage() {
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
@@ -528,29 +530,22 @@ export default function AccountSettingsPage() {
     return <FallbacksLoading />;
   }
 
-  const profilePicSrc =  newProfilePicturePreview ||
-  profilePictureUrl;
+  const profilePicSrc =
+    newProfilePicturePreview || profilePictureUrl;
 
-
-  const logoSrc = logoPreview || logoUrl
+  const logoSrc = logoPreview || logoUrl;
 
   return (
     <div className="p-8">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-      <h1 className="text-center text-2xl font-bold mb-6">
-        Account Settings
-      </h1>
+      <h2 className="typography-page-title">
+        Your Profile
+      </h2>
 
       {errorMessage && (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">
-            {errorMessage}
-          </span>
-        </div>
+        <ComponentsAccountSettings>
+          {errorMessage}
+        </ComponentsAccountSettings>
       )}
 
       <form
@@ -750,9 +745,7 @@ export default function AccountSettingsPage() {
               </label>
               {profilePicSrc && (
                 <Image
-                  src={
-                    profilePicSrc
-                  }
+                  src={profilePicSrc}
                   alt="Profile Picture"
                   className="mb-2 w-24 h-24 object-cover rounded-full"
                 />
