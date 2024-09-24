@@ -8,13 +8,13 @@ const stripePromise = loadStripe(
 );
 
 export type TCheckoutButtonConfig = {
-  amount: number;
+  selectedQuoteAmount: number;
   painterId: string;
   userImageId: string;
   userId: string;
 };
 export const useButtonsCheckout = ({
-  amount,
+  selectedQuoteAmount,
   painterId,
   userImageId,
   userId,
@@ -25,52 +25,69 @@ export const useButtonsCheckout = ({
   const [isRedirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
+    console.log('SESSION ID HOOK');
+
     const fetchSessionId = async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/checkout`,
-        {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+      console.log('baseUrl ', baseUrl)
+      try {
+        const url = `${baseUrl}/api/stripe/checkout` as const;
+        const body = JSON.stringify({
+          amount: selectedQuoteAmount * 0.1,
+          painterId, // Include painterId in the request body
+          userImageId, // Include userImageId in the request body
+        });
+        console.log(url, body)
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount,
-            painterId, // Include painterId in the request body
-            userImageId, // Include userImageId in the request body
-          }),
-        }
-      );
+          body,
+        });
 
-      const data = await res.json();
-      console.log('Session ID:', data.sessionId); // Log the sessionId
-      setSessionId(data.sessionId);
+        const data = await res.json();
+        console.log('data ', url, data);
+        console.log('Session ID:', data.sessionId); // Log the sessionId
+        setSessionId(data.sessionId);
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     fetchSessionId();
-  }, [amount, painterId, userImageId]);
+  }, [selectedQuoteAmount, painterId, userImageId]);
 
   const handleClick = async () => {
     if (isRedirecting) return; // Prevent further execution if already redirecting
 
     const stripe = await stripePromise;
 
-    if (stripe && sessionId) {
-      setRedirecting(true); // Set the flag before redirecting
+    console.log(stripe);
 
-      // Store parameters in session storage before redirecting to Stripe
-      sessionStorage.setItem('userImageId', userImageId);
-      sessionStorage.setItem('painterId', painterId);
+    if (!stripe) {
+      console.error('Stripe is null');
+      return;
+    }
 
-      const { error } = await stripe.redirectToCheckout({
-        sessionId,
-      });
+    if (!sessionId) {
+      console.error('sessionId is null');
+      return;
+    }
 
-      if (!error) {
-        // ... (rest of your handleClick logic)
-      } else {
-        console.error(error.message);
-        setRedirecting(false); // Reset the flag if there's an error
-      }
+    setRedirecting(true); // Set the flag before redirecting
+
+    // Store parameters in session storage before redirecting to Stripe
+    sessionStorage.setItem('userImageId', userImageId);
+    sessionStorage.setItem('painterId', painterId);
+
+    const { error } = await stripe.redirectToCheckout({
+      sessionId,
+    });
+
+    if (!error) {
+      // ... (rest of your handleClick logic)
     } else {
-      console.error('Stripe or sessionId is null');
+      console.error(error.message);
+      setRedirecting(false); // Reset the flag if there's an error
     }
   };
 
@@ -104,6 +121,7 @@ export const useButtonsCheckout = ({
   };
 
   return {
+    sessionId,
     onHandleStorePainterInfo: handleStorePainterInfo,
     onClick: handleClick,
     dispatchSessionId: setSessionId,

@@ -67,6 +67,7 @@ const config: Config = {
 
         green: '#83A68F',
         'green-1': '#395A44',
+        'green-2': '#00D66E',
 
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
@@ -80,6 +81,9 @@ const config: Config = {
         'gray-10': '#ececec',
         'gray-11': '#E2E2E2',
         'gray-12': '#CCCCCC',
+        'gray-13': '#E4E4E4',
+
+        stripe: '#6772E5',
       },
       borderRadius: {
         '15.1875': '15.1875rem',

@@ -50,7 +50,7 @@ export const DashboardClient: FC = () => {
           <DashboardClientVideo />
         )}
         <div>
-          <div className="flex flex-row">
+          <div>
             <h4
               className={cx(
                 'text-black',
@@ -62,7 +62,7 @@ export const DashboardClient: FC = () => {
               {userData?.title}
             </h4>
           </div>
-          <div className="flex flex-row">
+          <div>
             {userData?.reAgent}
           </div>
         </div>

@@ -2,7 +2,7 @@
 import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { DashboardModalQuoteAccepted } from '@/components/dashboard/modal/quote-accepted';
+import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-accept';
 import { ComponentsDashboard } from '@/components/dashboard';
 import { cx } from 'class-variance-authority';
 import {
@@ -21,19 +21,24 @@ const Dashboard = () => {
   const {
     isShowModal,
     isPainter,
-    selectedQuote,
+    painterId,
+    selectedQuoteAmount,
     userData,
     acceptedQuote,
     selectedUserImage,
-    dispatchShowModal,
   } = dashboard;
-  const handleCloseModal = () => dispatchShowModal(false);
   const viewport = useViewport();
   const isLg = viewport.isDimensions && viewport.isLg;
   const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
-  console.log('acceptedQuote', acceptedQuote, isShowModal);
+  console.log(
+    'selectedQuoteAmount',
+    selectedQuoteAmount,
+    isShowModal
+  );
+  const isDepositScreen =
+    selectedQuoteAmount > 0 && isShowModal;
   return (
     <>
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -87,15 +92,11 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        {acceptedQuote && isShowModal && (
-          <DashboardModalQuoteAccepted
-            closeButtonProps={{
-              title: 'Close',
-              onClick: handleCloseModal,
-            }}
+        {isDepositScreen && (
+          <DashboardModalQuoteAccept
             checkoutButtonProps={{
-              amount: selectedQuote * 0.1,
-              painterId: acceptedQuote.painterId, // Make sure this is the correct painterId
+              selectedQuoteAmount,
+              painterId, // Make sure this is the correct painterId
               userImageId: selectedUserImage, // Make sure this is the correct userImageId
               userId: selectedUserImage,
             }}
