@@ -1,63 +1,49 @@
 'use client';
-
 import type { FC } from 'react';
-import { useCongrats } from '@/components/congrats/hook';
-import { PainterCard } from '@/components/painter-card';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 import { ButtonsCvaLink } from '@/components/cva/link';
+import { ComponentsModalPanel } from '@/components/modal/panel';
+import { CongratsPanelPainter } from '@/components/congrats/panel/painter';
 
 export const ComponentsCongratsPanel: FC = () => {
-  const congrats = useCongrats();
-  const { isLoading, painterUserId, error } = congrats;
   return (
-    <div className="fill-column-white text-center my-10">
-      <div className="text-8xl">🎉</div>
-      <h2 className="text-2xl font-medium">
-        Congrats on accepting your quote with:
-      </h2>
-      {isLoading ? (
-        <FallbacksLoading />
-      ) : error ? (
-        <NotificationsHighlight>
-          <p className="text-red-500">{error}</p>
-        </NotificationsHighlight>
-      ) : (
-        <>
-          {painterUserId && (
-            <PainterCard painterId={painterUserId} />
-          )}
-        </>
-      )}
-      <h2>
-        They will reach out within two business days to
-        schedule your job. If you have any questions, please
-        contact us at:
-      </h2>
-      <a
-        href="mailto:takeshapehome@gmail.com?subject=Contact%20DwellDone"
-        className="text-center text-sm"
-      >
-        takeshapehome@gmail.com
-      </a>
-      <h2>or</h2>
-      <ButtonsCvaAnchor
-        title="Contact Support, Call (615) 809-6429"
-        href="tel:+16158096429"
-      >
-        Contact Support
-      </ButtonsCvaAnchor>
+    <ComponentsModalPanel classValue="text-center">
+      <div className="flex flex-col gap-5">
+        <div className="text-8xl">🎉</div>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-base font-bold text-black px-2">
+            Congratulations on accepting your quote!
+          </h2>
+          <p className="text-gray-7 text-sm">
+            Contractor will reach out within two days to
+            schedule your job. If you have any questions,
+            please contact us or you call your contractor
+            directly.
+          </p>
+        </div>
+        <CongratsPanelPainter />
+        <ButtonsCvaAnchor
+          title="Contact Support, Call (615) 809-6429"
+          href="tel:+16158096429"
+          center
+        >
+          <span className="text-gray-7 font-semibold">
+            Contact Support
+          </span>
+        </ButtonsCvaAnchor>
+      </div>
 
-      <div className="absolute top-full translate-y-10">
+      <div className="absolute left-0 top-full w-full translate-y-8">
         <ButtonsCvaLink
           title="Contact Support, Call (615) 809-6429"
           href="/"
-          classValue="text-pink"
+          center
         >
-          Continue
+          <span className="font-semibold text-pink">
+            Continue
+          </span>
         </ButtonsCvaLink>
       </div>
-    </div>
+    </ComponentsModalPanel>
   );
 };

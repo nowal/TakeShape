@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body className="font-montserrat">
+        <body className="flex font-montserrat">
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
-          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
+          <div className="relative flex flex-col items-stretch grow max-w-shell w-full mx-auto">
             <Suspense fallback={<div>Loading...</div>}>
               <AuthProvider>
                 <Suspense fallback={<div>Loading...</div>}>

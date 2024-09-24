@@ -6,7 +6,7 @@ import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 
 export const ComponentsCongrats: FC = () => {
   return (
-    <ComponentsModal>
+    <ComponentsModal classBackgroundColor='bg-white'>
       <ComponentsCongratsPanel />
     </ComponentsModal>
   );

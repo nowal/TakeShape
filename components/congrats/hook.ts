@@ -17,7 +17,7 @@ export const useCongrats = (config?:TConfig) => {
   const [painterUserId, setPainterUserId] = useState<
     string | null
   >(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const firestore = getFirestore();
   const searchParams = useSearchParams();
@@ -33,7 +33,7 @@ export const useCongrats = (config?:TConfig) => {
 
     const updateAcceptedQuote = async () => {
       console.log('This even fired');
-      setIsLoading(true);
+      setLoading(true);
 
       if (
         userImageIdFromParams &&
@@ -88,10 +88,10 @@ export const useCongrats = (config?:TConfig) => {
             'An error occurred while updating the quote. Please try again.'
           );
         } finally {
-          setIsLoading(false);
+          setLoading(false);
         }
       }
-      setIsLoading(false);
+      setLoading(false);
     };
 
     if (painterUserIdFromParams) {
@@ -105,14 +105,14 @@ export const useCongrats = (config?:TConfig) => {
       } else {
         console.error('No userImageId found in URL params');
         setError('An error occurred. Please try again.');
-        setIsLoading(false);
+        setLoading(false);
       }
     } else {
       console.error(
         'No painterId (userId) found in URL params'
       );
       setError('An error occurred. Please try again.');
-      setIsLoading(false);
+      setLoading(false);
     }
   }, [
     firestore,
