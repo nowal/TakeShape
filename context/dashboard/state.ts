@@ -34,7 +34,7 @@ import {
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
   const [isShowModal, setShowModal] = useState(false);
-  const [selectedQuote, setSelectedQuote] =
+  const [selectedQuoteAmount, setSelectedQuoteAmount] =
     useState<number>(0);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [checkingAuth, setCheckingAuth] = useAtom(
@@ -108,6 +108,13 @@ export const useDashboardState = () => {
       auth.currentUser.uid
     );
     const userDoc = await getDoc(userDocRef);
+    console.log(
+      '▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁'
+    );
+    console.dir(userDoc);
+    console.log(
+      '██████████████▓▒░ 🧨 ░▒ line: 110, file: state.ts ▓▒░ 🧨 ░▒██████████████'
+    );
 
     if (userDoc.exists()) {
       const userDocData = userDoc.data() as TUserData;
@@ -287,6 +294,8 @@ export const useDashboardState = () => {
     painterId: string,
     amount: number
   ) => {
+    setPainterId(painterId);
+
     try {
       console.log(
         'auth.currentUser selectedUserImage',
@@ -303,29 +312,21 @@ export const useDashboardState = () => {
           );
           console.log('userImageDocRef ', userImageDocRef);
           await updateDoc(userImageDocRef, {
-            phoneNumber: phoneNumber,
+            phoneNumber,
           });
           console.log(
             'Selected User Image:',
             selectedUserImage
           ); // Add this line
           console.log('Painter ID:', painterId); // Add this line
-          setSelectedQuote(amount);
+          setSelectedQuoteAmount(amount);
           setShowModal(true);
-          const nextAcceptedQuote = {
-            painterId,
-            amount,
-            timestamp: Date.now() ,
-            accepted: true,
-          };
-          setAcceptedQuote(nextAcceptedQuote);
         } else {
           console.error('No selected user image.');
         }
       } else {
         console.error('No authenticated user.');
       }
-      setPainterId(painterId);
     } catch (error) {
       console.log(error);
     }
@@ -334,6 +335,7 @@ export const useDashboardState = () => {
   return {
     isShowModal,
     isPainter,
+    painterId,
     userImageList,
     uploadStatus,
     userData,
@@ -343,7 +345,7 @@ export const useDashboardState = () => {
     preferredPainterUserIds,
     agentInfo,
     selectedUserImage,
-    selectedQuote,
+    selectedQuoteAmount,
     dispatchShowModal: setShowModal,
     onQuoteChange: handleQuoteChange,
   };

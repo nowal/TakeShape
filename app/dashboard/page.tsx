@@ -21,7 +21,8 @@ const Dashboard = () => {
   const {
     isShowModal,
     isPainter,
-    selectedQuote,
+    painterId,
+    selectedQuoteAmount,
     userData,
     acceptedQuote,
     selectedUserImage,
@@ -33,7 +34,7 @@ const Dashboard = () => {
   const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
-  console.log('acceptedQuote', acceptedQuote, isShowModal);
+  // console.log('acceptedQuote', acceptedQuote, isShowModal);
   return (
     <>
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -87,15 +88,15 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        {acceptedQuote && isShowModal && (
+        {selectedQuoteAmount && isShowModal && (
           <DashboardModalQuoteAccepted
             closeButtonProps={{
               title: 'Close',
               onClick: handleCloseModal,
             }}
             checkoutButtonProps={{
-              amount: selectedQuote * 0.1,
-              painterId: acceptedQuote.painterId, // Make sure this is the correct painterId
+              amount: selectedQuoteAmount * 0.1,
+              painterId, // Make sure this is the correct painterId
               userImageId: selectedUserImage, // Make sure this is the correct userImageId
               userId: selectedUserImage,
             }}
