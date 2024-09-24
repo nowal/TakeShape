@@ -151,3 +151,13 @@
   line-height: 100%; /* 12px */
   letter-spacing: -0.24px;
 }
+
+.deposit-modal-price {
+  color: var(--aaaaaa, #aaa);
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 100%; /* 12px */
+}

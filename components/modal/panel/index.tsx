@@ -1,35 +1,55 @@
-import type { FC } from 'react';
+import type { FC, ReactElement } from 'react';
 import {
   ComponentsModalPanelClose,
   TComponentsModalPanelCloseProps,
 } from '@/components/modal/panel/close';
-import { TPropsWithChildren } from '@/types/dom/main';
+import { isString } from '@/utils/validation/is/string';
+import { cx } from 'class-variance-authority';
+import { TDivProps } from '@/types/dom';
 
-type TProps = TPropsWithChildren<{
-  title: string;
-  closeProps: TComponentsModalPanelCloseProps;
-}>;
+type TProps = Omit<TDivProps, 'title'> & {
+  title: string | JSX.Element;
+  closeProps?: TComponentsModalPanelCloseProps;
+};
 export const ComponentsModalPanel: FC<TProps> = ({
   title,
   closeProps,
   children,
+  classValue,
+  ...props
 }) => {
+  const Title = () => {
+    if (isString(title)) {
+      return (
+        <h4 className="typography-page-title-semibold">
+          {title}
+        </h4>
+      );
+    }
+    return title;
+  };
   return (
-    <div className="fill-column-white-sm w-[345px]">
-      <h4 className="typography-page-title-semibold">
-        {title}
-      </h4>
-      <div className="h-4" />
-      <ComponentsModalPanelClose
-        title="Close Login Modal"
-        isIconOnly
-        rounded="full"
-        center
-        size="iconLg"
-        intent="icon"
-        classValue="bg-black hover:bg-gray-7 active:bg-pink text-white"
-        {...closeProps}
-      />
+    <div
+      className={cx(
+        'fill-column-white-sm w-full xs:w-[345px]',
+        classValue
+      )}
+      {...props}
+    >
+      <Title />
+      {closeProps && (
+        <ComponentsModalPanelClose
+          title="Close Login Modal"
+          isIconOnly
+          rounded="full"
+          center
+          size="iconLg"
+          intent="icon"
+          classValue="bg-black hover:bg-gray-7 active:bg-pink text-white"
+          {...closeProps}
+        />
+      )}
+
       {children}
     </div>
   );
