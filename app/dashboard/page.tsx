@@ -88,7 +88,7 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        {selectedQuoteAmount && isShowModal && (
+        {selectedQuoteAmount>0 && isShowModal && (
           <DashboardModalQuoteAccepted
             closeButtonProps={{
               title: 'Close',
