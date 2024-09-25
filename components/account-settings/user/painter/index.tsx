@@ -4,6 +4,10 @@ import type { FC } from 'react';
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 import { ComponentsAccountSettingsUserInputsPhoneNumber } from '@/components/account-settings/user/inputs/phone-number';
 import { ComponentsAccountSettingsPainterMarker } from '@/components/account-settings/user/painter/marker';
+import { InputsText } from '@/components/inputs/text';
+import { InputsSelect } from '@/components/inputs/select';
+
+const RANGE_VALUES = [10, 20, 30, 40, 50];
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -19,34 +23,37 @@ export const ComponentsAccountSettingsPainter: FC = () => {
   return (
     <>
       <div>
-        <label
-          htmlFor="businessName"
-          className="block text-md font-medium text-gray-700"
-        >
-          Business or Personal Name
-        </label>
-        <input
-          type="text"
-          id="businessName"
+        <InputsText
           value={businessName}
           onChange={(event) =>
             dispatchBusinessName(event.target.value)
           }
-          placeholder="Enter your business or personal name"
+          placeholder="Business or Personal Name"
+          classRounded="rounded-lg"
           required
-          className="p-2 border rounded w-full"
         />
       </div>
 
       <ComponentsAccountSettingsUserInputsAddress type="address" />
 
       <div>
-        <label
+        <InputsSelect
+          name="range"
+          value={businessName}
+          onValueChange={(value) =>
+            dispatchBusinessName(value)
+          }
+          basicValues={RANGE_VALUES}
+          placeholder="Range (miles)"
+          // classRounded="rounded-lg"
+          // required
+        />
+        {/* <label
           htmlFor="range"
           className="block text-md font-medium text-gray-700"
         >
-          Range (miles)
-        </label>
+          
+        </label> */}
         <select
           id="range"
           value={range}
@@ -56,7 +63,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           required
           className="p-2 border rounded w-full"
         >
-          {[10, 20, 30, 40, 50].map((value) => (
+          {RANGE_VALUES.map((value) => (
             <option key={value} value={value}>
               {value}
             </option>
