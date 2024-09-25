@@ -6,6 +6,7 @@ export type TAccountSettingsConfig = {
   address: string;
   dispatchAddress: Dispatch<string>;
   addressInputRef: MutableRefObject<HTMLInputElement | null>;
+  mapRef: MutableRefObject<HTMLDivElement | null>;
 };
 
 export type TAccountSettingsStateReturn = ReturnType<

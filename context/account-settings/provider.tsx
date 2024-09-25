@@ -27,13 +27,16 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
-  const addressInputRef = useRef<HTMLInputElement>(null);
+  const addressInputRef = useRef<HTMLInputElement|null>(null);
+  const mapRef = useRef<HTMLDivElement|null>(null);
+
   const [address, setAddress] = useState('');
 
   const config: TAccountSettingsConfig = {
     address,
     dispatchAddress: setAddress,
     addressInputRef,
+    mapRef
   };
 
   const accountSettingsMap = useAccountSettingsMap(config);

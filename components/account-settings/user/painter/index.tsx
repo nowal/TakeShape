@@ -3,6 +3,7 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 import { ComponentsAccountSettingsUserInputsPhoneNumber } from '@/components/account-settings/user/inputs/phone-number';
+import { ComponentsAccountSettingsPainterMarker } from '@/components/account-settings/user/painter/marker';
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -64,18 +65,9 @@ export const ComponentsAccountSettingsPainter: FC = () => {
       </div>
 
       {address && (
-        <>
-          <div className="text-left text-gray-700 mb-2">
-            Drag Marker to adjust service location
-          </div>
-          <div
-            ref={mapRef}
-            style={{
-              height: '400px',
-              marginTop: '20px',
-            }}
-          ></div>
-        </>
+        <ComponentsAccountSettingsPainterMarker
+          mapRef={mapRef}
+        />
       )}
       <ComponentsAccountSettingsUserInputsPhoneNumber />
       <div>

@@ -1,37 +1,18 @@
 'use client';
-
-import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
-} from 'firebase/storage';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import firebase from '../../lib/firebase';
-import { useAtom } from 'jotai';
-import { isPainterAtom } from '../../atom';
-import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
 import { ComponentsAccountSettingsUser } from '@/components/account-settings/user';
 import { useAccountSettings } from '@/context/account-settings/provider';
 
 const AccountSettingsPage = () => {
   const accountSettings = useAccountSettings();
-  const { errorMessage } = accountSettings;
+  const {
+    isLoading,
+    isPainter,
+    isAgent,
+    errorMessage,
+    onSubmit,
+  } = accountSettings;
   return (
     <div className="relative flex flex-col gap-5 items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -46,7 +27,7 @@ const AccountSettingsPage = () => {
             </ComponentsAccountSettingsNotifications>
           )}
           <form
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit}
             className="flex flex-col space-y-4"
           >
             <ComponentsAccountSettingsUser

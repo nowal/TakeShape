@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -446,6 +446,8 @@ export const useAccountSettingsState = (
   const logoSrc = logoPreview || logoUrl;
 
   return {
+    isAgent,
+    isPainter,
     isLoading,
     isDataLoading,
     profilePicSrc,
