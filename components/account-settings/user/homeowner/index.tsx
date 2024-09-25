@@ -25,7 +25,6 @@ export const ComponentsAccountSettingsHomeowner: FC =
             onChange={(event) =>
               dispatchNewAgentName(event.target.value)
             }
-            required
           />
           {/* <label
             htmlFor="realEstateAgent"
