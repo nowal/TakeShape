@@ -1,7 +1,7 @@
 import { TDivProps } from '@/types/dom';
 import type { FC } from 'react';
 
-export const ComponentsAccountSettings: FC<TDivProps> = ({
+export const ComponentsAccountSettingsNotifications: FC<TDivProps> = ({
   children,
   ...props
 }) => {

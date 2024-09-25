@@ -55,7 +55,7 @@ const SignupAccountForm = () => {
               {errorMessage}
             </SignUpNotificationsError>
           )}
-          <div className="rounded-3xl bg-white shadow-08 px-4 py-6 w-full">
+          <div className="rounded-3xl bg-white shadow-08 px-4 py-6 w-full fill-column-white-sm">
             <form
               onSubmit={onSubmit}
               className="flex flex-col gap-y-4"

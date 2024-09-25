@@ -11,7 +11,7 @@ import { AuthProvider } from '@/context/auth/provider';
 import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { DashboardProvider } from '@/context/dashboard/provider';
-import { FilterGrayscale } from '@/filters/grayscale';
+import { AccountSettingsProvider } from '@/context/account-settings/provider';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -31,32 +31,42 @@ export default function RootLayout({
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
             <Suspense fallback={<div>Loading...</div>}>
-              <AuthProvider>
+              <AccountSettingsProvider>
                 <Suspense fallback={<div>Loading...</div>}>
-                  <DashboardProvider>
+                  <AuthProvider>
                     <Suspense
                       fallback={<div>Loading...</div>}
                     >
-                      <ViewportProvider>
-                        <ShellHeader />
-                        <div className="relative min-h-[400px]">
-                          <Suspense
-                            fallback={<div>Loading...</div>}
-                          >
-                            {children}
-                          </Suspense>
-                        </div>
-                        <ShellFooter />
+                      <DashboardProvider>
                         <Suspense
                           fallback={<div>Loading...</div>}
                         >
-                          <SignInModal />
+                          <ViewportProvider>
+                            <ShellHeader />
+                            <div className="relative min-h-[400px]">
+                              <Suspense
+                                fallback={
+                                  <div>Loading...</div>
+                                }
+                              >
+                                {children}
+                              </Suspense>
+                            </div>
+                            <ShellFooter />
+                            <Suspense
+                              fallback={
+                                <div>Loading...</div>
+                              }
+                            >
+                              <SignInModal />
+                            </Suspense>
+                          </ViewportProvider>
                         </Suspense>
-                      </ViewportProvider>
+                      </DashboardProvider>
                     </Suspense>
-                  </DashboardProvider>
+                  </AuthProvider>
                 </Suspense>
-              </AuthProvider>
+              </AccountSettingsProvider>
             </Suspense>
           </div>
           <Script

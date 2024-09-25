@@ -188,10 +188,10 @@ input {
     @apply flex flex-col items-stretch w-full shadow-08 bg-white rounded-2xl;
   }
   .fill-column-white {
-    @apply fill-column-white-base py-9 px-6;
+    @apply fill-column-white-base px-6 py-9;
   }
   .fill-column-white-sm {
-    @apply fill-column-white-base py-5 px-4;
+    @apply fill-column-white-base px-4 py-5;
   }
   .fill-gray-base {
     @apply flex w-full bg-white-2 rounded-lg w-full;
