@@ -1,14 +1,15 @@
 import { ComponentsAccountSettingsUserInputsName } from '@/components/account-settings/user/inputs/name';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
-import Image from 'next/image'
+import Image from 'next/image';
+
 export const ComponentsAccountSettingsAgent: FC = () => {
-  const {profilePicSrc, onProfilePictureChange} = useAccountSettings()
+  const { profilePicSrc, onProfilePictureChange } =
+    useAccountSettings();
 
   return (
     <>
-      <ComponentsAccountSettingsUserInputsName/>
-      
+      <ComponentsAccountSettingsUserInputsName />
       <div>
         <label
           htmlFor="profilePicture"

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
@@ -22,12 +21,20 @@ import firebase from '../../lib/firebase';
 import { useAtom } from 'jotai';
 import { isPainterAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
 
-export const useAccountSettingsState = () => {
-  const [isPainter, setIsPainter] = useAtom(isPainterAtom);
+export const useAccountSettingsState = (
+  config: TAccountSettingsStateConfig
+) => {
+  const {
+    address,
+    dispatchAddress,
+    onInitializeMap,
+    addressInputRef,
+  } = config;
+  const [isPainter, setPainter] = useAtom(isPainterAtom);
   // const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
-  const [isAgent, setIsAgent] = useState(false); // New state for isAgent
+  const [isAgent, setAgent] = useState(false); // New state for isAgent
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [profilePictureUrl, setProfilePictureUrl] =
@@ -39,9 +46,8 @@ export const useAccountSettingsState = () => {
     setNewProfilePicturePreview,
   ] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState('');
-  const [address, setAddress] = useState('');
   const [range, setRange] = useState(10);
-  const [isInsured, setIsInsured] = useState(false);
+  const [isInsured, setInsured] = useState(false);
   const [logo, setLogo] = useState<File | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(
     null
@@ -49,8 +55,8 @@ export const useAccountSettingsState = () => {
   const [logoPreview, setLogoPreview] = useState<
     string | null
   >(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
+  const [isDataLoading, setDataLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [agentName, setAgentName] = useState(''); // New state for agent's name
   const [newAgentName, setNewAgentName] = useState(''); // New state for new agent's name
@@ -58,13 +64,6 @@ export const useAccountSettingsState = () => {
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(
-    null
-  );
-  const circleRef = useRef<google.maps.Circle | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -80,8 +79,8 @@ export const useAccountSettingsState = () => {
             );
             const agentDoc = await getDoc(agentDocRef);
             if (agentDoc.exists()) {
-              setIsAgent(true);
-              setIsPainter(false);
+              setAgent(true);
+              setPainter(false);
               const agentData = agentDoc.data();
               setName(agentData.name || '');
               setPhoneNumber(agentData.phoneNumber || '');
@@ -98,18 +97,16 @@ export const useAccountSettingsState = () => {
                 painterQuery
               );
               if (!painterSnapshot.empty) {
-                setIsPainter(true);
-                setIsAgent(false);
+                setPainter(true);
+                setAgent(false);
                 const painterData =
                   painterSnapshot.docs[0].data();
                 setBusinessName(
                   painterData.businessName || ''
                 );
-                setAddress(painterData.address || '');
+                dispatchAddress(painterData.address || '');
                 setRange(painterData.range || 10);
-                setIsInsured(
-                  painterData.isInsured || false
-                );
+                setInsured(painterData.isInsured || false);
                 setPhoneNumber(
                   painterData.phoneNumber || ''
                 );
@@ -118,8 +115,8 @@ export const useAccountSettingsState = () => {
                 geocodeAddress(painterData.address);
               } else {
                 // User is a homeowner
-                setIsPainter(false);
-                setIsAgent(false);
+                setPainter(false);
+                setAgent(false);
                 const userQuery = query(
                   collection(firestore, 'users'),
                   where('email', '==', user.email)
@@ -134,7 +131,7 @@ export const useAccountSettingsState = () => {
                   setPhoneNumber(
                     userData.phoneNumber || ''
                   );
-                  setAddress(userData.address || '');
+                  dispatchAddress(userData.address || '');
                   // Check if user has an associated agent
                   if (userData.reAgent) {
                     const agentDoc = await getDoc(
@@ -166,10 +163,10 @@ export const useAccountSettingsState = () => {
               'Failed to load user data. Please try again later.'
             );
           } finally {
-            setIsDataLoading(false); // Stop loading
+            setDataLoading(false); // Stop loading
           }
         } else {
-          setIsDataLoading(false); // Stop loading if no user is authenticated
+          setDataLoading(false); // Stop loading if no user is authenticated
         }
       }
     );
@@ -206,7 +203,7 @@ export const useAccountSettingsState = () => {
               return;
             }
 
-            setAddress(place.formatted_address ?? ''); // Add a fallback value
+            dispatchAddress(place.formatted_address ?? ''); // Add a fallback value
             geocodeAddress(place.formatted_address ?? '');
           });
         }
@@ -230,7 +227,7 @@ export const useAccountSettingsState = () => {
         results[0].geometry.location
       ) {
         const location = results[0].geometry.location;
-        initializeMap(
+        onInitializeMap(
           location.lat(),
           location.lng(),
           range
@@ -242,86 +239,6 @@ export const useAccountSettingsState = () => {
         );
       }
     });
-  };
-
-  const initializeMap = (
-    lat: number,
-    lng: number,
-    range: number
-  ) => {
-    if (window.google && mapRef.current) {
-      const bounds = new window.google.maps.LatLngBounds();
-      const center = new window.google.maps.LatLng(
-        lat,
-        lng
-      );
-      bounds.extend(center);
-      bounds.extend(
-        new window.google.maps.LatLng(lat + range / 69, lng)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat - range / 69, lng)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat, lng + range / 69)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat, lng - range / 69)
-      );
-
-      if (!mapInstanceRef.current) {
-        mapInstanceRef.current = new window.google.maps.Map(
-          mapRef.current,
-          {
-            center: { lat, lng },
-            zoom: 10,
-          }
-        );
-      } else {
-        mapInstanceRef.current.fitBounds(bounds);
-      }
-
-      if (!circleRef.current) {
-        circleRef.current = new window.google.maps.Circle({
-          map: mapInstanceRef.current,
-          center: { lat, lng },
-          radius: range * 1609.34, // Convert miles to meters
-          fillColor: '#AA0000',
-          strokeColor: '#AA0000',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillOpacity: 0.35,
-        });
-      } else {
-        circleRef.current.setCenter({ lat, lng });
-        circleRef.current.setRadius(range * 1609.34);
-      }
-
-      if (!markerRef.current) {
-        markerRef.current = new window.google.maps.Marker({
-          position: { lat, lng },
-          map: mapInstanceRef.current,
-          draggable: true,
-        });
-
-        markerRef.current.addListener('dragend', () => {
-          const newLat = markerRef
-            .current!.getPosition()!
-            .lat();
-          const newLng = markerRef
-            .current!.getPosition()!
-            .lng();
-          setAddress(`${newLat}, ${newLng}`);
-          initializeMap(newLat, newLng, range);
-        });
-      } else {
-        markerRef.current.setPosition({ lat, lng });
-      }
-
-      mapInstanceRef.current.fitBounds(
-        circleRef.current.getBounds()!
-      );
-    }
   };
 
   const handleProfilePictureChange = (
@@ -358,7 +275,7 @@ export const useAccountSettingsState = () => {
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setLoading(true); // Set loading state to true
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 
@@ -488,7 +405,7 @@ export const useAccountSettingsState = () => {
         'An unexpected error occurred. Please try again.'
       );
     } finally {
-      setIsLoading(false); // Reset loading state
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -529,9 +446,8 @@ export const useAccountSettingsState = () => {
   const logoSrc = logoPreview || logoUrl;
 
   return {
+    isLoading,
     isDataLoading,
-    address,
-    mapRef,
     profilePicSrc,
     logoSrc,
     name,
@@ -540,19 +456,17 @@ export const useAccountSettingsState = () => {
     range,
     phoneNumber,
     newAgentName,
-  agentError,
-  agentName,
-    dispatchRange:setRange,
-    dispatchPhoneNumber:setPhoneNumber,
+    agentError,
+    agentName,
+    dispatchRange: setRange,
+    dispatchPhoneNumber: setPhoneNumber,
     dispatchName: setName,
-    dispatchAddress: setAddress,
-    onSubmit: handleSubmit,
-    onLogoChange: handleLogoChange,
-    onProfilePictureChange: handleProfilePictureChange,
-    // handleLogoChange,
     dispatchAgentError: setAgentError,
     dispatchAgentName: setAgentName,
     dispatchBusinessName: setBusinessName,
-    dispatchNewAgentName:setNewAgentName
+    dispatchNewAgentName: setNewAgentName,
+    onSubmit: handleSubmit,
+    onLogoChange: handleLogoChange,
+    onProfilePictureChange: handleProfilePictureChange,
   };
 };
