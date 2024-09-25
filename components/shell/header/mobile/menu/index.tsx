@@ -1,6 +1,5 @@
 'use client';
 import { useEffect } from 'react';
-import { ComponentsModal } from '@/components/modal';
 import { useViewport } from '@/context/viewport';
 import { ShellHeaderMobileButton } from '@/components/shell/header/mobile/button';
 import {

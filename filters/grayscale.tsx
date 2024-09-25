@@ -14,25 +14,28 @@ export const FilterGrayscale: FC<TProps> = ({ x }) => {
   //   return v;
   // });
   return (
-    <svg width='0' height="0" viewBox='0 0 1 1' xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="0"
+      height="0"
+      viewBox="0 0 1 1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <motion.filter id={FILTER_GRAYSCALE_ID}>
-        <motion.feComposite
-          operator="in"
-          in2="SourceGraphic"
-          in="A"
-          result="B"
-          x={x}
-        />
         <feColorMatrix
           type="saturate"
           values="0.05"
-          in="B"
-          result="C"
+          result="A"
         />
+        <motion.feComposite
+          operator="in"
+          result="A"
+          x={x}
+        />
+
         <feComposite
           operator="over"
           in2="SourceGraphic"
-          in="C"
+          in="A"
         />
       </motion.filter>
     </svg>
