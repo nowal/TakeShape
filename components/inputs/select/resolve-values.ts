@@ -11,8 +11,8 @@ export const resolveValues = (
   const basicToIdValues: TSelectIdTitleItem[] = (
     config.basicValues ?? []
   ).map((value) => ({
-    id: value,
-    title: value,
+    id: value.toString(),
+    title: value.toString(),
   }));
   return [...basicToIdValues, ...(config.idValues ?? [])];
 };

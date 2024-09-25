@@ -16,7 +16,7 @@ import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
 export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Pick<
   TInputsSelectRootProps,
-  'defaultValue' | 'value'
+  'defaultValue' | 'value' | 'required'
 >;
 export type TInputsSelectProps = TBaseInputsSelectProps &
   TResolveValuesConfig & {

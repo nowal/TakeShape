@@ -40,57 +40,60 @@ export const SignInModal: FC = () => {
           onTap: onClose,
         }}
       >
-        <form
-          onSubmit={onSignIn}
-          className="flex flex-col items-stretch"
-        >
-          <div className="flex flex-col items-stretch gap-4">
-            <InputsText
-              type="email"
-              value={email}
-              onChange={onEmailChange}
-              placeholder="Email Address"
-              classRounded="rounded-lg"
-            />
-            <InputsText
-              type="password"
-              value={password}
-              onChange={onPasswordChange}
-              placeholder="Password"
-              classRounded="rounded-lg"
-            />
-            {errorMessage && (
-              <NotificationsHighlight>
-                <p>{errorMessage}</p>
-              </NotificationsHighlight>
-            )}
-          </div>
-          <div className="h-5" />
-          <ButtonsCvaButton
-            title={submitButtonTitle}
-            type="submit"
-            center
-            classValue="w-full text-center font-bold"
-            intent="primary"
-            size="sm"
-            disabled={isLoading}
+        <>
+        <div className='h-4'/>
+          <form
+            onSubmit={onSignIn}
+            className="flex flex-col items-stretch"
           >
-            {submitButtonTitle}
-          </ButtonsCvaButton>
-          <div className="h-2" />
-          <ButtonsCvaLink
-            onTap={onClose}
-            href="/signup"
-            title={signUpTitle}
-            size="sm"
-            center
-            classValue="w-full"
-          >
-            <span className="text-pink font-bold">
-              {signUpTitle}
-            </span>
-          </ButtonsCvaLink>
-        </form>
+            <div className="flex flex-col items-stretch gap-4">
+              <InputsText
+                type="email"
+                value={email}
+                onChange={onEmailChange}
+                placeholder="Email Address"
+                classRounded="rounded-lg"
+              />
+              <InputsText
+                type="password"
+                value={password}
+                onChange={onPasswordChange}
+                placeholder="Password"
+                classRounded="rounded-lg"
+              />
+              {errorMessage && (
+                <NotificationsHighlight>
+                  <p>{errorMessage}</p>
+                </NotificationsHighlight>
+              )}
+            </div>
+            <div className="h-5" />
+            <ButtonsCvaButton
+              title={submitButtonTitle}
+              type="submit"
+              center
+              classValue="w-full text-center font-bold"
+              intent="primary"
+              size="sm"
+              disabled={isLoading}
+            >
+              {submitButtonTitle}
+            </ButtonsCvaButton>
+            <div className="h-2" />
+            <ButtonsCvaLink
+              onTap={onClose}
+              href="/signup"
+              title={signUpTitle}
+              size="sm"
+              center
+              classValue="w-full"
+            >
+              <span className="text-pink font-bold">
+                {signUpTitle}
+              </span>
+            </ButtonsCvaLink>
+          </form>
+        </>
       </ComponentsModalPanel>
     </ComponentsModal>
   );

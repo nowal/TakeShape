@@ -11,7 +11,7 @@ export const InputsSelectListBasic: FC<TInputsSelectListBasicProps> = ({ values 
         return (
           <Fragment key={value}>
             {index !== 0 && <LinesHorizontalLight />}
-            <SelectItem value={value}>{value}</SelectItem>
+            <SelectItem value={value.toString()}>{value}</SelectItem>
           </Fragment>
         );
       })}
