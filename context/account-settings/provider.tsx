@@ -54,6 +54,7 @@ export const AccountSettingsProvider: FC<
       value={{
         ...accountSettings,
         ...config,
+        ...accountSettingsMap
       }}
     >
       {children}

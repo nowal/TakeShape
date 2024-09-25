@@ -218,7 +218,7 @@ export const useAccountSettingsState = (
     initAutocomplete();
   }, []);
 
-  const geocodeAddress = (address: string) => {
+  const geocodeAddress = (address: string, nextRange = range) => {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
       if (
@@ -230,7 +230,7 @@ export const useAccountSettingsState = (
         onInitializeMap(
           location.lat(),
           location.lng(),
-          range
+          nextRange
         );
       } else {
         console.error(
@@ -460,6 +460,7 @@ export const useAccountSettingsState = (
     newAgentName,
     agentError,
     agentName,
+    onGeocodeAddress: geocodeAddress,
     dispatchRange: setRange,
     dispatchPhoneNumber: setPhoneNumber,
     dispatchName: setName,

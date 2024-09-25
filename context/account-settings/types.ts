@@ -13,12 +13,14 @@ export type TAccountSettingsStateReturn = ReturnType<
   typeof useAccountSettingsState
 >;
 
-export type TAccountSettingsContext =
-  TAccountSettingsStateReturn & TAccountSettingsConfig;
 
 export type TAccountSettingsMapReturn = ReturnType<
   typeof useAccountSettingsMap
 >;
+
+export type TAccountSettingsContext =
+  TAccountSettingsStateReturn & TAccountSettingsMapReturn & TAccountSettingsConfig;
+
 
 export type TAccountSettingsStateConfig =
   TAccountSettingsConfig & TAccountSettingsMapReturn;

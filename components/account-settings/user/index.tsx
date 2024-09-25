@@ -12,15 +12,16 @@ export const ComponentsAccountSettingsUser: FC<TProps> = ({
 }) => {
   const accountSettings = useAccountSettings();
   const { isDataLoading } = accountSettings;
+
   if (isDataLoading) {
     return <FallbacksLoading />;
   }
 
   if (isPainter) {
-    return <ComponentsAccountSettingsAgent />;
+    return <ComponentsAccountSettingsPainter />;
   }
   if (isAgent) {
-    return <ComponentsAccountSettingsPainter />;
+    return <ComponentsAccountSettingsAgent />;
   }
   return <ComponentsAccountSettingsHomeowner />;
 };

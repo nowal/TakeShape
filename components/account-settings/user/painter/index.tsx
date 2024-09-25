@@ -16,6 +16,8 @@ export const ComponentsAccountSettingsPainter: FC = () => {
     address,
     mapRef,
     logoSrc,
+    // onInitializeMap,
+    onGeocodeAddress,
     onLogoChange,
     dispatchBusinessName,
     dispatchRange,
@@ -29,22 +31,26 @@ export const ComponentsAccountSettingsPainter: FC = () => {
             dispatchBusinessName(event.target.value)
           }
           placeholder="Business or Personal Name"
-          classRounded="rounded-lg"
           required
         />
       </div>
 
       <ComponentsAccountSettingsUserInputsAddress type="address" />
 
-      <div>
+      <div className="flex flex-row items-center gap-3">
+        <h3 className="typography-form-title">
+          Range (miles)
+        </h3>
         <InputsSelect
           name="range"
-          value={businessName}
-          onValueChange={(value) =>
-            dispatchRange(Number(value))
-          }
+          value={range.toString()}
+          onValueChange={(_, value) => {
+            dispatchRange(Number(value));
+            onGeocodeAddress(address, Number(value));
+          }}
           basicValues={RANGE_VALUES}
-          placeholder="Range (miles)"
+          placeholder="Select Range"
+          required
           // classRounded="rounded-lg"
           // required
         />

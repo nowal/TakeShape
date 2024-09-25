@@ -44,9 +44,12 @@ export const ComponentsAccountSettingsHomeowner: FC =
             className="p-2 border rounded w-full"
           /> */}
           {agentError && (
-            <NotificationsHighlight>
-              <p className="text-red-600">{agentError}</p>
-            </NotificationsHighlight>
+            <>
+            <div className='h-1'/>
+              <NotificationsHighlight>
+                {agentError}
+              </NotificationsHighlight>
+            </>
           )}
         </div>
       </>
