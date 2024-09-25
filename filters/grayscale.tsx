@@ -29,9 +29,9 @@ export const FilterGrayscale: FC<TProps> = ({ x }) => {
         <motion.feComposite
           operator="in"
           result="A"
-          x={x}
+          x="0"
+          width={x}
         />
-
         <feComposite
           operator="over"
           in2="SourceGraphic"

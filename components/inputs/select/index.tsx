@@ -44,32 +44,30 @@ export const InputsSelect = ({
       onValueChange={(value) => onValueChange(name, value)}
       {...props}
     >
-      <div>
-        <Select.Trigger
-          className={cx(
-            'column-start justify-start',
-            'text-left',
-            'truncate',
-            'ring-0 outline-0',
-            'py-2',
-            'px-4',
-            'border border-gray-1 rounded-4xl',
-            'text-sm',
-            'font-medium'
-          )}
-          aria-label={placeholder}
-        >
-          {title && <h4>{title}</h4>}
-          <div className={cx('flex flex-row gap-2 w-full')}>
-            <div className="truncate w-full">
-              <Select.Value placeholder={placeholder} />
-            </div>
-            <Select.Icon className="flex items-center justify-center">
-              <IconsSelectChevronDown />
-            </Select.Icon>
+      <Select.Trigger
+        className={cx(
+          'column-start justify-start',
+          'text-left',
+          'truncate',
+          'ring-0 outline-0',
+          'py-2',
+          'px-4',
+          'border border-gray-1 rounded-4xl',
+          'text-sm',
+          'font-medium'
+        )}
+        aria-label={placeholder}
+      >
+        {title && <h4>{title}</h4>}
+        <div className={cx('flex flex-row gap-2 w-full')}>
+          <div className="truncate w-full">
+            <Select.Value placeholder={placeholder} />
           </div>
-        </Select.Trigger>
-      </div>
+          <Select.Icon className="flex items-center justify-center">
+            <IconsSelectChevronDown />
+          </Select.Icon>
+        </div>
+      </Select.Trigger>
 
       <Select.Portal>
         <Select.Content
