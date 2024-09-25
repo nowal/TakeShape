@@ -7,7 +7,7 @@ import { ComponentsAccountSettingsPainterMarker } from '@/components/account-set
 import { InputsText } from '@/components/inputs/text';
 import { InputsSelect } from '@/components/inputs/select';
 
-const RANGE_VALUES = [10, 20, 30, 40, 50];
+const RANGE_VALUES = [10, 20, 30, 40, 50] as const;
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -41,7 +41,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           name="range"
           value={businessName}
           onValueChange={(value) =>
-            dispatchBusinessName(value)
+            dispatchRange(Number(value))
           }
           basicValues={RANGE_VALUES}
           placeholder="Range (miles)"
@@ -52,9 +52,8 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           htmlFor="range"
           className="block text-md font-medium text-gray-700"
         >
-          
         </label> */}
-        <select
+        {/* <select
           id="range"
           value={range}
           onChange={(e) =>
@@ -68,7 +67,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
               {value}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
 
       {address && (

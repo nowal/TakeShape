@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
+import { InputsText } from '@/components/inputs/text';
 
 export const ComponentsAccountSettingsUserInputsPhoneNumber: FC =
   () => {
@@ -8,7 +9,15 @@ export const ComponentsAccountSettingsUserInputsPhoneNumber: FC =
 
     return (
       <div>
-        <label
+        <InputsText
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChange={(event) =>
+            dispatchPhoneNumber(event.target.value)
+          }
+          required
+        />
+        {/* <label
           htmlFor="phoneNumber"
           className="block text-md font-medium text-gray-700"
         >
@@ -24,7 +33,7 @@ export const ComponentsAccountSettingsUserInputsPhoneNumber: FC =
           placeholder="Enter your phone number"
           required
           className="p-2 border rounded w-full"
-        />
+        /> */}
       </div>
     );
   };

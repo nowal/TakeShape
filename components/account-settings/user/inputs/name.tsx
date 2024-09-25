@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
+import { InputsText } from '@/components/inputs/text';
 
 export const ComponentsAccountSettingsUserInputsName: FC =
   () => {
@@ -7,7 +8,15 @@ export const ComponentsAccountSettingsUserInputsName: FC =
 
     return (
       <div>
-        <label
+        <InputsText
+          placeholder="Name"
+          value={name}
+          onChange={(event) =>
+            dispatchName(event.target.value)
+          }
+          required
+        />
+        {/* <label
           htmlFor="name"
           className="block text-md font-medium text-gray-700"
         >
@@ -23,7 +32,7 @@ export const ComponentsAccountSettingsUserInputsName: FC =
           placeholder="Enter your name"
           required
           className="p-2 border rounded w-full"
-        />
+        /> */}
       </div>
     );
   };
