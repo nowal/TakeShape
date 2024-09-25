@@ -1,26 +1,30 @@
-import { useState, useEffect, FC } from 'react';
+import { useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   ButtonsCvaLink,
   TButtonsCvaLinkProps,
 } from '@/components/cva/link';
+import { useAuth } from '@/context/auth/provider';
 
 type TProps = TButtonsCvaLinkProps;
 const QuoteButton: FC<TProps> = ({ ...props }) => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const auth = getAuth();
+  const auth = useAuth();
+  const firebaseAuth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsSignedIn(!!user);
-    });
+    const unsubscribe = onAuthStateChanged(
+      firebaseAuth,
+      (user) => {
+        auth.dispatchUserSignedIn(!!user);
+      }
+    );
     return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [auth]);
+  }, [firebaseAuth]);
 
-  if (isSignedIn) {
+  if (auth.isUserSignedIn) {
     return null; // Don't render the button if user is not signed in
   }
-  
+
   const title = props.title ?? 'Get Quote';
   return (
     <ButtonsCvaLink

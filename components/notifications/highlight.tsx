@@ -15,6 +15,7 @@ export const NotificationsHighlight: FC<TProps> = ({
     <p
       className={cx(
         'typography-signup-notification text-center rounded-xl py-3 px-4 bg-white-pink-3',
+        'whitespace-pre',
         classDisplay ?? 'flex',
         classValue
       )}
