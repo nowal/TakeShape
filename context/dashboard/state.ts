@@ -108,13 +108,6 @@ export const useDashboardState = () => {
       auth.currentUser.uid
     );
     const userDoc = await getDoc(userDocRef);
-    console.log(
-      '▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁'
-    );
-    console.dir(userDoc);
-    console.log(
-      '██████████████▓▒░ 🧨 ░▒ line: 110, file: state.ts ▓▒░ 🧨 ░▒██████████████'
-    );
 
     if (userDoc.exists()) {
       const userDocData = userDoc.data() as TUserData;
