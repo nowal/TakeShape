@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import Image from 'next/image';
-import happyPic from '@/public/landing/hero.png';
+import image from '@/public/landing/hero.png';
 import { resolveUrlId } from '@/utils/css/format';
 import {
   FilterGrayscale,
@@ -11,10 +11,12 @@ import { useMotionValue } from 'framer-motion';
 import { LandingHeroHandle } from '@/components/landing/hero/handle';
 import { TDimensionsReady } from '@/types/measure';
 import { LandingHeroHandleLine } from '@/components/landing/hero/handle/line';
+import { useObjectPosition } from '@/components/landing/hero/object-position';
 
 type TProps = TDimensionsReady;
 export const LandingHero: FC<TProps> = ({ width }) => {
   const x = useMotionValue(width / 2);
+  const objectPosition = useObjectPosition();
 
   return (
     <>
@@ -22,9 +24,9 @@ export const LandingHero: FC<TProps> = ({ width }) => {
       <Image
         style={{
           filter: resolveUrlId(FILTER_GRAYSCALE_ID),
-          objectPosition: '90% 50%',
+          objectPosition,
         }}
-        src={happyPic.src}
+        src={image.src}
         alt="Happy Pic"
         quality="100"
         fill
