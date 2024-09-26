@@ -11,7 +11,7 @@ export const LandingDreamRoomImage: FC = () => {
   const viewport = useViewport();
   if (!viewport.isDimensions) return null;
   return (
-    <div className="absolute inset-0 w-full overflow-hidden">
+    <div className="absolute inset-0 w-full bg-white overflow-hidden">
       {viewport.isLg ? (
         <Image
           src={imageLg.src}
