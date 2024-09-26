@@ -8,7 +8,6 @@ type TProps = {info:TPainterInfo};
 export const PainterCardInfo: FC<TProps> = ({info}) => {
   if (!info) return null;
   const { phoneNumber, logoUrl, businessName } = info;
-  console.log(info)
   
   return (
       <div className="flex flex-row gap-3">

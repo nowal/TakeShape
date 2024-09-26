@@ -66,5 +66,5 @@ export const PainterCard: FC<PainterCardProps> = ({
     );
   }
 
-  return <PainterCardInfo {...painterData} />;
+  return <PainterCardInfo info={painterData} />;
 };
