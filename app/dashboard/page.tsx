@@ -32,11 +32,6 @@ const Dashboard = () => {
   const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
-  console.log(
-    'selectedQuoteAmount',
-    selectedQuoteAmount,
-    isShowModal
-  );
   const isDepositScreen =
     selectedQuoteAmount > 0 && isShowModal;
   return (
