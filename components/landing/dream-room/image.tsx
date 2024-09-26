@@ -5,7 +5,8 @@ import imageLg from '@/public/landing/dream-room/lg.png';
 
 import { useViewport } from '@/context/viewport';
 
-const alt = "Dream Room Pic, Woman Adjusting Painting on Wall";
+const alt =
+  'Dream Room Pic, Woman Adjusting Painting on Wall';
 
 export const LandingDreamRoomImage: FC = () => {
   const viewport = useViewport();

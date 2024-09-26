@@ -27,7 +27,7 @@ export const LandingHero: FC<TProps> = ({ width }) => {
           objectPosition,
         }}
         src={image.src}
-        alt="Happy Pic"
+        alt="Landing Hero, Happy Pic"
         quality="100"
         fill
         objectFit="cover"
