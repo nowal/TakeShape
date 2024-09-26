@@ -6,11 +6,24 @@ import { DashboardPricesItemFooter } from '@/components/dashboard/prices/footer'
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { TElementProps } from '@/types/dom';
+import { PainterCardInfo } from '@/components/painter-card/info';
+import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/client/quotes/mocks';
 
-type TProps = TPrice & TElementProps
-export const DashboardPricesItem: FC<TProps> = ({
+export type TDashboardPricesItemProps = {
+  index: number; // max length of MOCKS_PAINTER_DATA_ITEMS
+  price: TPrice;
+  PainterCardInfoFc?: typeof PainterCardInfo;
+} & TElementProps;
+export const DashboardPricesItem: FC<
+  TDashboardPricesItemProps
+> = ({
+  price,
+  index,
+  classValue,
   children,
-  ...price
+  style,
+  PainterCardInfoFc,
+  ...props
 }) => {
   return (
     <li
@@ -18,15 +31,34 @@ export const DashboardPricesItem: FC<TProps> = ({
         'flex flex-col items-stretch',
         'border',
         'border-gray-11',
-        'rounded-lg'
+        'rounded-lg',
+        'bg-white',
+        classValue
       )}
+      style={style}
+      {...props}
     >
-      <div className={cx("flex flex-col items-stretch justify-between xs:flex-row lg:items-start", "px-6 pt-6 pb-2")}>
-        <PainterCard painterId={price.painterId} />
-        <div className={cx("flex flex-col items-stretch xs:flex-row xs:items-start justify-between gap-4")}>
+      <div
+        className={cx(
+          'flex flex-col items-stretch justify-between xs:flex-row lg:items-start',
+          'px-6 pt-6 pb-2'
+        )}
+      >
+        {PainterCardInfoFc ? (
+          <PainterCardInfoFc info={{...MOCKS_PAINTER_DATA_ITEMS[index]}} />
+        ) : (
+          <PainterCard painterId={price.painterId} />
+        )}
+        <div
+          className={cx(
+            'flex flex-col items-stretch xs:flex-row xs:items-start justify-between gap-4'
+          )}
+        >
           <div className="flex flex-col items-end gap-2">
             <p className="flex flex-row items-start text-2xl gap-1 font-medium">
-              <span className="relative top-[2px] text-sm">$</span>
+              <span className="relative top-[2px] text-sm">
+                $
+              </span>
               <span>{price.amount.toFixed(2)}</span>
             </p>
             {children}

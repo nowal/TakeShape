@@ -3,6 +3,7 @@ import { LandingBenefitsItem } from '@/components/landing/benefits/item/item';
 import { useViewport } from '@/context/viewport';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
+import { LandingBenefitsReceieveQuotes } from '@/components/landing/benefits/receive-quotes';
 
 export const LandingBenefits: FC = () => {
   const viewport = useViewport();
@@ -16,7 +17,7 @@ export const LandingBenefits: FC = () => {
       <div className="h-9" />
       <ul
         className={cx(
-          'flex flex-col items-stretch w-full justify-stretch sm:flex-row',
+          'flex flex-col items-stretch w-full justify-stretch lg:flex-row',
           'gap-5 px-9'
         )}
       >
@@ -39,11 +40,7 @@ export const LandingBenefits: FC = () => {
             [
               'Receive Quotes',
               'Local painters will see your video and provide you with their best price.',
-              () => (
-                <div className="absolute inset-0 bg-red">
-                  <div>hello</div>
-                </div>
-              ),
+              LandingBenefitsReceieveQuotes,
             ],
             [
               'Approve & Transform',

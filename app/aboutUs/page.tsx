@@ -1,7 +1,7 @@
 import Image from 'next/image';
 // AboutUs.js
 
-import profilePic from '../../public/profilePic.jpeg';
+import profilePic from '@/public/profilePic.jpeg';
 
 const AboutUs = () => {
   return (

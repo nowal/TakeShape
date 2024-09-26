@@ -1,5 +1,4 @@
-import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import {
   getFirestore,
   collection,
@@ -10,28 +9,27 @@ import {
 import { IconsLoading } from '@/components/icons/loading';
 import {
   isMocks,
-  MOCKS_PAINTER_INFO,
+  MOCKS_PAINTER_DATA,
 } from '@/components/dashboard/client/quotes/mocks';
-import { IconsPhone } from '@/components/icons/phone';
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
+import { PainterCardInfo } from '@/components/painter-card/info';
 
-type PainterCardProps = {
-  painterId: string;
-};
-
-export type TPainterData = {
+export type TPainterInfo = {
   businessName: string;
   logoUrl?: string;
   phoneNumber?: string;
   reviews?: number[];
 };
 
-export const PainterCard: React.FC<PainterCardProps> = ({
+export type PainterCardProps = {
+  painterId: string;
+};
+
+export const PainterCard: FC<PainterCardProps> = ({
   painterId,
 }) => {
-  const [painterData, setPainterData] =
-    useState<TPainterData | null>(
-      isMocks() ? MOCKS_PAINTER_INFO : null
+  const [painterData, seTPainterInfo] =
+    useState<TPainterInfo | null>(
+      isMocks() ? MOCKS_PAINTER_DATA : null
     );
   const firestore = getFirestore();
 
@@ -48,7 +46,7 @@ export const PainterCard: React.FC<PainterCardProps> = ({
 
       if (!painterSnapshot.empty) {
         const painterDoc = painterSnapshot.docs[0].data();
-        setPainterData(painterDoc as TPainterData);
+        seTPainterInfo(painterDoc as TPainterInfo);
       } else {
         console.log('No such painter!');
       }
@@ -68,32 +66,5 @@ export const PainterCard: React.FC<PainterCardProps> = ({
     );
   }
 
-  return (
-    <div className="flex flex-row gap-3">
-      {painterData.logoUrl && (
-        <Image
-          src={painterData.logoUrl}
-          alt={`${painterData.businessName} Logo`}
-          className="size-12 rounded-full"
-          width="48"
-          height="48"
-        />
-      )}
-      <div className="flex flex-col gap-1.5">
-        <h5 className="text-base font-semibold text-black">
-          {painterData.businessName}
-        </h5>
-        <ButtonsCvaAnchor
-          href={`tel:${painterData.phoneNumber}`}
-          classValue="flex flex-row items-center gap-1 h-[16px]"
-          title={`Call ${painterData.phoneNumber}`}
-          icon={{ Leading: IconsPhone }}
-        >
-          <h6 className="text-gray-9 text-xs font-medium">
-            {painterData.phoneNumber}
-          </h6>
-        </ButtonsCvaAnchor>
-      </div>
-    </div>
-  );
+  return <PainterCardInfo {...painterData} />;
 };

@@ -25,7 +25,7 @@ export const DashboardPricesItemFooter: FC<TProps> = (
       <ButtonsCvaButton
         title={acceptQuoteTitle}
         intent="primary"
-        size="sm"
+        size="xs"
         onTap={() => {
           onAcceptQuote(price.painterId, price.amount);
         }}
