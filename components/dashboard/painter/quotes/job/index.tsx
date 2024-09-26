@@ -7,6 +7,7 @@ export const DashboardPainterJob: FC<TProps> = ({
   job,
   children,
 }) => {
+  console.log('job ', job)
   return (
     <div
       key={job.jobId}

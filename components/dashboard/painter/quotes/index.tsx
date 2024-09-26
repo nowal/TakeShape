@@ -3,7 +3,12 @@ import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 
-export const DashboardPainterQuotes: FC = () => {
+type TProps = {
+  type?: 'Available' | 'Completed' | 'Accepted';
+};
+export const DashboardPainterQuotes: FC<TProps> = ({
+  type,
+}) => {
   const { jobs } = useDashboardPainter();
   if (!jobs) return null;
   return (
@@ -14,7 +19,7 @@ export const DashboardPainterQuotes: FC = () => {
         ))
       ) : (
         <NotificationsHighlight>
-          No Available Quotes at this time
+          No {type} Quotes at this time
         </NotificationsHighlight>
       )}
     </>

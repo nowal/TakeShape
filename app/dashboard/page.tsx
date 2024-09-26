@@ -25,8 +25,8 @@ const Dashboard = () => {
   return (
     <>
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-      <div className="h-6" />
       <ComponentsDashboardShell
+        key="ComponentsDashboardShell"
         left={<ComponentsDashboard isPainter={isPainter} />}
         right={
           <>

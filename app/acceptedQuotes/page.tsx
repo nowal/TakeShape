@@ -1,21 +1,18 @@
 'use client';
-
 import { useDashboardPainterAccepted } from '@/context/dashboard/painter/accepted';
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
-import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job';
+import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
 
 const AcceptedQuotes = () => {
-  const dashboardPainter = useDashboardPainter();
-  const { jobs, user } = dashboardPainter;
   const dashboardPainterAccepted =
     useDashboardPainterAccepted();
   const { authLoading } = dashboardPainterAccepted;
 
   return (
     <ComponentsDashboardShell
+      key="ComponentsDashboardShell"
       left={
         authLoading ? (
           <NotificationsHighlight>
@@ -23,18 +20,7 @@ const AcceptedQuotes = () => {
           </NotificationsHighlight>
         ) : (
           <DashboardPainterWithSelect>
-            {jobs.length > 0 ? (
-              jobs.map((job) => (
-                <DashboardPainterJob
-                  key={job.jobId}
-                  job={job}
-                />
-              ))
-            ) : (
-              <NotificationsHighlight>
-                No Accepted Quotes at this time
-              </NotificationsHighlight>
-            )}
+            <DashboardPainterQuotes type="Accepted" />
           </DashboardPainterWithSelect>
         )
       }

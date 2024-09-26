@@ -45,10 +45,12 @@ export const ComponentsDashboardShell: FC<TProps> = ({
     DASHBOARD_WIDTH_RIGHT
   );
   return (
+    
     <div
       className={cx(
         'relative left-1/2 -translate-x-1/2',
         'w-auto lg:w-0',
+        'mt-8',
         'flex flex-col items-center lg:block'
       )}
     >
