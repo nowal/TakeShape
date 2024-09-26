@@ -1,3 +1,3 @@
-import { QUOTE_TYPES } from '@/components/dashboard/painter/constants';
+import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
 
-export type TQuoteType = (typeof QUOTE_TYPES)[number];
+export type TQuoteKey = keyof typeof QUOTE_KEYS;

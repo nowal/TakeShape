@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
+import { DashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/form';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
@@ -9,7 +10,7 @@ import { useDashboardPainterCompleted } from '@/context/dashboard/painter/comple
 const CompletedQuotes = () => {
   const dashboardPainterCompleted =
     useDashboardPainterCompleted();
-  const { authLoading } = dashboardPainterCompleted;
+  const { authLoading, jobs } = dashboardPainterCompleted;
 
   return (
     <ComponentsDashboardShell
@@ -21,7 +22,11 @@ const CompletedQuotes = () => {
           </NotificationsHighlight>
         ) : (
           <DashboardPainterWithSelect>
-            <DashboardPainterQuotes type="Completed" />
+            <DashboardPainterQuotes
+              type="Completed"
+              jobs={jobs}
+              JobInfoFc={DashboardPainterJobForm}
+            />
           </DashboardPainterWithSelect>
         )
       }

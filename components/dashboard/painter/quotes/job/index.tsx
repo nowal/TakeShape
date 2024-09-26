@@ -1,13 +1,14 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
-import { TPropsWithChildren } from '@/types/dom/main';
 
-type TProps = TPropsWithChildren<{ job: TJob }>;
-export const DashboardPainterJob: FC<TProps> = ({
-  job,
-  children,
-}) => {
-  console.log('job ', job)
+export type TDashboardPainterJobProps = {
+  job: TJob;
+  JobInfoFc?: FC<TJob>;
+};
+export const DashboardPainterJob: FC<
+  TDashboardPainterJobProps
+> = ({ job, JobInfoFc }) => {
+  console.log('job ', job);
   return (
     <div
       key={job.jobId}
@@ -22,7 +23,7 @@ export const DashboardPainterJob: FC<TProps> = ({
           muted={true}
           className="w-full lg:w-96"
         />
-        {children}
+        {JobInfoFc && <JobInfoFc {...job} />}
       </div>
     </div>
   );

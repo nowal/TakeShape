@@ -4,11 +4,12 @@ import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
+import { DashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/form';
 
 const AcceptedQuotes = () => {
   const dashboardPainterAccepted =
     useDashboardPainterAccepted();
-  const { authLoading } = dashboardPainterAccepted;
+  const { authLoading, jobs } = dashboardPainterAccepted;
 
   return (
     <ComponentsDashboardShell
@@ -20,7 +21,11 @@ const AcceptedQuotes = () => {
           </NotificationsHighlight>
         ) : (
           <DashboardPainterWithSelect>
-            <DashboardPainterQuotes type="Accepted" />
+            <DashboardPainterQuotes
+              type="Accepted"
+              jobs={jobs}
+              JobInfoFc={DashboardPainterJobForm}
+            />
           </DashboardPainterWithSelect>
         )
       }

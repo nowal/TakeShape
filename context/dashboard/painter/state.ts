@@ -25,6 +25,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correct
+import { TQuoteKey } from '@/components/dashboard/painter/types';
 
 export const useDashboardPainterState = () => {
   const [jobList, setJobList] = useState<TJob[]>([]);
@@ -32,9 +33,8 @@ export const useDashboardPainterState = () => {
     useState<File | null>(null);
   const [price, setPrice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPage, setSelectedPage] = useState(
-    'Available Quotes'
-  );
+  const [selectedPage, setSelectedPage] =
+    useState<TQuoteKey>('Available Quotes');
   const firestore = getFirestore();
   const storage = getStorage(); // Initialize Firebase Storage
   const auth = getAuth();
@@ -334,11 +334,7 @@ export const useDashboardPainterState = () => {
     }
   };
 
-  const handlePageChange = (
-    // event: ChangeEvent<HTMLSelectElement>
-    selected: string
-  ) => {
-    // const selected = event.target.value;
+  const handlePageChange = (selected: TQuoteKey) => {
     setSelectedPage(selected);
     if (selected === 'Available Quotes') {
       fetchPainterData(); // Fetch available quotes
@@ -351,6 +347,7 @@ export const useDashboardPainterState = () => {
   };
 
   return {
+    price,
     selectedPage,
     isLoading,
     jobs: jobList,
