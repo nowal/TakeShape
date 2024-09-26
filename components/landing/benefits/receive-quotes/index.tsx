@@ -18,7 +18,13 @@ export const LandingBenefitsReceieveQuotes: FC = () => {
   }
 
   return (
-    <div className={cx("absolute inset-0 overflow-hidden border border-white-8", 'rounded-2xl lg:rounded-4xl')}>
+    <div
+      className={cx(
+        'absolute inset-0 overflow-hidden border border-white-8',
+        'rounded-2xl lg:rounded-4xl',
+        'pointer-events-none'
+      )}
+    >
       <ul className="absolute -left-8 bottom-3/4 -translate-y-4 w-full scale-75">
         {prices.map((price, index) => {
           const offset = index * 2.8;

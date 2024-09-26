@@ -10,6 +10,7 @@ export const buttonsCvaConfig = cva(
       },
       size: {
         none: [],
+        xxs: ['relative', 'px-4', 'py-2', 'rounded-4xl', 'leading-none'],
         xs: ['relative', 'px-4', 'py-3', 'rounded-4xl', 'leading-none'],
         sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl', 'leading-leading'],
         md: ['relative', 'px-6', 'py-4', 'rounded-5xl', 'leading-leading'],

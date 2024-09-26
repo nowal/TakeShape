@@ -44,6 +44,7 @@ export const DashboardPricesItem: FC<
           'px-6 pt-6 pb-2'
         )}
       >
+        <div className='pb-3.5'>
         {PainterCardInfoFc ? (
           <PainterCardInfoFc
             info={{ ...MOCKS_PAINTER_DATA_ITEMS[index] }}
@@ -51,6 +52,7 @@ export const DashboardPricesItem: FC<
         ) : (
           <PainterCard painterId={price.painterId} />
         )}
+        </div>
         <div
           className={cx(
             'flex flex-col items-stretch xs:flex-row xs:items-start justify-between gap-4'

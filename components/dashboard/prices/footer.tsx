@@ -19,13 +19,13 @@ export const DashboardPricesItemFooter: FC<TProps> = (
       className={cx(
         'flex flex-row item-center gap-4',
         'px-6',
-        'py-4'
+        'py-3.5'
       )}
     >
       <ButtonsCvaButton
         title={acceptQuoteTitle}
         intent="primary"
-        size="xs"
+        size="xxs"
         onTap={() => {
           onAcceptQuote(price.painterId, price.amount);
         }}
