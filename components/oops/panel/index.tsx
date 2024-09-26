@@ -12,7 +12,7 @@ export const ComponentsOopsPanel: FC = () => {
           Oops... Something went wrong
         </h2>
         <ButtonsCvaButton
-          title="Contact Support, Call (615) 809-6429"
+          title="Try again"
           center
         >
           <span className="text-gray-7 font-semibold">

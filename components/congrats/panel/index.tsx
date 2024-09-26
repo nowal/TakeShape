@@ -8,7 +8,7 @@ import { CongratsPanelPainter } from '@/components/congrats/panel/painter';
 export const ComponentsCongratsPanel: FC = () => {
   return (
     <ComponentsModalPanel classValue="text-center">
-      <div className="flex flex-col gap-5">
+      <div className="relative flex flex-col gap-5">
         <div className="text-8xl">🎉</div>
         <div className="flex flex-col gap-2">
           <h2 className="text-base font-bold text-black px-2">
@@ -27,22 +27,22 @@ export const ComponentsCongratsPanel: FC = () => {
           href="tel:+16158096429"
           center
         >
-          <span className="text-gray-7 font-semibold">
+          <span className="text-xs text-gray-7 font-semibold">
             Contact Support
           </span>
         </ButtonsCvaAnchor>
-      </div>
 
-      <div className="absolute left-0 top-full w-full translate-y-8">
-        <ButtonsCvaLink
-          title="Contact Support, Call (615) 809-6429"
-          href="/"
-          center
-        >
-          <span className="font-semibold text-pink">
-            Continue
-          </span>
-        </ButtonsCvaLink>
+        <div className="absolute left-0 top-full w-full translate-y-8">
+          <ButtonsCvaLink
+            title="Contact Support, Call (615) 809-6429"
+            href="/"
+            center
+          >
+            <span className="text-xs font-semibold text-pink">
+              Continue
+            </span>
+          </ButtonsCvaLink>
+        </div>
       </div>
     </ComponentsModalPanel>
   );

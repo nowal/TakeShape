@@ -2,11 +2,8 @@ import {
   ButtonsCheckout,
   TButtonsCheckoutProps,
 } from '@/components/buttons/checkout';
-import { TButtonsCvaButtonProps } from '@/components/cva/button';
-import { DashboardModalQuoteAcceptNameRow } from '@/components/dashboard/modal/quote-accept/name-row';
 import { IconsInfo } from '@/components/icons/info';
 import { IconsSecure } from '@/components/icons/secure';
-import { LinesHorizontal } from '@/components/lines/horizontal';
 import { ComponentsModal } from '@/components/modal';
 import { ComponentsModalPanel } from '@/components/modal/panel';
 import { ComponentsPortalBody } from '@/components/portal/body';
@@ -70,7 +67,7 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-stretch gap-4">
+          {/* <div className="flex flex-col items-stretch gap-4">
             <DashboardModalQuoteAcceptNameRow
               head="From"
               tail="Katherine Bond"
@@ -80,7 +77,7 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               head="To"
               tail="Noah Waldron"
             />
-          </div>
+          </div> */}
           <ButtonsCheckout {...checkoutButtonProps} />
           <div className="flex flex-row justify-center gap-1.5">
             <IconsSecure />
