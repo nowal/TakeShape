@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
@@ -33,26 +33,28 @@ const Preferences: FC = () => {
     isShowTrimFields,
     isShowCeilingFields,
     ...paintPreferences
-  } = preferences
+  } = preferences;
   return (
     <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <div className="flex flex-col items-center">
         <div className="flex flex-col items-stretch w-full sm:w-[709px]">
           <div className="h-6" />
-          <h2 className="typography-page-title-preferences">
-            We want to make sure your quote is accurate.
-          </h2>
-          <div className="h-20" />
-
-          {isPopup && (
-            <>
+          <>
+            {isPopup ? (
               <PreferencesNotificationsPaintPreferences />
-              <div className="h-6" />
-            </>
-          )}
-
-          <div className={cx('flex flex-col items-stretch w-full py-9 px-6')}>
+            ) : (
+              <h2 className="typography-page-title-preferences">
+                We want to make sure your quote is accurate.
+              </h2>
+            )}
+            <div className="h-6" />
+          </>
+          <div
+            className={cx(
+              'flex flex-col items-stretch w-full py-9 px-6'
+            )}
+          >
             <h4 className="typography-form-title">
               What type of service would you like quoted?
             </h4>
