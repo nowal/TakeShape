@@ -10,8 +10,7 @@ export const DashboardClientQuotesList: FC = () => {
         Contractor Quotes
       </h3>
       <div className="h-5" />
-
-      {false ? <div /> : <DashboardClientQuotesListItems />}
+      <DashboardClientQuotesListItems />
       <div className="h-4" />
       <DashboardClientQuotesAccept />
     </div>

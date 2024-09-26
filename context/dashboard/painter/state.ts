@@ -1,4 +1,9 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  ChangeEvent,
+  FormEvent,
+} from 'react';
 import {
   getFirestore,
   collection,
@@ -337,6 +342,7 @@ export const useDashboardPainterState = () => {
     setSelectedPage(selected);
     if (selected === 'Available Quotes') {
       fetchPainterData(); // Fetch available quotes
+      router.push('/dashboard');
     } else if (selected === 'Accepted Quotes') {
       router.push('/acceptedQuotes');
     } else if (selected === 'Completed Quotes') {

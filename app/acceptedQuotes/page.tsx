@@ -4,6 +4,8 @@ import { useDashboardPainterAccepted } from '@/context/dashboard/painter/accepte
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { ComponentsDashboardShell } from '@/components/dashboard/shell';
+import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job';
 
 const AcceptedQuotes = () => {
   const dashboardPainter = useDashboardPainter();
@@ -11,215 +13,32 @@ const AcceptedQuotes = () => {
   const dashboardPainterAccepted =
     useDashboardPainterAccepted();
   const { authLoading } = dashboardPainterAccepted;
-  if (authLoading) {
-    return (
-      <div className="loading text-center text-lg mt-20">
-        Retrieving Information...
-      </div>
-    );
-  }
 
   return (
-    <DashboardPainterWithSelect>
-      {/* <InputsSelect
-        name="accepted-quotes"
-        basicValues={QUOTE_TYPES}
-        placeholder="Select Quote"
-        value={dashboardPainter.selectedPage}
-        onValueChange={(_, value: string) => {
-          dashboardPainter.onPageChange(value);
-        }}
-      /> */}
-
-      {jobs.length > 0 ? (
-        jobs.map((job) => (
-          <div
-            key={job.jobId}
-            className="flex flex-col md:flex-row justify-center items-start mb-10 w-full max-w-4xl p-4 md:p-8 rounded"
-          >
-            <div className="flex flex-col justify-center items-center lg:mr-8 mb-4 lg:mb-0 w-full lg:w-auto">
-              <video
-                src={`${job.video}#t=0.001`}
-                autoPlay
-                controls
-                playsInline
-                muted={true}
-                className="w-full lg:w-96"
-              />
-
-              <p className="text-lg font-bold mt-4">
-                Your Quoted Price:
-                <span className="text-xl">
-                  $
-                  {job.prices
-                    .find(
-                      (price) =>
-                        price.painterId === user?.uid
-                    )
-                    ?.amount.toFixed(2)}
-                </span>
-                {job.prices.find(
-                  (price) => price.painterId === user?.uid
-                )?.invoiceUrl && (
-                  <a
-                    href={
-                      job.prices.find(
-                        (price) =>
-                          price.painterId === user?.uid
-                      )?.invoiceUrl
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 underline ml-2"
-                  >
-                    Invoice
-                  </a>
-                )}
-              </p>
-              <h1 className="text-lg mt-4">
-                Customer Details:
-              </h1>
-              <ul className="list-disc pl-5">
-                <li>
-                  Name:{' '}
-                  <span className="font-semibold">
-                    {job.customerName || 'N/A'}
-                  </span>
-                </li>
-                <li>
-                  Phone Number:{' '}
-                  <span className="font-semibold">
-                    {job.phoneNumber || 'N/A'}
-                  </span>
-                </li>
-                <li>
-                  Address:{' '}
-                  <span className="font-semibold">
-                    {job.address || 'N/A'}
-                  </span>
-                </li>
-              </ul>
-            </div>
-            <div className="details-box space-y-2 w-full lg:w-auto">
-              <div className="space-y-1">
-                <p className="text-lg">
-                  Paint Preferences:
-                </p>
-                <ul className="list-disc pl-5">
-                  <li className="font-semibold">
-                    {job.paintPreferences?.laborAndMaterial
-                      ? 'Labor and Material'
-                      : 'Labor Only'}
-                  </li>
-                  <li>
-                    Wall Color:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences
-                        ?.laborAndMaterial
-                        ? job.paintPreferences?.color ||
-                          'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Wall Finish:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences
-                        ?.laborAndMaterial
-                        ? job.paintPreferences?.finish ||
-                          'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Paint Quality:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences
-                        ?.laborAndMaterial
-                        ? job.paintPreferences
-                            ?.paintQuality || 'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Ceilings:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.ceilings
-                        ? 'Yes'
-                        : 'No'}
-                    </span>
-                  </li>
-                  <li>
-                    Ceiling Color:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.ceilings &&
-                      job.paintPreferences?.laborAndMaterial
-                        ? job.paintPreferences
-                            ?.ceilingColor || 'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Ceiling Finish:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.ceilings &&
-                      job.paintPreferences?.laborAndMaterial
-                        ? job.paintPreferences
-                            ?.ceilingFinish || 'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Trim and Doors:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.trim
-                        ? 'Yes'
-                        : 'No'}
-                    </span>
-                  </li>
-                  <li>
-                    Trim and Door Color:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.trim &&
-                      job.paintPreferences?.laborAndMaterial
-                        ? job.paintPreferences?.trimColor ||
-                          'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Trim and Door Finish:{' '}
-                    <span className="font-semibold">
-                      {job.paintPreferences?.trim &&
-                      job.paintPreferences?.laborAndMaterial
-                        ? job.paintPreferences
-                            ?.trimFinish || 'N/A'
-                        : 'N/A'}
-                    </span>
-                  </li>
-                  <li>
-                    Move Furniture:{' '}
-                    <span className="font-semibold">
-                      {job.moveFurniture ? 'Yes' : 'No'}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-              <p className="text-lg">
-                Special Requests:{' '}
-                <span className="font-semibold">
-                  {job.specialRequests || 'N/A'}
-                </span>
-              </p>
-            </div>
-          </div>
-        ))
-      ) : (
-        <NotificationsHighlight>
-          No Accepted Quotes at this time
-        </NotificationsHighlight>
-      )}
-    </DashboardPainterWithSelect>
+    <ComponentsDashboardShell
+      left={
+        authLoading ? (
+          <NotificationsHighlight>
+            Retrieving Information...
+          </NotificationsHighlight>
+        ) : (
+          <DashboardPainterWithSelect>
+            {jobs.length > 0 ? (
+              jobs.map((job) => (
+                <DashboardPainterJob
+                  key={job.jobId}
+                  job={job}
+                />
+              ))
+            ) : (
+              <NotificationsHighlight>
+                No Accepted Quotes at this time
+              </NotificationsHighlight>
+            )}
+          </DashboardPainterWithSelect>
+        )
+      }
+    />
   );
 };
 

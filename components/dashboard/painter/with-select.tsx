@@ -20,6 +20,7 @@ export const DashboardPainterWithSelect:FC<TProps> = (props) => {
           onPageChange(value);
         }}
       />
+      <div className='h-8'/>
       {props.children}
     </div>
   );
