@@ -11,7 +11,7 @@ export const DashboardPainter = () => {
       <DashboardPainterQuotes
         jobs={jobs}
         JobInfoFc={DashboardPainterJobForm}
-      ></DashboardPainterQuotes>
+      />
     </DashboardPainterWithSelect>
   );
 };

@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJob } from '@/types';
+import { ButtonsCvaButton } from '@/components/cva/button';
 
 type TProps = TJob;
 export const DashboardPainterJobForm: FC<TProps> = (
@@ -10,11 +11,14 @@ export const DashboardPainterJobForm: FC<TProps> = (
   const {
     isLoading,
     price,
-    isJobWithinRange,
     onPriceSubmit,
     onPriceChange,
     onFileChange,
   } = dashboardPainter;
+  const title = isLoading
+    ? 'Submitting...'
+    : 'Submit Quote';
+
   return (
     <form
       onSubmit={(e) =>
@@ -22,7 +26,7 @@ export const DashboardPainterJobForm: FC<TProps> = (
       }
       className="mt-4 w-full lg:w-auto"
     >
-      <div className="flex flex-row">
+      <label className="flex flex-row">
         <input
           type="text"
           name="price"
@@ -31,25 +35,24 @@ export const DashboardPainterJobForm: FC<TProps> = (
           value={price}
           onChange={onPriceChange}
         />
-        <label>
-          Invoice (optional)
-          <input
-            type="file"
-            onChange={onFileChange}
-            accept="application/pdf"
-            className="w-full lg:w-auto"
-          />
-        </label>
-      </div>
-      <button
+        Invoice (optional)
+        <input
+          type="file"
+          onChange={onFileChange}
+          accept="application/pdf"
+          className="w-full lg:w-auto"
+        />
+      </label>
+      <ButtonsCvaButton
+        title={title}
         type="submit"
         className={`button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded w-full lg:w-auto ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
         disabled={isLoading}
       >
-        {isLoading ? 'Submitting...' : 'Submit Quote'}
-      </button>
+        {title}
+      </ButtonsCvaButton>
     </form>
   );
 };

@@ -71,7 +71,6 @@ const SignupAccountForm = () => {
                 required
               />
               <InputsText
-                type="text"
                 id="name"
                 value={name}
                 onChange={(event) =>
@@ -81,7 +80,6 @@ const SignupAccountForm = () => {
                 required
               />
               <InputsText
-                type="text"
                 id="address"
                 ref={addressInputRef}
                 value={address}

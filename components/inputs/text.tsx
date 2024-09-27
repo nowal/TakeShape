@@ -2,12 +2,19 @@ import { forwardRef } from 'react';
 import { TInputProps } from '@/types/dom/element';
 import { cx } from 'class-variance-authority';
 
-type TProps = TInputProps & { classPadding?: string,classRounded?:string };
+type TProps = TInputProps & {
+  classPadding?: string;
+  classRounded?: string;
+};
 const InputsText = forwardRef<HTMLInputElement, TProps>(
-  ({ classPadding,classRounded, classValue, ...props }, ref) => {
+  (
+    { classPadding, classRounded, classValue, ...props },
+    ref
+  ) => {
     return (
       <label className="block text-md font-medium text-gray-700">
         <input
+          type="text"
           ref={ref}
           className={cx(
             'border border-gray-4 w-full bg-white-1',

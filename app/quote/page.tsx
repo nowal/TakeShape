@@ -27,7 +27,7 @@ import {
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { UploadButton } from '@/components/buttons/uploadButton';
+import { ButtonsUpload } from '@/components/buttons/upload/ButtonsUpload';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { cx } from 'class-variance-authority';
 import { IconsTick } from '@/components/icons/tick';
@@ -279,7 +279,7 @@ export default function QuotePage() {
                 )}
               >
                 <div className="relative w-full">
-                  <UploadButton
+                  <ButtonsUpload
                     onUploadSuccess={handleUploadSuccess}
                     inputId="imageUpload"
                   />
