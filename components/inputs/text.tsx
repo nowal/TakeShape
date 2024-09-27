@@ -21,7 +21,7 @@ const InputsText = forwardRef<HTMLInputElement, TProps>(
             'typography-signup-input',
             classValue,
             classPadding ?? 'px-6 py-4',
-            classRounded ?? 'rounded-4xl'
+            classRounded ?? 'rounded-lg'
           )}
           {...props}
         />

@@ -34,6 +34,7 @@ import { IconsVideo } from '@/components/icons/video';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { ButtonsUpload } from '@/components/buttons/upload';
+import { InputsText } from '@/components/inputs/text';
 
 const SEE_VIDEO_TITLE = 'See Video Example';
 
@@ -279,39 +280,17 @@ export default function QuotePage() {
                 )}
               >
                 <div className="relative w-full">
-                <div className="h-[7.25rem]">
-                  <ButtonsUpload
-                    onUploadSuccess={handleUploadSuccess}
-                  />
+                  <div className="h-[7.25rem]">
+                    <ButtonsUpload
+                      onFile={handleUploadSuccess}
+                    />
                   </div>
                 </div>
-                <label
-                  htmlFor="title"
-                  className={cx(
-                    'w-full',
-                    'shadow-08',
-                    'border border-gray-1',
-                    'rounded-lg'
-                  )}
-                >
-                  <input
-                    type="text"
-                    id="title"
-                    value={title}
-                    onChange={(e) =>
-                      setTitle(e.target.value)
-                    }
-                    placeholder="Enter Title (e.g. Bedroom Walls)"
-                    required
-                    className={cx(
-                      'px-5 py-3',
-                      'text-black-3',
-                      'font-semibold font-base font-open-sans',
-                      'w-full',
-                      'truncate'
-                    )}
-                  />
-                </label>
+                <InputsText
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter Title (e.g. Bedroom Walls)"
+                />
                 <ButtonsQuoteSubmit
                   title="Submit Video"
                   isDisabled
