@@ -6,12 +6,10 @@ import { IconsUpload } from '@/components/icons/upload';
 
 export type TButtonsUploadProps = {
   onUploadSuccess: (file: File) => void;
-  inputId: string;
 };
 
 export const ButtonsUpload: FC<TButtonsUploadProps> = ({
   onUploadSuccess,
-  inputId,
 }) => {
   const [isFocus, setFocus] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -35,15 +33,11 @@ export const ButtonsUpload: FC<TButtonsUploadProps> = ({
     : 'Upload your video';
 
   return (
-    <div className="h-[7.25rem]">
+    <>
       <ButtonsCvaInput
         title={title}
-        onClick={() =>
-          document.getElementById(inputId)?.click()
-        }
         inputProps={{
           type: 'file',
-          id: inputId,
           accept: 'video/*',
           onChange: handleFileSelection,
           onMouseEnter: () => {
@@ -91,6 +85,6 @@ export const ButtonsUpload: FC<TButtonsUploadProps> = ({
         </span>
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
-    </div>
+    </>
   );
 };

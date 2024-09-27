@@ -279,10 +279,11 @@ export default function QuotePage() {
                 )}
               >
                 <div className="relative w-full">
+                <div className="h-[7.25rem]">
                   <ButtonsUpload
                     onUploadSuccess={handleUploadSuccess}
-                    inputId="imageUpload"
                   />
+                  </div>
                 </div>
                 <label
                   htmlFor="title"
