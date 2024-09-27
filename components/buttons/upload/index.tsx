@@ -1,7 +1,5 @@
 // ButtonsUpload.tsx
 import React, { ChangeEvent, FC, useState } from 'react';
-import firebase from '../../../lib/firebase';
-import { getStorage } from 'firebase/storage';
 import { ButtonsCvaInput } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
@@ -17,14 +15,19 @@ export const ButtonsUpload: FC<TButtonsUploadProps> = ({
 }) => {
   const [isFocus, setFocus] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const storage = getStorage(firebase);
 
   const handleFileSelection = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onUploadSuccess(file); // Pass the file to the parent component
+    try {
+      setUploading(true);
+      const file = event.target.files?.[0];
+      if (file) {
+        onUploadSuccess(file); // Pass the file to the parent component
+      }
+      setUploading(false);
+    } catch (error) {
+      console.error(error);
     }
   };
   const title = uploading

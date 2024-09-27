@@ -256,7 +256,7 @@ export const usePreferences = () => {
         setShowTrimFields(value);
       }
     }
-    handleValueChange(name, value);
+    handleValueChange(name, value.toString());
   };
 
   const handleLaborAndMaterialsChange = (
