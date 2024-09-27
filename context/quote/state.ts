@@ -24,21 +24,9 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { GoogleAnalytics } from '@next/third-parties/google';
-import { ButtonsCvaButton } from '@/components/cva/button';
-import { cx } from 'class-variance-authority';
-import { IconsTick } from '@/components/icons/tick';
-import { IconsVideo } from '@/components/icons/video';
-import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
-import { LinesHorizontal } from '@/components/lines/horizontal';
-import { ButtonsUpload } from '@/components/buttons/upload';
-import { InputsText } from '@/components/inputs/text';
-import { QuoteInstructions } from '@/components/quote/instructions';
 
-type TConfig = any;
-export const useQuoteState = (config?: TConfig) => {
+export const useQuoteState = () => {
   const [currentStep, setCurrentStep] = useState(1);
-
   const [zipCode, setZipCode] = useState('');
   const [description, setDescription] = useState('');
   const [title, setTitle] = useState(''); // New title state

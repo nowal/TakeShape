@@ -3,15 +3,11 @@ import { useQuoteState } from '@/context/quote/state';
 import {
   createContext,
   FC,
-  MutableRefObject,
   PropsWithChildren,
   useContext,
-  useRef,
 } from 'react';
 
-type TQuoteContext = ReturnType<
-  typeof useQuoteState
->
+type TQuoteContext = ReturnType<typeof useQuoteState>;
 export const QUOTE = createContext<TQuoteContext>(
   {} as TQuoteContext
 );
