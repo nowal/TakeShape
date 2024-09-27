@@ -5,6 +5,7 @@ import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
 import { DashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/form';
+import { DashboardPainterJobFormAccepted } from '@/components/dashboard/painter/quotes/job/form/accepted';
 
 const AcceptedQuotes = () => {
   const dashboardPainterAccepted =
@@ -24,7 +25,7 @@ const AcceptedQuotes = () => {
             <DashboardPainterQuotes
               type="Accepted"
               jobs={jobs}
-              JobInfoFc={DashboardPainterJobForm}
+              JobInfoFc={DashboardPainterJobFormAccepted}
             />
           </DashboardPainterWithSelect>
         )

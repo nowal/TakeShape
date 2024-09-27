@@ -7,7 +7,6 @@ import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { SignUpSignIn } from '@/components/sign-up/sign-in';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
-import { useSignUp } from '@/context/auth/sign-up';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
 

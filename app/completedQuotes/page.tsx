@@ -1,7 +1,6 @@
-'use client';
-
+'use client';;
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/form';
+import { DashboardPainterJobFormCompleted } from '@/components/dashboard/painter/quotes/job/form/completed';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
@@ -25,7 +24,7 @@ const CompletedQuotes = () => {
             <DashboardPainterQuotes
               type="Completed"
               jobs={jobs}
-              JobInfoFc={DashboardPainterJobForm}
+              JobInfoFc={DashboardPainterJobFormCompleted}
             />
           </DashboardPainterWithSelect>
         )
