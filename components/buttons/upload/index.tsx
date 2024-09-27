@@ -1,37 +1,37 @@
-// ButtonsUpload.tsx
-import React, { ChangeEvent, FC, useState } from 'react';
-import { ButtonsCvaInput } from '@/components/cva/input';
+import { ChangeEvent, FC, useState } from 'react';
+import {
+  ButtonsCvaInput,
+  TButtonsCvaInputProps,
+} from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 
-export type TButtonsUploadProps = {
-  onFile(file: File): void;
-};
+export type TButtonsUploadProps =
+  Partial<TButtonsCvaInputProps> & {
+    title: string;
+    onFile(file: File): void;
+  };
 
 export const ButtonsUpload: FC<TButtonsUploadProps> = ({
   onFile,
+  inputProps,
+  title,
+  ...props
 }) => {
   const [isFocus, setFocus] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
     try {
-      setUploading(true);
       const file = event.target.files?.[0];
       if (file) {
         onFile(file); // Pass the file to the parent component
       }
-      setUploading(false);
     } catch (error) {
       console.error(error);
     }
   };
-
-  const title = uploading
-    ? 'Uploading...'
-    : 'Upload your video';
 
   return (
     <>
@@ -71,14 +71,15 @@ export const ButtonsUpload: FC<TButtonsUploadProps> = ({
           onDrop: () => {
             setFocus(false);
           },
+          ...inputProps,
         }}
         style={{ display: 'none' }}
-        isDisabled={uploading}
         intent="ghost-1"
         size="fill"
         rounded="lg"
         icon={{ Leading: IconsUpload }}
         center
+        {...props}
       >
         <span className="typography-page-subtitle">
           {title}

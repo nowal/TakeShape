@@ -1,256 +1,38 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  uploadProgressAtom,
-  uploadStatusAtom,
-  videoURLAtom,
-  documentIdAtom,
-} from '@/atom';
-import { useAtom } from 'jotai';
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  updateDoc,
-  arrayUnion,
-  doc,
-  getDoc,
-} from 'firebase/firestore';
-import firebase from '../../lib/firebase';
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytesResumable,
-  getDownloadURL,
-} from 'firebase/storage';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { cx } from 'class-variance-authority';
-import { IconsTick } from '@/components/icons/tick';
-import { IconsVideo } from '@/components/icons/video';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
-import { LinesHorizontal } from '@/components/lines/horizontal';
 import { ButtonsUpload } from '@/components/buttons/upload';
 import { InputsText } from '@/components/inputs/text';
+import { QuoteInstructions } from '@/components/quote/instructions';
+import { useQuote } from '@/context/quote/provider';
+import { NotificationsHighlight } from '@/components/notifications/highlight';
 
-const SEE_VIDEO_TITLE = 'See Video Example';
-
-export default function QuotePage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [zipCode, setZipCode] = useState('');
-  const [description, setDescription] = useState('');
-  const [title, setTitle] = useState(''); // New title state
-  const [paintPreferences, setPaintPreferences] = useState({
-    walls: false,
-    ceilings: false,
-    trim: false,
-  });
-  const [providingOwnPaint, setProvidingOwnPaint] =
-    useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUserSignedIn, setIsUserLoggedIn] =
-    useState(false); // State to keep track of user's authentication status
-  const [fileUrl, setFileUrl] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); // Add errorMessage state
-  const auth = getAuth();
-  const router = useRouter();
-  const firestore = getFirestore(firebase);
-  const [, setUploadProgress] = useAtom(uploadProgressAtom);
-  const [, setVideoURL] = useAtom(videoURLAtom);
-  const [, setUploadStatus] = useAtom(uploadStatusAtom);
-  const [, setDocumentId] = useAtom(documentIdAtom);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (user) => {
-        setIsUserLoggedIn(!!user);
-        if (user) {
-          const userDocRef = doc(
-            firestore,
-            'users',
-            user.uid
-          );
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setZipCode(userData.zipCode || ''); // Prepopulate the zip code if it exists
-          }
-        }
-      }
-    );
-    return () => {
-      unsubscribe(); // Unsubscribe on component unmount
-    };
-  }, [auth, firestore]);
-
-  const handleCheckboxChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setPaintPreferences({
-      ...paintPreferences,
-      [e.target.name]: e.target.checked,
-    });
-  };
-
-  const handlePrevious = async () => {
-    setCurrentStep(1);
-  };
-
-  const handleCreateUserImage = async () => {
-    console.log('Creating user image document');
-    setIsLoading(true);
-    setErrorMessage('');
-
-    try {
-      const userImageData = {
-        zipCode,
-        description,
-        paintPreferences,
-        providingOwnPaint,
-        prices: [],
-        video: '', // Initially empty video field
-        title, // Add title to userImage
-        userId: auth.currentUser
-          ? auth.currentUser.uid
-          : '',
-      };
-
-      console.log('User Image Data: ', userImageData);
-
-      // Add the new quote
-      const docRef = await addDoc(
-        collection(firestore, 'userImages'),
-        userImageData
-      );
-      console.log('Document written with ID:', docRef.id);
-      setDocumentId(docRef.id);
-      sessionStorage.setItem('userImageId', docRef.id); // Store userImageId in sessionStorage
-
-      if (auth.currentUser) {
-        const userDocRef = doc(
-          firestore,
-          'users',
-          auth.currentUser.uid
-        );
-        await updateDoc(userDocRef, {
-          userImages: arrayUnion(docRef.id),
-        });
-      }
-
-      if (isUserSignedIn) {
-        console.log(
-          'Navigating to defaultPreferences with userImageId: ',
-          docRef.id
-        );
-        router.push(
-          `/defaultPreferences?userImageId=${docRef.id}`
-        ); // Navigate to defaultPreferences with userImageId
-      } else {
-        // Handle non-logged-in user case
-        sessionStorage.setItem(
-          'quoteData',
-          JSON.stringify(userImageData)
-        );
-        router.push(`/signup?userImageId=${docRef.id}`);
-      }
-    } catch (error) {
-      console.error(
-        'Error creating user image document: ',
-        error
-      );
-      setErrorMessage(
-        'Error creating user image document. Please try again.'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUploadSuccess = (file: File) => {
-    if (auth.currentUser != null) {
-      console.log(
-        'Authenticated user UID: ',
-        auth.currentUser.uid
-      );
-    } else {
-      console.log('No authenticated user');
-    }
-    setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
-
-    const storage = getStorage(firebase);
-    const fileRef = storageRef(
-      storage,
-      `uploads/${file.name}`
-    );
-    const uploadTask = uploadBytesResumable(fileRef, file);
-
-    handleCreateUserImage(); // Create the user image document immediately
-
-    // Store the upload promise in the state or a ref
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        // Handle progress
-        const progress =
-          (snapshot.bytesTransferred /
-            snapshot.totalBytes) *
-          100;
-        setUploadProgress(progress);
-        setUploadStatus('uploading');
-        console.log('Upload is ' + progress + '% done');
-      },
-      (error) => {
-        console.error('Error uploading video: ', error);
-        setErrorMessage(
-          'Error uploading video. Please try again.'
-        );
-        setIsUploading(false);
-      },
-      async () => {
-        // Handle successful uploads on complete
-        const url = await getDownloadURL(
-          uploadTask.snapshot.ref
-        );
-        console.log('File available at', url);
-        setUploadStatus('completed');
-        setFileUrl(url); // Save the URL once the upload is complete
-        setVideoURL(url);
-        setIsUploading(false);
-
-        // Update the userImage document with the video URL
-        const docId = sessionStorage.getItem('userImageId');
-        if (docId) {
-          await updateDoc(
-            doc(firestore, 'userImages', docId),
-            {
-              video: url,
-            }
-          );
-          console.log(
-            `Updated userImage document ${docId} with video URL`
-          );
-        }
-      }
-    );
-  };
+const QuotePage = () => {
+  const {
+    isLoading,
+    isUploading,
+    title,
+    dispatchTitle,
+    currentStep,
+    onFileUpload,
+  } = useQuote();
 
   return (
     <div className="p-8 pt-20">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
       {isLoading && currentStep === 2 && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-50">
-          <div className="bg-white p-6 rounded w-21">
-            <p className="text-center">
-              Uploading, please wait...
-            </p>
-          </div>
-        </div>
+        <NotificationsHighlight>
+          Uploading, please wait...
+        </NotificationsHighlight>
+        // <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-50">
+        //   <div className="bg-white p-6 rounded w-21">
+        //     <p className="text-center">
+        //       Uploading, please wait...
+        //     </p>
+        //   </div>
+        // </div>
       )}
 
       {currentStep === 1 && (
@@ -282,13 +64,21 @@ export default function QuotePage() {
                 <div className="relative w-full">
                   <div className="h-[7.25rem]">
                     <ButtonsUpload
-                      onFile={handleUploadSuccess}
+                      title={
+                        isUploading
+                          ? 'Uploading...'
+                          : 'Upload your video'
+                      }
+                      onFile={onFileUpload}
+                      inputProps={{}}
                     />
                   </div>
                 </div>
                 <InputsText
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(event) =>
+                    dispatchTitle(event.target.value)
+                  }
                   placeholder="Enter Title (e.g. Bedroom Walls)"
                 />
                 <ButtonsQuoteSubmit
@@ -320,50 +110,13 @@ export default function QuotePage() {
                   />
                 </svg>
               </div>
-              <div className="relative flex flex-col px-9 py-5.5">
-                <h2 className="text-sm text-pink font-semibold">
-                  How to Record Your Video
-                </h2>
-                <ul className="flex flex-col gap-3 mt-3.5">
-                  {(
-                    [
-                      'Use the back camera. Hold the phone horizontally. Zoom out as far as possible.',
-                      'Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim.',
-                      'Walk through all areas that you would like painted, taking 15-30 seconds for each full room. You can exclude an area in your video from the quote in the next step.',
-                      'Exclude unwanted areas in your video during the next step.',
-                    ] as const
-                  ).map((text, index) => (
-                    <li
-                      key={`text-${index}`}
-                      className="flex flex-row gap-2.5"
-                    >
-                      <IconsTick />
-                      <span className="text-xs font-open-sans leading-[120%]">
-                        {text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <LinesHorizontal
-                  colorClass="border-white-pink-2"
-                  classValue="mt-5"
-                />
-                <ButtonsCvaButton
-                  title={SEE_VIDEO_TITLE}
-                  icon={{ Trailing: IconsVideo }}
-                  size="none"
-                  classValue="gap-2"
-                  isDisabled
-                >
-                  <span className="typography-quote-see-video">
-                    {SEE_VIDEO_TITLE}
-                  </span>
-                </ButtonsCvaButton>
-              </div>
+              <QuoteInstructions />
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default QuotePage;
