@@ -1,9 +1,18 @@
-import { motion, MotionValue } from 'framer-motion';
+import {
+  motion,
+  MotionValue,
+  useTransform,
+} from 'framer-motion';
 import type { FC } from 'react';
 export const FILTER_GRAYSCALE_ID = 'FILTER_GRAYSCALE_ID';
 
 type TProps = { x: MotionValue };
-export const FilterGrayscale: FC<TProps> = ({ x }) => {
+export const FilterGrayscale: FC<TProps> = ({
+  x: motionValueX,
+}) => {
+  const x = useTransform(motionValueX, (v) =>
+    v <= 0 ? 0.00001 : v
+  );
   return (
     <svg
       width="0"

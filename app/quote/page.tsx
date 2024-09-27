@@ -27,13 +27,13 @@ import {
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { UploadButton } from '@/components/buttons/uploadButton';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { cx } from 'class-variance-authority';
 import { IconsTick } from '@/components/icons/tick';
 import { IconsVideo } from '@/components/icons/video';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 import { LinesHorizontal } from '@/components/lines/horizontal';
+import { ButtonsUpload } from '@/components/buttons/upload';
 
 const SEE_VIDEO_TITLE = 'See Video Example';
 
@@ -279,7 +279,7 @@ export default function QuotePage() {
                 )}
               >
                 <div className="relative w-full">
-                  <UploadButton
+                  <ButtonsUpload
                     onUploadSuccess={handleUploadSuccess}
                     inputId="imageUpload"
                   />

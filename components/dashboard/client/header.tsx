@@ -23,7 +23,7 @@ export const DashboardClientHeader: FC<TProps> = (
     >
       <h3 className="typography-form-title">Your Quotes</h3>
       <InputsSelect
-        name="quote-change"
+        name="client-quote"
         placeholder="Select Quote"
         {...props}
       />

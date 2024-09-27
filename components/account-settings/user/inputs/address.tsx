@@ -6,7 +6,7 @@ import { InputsText } from '@/components/inputs/text';
 type TProps = TInputProps;
 export const ComponentsAccountSettingsUserInputsAddress: FC<
   TProps
-> = ({ ...props }) => {
+> = (props) => {
   const { address, dispatchAddress, addressInputRef } =
     useAccountSettings();
 
@@ -20,26 +20,8 @@ export const ComponentsAccountSettingsUserInputsAddress: FC<
           dispatchAddress(event.target.value)
         }
         required
+        {...props}
       />
-      {/* <label
-          htmlFor="address"
-          className="block text-md font-medium text-gray-700"
-        >
-          Address
-        </label> */}
-      {/* <input
-          type="text"
-          id="address"
-          ref={addressInputRef}
-          value={address}
-          onChange={(event) =>
-            dispatchAddress(event.target.value)
-          }
-          placeholder="Enter your address"
-          required
-          className="p-2 border rounded w-full"
-          {...props}
-        /> */}
     </div>
   );
 };

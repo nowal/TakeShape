@@ -1,53 +1,33 @@
-// UploadButton.tsx
-import React, { ChangeEvent, useState } from 'react';
-import firebase from '../../lib/firebase';
-import { getStorage } from 'firebase/storage';
+// ButtonsUpload.tsx
+import React, { ChangeEvent, FC, useState } from 'react';
 import { ButtonsCvaInput } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 
-type UploadButtonProps = {
+export type TButtonsUploadProps = {
   onUploadSuccess: (file: File) => void;
   inputId: string;
 };
 
-export const UploadButton: React.FC<UploadButtonProps> = ({
+export const ButtonsUpload: FC<TButtonsUploadProps> = ({
   onUploadSuccess,
   inputId,
 }) => {
   const [isFocus, setFocus] = useState(false);
-
   const [uploading, setUploading] = useState(false);
-  const storage = getStorage(firebase);
-
-  /*const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-  
-      setUploading(true);
-      const fileRef = storageRef(storage, `uploads/${file.name}`);
-  
-      try {
-        await uploadBytes(fileRef, file);
-        console.log('Uploaded to Firebase:', file.name);
-        const fileUrl = await getDownloadURL(fileRef);
-        onUploadSuccess(fileUrl);
-        console.log('Hello3');
-        console.log('File URL:', fileUrl);
-        // You can now use fileUrl for further actions, e.g., save to state, display the image, etc.
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      } finally {
-        setUploading(false);
-      }
-    };*/
 
   const handleFileSelection = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onUploadSuccess(file); // Pass the file to the parent component
+    try {
+      setUploading(true);
+      const file = event.target.files?.[0];
+      if (file) {
+        onUploadSuccess(file); // Pass the file to the parent component
+      }
+      setUploading(false);
+    } catch (error) {
+      console.error(error);
     }
   };
   const title = uploading

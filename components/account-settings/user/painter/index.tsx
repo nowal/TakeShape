@@ -42,7 +42,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           Range (miles)
         </h3>
         <InputsSelect
-          name="range"
+          name="painter-range"
           value={range.toString()}
           onValueChange={(_, value) => {
             dispatchRange(Number(value));

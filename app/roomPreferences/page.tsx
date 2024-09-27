@@ -30,7 +30,7 @@ import {
 } from 'firebase/firestore';
 import { DashboardPainter } from '../../components/dashboard/painter';
 import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
-import {PainterCard} from '../../components/painter-card';
+import { PainterCard } from '../../components/painter-card';
 import RoomCard from '@/components/room-card';
 import {
   TTimestampPair,
@@ -971,7 +971,9 @@ const RoomPreferences = () => {
     <div className="dashboard flex flex-col items-center mt-10 w-full">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       {isPainter ? (
-        <DashboardPainter />
+        <DashboardPainter
+        // JobInfoFc={JobInfo}
+        />
       ) : (
         <div className="dashboard-content flex flex-col items-center w-full max-w-4xl mb-16">
           {userData && userData.video && (

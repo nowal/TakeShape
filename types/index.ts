@@ -58,7 +58,7 @@ export type TTimestampPair = {
   dontPaintAtAll?: boolean;
 };
 
-export type Job = {
+export type TJob = {
   jobId: string;
   video: string;
   phoneNumber?: string;

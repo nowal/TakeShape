@@ -11,7 +11,6 @@ import type { FC } from 'react';
 
 export const DashboardClient: FC = () => {
   const router = useRouter();
-
   const dashboard = useDashboard();
   const {
     userImageList,
@@ -21,8 +20,8 @@ export const DashboardClient: FC = () => {
     selectedUserImage,
   } = dashboard;
 
-  const preferencesTitle = 'Your Quote’s Preferences';
-  
+  const preferencesTitle = `Your Quote&apos;s Preferences`;
+
   return (
     <div
       className={cx(
@@ -40,7 +39,10 @@ export const DashboardClient: FC = () => {
         <DashboardClientUploading />
       )}
       <div
-        className={cx("flex flex-col items-stretch p-5 bg-white rounded-2xl",'gap-5')}
+        className={cx(
+          'flex flex-col items-stretch p-5 bg-white rounded-2xl',
+          'gap-5'
+        )}
         style={{
           boxShadow:
             '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
@@ -62,9 +64,7 @@ export const DashboardClient: FC = () => {
               {userData?.title}
             </h4>
           </div>
-          <div>
-            {userData?.reAgent}
-          </div>
+          <div>{userData?.reAgent}</div>
         </div>
         <div
           className={cx(

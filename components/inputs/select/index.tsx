@@ -1,7 +1,10 @@
 import { FC } from 'react';
 import { cx } from 'class-variance-authority';
 import * as Select from '@radix-ui/react-select';
-import { TValueChangeHandler } from '@/components/inputs/types';
+import {
+  TSelectValue,
+  TValueChangeHandler,
+} from '@/components/inputs/types';
 import {
   InputsSelectListIdTitle,
   TInputsSelectListIdTitleProps,
@@ -14,9 +17,12 @@ import {
 import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
 
 export type TInputsSelectRootProps = Select.SelectProps;
-export type TBaseInputsSelectProps = Pick<
-  TInputsSelectRootProps,
-  'defaultValue' | 'value' | 'required'
+export type TBaseInputsSelectProps = Omit<
+  Pick<
+    TInputsSelectRootProps,
+    'defaultValue' | 'value' | 'required'
+  >,
+  'onValueChange'
 >;
 export type TInputsSelectProps = TBaseInputsSelectProps &
   TResolveValuesConfig & {
@@ -41,7 +47,9 @@ export const InputsSelect = ({
   const values = resolveValues({ idValues, basicValues });
   return (
     <Select.Root
-      onValueChange={(value) => onValueChange(name, value)}
+      onValueChange={(value: string) =>
+        onValueChange(name, value)
+      }
       {...props}
     >
       <Select.Trigger
