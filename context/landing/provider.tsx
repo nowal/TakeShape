@@ -3,15 +3,11 @@ import { useLandingState } from '@/context/landing/state';
 import {
   createContext,
   FC,
-  MutableRefObject,
   PropsWithChildren,
   useContext,
-  useRef,
 } from 'react';
 
-type TLandingContext = ReturnType<
-  typeof useLandingState
->
+type TLandingContext = ReturnType<typeof useLandingState>;
 export const LANDING = createContext<TLandingContext>(
   {} as TLandingContext
 );

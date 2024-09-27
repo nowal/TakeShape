@@ -17,7 +17,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from 'firebase/storage';
-import firebase from '../../lib/firebase';
+import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
 import { isPainterAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed

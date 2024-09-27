@@ -16,7 +16,7 @@ import {
   doc,
   getDoc,
 } from 'firebase/firestore';
-import firebase from '../../lib/firebase';
+import firebase from '@/lib/firebase';
 import {
   getStorage,
   ref as storageRef,

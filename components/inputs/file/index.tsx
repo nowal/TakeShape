@@ -6,13 +6,13 @@ import {
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 
-export type TButtonsUploadProps =
+export type TInputsFileProps =
   Partial<TButtonsCvaInputProps> & {
     title: string;
     onFile(file: File): void;
   };
 
-export const ButtonsUpload: FC<TButtonsUploadProps> = ({
+export const InputsFile: FC<TInputsFileProps> = ({
   onFile,
   inputProps,
   title,

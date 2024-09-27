@@ -2,7 +2,7 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { cx } from 'class-variance-authority';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
-import { ButtonsUpload } from '@/components/buttons/upload';
+import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
 import { QuoteInstructions } from '@/components/quote/instructions';
 import { useQuote } from '@/context/quote/provider';
@@ -63,7 +63,7 @@ const QuotePage = () => {
               >
                 <div className="relative w-full">
                   <div className="h-[7.25rem]">
-                    <ButtonsUpload
+                    <InputsFile
                       title={
                         isUploading
                           ? 'Uploading...'
