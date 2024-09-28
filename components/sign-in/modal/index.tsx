@@ -52,14 +52,12 @@ export const SignInModal: FC = () => {
                 value={email}
                 onChange={onEmailChange}
                 placeholder="Email Address"
-                classRounded="rounded-lg"
               />
               <InputsText
                 type="password"
                 value={password}
                 onChange={onPasswordChange}
                 placeholder="Password"
-                classRounded="rounded-lg"
               />
               {errorMessage && (
                 <NotificationsHighlight>

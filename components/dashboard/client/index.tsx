@@ -20,7 +20,7 @@ export const DashboardClient: FC = () => {
     selectedUserImage,
   } = dashboard;
 
-  const preferencesTitle = `Your Quote&apos;s Preferences`;
+  const preferencesTitle = `Your Quote's Preferences`;
 
   return (
     <div

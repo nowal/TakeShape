@@ -1,51 +1,47 @@
-// ButtonsUpload.tsx
-import React, { ChangeEvent, FC, useState } from 'react';
-import { ButtonsCvaInput } from '@/components/cva/input';
+import { ChangeEvent, FC, useState } from 'react';
+import {
+  ButtonsCvaInput,
+  TButtonsCvaInputProps,
+} from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 
-export type TButtonsUploadProps = {
-  onUploadSuccess: (file: File) => void;
-  inputId: string;
-};
+export type TInputsFileProps =
+  Partial<TButtonsCvaInputProps> & {
+    title: string;
+    onFile(file: File): void;
+  };
 
-export const ButtonsUpload: FC<TButtonsUploadProps> = ({
-  onUploadSuccess,
-  inputId,
+export const InputsFile: FC<TInputsFileProps> = ({
+  onFile,
+  inputProps,
+  title,
+  children,
+  ...props
 }) => {
   const [isFocus, setFocus] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const handleFileSelection = (
+  const handleChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
     try {
-      setUploading(true);
       const file = event.target.files?.[0];
       if (file) {
-        onUploadSuccess(file); // Pass the file to the parent component
+        onFile(file); // Pass the file to the parent component
       }
-      setUploading(false);
     } catch (error) {
       console.error(error);
     }
   };
-  const title = uploading
-    ? 'Uploading...'
-    : 'Upload your video';
 
   return (
-    <div className="h-[7.25rem]">
+    <>
       <ButtonsCvaInput
         title={title}
-        onClick={() =>
-          document.getElementById(inputId)?.click()
-        }
         inputProps={{
           type: 'file',
-          id: inputId,
           accept: 'video/*',
-          onChange: handleFileSelection,
+          onChange: handleChange,
           onMouseEnter: () => {
             setFocus(true);
           },
@@ -76,21 +72,21 @@ export const ButtonsUpload: FC<TButtonsUploadProps> = ({
           onDrop: () => {
             setFocus(false);
           },
+          ...inputProps,
         }}
         style={{ display: 'none' }}
-        isDisabled={uploading}
         intent="ghost-1"
         size="fill"
         rounded="lg"
         icon={{ Leading: IconsUpload }}
-        layout={false}
-        center={true}
+        center
+        {...props}
       >
-        <span className="typography-page-subtitle">
+        <span className="relative typography-page-subtitle">
           {title}
         </span>
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
-    </div>
+    </>
   );
 };

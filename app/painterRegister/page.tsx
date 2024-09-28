@@ -19,10 +19,14 @@ import {
   uploadBytes,
   getDownloadURL,
 } from 'firebase/storage';
-import firebase from '../../lib/firebase';
+import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
 import { painterInfoAtom, isPainterAtom } from '../../atom';
 import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { InputsFile } from '@/components/inputs/file';
+import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { IconsUpload } from '@/components/icons/upload';
+import { cx } from 'class-variance-authority';
 
 export default function PainterRegisterPage() {
   const [businessName, setBusinessName] = useState('');
@@ -302,19 +306,14 @@ export default function PainterRegisterPage() {
     }
   };
 
-  const handleLogoChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLogo(file);
+  const handleLogoChange = (file: File) => {
+    setLogo(file);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -444,22 +443,14 @@ export default function PainterRegisterPage() {
         <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
       </div> */}
 
-        <div>
+        {/* <div>
           <label
             htmlFor="logo"
             className="block text-md font-medium text-gray-700"
           >
             Company Logo (optional)
           </label>
-          {logoPreview && (
-            <Image
-              src={logoPreview}
-              alt="Company Logo Preview"
-              className="mb-2 w-24 h-24 object-cover rounded-full"
-              width="96"
-              height="96"
-            />
-          )}
+       
           <input
             type="file"
             id="logo"
@@ -467,8 +458,35 @@ export default function PainterRegisterPage() {
             accept="image/png, image/jpeg, application/pdf" // Restrict file types
             className="p-2 border rounded w-full"
           />
+        </div> */}
+        <div className="relative h-[96px]">
+          <InputsFile
+            title="Company Logo (optional)"
+            onFile={handleLogoChange}
+            inputProps={{
+              accept: 'image/*',
+            }}
+            classValue={cx(
+              'px-4',
+              logoPreview ? 'gap-6' : 'gap-2'
+            )}
+            icon={{
+              Leading: logoPreview
+                ? () => (
+                    <PicOutline>
+                      <Image
+                        src={logoPreview}
+                        alt="Company Logo Preview"
+                        className="mb-2 w-24 h-24 object-cover rounded-full"
+                        width="96"
+                        height="96"
+                      />
+                    </PicOutline>
+                  )
+                : IconsUpload,
+            }}
+          />
         </div>
-
         <div>
           <label
             htmlFor="email"

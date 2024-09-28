@@ -13,6 +13,7 @@ import { SignInModal } from '@/components/sign-in/modal';
 import { DashboardProvider } from '@/context/dashboard/provider';
 import { AccountSettingsProvider } from '@/context/account-settings/provider';
 import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
+import { QuoteProvider } from '@/context/quote/provider';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -38,40 +39,52 @@ export default function RootLayout({
                     <Suspense
                       fallback={<div>Loading...</div>}
                     >
-                      <DashboardProvider>
+                      <QuoteProvider>
                         <Suspense
                           fallback={<div>Loading...</div>}
                         >
-                          <DashboardPainterProvider>
+                          <DashboardProvider>
                             <Suspense
                               fallback={
                                 <div>Loading...</div>
                               }
                             >
-                              <ViewportProvider>
-                                <ShellHeader />
-                                <div className="relative min-h-[400px]">
-                                  <Suspense
-                                    fallback={
-                                      <div>Loading...</div>
-                                    }
-                                  >
-                                    {children}
-                                  </Suspense>
-                                </div>
-                                <ShellFooter />
+                              <DashboardPainterProvider>
                                 <Suspense
                                   fallback={
                                     <div>Loading...</div>
                                   }
                                 >
-                                  <SignInModal />
+                                  <ViewportProvider>
+                                    <ShellHeader />
+                                    <div className="relative min-h-[400px]">
+                                      <Suspense
+                                        fallback={
+                                          <div>
+                                            Loading...
+                                          </div>
+                                        }
+                                      >
+                                        {children}
+                                      </Suspense>
+                                    </div>
+                                    <ShellFooter />
+                                    <Suspense
+                                      fallback={
+                                        <div>
+                                          Loading...
+                                        </div>
+                                      }
+                                    >
+                                      <SignInModal />
+                                    </Suspense>
+                                  </ViewportProvider>
                                 </Suspense>
-                              </ViewportProvider>
+                              </DashboardPainterProvider>
                             </Suspense>
-                          </DashboardPainterProvider>
+                          </DashboardProvider>
                         </Suspense>
-                      </DashboardProvider>
+                      </QuoteProvider>
                     </Suspense>
                   </AuthProvider>
                 </Suspense>

@@ -248,12 +248,8 @@ export const useDashboardPainterState = () => {
     fetchPainterData();
   }, [user, firestore]);
 
-  const handleFileChange = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    }
+  const handleFileChange = (file: File) => {
+    setSelectedFile(file);
   };
 
   const handlePriceChange = (
