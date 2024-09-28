@@ -218,7 +218,10 @@ export const useAccountSettingsState = (
     initAutocomplete();
   }, []);
 
-  const geocodeAddress = (address: string, nextRange = range) => {
+  const geocodeAddress = (
+    address: string,
+    nextRange = range
+  ) => {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
       if (
@@ -241,34 +244,22 @@ export const useAccountSettingsState = (
     });
   };
 
-  const handleProfilePictureChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setNewProfilePicture(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewProfilePicturePreview(
-          reader.result as string
-        );
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleProfilePictureChange = (file: File) => {
+    setNewProfilePicture(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewProfilePicturePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleLogoChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLogo(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleLogoChange = (file: File) => {
+    setLogo(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (

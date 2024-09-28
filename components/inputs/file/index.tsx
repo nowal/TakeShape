@@ -16,6 +16,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
   onFile,
   inputProps,
   title,
+  children,
   ...props
 }) => {
   const [isFocus, setFocus] = useState(false);
@@ -81,7 +82,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
         center
         {...props}
       >
-        <span className="typography-page-subtitle">
+        <span className="relative typography-page-subtitle">
           {title}
         </span>
       </ButtonsCvaInput>

@@ -2,19 +2,15 @@ import type { FC } from 'react';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
+import { InputsFile } from '@/components/inputs/file';
 
 type TProps = TJob;
 export const DashboardPainterJobForm: FC<TProps> = (
   job
 ) => {
   const dashboardPainter = useDashboardPainter();
-  const {
-    isLoading,
-    price,
-    onPriceSubmit,
-    onPriceChange,
-    onFileChange,
-  } = dashboardPainter;
+  const { isLoading, price, onPriceSubmit, onFileChange } =
+    dashboardPainter;
   const title = isLoading
     ? 'Submitting...'
     : 'Submit Quote';
@@ -26,7 +22,7 @@ export const DashboardPainterJobForm: FC<TProps> = (
       }
       className="mt-4 w-full lg:w-auto"
     >
-      <label className="flex flex-row">
+      {/* <label className="flex flex-row">
         <input
           type="text"
           name="price"
@@ -35,14 +31,23 @@ export const DashboardPainterJobForm: FC<TProps> = (
           value={price}
           onChange={onPriceChange}
         />
-        Invoice (optional)
         <input
           type="file"
           onChange={onFileChange}
           accept="application/pdf"
           className="w-full lg:w-auto"
         />
-      </label>
+      </label> */}
+      <div className="relative h-[96px]">
+        <InputsFile
+          title="Invoice (optional)"
+          onFile={onFileChange}
+          inputProps={{
+            accept: 'application/pdf',
+          }}
+        />
+      </div>
+
       <ButtonsCvaButton
         title={title}
         type="submit"

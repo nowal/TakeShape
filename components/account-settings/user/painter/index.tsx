@@ -6,6 +6,9 @@ import { ComponentsAccountSettingsUserInputsPhoneNumber } from '@/components/acc
 import { ComponentsAccountSettingsPainterMarker } from '@/components/account-settings/user/painter/marker';
 import { InputsText } from '@/components/inputs/text';
 import { InputsSelect } from '@/components/inputs/select';
+import { InputsFile } from '@/components/inputs/file';
+import { IconsUpload } from '@/components/icons/upload';
+import { PicOutline } from '@/components/account-settings/user/pic-outline';
 
 const RANGE_VALUES = [10, 20, 30, 40, 50] as const;
 
@@ -82,28 +85,29 @@ export const ComponentsAccountSettingsPainter: FC = () => {
         />
       )}
       <ComponentsAccountSettingsUserInputsPhoneNumber />
-      <div>
-        <label
-          htmlFor="logo"
-          className="block text-md font-medium text-gray-700"
-        >
-          Company Logo (optional)
-        </label>
-        {logoSrc && (
-          <Image
-            src={logoSrc}
-            alt="Company Logo"
-            className="mb-2 w-24 h-24 object-cover rounded-full"
-            width="96"
-            height="96"
-          />
-        )}
-        <input
-          type="file"
-          id="logo"
-          accept="image/png, image/jpeg, application/pdf"
-          onChange={onLogoChange}
-          className="p-2 border rounded w-full"
+      <div className="relative h-[96px]">
+        <InputsFile
+          title="Company Logo (optional)"
+          onFile={onLogoChange}
+          inputProps={{
+            accept: 'image/png, image/jpeg',
+          }}
+          classValue="px-4 gap-6"
+          center={false}
+          icon={{
+            Leading: logoSrc
+              ? () => (
+                  <PicOutline>
+                    <Image
+                      src={logoSrc}
+                      alt="Company Logo"
+                      width="64"
+                      height="64"
+                    />
+                  </PicOutline>
+                )
+              : IconsUpload,
+          }}
         />
       </div>
     </>

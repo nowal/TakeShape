@@ -1,13 +1,12 @@
 'use client';
 
-
+import { useState } from 'react';
+import Image from 'next/image';
 import {
   getAuth,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from "next/image";
 import {
   getFirestore,
   doc,
@@ -20,6 +19,10 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { InputsFile } from '@/components/inputs/file';
+import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { IconsUpload } from '@/components/icons/upload';
+import { cx } from 'class-variance-authority';
 
 export default function ReAgentSignup() {
   const [email, setEmail] = useState('');
@@ -34,18 +37,13 @@ export default function ReAgentSignup() {
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
-  const handleProfilePictureChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setProfilePicture(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicturePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleProfilePictureChange = (file: File) => {
+    setProfilePicture(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfilePicturePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (
@@ -228,28 +226,45 @@ export default function ReAgentSignup() {
           />
         </div>
 
-        <div>
-          <label
+        <div className="relative h-[96px]">
+          {/* <label
             htmlFor="profilePicture"
             className="block text-md font-medium text-gray-700"
           >
-            Profile Picture (optional)
           </label>
-          {profilePicturePreview && (
-            <Image
-              src={profilePicturePreview}
-              alt="Profile Preview"
-              className="mb-2 w-24 h-24 object-cover rounded-full"
-              width="96"
-              height="96"
-            />
-          )}
           <input
             type="file"
             id="profilePicture"
             accept="image/*"
             onChange={handleProfilePictureChange}
             className="p-2 border rounded w-full"
+          /> */}
+
+          <InputsFile
+            title="Profile Picture (optional)"
+            onFile={handleProfilePictureChange}
+            inputProps={{
+              accept: 'image/*',
+            }}
+            classValue={cx(
+              'px-4',
+              profilePicturePreview ? 'gap-6' : 'gap-2'
+            )}
+            icon={{
+              Leading: profilePicturePreview
+                ? () => (
+                    <PicOutline>
+                      <Image
+                        src={profilePicturePreview}
+                        alt="Profile Preview"
+                        className="mb-2 w-24 h-24 object-cover rounded-full"
+                        width="96"
+                        height="96"
+                      />
+                    </PicOutline>
+                  )
+                : IconsUpload,
+            }}
           />
         </div>
 
