@@ -13,27 +13,15 @@ export const ComponentsAccountSettingsAgent: FC = () => {
   return (
     <>
       <ComponentsAccountSettingsUserInputsName />
-      <div className="relative">
-        {/* <label
-          htmlFor="profilePicture"
-          className="block text-md font-medium text-gray-700"
-        >
-          Profile Picture
-        </label>
-        <input
-          type="file"
-          id="profilePicture"
-          accept="image/png, image/jpeg"
-          onChange={onProfilePictureChange}
-          className="p-2 border rounded w-full"
-        /> */}
+      <div className="relative h-[96px]">
         <InputsFile
           title="Profile Picture"
           onFile={onProfilePictureChange}
           inputProps={{
             accept: 'image/*',
           }}
-          classValue="px-4 gap-6"
+          classValue="px-4 gap-4"
+          center={false}
           icon={{
             Leading: profilePicSrc
               ? () => (
