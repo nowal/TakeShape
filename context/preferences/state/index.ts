@@ -13,7 +13,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { defaultPreferencesAtom } from '../../../atom';
+import { defaultPreferencesAtom } from '@/atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   PAINT_PREFERENCES_DEFAULTS,
@@ -21,9 +21,9 @@ import {
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/preferences/row/yes-no';
-import { usePreferencesAddress } from '@/components/preferences/hooks/address';
+import { usePreferencesStateAddress } from '@/context/preferences/state/address';
 
-export const usePreferences = () => {
+export const usePreferencesState = () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const router = useRouter();
@@ -52,7 +52,7 @@ export const usePreferences = () => {
     searchParams.get('userImageId') ||
     sessionStorage.getItem('userImageId');
 
-  usePreferencesAddress({
+    usePreferencesStateAddress({
     loadingState,
     firestore,
     userImageId,

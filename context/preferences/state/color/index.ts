@@ -1,10 +1,10 @@
 'use client';;
 import { defaultPreferencesAtom } from '@/atom';
-import { TPreferencesColorConfig, TPaintBrand, TColor } from '@/components/preferences/hooks/color/types';
+import { TPreferencesColorConfig, TPaintBrand, TColor } from '@/context/preferences/state/color/types';
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 
-export const usePreferencesColor = (config:TPreferencesColorConfig) => {
+export const usePreferencesStateColor = (config:TPreferencesColorConfig) => {
   const [defaultPreferences, setPreferences] = useAtom(
     defaultPreferencesAtom
   );
