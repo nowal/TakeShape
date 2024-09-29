@@ -294,6 +294,7 @@ export const usePreferences = () => {
     dispatchShowCeilingFields: setShowCeilingFields,
     dispatchShowTrimFields: setShowTrimFields,
     dispatchMoveFurniture: setMoveFurniture,
+    dispatchPreferences:setPreferences,
     isLaborAndMaterials: isLaborAndMaterials === true,
     isShowCeilingFields,
     isShowTrimFields,

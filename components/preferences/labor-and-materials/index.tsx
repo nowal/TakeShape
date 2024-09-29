@@ -25,7 +25,8 @@ export const PreferencesLaborAndMaterials: FC<TProps> = ({
             name="color"
             placeholder="E.g. white"
             classValue="border border-gray-1"
-            classPadding="px-6 py-2.5 rounded-2xl"
+            classPadding="px-6 py-2.5"
+            classRounded="rounded-4xl"
             value={props.color || ''}
             onChange={props.onChange}
           />

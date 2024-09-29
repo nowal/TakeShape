@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 
+
 type TConfig = {
   loadingState: [boolean, Dispatch<boolean>];
   firestore: Firestore;
