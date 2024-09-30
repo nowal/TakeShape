@@ -52,7 +52,7 @@ export const usePreferencesState = () => {
     searchParams.get('userImageId') ||
     sessionStorage.getItem('userImageId');
 
-    usePreferencesStateAddress({
+  usePreferencesStateAddress({
     loadingState,
     firestore,
     userImageId,
@@ -294,7 +294,7 @@ export const usePreferencesState = () => {
     dispatchShowCeilingFields: setShowCeilingFields,
     dispatchShowTrimFields: setShowTrimFields,
     dispatchMoveFurniture: setMoveFurniture,
-    dispatchPreferences:setPreferences,
+    dispatchPreferences: setPreferences,
     isLaborAndMaterials: isLaborAndMaterials === true,
     isShowCeilingFields,
     isShowTrimFields,
