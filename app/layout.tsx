@@ -15,7 +15,7 @@ import { AccountSettingsProvider } from '@/context/account-settings/provider';
 import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
 import { QuoteProvider } from '@/context/quote/provider';
 import { PreferencesProvider } from '@/context/preferences/provider';
-import { ContextProviders } from '@/context';
+import { ContextProviders } from '@/context/providers';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
