@@ -1,6 +1,6 @@
 import { InputsRadioYesNo } from '@/components/inputs/radio/yes-no';
 import { TChangeHandler } from '@/components/inputs/types';
-import { PreferencesRow } from '@/components/preferences/row';
+import { InputsRow } from '@/components/inputs/row';
 import { TClassValueProps } from '@/types/dom';
 import type { FC } from 'react';
 export const RADIO_VALUE_YES = 'yes';
@@ -15,7 +15,7 @@ type TProps = TClassValueProps & {
   children: string;
   onChange: TChangeHandler;
 };
-export const PreferencesRowYesNo: FC<TProps> = ({
+export const InputsRadioYesNoRow: FC<TProps> = ({
   isChecked,
   name,
   children,
@@ -23,7 +23,7 @@ export const PreferencesRowYesNo: FC<TProps> = ({
   classValue,
 }) => {
   return (
-    <PreferencesRow
+    <InputsRow
       input={
         <InputsRadioYesNo
           name={name}
@@ -47,6 +47,6 @@ export const PreferencesRowYesNo: FC<TProps> = ({
       classValue={classValue}
     >
       {children}
-    </PreferencesRow>
+    </InputsRow>
   );
 };

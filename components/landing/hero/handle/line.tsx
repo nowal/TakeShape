@@ -8,6 +8,7 @@ export const LandingHeroHandleLine: FC<TProps> = ({
   x,
 }) => {
   const viewport = useViewport();
+  
   return (
     <div className="absolute bottom-0 h-0 left-0 w-full z-0">
       <motion.div

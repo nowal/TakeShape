@@ -13,17 +13,22 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { defaultPreferencesAtom } from '../../../atom';
+import { defaultPreferencesAtom } from '@/atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   PAINT_PREFERENCES_DEFAULTS,
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
+  PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
-import { RADIO_VALUE_YES } from '@/components/preferences/row/yes-no';
-import { usePreferencesAddress } from '@/components/preferences/hooks/address';
+import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
+import { usePreferencesStateAddress } from '@/context/preferences/state/address';
+import { usePreferencesStateColor } from '@/context/preferences/state/color';
+import { TPaintPreferences } from '@/types';
+import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
+import { useDebounce } from '@/hooks/use-debounce';
 
-export const usePreferences = () => {
+export const usePreferencesState = () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const router = useRouter();
@@ -35,31 +40,41 @@ export const usePreferences = () => {
   );
   const [isShowCeilingFields, setShowCeilingFields] =
     useState(defaultPreferences.ceilings || false);
+
   const [isShowTrimFields, setShowTrimFields] = useState(
     defaultPreferences.trim || false
   );
   const [isLaborAndMaterials, setLaborAndMaterial] =
     useState<boolean>(true);
+
   const [specialRequests, setSpecialRequests] =
     useState<string>('');
+
   const [isMoveFurniture, setMoveFurniture] =
     useState<boolean>(false);
 
   const loadingState = useState<boolean>(false);
+  const [isLoading, setLoading] = loadingState;
+
   const [isPopup, setShowPopup] = useState(false);
 
   const userImageId =
-    searchParams.get('userImageId') ||
-    sessionStorage.getItem('userImageId');
+    typeof window !== 'undefined' &&
+    (searchParams.get('userImageId') ||
+      sessionStorage.getItem('userImageId'));
 
-  usePreferencesAddress({
-    loadingState,
-    firestore,
-    userImageId,
-    currentUser: auth.currentUser,
+  const preferencesStateAddress =
+    usePreferencesStateAddress({
+      loadingState,
+      firestore,
+      userImageId,
+      currentUser: auth.currentUser,
+    });
+
+  const preferencesStateColor = usePreferencesStateColor({
+    dispatchPreferences: setPreferences,
   });
-
-  const [isLoading, setLoading] = loadingState;
+  const handleDebounce = useDebounce();
 
   useEffect(() => {
     setPreferences({
@@ -116,8 +131,8 @@ export const usePreferences = () => {
         );
         if (paintPrefDocSnap.exists()) {
           setPreferences({
-            laborAndMaterial: isLaborAndMaterials,
             ...PAINT_PREFERENCES_DEFAULTS,
+            laborAndMaterial: isLaborAndMaterials,
             ...paintPrefDocSnap.data(),
           });
           setShowCeilingFields(
@@ -132,8 +147,8 @@ export const usePreferences = () => {
     } else {
       setLaborAndMaterial(true); // Default to labor and material if no document found
       setPreferences({
-        laborAndMaterial: isLaborAndMaterials,
         ...PAINT_PREFERENCES_DEFAULTS,
+        laborAndMaterial: isLaborAndMaterials,
       });
     }
   };
@@ -157,53 +172,17 @@ export const usePreferences = () => {
     );
 
     // Build the updatedPreferences object conditionally
-    const updatedPreferences = {
-      laborAndMaterial: isLaborAndMaterials, // Add isLaborAndMaterials field
-      color:
-        (
-          document.getElementsByName(
-            'color'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.color,
-      finish:
-        (
-          document.getElementsByName(
-            'finish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.finish,
-      paintQuality:
-        (
-          document.getElementsByName(
-            'paintQuality'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.paintQuality,
-      ceilings: isShowCeilingFields,
-      trim: isShowTrimFields,
-      ceilingColor:
-        (
-          document.getElementsByName(
-            'ceilingColor'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.ceilingColor,
-      ceilingFinish:
-        (
-          document.getElementsByName(
-            'ceilingFinish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.ceilingFinish,
-      trimColor:
-        (
-          document.getElementsByName(
-            'trimColor'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.trimColor,
-      trimFinish:
-        (
-          document.getElementsByName(
-            'trimFinish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.trimFinish,
-    };
+    const updatedPreferences: TPaintPreferences =
+      resolvePreferencesCurrent({
+        defaultPreferences,
+        preferencesFlags: {
+          [PREFERENCES_NAME_BOOLEAN_CEILINGS]:
+            isShowCeilingFields,
+          [PREFERENCES_NAME_BOOLEAN_TRIM]: isShowTrimFields,
+          [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]:
+            isLaborAndMaterials,
+        },
+      });
 
     setPreferences(updatedPreferences);
 
@@ -259,6 +238,29 @@ export const usePreferences = () => {
     handleValueChange(name, value.toString());
   };
 
+  const handleColorValueChange = (
+    name: string,
+    color: string
+  ) => {
+    handleValueChange(name, color);
+  };
+
+  const handleColorChange = (
+    event:
+      | ChangeEvent<HTMLInputElement>
+      | ChangeEvent<HTMLSelectElement>
+  ) => {
+    const nextName = event.currentTarget.name;
+    const nextColor = event.currentTarget.value;
+    handleValueChange(nextName, nextColor);
+    // handleDebounce(() =>
+    //   preferencesStateColor.onColorSearch(
+    //     nextName,
+    //     nextColor
+    //   )
+    // );
+  };
+
   const handleLaborAndMaterialsChange = (
     value: boolean
   ) => {
@@ -286,6 +288,9 @@ export const usePreferences = () => {
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
       handleLaborAndMaterialsChange,
+    onColorChange: handleColorChange,
+    onColorValueChange: handleColorValueChange,
+
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
     specialRequests,
@@ -294,9 +299,12 @@ export const usePreferences = () => {
     dispatchShowCeilingFields: setShowCeilingFields,
     dispatchShowTrimFields: setShowTrimFields,
     dispatchMoveFurniture: setMoveFurniture,
+    dispatchPreferences: setPreferences,
     isLaborAndMaterials: isLaborAndMaterials === true,
     isShowCeilingFields,
     isShowTrimFields,
     ...defaultPreferences,
+    ...preferencesStateAddress,
+    ...preferencesStateColor,
   };
 };

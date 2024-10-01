@@ -13,7 +13,9 @@ type TConfig = {
   currentUser: Auth['currentUser'] | null;
   userImageId: any;
 };
-export const usePreferencesAddress = (config: TConfig) => {
+export const usePreferencesStateAddress = (
+  config: TConfig
+) => {
   const {
     loadingState: [isLoading, setLoading],
     currentUser,
@@ -68,4 +70,6 @@ export const usePreferencesAddress = (config: TConfig) => {
 
     updateUserImageDoc();
   }, [address]);
+
+  return { address, dispatchAddress: setAddress };
 };

@@ -5,11 +5,9 @@ export const PreferencesNotificationsTrimFinish: FC =
   () => {
     return (
       <NotificationsHighlight>
-        ?
-        <span className="tooltiptext">
-          This color and finish are the most standard for
-          trim, but you are welcome to pick your own.
-        </span>
+        {/* ? */}
+        This color and finish are the most standard for
+        trim, but you are welcome to pick your own.
       </NotificationsHighlight>
     );
   };

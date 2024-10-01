@@ -7,8 +7,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 
-type TConfig = any;
-export const useLandingState = (config?: TConfig) => {
+export const useLandingState = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [emailForSubscription, setEmailForSubscription] =
     useState('');

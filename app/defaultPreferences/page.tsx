@@ -8,31 +8,25 @@ import { PreferencesCeilingFields } from '@/components/preferences/ceiling-field
 import { PreferencesTrimFields } from '@/components/preferences/trim-fields';
 import { PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE } from '@/atom/constants';
 import { PreferencesFooter } from '@/components/preferences/footer';
-import { usePreferences } from '@/components/preferences/hooks';
+import { usePreferences } from '@/context/preferences/provider';
 import { PreferencesInitial } from '@/components/preferences/initial';
 import { PreferencesSpecialRequest } from '@/components/preferences/special-request';
 import { PreferencesNotificationsPaintPreferences } from '@/components/preferences/notifications/paint-preferences';
-import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
+import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
+import { PreferencesMoveFurniture } from '@/components/preferences/move-furniture';
 
 const Preferences: FC = () => {
   const preferences = usePreferences();
   const {
     isPopup,
-    isCeilingsPainted,
     isLaborAndMaterials,
     isLoading,
     isMoveFurniture,
-    isTrimAndDoorsPainted,
-    onChange,
-    onValueChange,
     onLaborAndMaterialsChange,
     onPreferenceSubmit,
     dispatchMoveFurniture,
     dispatchSpecialRequests,
     specialRequests,
-    isShowTrimFields,
-    isShowCeilingFields,
-    ...paintPreferences
   } = preferences;
   return (
     <div className="flex flex-col justify-start items-center">
@@ -76,15 +70,7 @@ const Preferences: FC = () => {
                   menu.
                 </h5>
                 <div className="h-4" />
-                <PreferencesLaborAndMaterials
-                  onValueChange={onValueChange}
-                  onChange={onChange}
-                  color={paintPreferences.color}
-                  finish={paintPreferences.finish}
-                  paintQuality={
-                    paintPreferences.paintQuality
-                  }
-                />
+                <PreferencesLaborAndMaterials />
               </>
             )}
             <div className="h-14" />
@@ -93,57 +79,13 @@ const Preferences: FC = () => {
             </h4>
             <div className="h-4" />
             <div className="flex flex-col items-stretch gap-2">
-              <PreferencesCeilingFields
-                isCeilingsPainted={isCeilingsPainted}
-                onValueChange={onValueChange}
-                onChange={onChange}
-                ceilingColor={paintPreferences.ceilingColor}
-                ceilingFinish={
-                  paintPreferences.ceilingFinish
-                }
-                isSelected={
-                  isShowCeilingFields && isLaborAndMaterials
-                }
-              />
-              <PreferencesTrimFields
-                isTrimAndDoorsPainted={
-                  isTrimAndDoorsPainted
-                }
-                trimColor={paintPreferences.trimColor}
-                trimFinish={paintPreferences.trimFinish}
-                onChange={onChange}
-                onValueChange={onValueChange}
-                isSelected={
-                  isShowTrimFields && isLaborAndMaterials
-                }
-              />
-              <PreferencesRowYesNo
-                name={
-                  PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE
-                }
-                isChecked={isMoveFurniture}
-                onChange={() => {
-                  dispatchMoveFurniture((prev) => !prev);
-                }}
-                classValue="fill-gray-base"
-              >
-                Will the painters need to move any
-                furniture?
-              </PreferencesRowYesNo>
+              <PreferencesCeilingFields />
+              <PreferencesTrimFields />
+              <PreferencesMoveFurniture />
             </div>
-            <PreferencesSpecialRequest
-              value={specialRequests}
-              onChange={(event) =>
-                dispatchSpecialRequests(
-                  event.currentTarget.value
-                )
-              }
-            />
+            <PreferencesSpecialRequest />
             <div className="h-5" />
-            <PreferencesFooter
-              isLoading={isLoading}
-              onPreferenceSubmit={onPreferenceSubmit}
-            />
+            <PreferencesFooter />
           </div>
         </div>
       </div>

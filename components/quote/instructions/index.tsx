@@ -42,7 +42,7 @@ export const QuoteInstructions: FC = () => {
         classValue="gap-2"
         isDisabled
       >
-        <span className="typography-quote-see-video">
+        <span className="typography-pink-xs">
           {SEE_VIDEO_TITLE}
         </span>
       </ButtonsCvaButton>

@@ -12,11 +12,14 @@ import { LandingHeroHandle } from '@/components/landing/hero/handle';
 import { TDimensionsReady } from '@/types/measure';
 import { LandingHeroHandleLine } from '@/components/landing/hero/handle/line';
 import { useObjectPosition } from '@/components/landing/hero/object-position';
+import { useViewport } from '@/context/viewport';
 
 type TProps = TDimensionsReady;
 export const LandingHero: FC<TProps> = ({ width }) => {
   const x = useMotionValue(width / 2);
   const objectPosition = useObjectPosition();
+  const viewport = useViewport();
+  const isDesktop = viewport.isDimensions && !viewport.isSm;
 
   return (
     <>
@@ -33,9 +36,9 @@ export const LandingHero: FC<TProps> = ({ width }) => {
         objectFit="cover"
         priority
       />
-      <LandingHeroHandleLine x={x} />
+      {isDesktop && <LandingHeroHandleLine x={x} />}
       <LandingHeroText />
-      <LandingHeroHandle x={x} />
+      {isDesktop && <LandingHeroHandle x={x} />}
     </>
   );
 };

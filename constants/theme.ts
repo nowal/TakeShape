@@ -12,10 +12,12 @@ export const SCREEN_SM = Number(
 export const SCREEN_XS = 450;
 export const SCREEN_XXS = 375;
 
-console.log(
-  SCREEN_LG,
-  SCREEN_MD,
-  SCREEN_SM,
-  SCREEN_XS,
-  SCREEN_XXS
-);
+// console.log(
+//   `screens
+// lg - ${SCREEN_LG},
+// md - ${SCREEN_MD},
+// sm - ${SCREEN_SM},
+// xs - ${SCREEN_XS},
+// xxs - ${SCREEN_XXS},
+// `
+// );

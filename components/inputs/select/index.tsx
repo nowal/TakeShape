@@ -6,14 +6,14 @@ import {
   TValueChangeHandler,
 } from '@/components/inputs/types';
 import {
-  InputsSelectListIdTitle,
-  TInputsSelectListIdTitleProps,
+  InputsSelectValues,
+  TInputsSelectValuesProps,
 } from '@/components/inputs/select/list/id-title';
 import { TInputsSelectListBasicProps } from '@/components/inputs/select/list/basic';
 import {
   resolveValues,
   TResolveValuesConfig,
-} from '@/components/inputs/select/resolve-values';
+} from '@/components/inputs/select/values';
 import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
 
 export type TInputsSelectRootProps = Select.SelectProps;
@@ -31,7 +31,7 @@ export type TInputsSelectProps = TBaseInputsSelectProps &
     placeholder: string;
     onValueChange: TValueChangeHandler;
     ListFc?: FC<
-      | TInputsSelectListIdTitleProps
+      | TInputsSelectValuesProps
       | TInputsSelectListBasicProps
     >;
   };
@@ -45,6 +45,7 @@ export const InputsSelect = ({
   ...props
 }: TInputsSelectProps) => {
   const values = resolveValues({ idValues, basicValues });
+
   return (
     <Select.Root
       onValueChange={(value: string) =>
@@ -81,6 +82,7 @@ export const InputsSelect = ({
         <Select.Content
           position="popper"
           className={cx(
+            'max-h-[40vh]',
             'column-stretch',
             'my-2',
             'rounded-xl',
@@ -94,7 +96,7 @@ export const InputsSelect = ({
           side="bottom"
         >
           <Select.Viewport>
-            <InputsSelectListIdTitle values={values} />
+            <InputsSelectValues values={values} />
           </Select.Viewport>
         </Select.Content>
       </Select.Portal>
