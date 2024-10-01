@@ -12,12 +12,11 @@ export const resolveValues = (
   config: TResolveValuesConfig
 ): TSelectIdItems => {
   if (config.basicValues) {
-    const basicToIdValues: TSelectIdTitleItem[] = (
-      config.basicValues ?? []
-    ).map((value) => ({
-      id: value.toString(),
-      title: value.toString(),
-    }));
+    const basicToIdValues: TSelectIdTitleItem[] =
+      config.basicValues.map((value) => ({
+        id: value.toString(),
+        title: value.toString(),
+      }));
     if (basicToIdValues) return basicToIdValues;
   }
 

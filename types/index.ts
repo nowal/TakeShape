@@ -91,9 +91,21 @@ export type TSelectIdTitleItem = {
 export type TSelectIdNameItem = {
   id: string;
   name: string;
+  count?: number;
 };
 
-export type TSelectIdItems = TSelectIdTitleItem[] | TSelectIdNameItem[]
+export type TSelectNameColorItem = {
+  hex: string;
+  name: 'NSU - Bernsteinrot / 303';
+};
+
+export type TSelectIdItems =
+  | TSelectIdTitleItem[]
+  | TSelectIdNameItem[]
+  | TSelectNameColorItem[]
+  | readonly TSelectIdTitleItem[]
+  | readonly TSelectIdNameItem[]
+  | readonly TSelectNameColorItem[];
 
 export type TUserImage = TSelectIdTitleItem;
 

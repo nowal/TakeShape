@@ -14,12 +14,14 @@ export const InputsRow: FC<TProps> = ({
   return (
     <div
       className={cx(
-        'relative flex flex-row items-center py-2 px-4 justify-between w-full',
+        'relative flex flex-row items-center py-2 px-4 justify-between w-full gap-2',
         classValue
       )}
     >
       <span>{children}</span>
-      {input}
+      <div className="grow flex flex-row justify-end min-w-0">
+        {input}
+      </div>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+import { TPaintBrand } from '@/context/preferences/state/color/types';
+
 export const PREFERENCES_NAME_BOOLEAN_CEILINGS = 'ceilings';
 export const PREFERENCES_NAME_BOOLEAN_TRIM = 'trim';
 export const PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL =
@@ -11,18 +13,15 @@ export const PREFERENCES_NAME_STRING_CEILING_COLOR =
 export const PREFERENCES_NAME_STRING_TRIM_COLOR =
   'trimColor';
 
-  export const PREFERENCES_NAME_STRING_CEILING_FINISH =
+export const PREFERENCES_NAME_STRING_CEILING_FINISH =
   'ceilingFinish';
 
-
-  export const PREFERENCES_NAME_STRING_TRIM_FINISH =
+export const PREFERENCES_NAME_STRING_TRIM_FINISH =
   'trimFinish';
 
-  export const PREFERENCES_NAME_STRING_FINISH =
-  'finish';
+export const PREFERENCES_NAME_STRING_FINISH = 'finish';
 
-
-  export const PREFERENCES_NAME_STRING_PAINT_QUALITY =
+export const PREFERENCES_NAME_STRING_PAINT_QUALITY =
   'paintQuality';
 
 export const PREFERENCES_NAME_BOOLEANS = [
@@ -61,8 +60,22 @@ export const UPLOAD_STATUS_RECORD = {
   error: 'error',
 } as const;
 
+export const NONE_NAME = 'None';
+
+export const NONE_SELECT_PAINT_BRAND: TPaintBrand = {
+  id: NONE_NAME,
+  name: NONE_NAME,
+  count: 0,
+};
+
 export const PREFERENCES_COLOR_BRAND_RECORD = {
-  [PREFERENCES_NAME_STRING_COLOR]: '',
-  [PREFERENCES_NAME_STRING_CEILING_COLOR]: '',
-  [PREFERENCES_NAME_STRING_TRIM_COLOR]: '',
+  [PREFERENCES_NAME_STRING_COLOR]: NONE_NAME,
+  [PREFERENCES_NAME_STRING_CEILING_COLOR]: NONE_NAME,
+  [PREFERENCES_NAME_STRING_TRIM_COLOR]: NONE_NAME,
+} as const;
+
+export const PREFERENCES_COLOR_BRAND_MATCHES_RECORD = {
+  [PREFERENCES_NAME_STRING_COLOR]: [],
+  [PREFERENCES_NAME_STRING_CEILING_COLOR]: [],
+  [PREFERENCES_NAME_STRING_TRIM_COLOR]: [],
 } as const;

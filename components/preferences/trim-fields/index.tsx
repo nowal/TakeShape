@@ -36,7 +36,7 @@ export const PreferencesTrimFields: FC = () => {
             input={
               <PreferencesInputsColorBrand
                 name="trimColor"
-                value={trimColor || 'White'}
+                value={trimColor}
                 onChange={onColorChange}
                 placeholder="Trim Color"
               />

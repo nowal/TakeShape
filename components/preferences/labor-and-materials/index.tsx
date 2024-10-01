@@ -21,7 +21,7 @@ export const PreferencesLaborAndMaterials: FC = () => {
         input={
           <PreferencesInputsColorBrand
             name="color"
-            value={color || ''}
+            value={color}
             onChange={onColorChange}
             placeholder="Wall Color"
           />

@@ -44,7 +44,6 @@ export const resolvePreferencesCurrent = ({
       defaultPreferences[
         PREFERENCES_NAME_STRING_PAINT_QUALITY
       ],
-
     [PREFERENCES_NAME_STRING_CEILING_COLOR]:
       (
         document.getElementsByName(

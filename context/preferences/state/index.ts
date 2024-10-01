@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -26,6 +26,7 @@ import { usePreferencesStateAddress } from '@/context/preferences/state/address'
 import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import { TPaintPreferences } from '@/types';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export const usePreferencesState = () => {
   const firestore = getFirestore();
@@ -39,6 +40,7 @@ export const usePreferencesState = () => {
   );
   const [isShowCeilingFields, setShowCeilingFields] =
     useState(defaultPreferences.ceilings || false);
+
   const [isShowTrimFields, setShowTrimFields] = useState(
     defaultPreferences.trim || false
   );
@@ -69,7 +71,10 @@ export const usePreferencesState = () => {
       currentUser: auth.currentUser,
     });
 
-  const preferencesStateColor = usePreferencesStateColor();
+  const preferencesStateColor = usePreferencesStateColor({
+    dispatchPreferences: setPreferences,
+  });
+  const handleDebounce = useDebounce();
 
   useEffect(() => {
     setPreferences({
@@ -233,12 +238,27 @@ export const usePreferencesState = () => {
     handleValueChange(name, value.toString());
   };
 
+  const handleColorValueChange = (
+    name: string,
+    color: string
+  ) => {
+    handleValueChange(name, color);
+  };
+
   const handleColorChange = (
-    event: ChangeEvent<HTMLInputElement>
+    event:
+      | ChangeEvent<HTMLInputElement>
+      | ChangeEvent<HTMLSelectElement>
   ) => {
     const nextName = event.currentTarget.name;
     const nextColor = event.currentTarget.value;
     handleValueChange(nextName, nextColor);
+    // handleDebounce(() =>
+    //   preferencesStateColor.onColorSearch(
+    //     nextName,
+    //     nextColor
+    //   )
+    // );
   };
 
   const handleLaborAndMaterialsChange = (
@@ -269,6 +289,8 @@ export const usePreferencesState = () => {
     onLaborAndMaterialsChange:
       handleLaborAndMaterialsChange,
     onColorChange: handleColorChange,
+    onColorValueChange: handleColorValueChange,
+
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
     specialRequests,
