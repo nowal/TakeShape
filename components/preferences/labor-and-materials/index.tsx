@@ -1,52 +1,59 @@
 import { InputsSelect } from '@/components/inputs/select';
-import { InputsText } from '@/components/inputs/text';
-import { TValueChangeHandler } from '@/components/inputs/types';
 import { LinesHorizontal } from '@/components/lines/horizontal';
-import { PreferencesRow } from '@/components/preferences/row';
-import { TPaintPreferences } from '@/types';
-import type { ChangeEventHandler, FC } from 'react';
+import { InputsRow } from '@/components/inputs/row';
+import { usePreferences } from '@/context/preferences/provider';
+import type { FC } from 'react';
+import { PreferencesInputsColorBrand } from '@/components/preferences/inputs/color-brand';
 
-type TProps = Pick<
-  TPaintPreferences,
-  'color' | 'finish' | 'paintQuality'
-> & {
-  onChange: ChangeEventHandler<HTMLInputElement>;
-  onValueChange: TValueChangeHandler;
-};
-export const PreferencesLaborAndMaterials: FC<TProps> = ({
-  onValueChange,
-  ...props
-}) => {
-  
+export const PreferencesLaborAndMaterials: FC = () => {
+  const preferences = usePreferences();
+  const {
+    paintQuality,
+    finish,
+    color,
+    onColorChange,
+    onValueChange,
+  } = preferences;
+
   return (
     <div className="flex flex-col items-stretch fill-gray-base">
-      <PreferencesRow
+      <InputsRow
         input={
-          <InputsText
+          <PreferencesInputsColorBrand
             name="color"
-            placeholder="E.g. white"
-            classValue="border border-gray-1"
-            classPadding="px-6 py-2.5"
-            classRounded="rounded-4xl"
-            value={props.color || ''}
-            onChange={props.onChange}
+            value={color || ''}
+            onChange={onColorChange}
+            placeholder="Wall Color"
           />
+          // <div className="flex flex-row gap-1">
+          //   <InputsSelect
+          //     placeholder="Select Brand"
+          //     name="color"
+          //     value={selectedBrandRecord.color || ''}
+          //     onValueChange={onSelectBrand}
+          //     idValues={paintBrands}
+          //   />
+          //   <InputsText
+          //     name="color"
+          //     placeholder="E.g. white"
+          //     classValue="border border-gray-1"
+          //     classPadding="px-6 py-2.5"
+          //     classRounded="rounded-4xl"
+          //     value={color || ''}
+          //     onChange={onColorChange}
+          //   />
+          // </div>
         }
       >
         Wall Color
-      </PreferencesRow>
+      </InputsRow>
       <LinesHorizontal colorClass="border-gray-10" />
-      {/* <InputsColorPickerInputControlled
-            name="color"
-            value={props.color || ''}
-            onValueChange={onValueChange}
-          /> */}
-      <PreferencesRow
+      <InputsRow
         input={
           <InputsSelect
             placeholder="Wall finish"
             name="finish"
-            value={props.finish || ''}
+            value={finish || ''}
             onValueChange={onValueChange}
             basicValues={[
               'Eggshell',
@@ -59,14 +66,14 @@ export const PreferencesLaborAndMaterials: FC<TProps> = ({
         }
       >
         Wall finish
-      </PreferencesRow>
+      </InputsRow>
       <LinesHorizontal colorClass="border-gray-10" />
-      <PreferencesRow
+      <InputsRow
         input={
           <InputsSelect
             placeholder="Paint Quality"
             name="paintQuality"
-            value={props.paintQuality || ''}
+            value={paintQuality || ''}
             onValueChange={onValueChange}
             basicValues={[
               'Medium Quality',
@@ -77,7 +84,7 @@ export const PreferencesLaborAndMaterials: FC<TProps> = ({
         }
       >
         Paint Quality
-      </PreferencesRow>
+      </InputsRow>
     </div>
   );
 };

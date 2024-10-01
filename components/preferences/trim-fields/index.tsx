@@ -1,63 +1,50 @@
 import { PREFERENCES_NAME_BOOLEAN_TRIM } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
-import { InputsText } from '@/components/inputs/text';
-import {
-  TChangeHandler,
-  TValueChangeHandler,
-} from '@/components/inputs/types';
-import { PreferencesRow } from '@/components/preferences/row';
-import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
-import { TPaintPreferences } from '@/types';
+import { InputsRow } from '@/components/inputs/row';
+import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
 import type { FC } from 'react';
+import { usePreferences } from '@/context/preferences/provider';
+import { PreferencesInputsColorBrand } from '@/components/preferences/inputs/color-brand';
 
-type TProps = Pick<
-  TPaintPreferences,
-  'trimColor' | 'trimFinish'
-> & {
-  isSelected: boolean;
-  isTrimAndDoorsPainted: boolean;
-  onValueChange: TValueChangeHandler;
-  onChange: TChangeHandler;
-};
-export const PreferencesTrimFields: FC<TProps> = ({
-  isTrimAndDoorsPainted,
-  isSelected,
-  trimColor,
-  trimFinish,
-  onChange,
-  onValueChange,
-}) => {
+export const PreferencesTrimFields: FC = () => {
+  const preferences = usePreferences();
+  const {
+    isTrimAndDoorsPainted,
+    isShowTrimFields,
+    isLaborAndMaterials,
+    trimColor,
+    trimFinish,
+    onChange,
+    onColorChange,
+    onValueChange,
+  } = preferences;
+  const isSelected =
+    isShowTrimFields && isLaborAndMaterials;
+
   return (
     <div className="fill-gray-col">
-      <PreferencesRowYesNo
+      <InputsRadioYesNoRow
         name={PREFERENCES_NAME_BOOLEAN_TRIM}
         isChecked={isTrimAndDoorsPainted}
         onChange={onChange}
       >
         Do you want your trim and doors painted?
-      </PreferencesRowYesNo>
+      </InputsRadioYesNoRow>
       {isSelected && (
         <>
-          <PreferencesRow
+          <InputsRow
             input={
-              <InputsText
-                classValue="border border-gray-1"
-                classPadding="px-6 py-2.5 rounded-2xl"
+              <PreferencesInputsColorBrand
                 name="trimColor"
-                placeholder="Trim Color"
                 value={trimColor || 'White'}
-                onChange={(event) =>
-                  onValueChange(
-                    event.currentTarget.name,
-                    event.currentTarget.value
-                  )
-                }
+                onChange={onColorChange}
+                placeholder="Trim Color"
               />
             }
           >
-            Ceiling Color
-          </PreferencesRow>
-          <PreferencesRow
+            Trim Color
+          </InputsRow>
+          <InputsRow
             input={
               <InputsSelect
                 placeholder="Trim Finish"
@@ -74,10 +61,8 @@ export const PreferencesTrimFields: FC<TProps> = ({
               />
             }
           >
-            Ceiling Color
-          </PreferencesRow>
-
-          {/* <PreferencesNotificationsTrimFinish /> */}
+            Trim Finish
+          </InputsRow>
         </>
       )}
     </div>

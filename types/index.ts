@@ -88,6 +88,13 @@ export type TSelectIdTitleItem = {
   title: string;
 };
 
+export type TSelectIdNameItem = {
+  id: string;
+  name: string;
+};
+
+export type TSelectIdItems = TSelectIdTitleItem[] | TSelectIdNameItem[]
+
 export type TUserImage = TSelectIdTitleItem;
 
 export type TAcceptQuoteHandler = (

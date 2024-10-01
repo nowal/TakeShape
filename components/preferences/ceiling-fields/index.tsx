@@ -1,67 +1,61 @@
 import { PREFERENCES_NAME_BOOLEAN_CEILINGS } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
-import { InputsText } from '@/components/inputs/text';
-import {
-  TChangeHandler,
-  TValueChangeHandler,
-} from '@/components/inputs/types';
-import { PreferencesRow } from '@/components/preferences/row';
-import { PreferencesRowYesNo } from '@/components/preferences/row/yes-no';
-import { TPaintPreferences } from '@/types';
+import { InputsRow } from '@/components/inputs/row';
 import type { FC } from 'react';
+import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
+import { usePreferences } from '@/context/preferences/provider';
+import { PreferencesInputsColorBrand } from '@/components/preferences/inputs/color-brand';
 
-type TProps = Pick<
-  TPaintPreferences,
-  'ceilingColor' | 'ceilingFinish'
-> & {
-  isCeilingsPainted: boolean;
-  isSelected: boolean;
-  onValueChange: TValueChangeHandler;
-  onChange: TChangeHandler;
-};
-export const PreferencesCeilingFields: FC<TProps> = ({
-  isCeilingsPainted,
-  isSelected,
-  onValueChange,
-  onChange,
-  ...props
-}) => {
+export const PreferencesCeilingFields: FC = () => {
+  const preferences = usePreferences();
+  const {
+    ceilingColor,
+    ceilingFinish,
+    isCeilingsPainted,
+    isShowCeilingFields,
+    isLaborAndMaterials,
+    onValueChange,
+    onColorChange,
+    onChange,
+  } = preferences;
+  const isSelected =
+    isShowCeilingFields && isLaborAndMaterials;
   return (
-    <div className='fill-gray-col'>
-      <PreferencesRowYesNo
+    <div className="fill-gray-col">
+      <InputsRadioYesNoRow
         name={PREFERENCES_NAME_BOOLEAN_CEILINGS}
         isChecked={isCeilingsPainted}
         onChange={onChange}
       >
         Do you want your ceilings painted?
-      </PreferencesRowYesNo>
+      </InputsRadioYesNoRow>
       {isSelected && (
         <>
-          <PreferencesRow
+          <InputsRow
             input={
-              <InputsText
+              <PreferencesInputsColorBrand
                 name="ceilingColor"
-                placeholder="E.g. white"
-                classValue="border border-gray-1"
-                classPadding="px-6 py-2.5 rounded-2xl"
-                value={props.ceilingColor || 'White'}
-                onChange={(event) =>
-                  onValueChange(
-                    event.currentTarget.name,
-                    event.currentTarget.value
-                  )
-                }
+                value={ceilingColor || 'White'}
+                onChange={onColorChange}
+                placeholder="Ceiling Color"
               />
+              // <InputsText
+              //   name="ceilingColor"
+              //   placeholder="E.g. white"
+              //   classValue="border border-gray-1"
+              //   classPadding="px-6 py-2.5"
+              //   classRounded="rounded-4xl"
+              // />
             }
           >
             Ceiling Color
-          </PreferencesRow>
-          <PreferencesRow
+          </InputsRow>
+          <InputsRow
             input={
               <InputsSelect
                 placeholder="Ceiling Finish"
                 name="ceilingFinish"
-                value={props.ceilingFinish || ''}
+                value={ceilingFinish || ''}
                 onValueChange={onValueChange}
                 basicValues={[
                   'Flat',
@@ -74,7 +68,7 @@ export const PreferencesCeilingFields: FC<TProps> = ({
             }
           >
             Ceiling Finish
-          </PreferencesRow>
+          </InputsRow>
         </>
       )}
     </div>

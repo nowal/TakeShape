@@ -45,6 +45,7 @@ export const InputsSelect = ({
   ...props
 }: TInputsSelectProps) => {
   const values = resolveValues({ idValues, basicValues });
+
   return (
     <Select.Root
       onValueChange={(value: string) =>
@@ -81,6 +82,7 @@ export const InputsSelect = ({
         <Select.Content
           position="popper"
           className={cx(
+            'max-h-[50vh]',
             'column-stretch',
             'my-2',
             'rounded-xl',

@@ -7,14 +7,15 @@ import {
 } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 
-
 type TConfig = {
   loadingState: [boolean, Dispatch<boolean>];
   firestore: Firestore;
   currentUser: Auth['currentUser'] | null;
   userImageId: any;
 };
-export const usePreferencesStateAddress = (config: TConfig) => {
+export const usePreferencesStateAddress = (
+  config: TConfig
+) => {
   const {
     loadingState: [isLoading, setLoading],
     currentUser,
@@ -69,4 +70,6 @@ export const usePreferencesStateAddress = (config: TConfig) => {
 
     updateUserImageDoc();
   }, [address]);
+
+  return { address, dispatchAddress: setAddress };
 };

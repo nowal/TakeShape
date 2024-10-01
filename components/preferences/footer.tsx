@@ -1,22 +1,20 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsRedo } from '@/components/icons/redo';
+import { usePreferences } from '@/context/preferences/provider';
 import { useRouter } from 'next/navigation';
 import type { FC } from 'react';
 
-type TProps = {
-  isLoading: boolean;
-  onPreferenceSubmit(path: string, flag: boolean): void;
-};
-export const PreferencesFooter: FC<TProps> = ({
-  isLoading,
-  onPreferenceSubmit,
-}) => {
+export const PreferencesFooter: FC = () => {
   const router = useRouter();
+  const preferences = usePreferences();
+  const { isLoading, onPreferenceSubmit } = preferences;
 
   const submitTitle = isLoading
     ? 'Submitting...'
     : 'Submit Preferences';
+
   const resubmitTitle = 'Resubmit Video';
+
   return (
     <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
       <div className="flex flex-col items-end gap-4 my-4 xs:flex-row">

@@ -4,12 +4,7 @@ import {
   TTimestampPair,
   TPaintPreferences,
 } from '../types';
-import {
-  PREFERENCES_NAME_BOOLEAN_CEILINGS,
-  PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
-  PREFERENCES_NAME_BOOLEAN_TRIM,
-
-} from '@/atom/constants';
+import { PAINT_PREFERENCES_DEFAULTS } from '@/atom/constants';
 import { TUploadStatusKey } from '@/atom/types';
 
 export const userDataAtom = atom<TUserData | null>(null);
@@ -29,17 +24,20 @@ export const videoURLAtom = atom<string>('');
 export const uploadStatusAtom =
   atom<TUploadStatusKey>('idle');
 export const documentIdAtom = atom<string | null>(null);
-export const timestampPairsAtom = atom<TTimestampPair[]>([]);
+export const timestampPairsAtom = atom<TTimestampPair[]>(
+  []
+);
 export const defaultPreferencesAtom =
   atom<TPaintPreferences>({
-    color: '',
-    finish: '',
-    paintQuality: '',
-    [PREFERENCES_NAME_BOOLEAN_CEILINGS]: false,
-    ceilingColor: '',
-    ceilingFinish: '',
-    [PREFERENCES_NAME_BOOLEAN_TRIM]: false,
-    trimColor: '',
-    trimFinish: '',
-    [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]: false,
+    // [PREFERENCES_NAME_STRING_COLOR]: '',
+    // finish: '',
+    // paintQuality: '',
+    // [PREFERENCES_NAME_BOOLEAN_CEILINGS]: false,
+    // [PREFERENCES_NAME_STRING_CEILING_COLOR]: '',
+    // ceilingFinish: '',
+    // [PREFERENCES_NAME_BOOLEAN_TRIM]: false,
+    // [PREFERENCES_NAME_STRING_TRIM_COLOR]: '',
+    // trimFinish: '',
+    // [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]: false,
+    ...PAINT_PREFERENCES_DEFAULTS,
   });

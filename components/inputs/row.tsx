@@ -6,7 +6,7 @@ type TProps = TClassValueProps & {
   children: string;
   input: JSX.Element;
 };
-export const PreferencesRow: FC<TProps> = ({
+export const InputsRow: FC<TProps> = ({
   children,
   input,
   classValue,

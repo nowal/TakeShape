@@ -20,8 +20,9 @@ import {
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
-import { RADIO_VALUE_YES } from '@/components/preferences/row/yes-no';
+import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
 import { usePreferencesStateAddress } from '@/context/preferences/state/address';
+import { usePreferencesStateColor } from '@/context/preferences/state/color';
 
 export const usePreferencesState = () => {
   const firestore = getFirestore();
@@ -40,26 +41,32 @@ export const usePreferencesState = () => {
   );
   const [isLaborAndMaterials, setLaborAndMaterial] =
     useState<boolean>(true);
+
   const [specialRequests, setSpecialRequests] =
     useState<string>('');
+
   const [isMoveFurniture, setMoveFurniture] =
     useState<boolean>(false);
 
   const loadingState = useState<boolean>(false);
+  const [isLoading, setLoading] = loadingState;
+
   const [isPopup, setShowPopup] = useState(false);
 
   const userImageId =
-    searchParams.get('userImageId') ||
-    sessionStorage.getItem('userImageId');
+    typeof window !== 'undefined' &&
+    (searchParams.get('userImageId') ||
+      sessionStorage.getItem('userImageId'));
 
-  usePreferencesStateAddress({
-    loadingState,
-    firestore,
-    userImageId,
-    currentUser: auth.currentUser,
-  });
+  const preferencesStateAddress =
+    usePreferencesStateAddress({
+      loadingState,
+      firestore,
+      userImageId,
+      currentUser: auth.currentUser,
+    });
 
-  const [isLoading, setLoading] = loadingState;
+  const preferencesStateColor = usePreferencesStateColor();
 
   useEffect(() => {
     setPreferences({
@@ -116,8 +123,8 @@ export const usePreferencesState = () => {
         );
         if (paintPrefDocSnap.exists()) {
           setPreferences({
-            laborAndMaterial: isLaborAndMaterials,
             ...PAINT_PREFERENCES_DEFAULTS,
+            laborAndMaterial: isLaborAndMaterials,
             ...paintPrefDocSnap.data(),
           });
           setShowCeilingFields(
@@ -132,8 +139,8 @@ export const usePreferencesState = () => {
     } else {
       setLaborAndMaterial(true); // Default to labor and material if no document found
       setPreferences({
-        laborAndMaterial: isLaborAndMaterials,
         ...PAINT_PREFERENCES_DEFAULTS,
+        laborAndMaterial: isLaborAndMaterials,
       });
     }
   };
@@ -259,6 +266,14 @@ export const usePreferencesState = () => {
     handleValueChange(name, value.toString());
   };
 
+  const handleColorChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const nextName = event.currentTarget.name;
+    const nextColor = event.currentTarget.value;
+    handleValueChange(nextName, nextColor);
+  };
+
   const handleLaborAndMaterialsChange = (
     value: boolean
   ) => {
@@ -286,6 +301,7 @@ export const usePreferencesState = () => {
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
       handleLaborAndMaterialsChange,
+    onColorChange: handleColorChange,
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
     specialRequests,
@@ -299,5 +315,7 @@ export const usePreferencesState = () => {
     isShowCeilingFields,
     isShowTrimFields,
     ...defaultPreferences,
+    ...preferencesStateAddress,
+    ...preferencesStateColor,
   };
 };
