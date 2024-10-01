@@ -1,6 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  FormEvent,
+} from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -22,13 +27,13 @@ import {
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
 import { painterInfoAtom, isPainterAtom } from '../../atom';
-import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
 import { InputsFile } from '@/components/inputs/file';
 import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
+import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 
-export default function PainterRegisterPage() {
+const PainterRegisterPage = () => {
   const [businessName, setBusinessName] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState(0);
@@ -58,54 +63,7 @@ export default function PainterRegisterPage() {
   const circleRef = useRef<google.maps.Circle | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
-  useEffect(() => {
-    const initAutocomplete = async () => {
-      try {
-        await loadGoogleMapsScript(
-          'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
-        ); // Replace with your actual API key
-        if (window.google) {
-          const autocomplete =
-            new window.google.maps.places.Autocomplete(
-              addressInputRef.current!,
-              {
-                types: ['address'],
-                componentRestrictions: { country: 'us' },
-              }
-            );
-
-          autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (
-              !place.geometry ||
-              !place.geometry.location ||
-              !place.address_components
-            ) {
-              console.error(
-                'Error: place details are incomplete.'
-              );
-              return;
-            }
-
-            const formattedAddress =
-              place.formatted_address;
-            const location = place.geometry.location;
-
-            setAddress(formattedAddress || '');
-            setLat(location.lat());
-            setLng(location.lng());
-          });
-        }
-      } catch (error) {
-        console.error(
-          'Error loading Google Maps script:',
-          error
-        );
-      }
-    };
-
-    initAutocomplete();
-  }, []);
+  useAutoFillAddress({dispatchAddress:setAddress,addressInputRef})
 
   useEffect(() => {
     if (lat && lng) {
@@ -195,7 +153,7 @@ export default function PainterRegisterPage() {
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
@@ -318,9 +276,9 @@ export default function PainterRegisterPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-center text-2xl font-bold mb-6">
+      <h2 className="text-center text-2xl font-bold mb-6">
         Painter Registration
-      </h1>
+      </h2>
 
       {errorMessage && (
         <div
@@ -370,7 +328,9 @@ export default function PainterRegisterPage() {
             id="address"
             ref={addressInputRef}
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(event) =>
+              setAddress(event.target.value)
+            }
             placeholder="Enter your address"
             required
             className="p-2 border rounded w-full"
@@ -535,4 +495,6 @@ export default function PainterRegisterPage() {
       </form>
     </div>
   );
-}
+};
+
+export default PainterRegisterPage;

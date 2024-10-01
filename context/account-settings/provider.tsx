@@ -29,7 +29,6 @@ export const AccountSettingsProvider: FC<
 > = ({ children }) => {
   const addressInputRef = useRef<HTMLInputElement|null>(null);
   const mapRef = useRef<HTMLDivElement|null>(null);
-
   const [address, setAddress] = useState('');
 
   const config: TAccountSettingsConfig = {
