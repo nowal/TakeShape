@@ -1,4 +1,4 @@
-import { PREFERENCES_NAME_BOOLEAN_CEILINGS } from '@/atom/constants';
+import { PREFERENCES_NAME_BOOLEAN_CEILINGS, PREFERENCES_NAME_STRING_CEILING_COLOR, PREFERENCES_NAME_STRING_CEILING_FINISH } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
 import { InputsRow } from '@/components/inputs/row';
 import type { FC } from 'react';
@@ -34,7 +34,7 @@ export const PreferencesCeilingFields: FC = () => {
           <InputsRow
             input={
               <PreferencesInputsColorBrand
-                name="ceilingColor"
+                name={PREFERENCES_NAME_STRING_CEILING_COLOR}
                 value={ceilingColor}
                 onChange={onColorChange}
                 placeholder="Select Ceiling Color"
@@ -54,8 +54,8 @@ export const PreferencesCeilingFields: FC = () => {
             input={
               <InputsSelect
                 placeholder="Ceiling Finish"
-                name="ceilingFinish"
-                value={ceilingFinish || ''}
+                name={PREFERENCES_NAME_STRING_CEILING_FINISH}
+                value={ceilingFinish}
                 onValueChange={onValueChange}
                 basicValues={[
                   'Flat',

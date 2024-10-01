@@ -44,6 +44,7 @@ export const InputsSelect = ({
   onValueChange,
   ...props
 }: TInputsSelectProps) => {
+  console.log(props, placeholder)
   const values = resolveValues({ idValues, basicValues });
 
   return (

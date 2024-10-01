@@ -26,7 +26,6 @@ import { usePreferencesStateAddress } from '@/context/preferences/state/address'
 import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import { TPaintPreferences } from '@/types';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
-import { useDebounce } from '@/hooks/use-debounce';
 
 export const usePreferencesState = () => {
   const firestore = getFirestore();
@@ -74,7 +73,6 @@ export const usePreferencesState = () => {
   const preferencesStateColor = usePreferencesStateColor({
     dispatchPreferences: setPreferences,
   });
-  const handleDebounce = useDebounce();
 
   useEffect(() => {
     setPreferences({
@@ -227,15 +225,20 @@ export const usePreferencesState = () => {
 
     const name = target.name;
 
-    if (target.type === 'radio') {
-      value = target.value === RADIO_VALUE_YES;
+    if (target.type === 'radio'||target.type === 'checkbox') {
+      value = value === RADIO_VALUE_YES;
       if (name === PREFERENCES_NAME_BOOLEAN_CEILINGS) {
         setShowCeilingFields(value);
       } else if (name === PREFERENCES_NAME_BOOLEAN_TRIM) {
         setShowTrimFields(value);
       }
+      setPreferences((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else {
+      handleValueChange(name, value.toString());
     }
-    handleValueChange(name, value.toString());
   };
 
   const handleColorValueChange = (

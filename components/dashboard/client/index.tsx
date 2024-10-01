@@ -95,7 +95,7 @@ export const DashboardClient: FC = () => {
               )}
             >
               <IconsQuote />
-              <span>{preferencesTitle}</span>
+              <span className='font-semibold text-sm'>{preferencesTitle}</span>
             </div>
           </ButtonsCvaButton>
         </div>

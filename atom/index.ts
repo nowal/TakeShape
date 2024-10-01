@@ -29,15 +29,5 @@ export const timestampPairsAtom = atom<TTimestampPair[]>(
 );
 export const defaultPreferencesAtom =
   atom<TPaintPreferences>({
-    // [PREFERENCES_NAME_STRING_COLOR]: '',
-    // finish: '',
-    // paintQuality: '',
-    // [PREFERENCES_NAME_BOOLEAN_CEILINGS]: false,
-    // [PREFERENCES_NAME_STRING_CEILING_COLOR]: '',
-    // ceilingFinish: '',
-    // [PREFERENCES_NAME_BOOLEAN_TRIM]: false,
-    // [PREFERENCES_NAME_STRING_TRIM_COLOR]: '',
-    // trimFinish: '',
-    // [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]: false,
     ...PAINT_PREFERENCES_DEFAULTS,
   });

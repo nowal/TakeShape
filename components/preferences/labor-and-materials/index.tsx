@@ -14,7 +14,6 @@ export const PreferencesLaborAndMaterials: FC = () => {
     onColorChange,
     onValueChange,
   } = preferences;
-
   return (
     <div className="flex flex-col items-stretch fill-gray-base">
       <InputsRow
@@ -71,9 +70,9 @@ export const PreferencesLaborAndMaterials: FC = () => {
       <InputsRow
         input={
           <InputsSelect
-            placeholder="Paint Quality"
+            placeholder="Select Paint Quality"
             name="paintQuality"
-            value={paintQuality || ''}
+            value={paintQuality}
             onValueChange={onValueChange}
             basicValues={[
               'Medium Quality',
