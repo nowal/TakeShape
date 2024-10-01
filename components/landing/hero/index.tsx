@@ -23,7 +23,7 @@ export const LandingHero: FC<TProps> = ({ width }) => {
 
   return (
     <>
-      <FilterGrayscale x={x} />
+     {isDesktop && <FilterGrayscale x={x} />}
       <Image
         style={{
           filter: resolveUrlId(FILTER_GRAYSCALE_ID),
