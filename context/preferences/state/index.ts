@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -18,11 +18,14 @@ import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   PAINT_PREFERENCES_DEFAULTS,
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
+  PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
 import { usePreferencesStateAddress } from '@/context/preferences/state/address';
 import { usePreferencesStateColor } from '@/context/preferences/state/color';
+import { TPaintPreferences } from '@/types';
+import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
 
 export const usePreferencesState = () => {
   const firestore = getFirestore();
@@ -164,53 +167,17 @@ export const usePreferencesState = () => {
     );
 
     // Build the updatedPreferences object conditionally
-    const updatedPreferences = {
-      laborAndMaterial: isLaborAndMaterials, // Add isLaborAndMaterials field
-      color:
-        (
-          document.getElementsByName(
-            'color'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.color,
-      finish:
-        (
-          document.getElementsByName(
-            'finish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.finish,
-      paintQuality:
-        (
-          document.getElementsByName(
-            'paintQuality'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.paintQuality,
-      ceilings: isShowCeilingFields,
-      trim: isShowTrimFields,
-      ceilingColor:
-        (
-          document.getElementsByName(
-            'ceilingColor'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.ceilingColor,
-      ceilingFinish:
-        (
-          document.getElementsByName(
-            'ceilingFinish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.ceilingFinish,
-      trimColor:
-        (
-          document.getElementsByName(
-            'trimColor'
-          )[0] as HTMLInputElement
-        )?.value || defaultPreferences.trimColor,
-      trimFinish:
-        (
-          document.getElementsByName(
-            'trimFinish'
-          )[0] as HTMLSelectElement
-        )?.value || defaultPreferences.trimFinish,
-    };
+    const updatedPreferences: TPaintPreferences =
+      resolvePreferencesCurrent({
+        defaultPreferences,
+        preferencesFlags: {
+          [PREFERENCES_NAME_BOOLEAN_CEILINGS]:
+            isShowCeilingFields,
+          [PREFERENCES_NAME_BOOLEAN_TRIM]: isShowTrimFields,
+          [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]:
+            isLaborAndMaterials,
+        },
+      });
 
     setPreferences(updatedPreferences);
 

@@ -11,6 +11,20 @@ export const PREFERENCES_NAME_STRING_CEILING_COLOR =
 export const PREFERENCES_NAME_STRING_TRIM_COLOR =
   'trimColor';
 
+  export const PREFERENCES_NAME_STRING_CEILING_FINISH =
+  'ceilingFinish';
+
+
+  export const PREFERENCES_NAME_STRING_TRIM_FINISH =
+  'trimFinish';
+
+  export const PREFERENCES_NAME_STRING_FINISH =
+  'finish';
+
+
+  export const PREFERENCES_NAME_STRING_PAINT_QUALITY =
+  'paintQuality';
+
 export const PREFERENCES_NAME_BOOLEANS = [
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
   PREFERENCES_NAME_BOOLEAN_TRIM,
@@ -33,7 +47,7 @@ export const PAINT_PREFERENCES_DEFAULTS = {
   [PREFERENCES_NAME_BOOLEAN_CEILINGS]: false,
   [PREFERENCES_NAME_BOOLEAN_TRIM]: false,
   [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]: false,
-  finish: 'Eggshell',
+  [PREFERENCES_NAME_STRING_FINISH]: 'Eggshell',
   paintQuality: 'Medium',
   ceilingFinish: 'Flat',
   trimFinish: 'Semi-gloss',
