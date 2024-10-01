@@ -83,7 +83,6 @@ export const usePreferencesStateColor = ({
   const handleColorSearch = async (
     name: TPreferencesColorKey,
     selectedBrand: string = selectedBrandRecord[name],
-    nextColor?: string
   ) => {
     const preferencesColorKey: TPreferencesColorKey = name;
 
@@ -96,15 +95,11 @@ export const usePreferencesStateColor = ({
       return;
     }
 
-
-    console.log(
-      name,
-      selectedBrand,
-      hexCode,
-    );
+    console.log(name, selectedBrand, hexCode);
 
     // const searchQuery =selectedBrand;// `${selectedBrand} ${nextColor}`;
-    const url = `${COLOR_API_ROOT}/search?q=${selectedBrand}&offset=0&limit=20` as const; // 20 is max
+    const url =
+      `${COLOR_API_ROOT}/search?q=${selectedBrand}&offset=0&limit=20` as const; // 20 is max
     //  `${COLOR_API_ROOT}/search?q=${searchQuery}` as const;
 
     try {
@@ -123,7 +118,12 @@ export const usePreferencesStateColor = ({
 
       const searchData = await searchResponse.json();
       console.log('Initial search result:', searchData);
-      setSelectedBrandMatchesRecord((prev) => ({...prev, [name]: searchData.result.colors}))
+      setSelectedBrandMatchesRecord((prev) => ({
+        ...prev,
+        [name]: searchData.result.colors,
+      }));
+
+      return;
       const potentialHexCode = searchData.color;
 
       // 2. Verification using /v1/paints (POST)
@@ -205,6 +205,10 @@ export const usePreferencesStateColor = ({
   ) => {
     const [_, name] = namePath.split(INPUTS_NAME_DELIMITER);
     if (isPreferencesColorKey(name)) {
+      dispatchPreferences((prev: TPaintPreferences) => ({
+        ...prev,
+        [name]: undefined,
+      }));
       setSelectedBrandRecord((prev) => ({
         ...prev,
         [name]: value,
@@ -222,6 +226,5 @@ export const usePreferencesStateColor = ({
 
     onSelectBrandValueChange: handleSelectBrandValueChange,
     dispatchSelectedBrand: setSelectedBrandRecord,
-    onColorSearch: handleColorSearch,
   };
 };

@@ -42,7 +42,9 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
         onValueChange={onSelectBrandValueChange}
         idValues={paintBrands}
       />
-      {value === NONE_NAME || colors.length === 0 ? (
+      {value === NONE_NAME ||
+      !colors ||
+      colors.length === 0 ? (
         <InputsText
           name={name}
           classValue="border border-gray-1"

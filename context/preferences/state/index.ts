@@ -253,12 +253,6 @@ export const usePreferencesState = () => {
     const nextName = event.currentTarget.name;
     const nextColor = event.currentTarget.value;
     handleValueChange(nextName, nextColor);
-    // handleDebounce(() =>
-    //   preferencesStateColor.onColorSearch(
-    //     nextName,
-    //     nextColor
-    //   )
-    // );
   };
 
   const handleLaborAndMaterialsChange = (
