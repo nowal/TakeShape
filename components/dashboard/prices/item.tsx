@@ -7,7 +7,7 @@ import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { TElementProps } from '@/types/dom';
 import { PainterCardInfo } from '@/components/painter-card/info';
-import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/client/quotes/mocks';
+import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 
 export type TDashboardPricesItemProps = {
   index: number; // max length of MOCKS_PAINTER_DATA_ITEMS

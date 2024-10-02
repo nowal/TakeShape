@@ -10,7 +10,7 @@ import { IconsLoading } from '@/components/icons/loading';
 import {
   isMocks,
   MOCKS_PAINTER_DATA,
-} from '@/components/dashboard/client/quotes/mocks';
+} from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { PainterCardInfo } from '@/components/painter-card/info';
 
 export type TPainterInfo = {

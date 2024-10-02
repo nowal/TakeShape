@@ -14,6 +14,8 @@ import { PreferencesSpecialRequest } from '@/components/preferences/special-requ
 import { PreferencesNotificationsPaintPreferences } from '@/components/preferences/notifications/paint-preferences';
 import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
 import { PreferencesMoveFurniture } from '@/components/preferences/move-furniture';
+import { TypographyFormTitle } from '@/components/typography/form/title';
+import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 
 const Preferences: FC = () => {
   const preferences = usePreferences();
@@ -49,9 +51,9 @@ const Preferences: FC = () => {
               'flex flex-col items-stretch w-full py-9 px-6'
             )}
           >
-            <h4 className="typography-form-title">
+            <TypographyFormTitle>
               What type of service would you like quoted?
-            </h4>
+            </TypographyFormTitle>
             <div className="h-4" />
             <PreferencesInitial
               onChange={onLaborAndMaterialsChange}
@@ -60,9 +62,9 @@ const Preferences: FC = () => {
             {isLaborAndMaterials && (
               <>
                 <div className="h-14" />
-                <h4 className="typography-form-subtitle">
+                <TypographyFormSubtitle>
                   Please select your preferences
-                </h4>
+                </TypographyFormSubtitle>
                 <div className="h-1" />
                 <h5 className="typography-form-notification">
                   If you have difficulties with chosing the
@@ -74,9 +76,9 @@ const Preferences: FC = () => {
               </>
             )}
             <div className="h-14" />
-            <h4 className="typography-form-subtitle">
+            <TypographyFormSubtitle>
               Do you need additional help?
-            </h4>
+            </TypographyFormSubtitle>
             <div className="h-4" />
             <div className="flex flex-col items-stretch gap-2">
               <PreferencesCeilingFields />

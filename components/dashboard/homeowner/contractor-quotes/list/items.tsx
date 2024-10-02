@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import {
   isMocks,
   MOCKS_PRICES,
-} from '@/components/dashboard/client/quotes/mocks';
+} from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { DashboardPricesItem } from '@/components/dashboard/prices/item';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
@@ -10,7 +10,7 @@ import { useDashboard } from '@/context/dashboard/provider';
 import { TPrice } from '@/types';
 
 type TProps = { prices?: TPrice[] };
-export const DashboardClientQuotesListItems: FC<TProps> = ({
+export const DashboardHomeownerContractorQuotesListItems: FC<TProps> = ({
   prices: _prices,
 }) => {
   const dashboard = useDashboard();

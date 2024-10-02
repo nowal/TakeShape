@@ -1,4 +1,4 @@
-import { DashboardClient } from '@/components/dashboard/client';
+import { DashboardHomeowner } from '@/components/dashboard/homeowner';
 import { DashboardPainter } from '@/components/dashboard/painter';
 import type { FC } from 'react';
 
@@ -9,5 +9,5 @@ export const ComponentsDashboard: FC<TProps> = ({
   isPainter,
 }) => {
   if (isPainter) return <DashboardPainter />;
-  return <DashboardClient />;
+  return <DashboardHomeowner />;
 };

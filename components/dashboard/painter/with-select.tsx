@@ -4,6 +4,7 @@ import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
+import { TypographyFormTitle } from '@/components/typography/form/title';
 
 type TProps = TPropsWithChildren;
 export const DashboardPainterWithSelect: FC<TProps> = (
@@ -15,7 +16,7 @@ export const DashboardPainterWithSelect: FC<TProps> = (
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
       <div className="flex flex-row item-center gap-2">
-        <h3 className="typography-form-title leading-[38px]">Dashboard</h3>
+        <TypographyFormTitle>Dashboard</TypographyFormTitle>
         <InputsSelect
           name="painter-quote"
           basicValues={Object.keys(QUOTE_KEYS)}

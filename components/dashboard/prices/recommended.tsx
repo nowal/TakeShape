@@ -1,7 +1,7 @@
 import {
   isMocks,
   MOCKS_AGENT_INFO,
-} from '@/components/dashboard/client/quotes/mocks';
+} from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { useDashboard } from '@/context/dashboard/provider';
 import type { FC } from 'react';
 import Image from 'next/image';

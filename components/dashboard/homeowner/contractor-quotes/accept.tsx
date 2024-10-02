@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { IconsAcceptQuote } from '@/components/icons/accept-quote';
 import { cx } from 'class-variance-authority';
 
-export const DashboardClientQuotesAccept: FC = () => {
+export const DashboardHomeownerContractorQuotesAccept: FC = () => {
   return (
     <div
       className={cx(

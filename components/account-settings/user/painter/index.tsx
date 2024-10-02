@@ -9,6 +9,7 @@ import { InputsSelect } from '@/components/inputs/select';
 import { InputsFile } from '@/components/inputs/file';
 import { IconsUpload } from '@/components/icons/upload';
 import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { TypographyFormTitle } from '@/components/typography/form/title';
 
 const RANGE_VALUES = [10, 20, 30, 40, 50] as const;
 
@@ -41,9 +42,9 @@ export const ComponentsAccountSettingsPainter: FC = () => {
       <ComponentsAccountSettingsUserInputsAddress type="address" />
 
       <div className="flex flex-row items-center gap-3">
-        <h3 className="typography-form-title">
+        <TypographyFormTitle>
           Range (miles)
-        </h3>
+        </TypographyFormTitle>
         <InputsSelect
           name="painter-range"
           value={range.toString()}

@@ -22,22 +22,6 @@ export const DashboardPainterJobForm: FC<TProps> = (
       }
       className="mt-4 w-full lg:w-auto"
     >
-      {/* <label className="flex flex-row">
-        <input
-          type="text"
-          name="price"
-          placeholder="Total Price"
-          className="mr-2 p-2 border rounded w-full lg:w-auto"
-          value={price}
-          onChange={onPriceChange}
-        />
-        <input
-          type="file"
-          onChange={onFileChange}
-          accept="application/pdf"
-          className="w-full lg:w-auto"
-        />
-      </label> */}
       <div className="relative h-[96px]">
         <InputsFile
           title="Invoice (optional)"

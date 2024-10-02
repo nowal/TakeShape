@@ -3,7 +3,7 @@ import { useDashboard } from '@/context/dashboard/provider';
 import { DASHBOARD_VIDEO_WIDTH } from '@/components/dashboard/constants';
 import { useViewport } from '@/context/viewport';
 
-export const DashboardClientVideo: FC = () => {
+export const DashboardHomeownerVideo: FC = () => {
   const dashboard = useDashboard();
   const { userData, videoRef } = dashboard;
   const viewport = useViewport();

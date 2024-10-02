@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { MOCKS_PRICES } from '@/components/dashboard/client/quotes/mocks';
+import { MOCKS_PRICES } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { LandingBenefitsReceieveQuotesItem } from '@/components/landing/benefits/receive-quotes/item';
 import { PainterCardInfo } from '@/components/painter-card/info';

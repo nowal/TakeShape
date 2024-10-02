@@ -20,22 +20,21 @@ const resolveSideStyle = (
 });
 
 type TProps = TPropsWithChildren<{
-  left?: JSX.Element;
-  right?: JSX.Element;
+  first?: JSX.Element;
+  second?: JSX.Element;
+  
 }>;
 export const ComponentsDashboardShell: FC<TProps> = ({
-  left,
-  right,
+  first,
+  second,
   children,
 }) => {
-  const dashboard = useDashboard();
-  const { isPainter } = dashboard;
   const viewport = useViewport();
   const isLg = viewport.isDimensions && viewport.isLg;
   const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
-  const isSingleColumn = isPainter || isXs;
+  const isSingleColumn = isXs;
   const leftStyle = resolveSideStyle(
     isSingleColumn,
     DASHBOARD_WIDTH_LEFT
@@ -45,7 +44,6 @@ export const ComponentsDashboardShell: FC<TProps> = ({
     DASHBOARD_WIDTH_RIGHT
   );
   return (
-    
     <div
       className={cx(
         'relative left-1/2 -translate-x-1/2',
@@ -69,8 +67,8 @@ export const ComponentsDashboardShell: FC<TProps> = ({
           gap: DASHBOARD_GAP,
         }}
       >
-       {left && <div style={leftStyle}>{left}</div>}
-       {right && <div style={rightStyle}>{right}</div>}
+        {first && <div style={leftStyle}>{first}</div>}
+        {second && <div style={rightStyle}>{second}</div>}
       </div>
       {children}
     </div>

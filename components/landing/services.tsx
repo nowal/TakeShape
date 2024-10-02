@@ -7,9 +7,9 @@ export const LandingServices: FC = () => {
       <div className="flex-1 min-w-0 max-w-2xl mx-auto sm:mx-0">
         {' '}
         {/* Center the content for small screens and align left for larger screens */}
-        <h1 className="ml-32 text-3xl font-bold mb-3 sm:mb-0">
+        <h2 className="ml-32 text-3xl font-bold mb-3 sm:mb-0">
           Keep up to date on our services:
-        </h1>
+        </h2>
       </div>
     </div>
   );

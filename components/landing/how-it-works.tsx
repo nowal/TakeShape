@@ -3,9 +3,9 @@ import type { FC } from 'react';
 export const LandingHowItWorks: FC = () => {
   return (
     <div className="mx-auto px-4">
-      <h1 className="text-4xl font-bold text-center">
+      <h2 className="text-4xl font-bold text-center">
         How it works
-      </h1>
+      </h2>
       <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-4 lg:gap-20">
         {/* Step 1 */}
         <div className="step-box secondary-color p-4 rounded-xl w-64">

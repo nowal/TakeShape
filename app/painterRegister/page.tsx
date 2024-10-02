@@ -318,9 +318,9 @@ export default function PainterRegisterPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-center text-2xl font-bold mb-6">
+      <h2 className="text-center text-2xl font-bold mb-6">
         Painter Registration
-      </h1>
+      </h2>
 
       {errorMessage && (
         <div

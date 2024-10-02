@@ -5,7 +5,7 @@ import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-accept';
 import { ComponentsDashboard } from '@/components/dashboard';
 import { useDashboard } from '@/context/dashboard/provider';
-import { DashboardClientQuotes } from '@/components/dashboard/client/quotes';
+import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
 import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/notifications';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 
@@ -37,7 +37,7 @@ const Dashboard = () => {
             ) : (
               <>
                 {userData && userData.prices && (
-                  <DashboardClientQuotes />
+                  <DashboardHomeownerContractorQuotes />
                 )}
               </>
             )}

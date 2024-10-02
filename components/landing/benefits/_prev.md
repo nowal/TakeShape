@@ -1,9 +1,9 @@
 // <div className="mx-auto px-4">
 // <div className="pt-16 flex flex-col md:flex-row-reverse gap-6 items-center">
 // <div className="flex flex-col w-full md:w-3/5 mt-8 md:mt-32">
-// <h1 className="text-3xl font-bold mb-3 text-center md:text-left">
+// <h2 className="text-3xl font-bold mb-3 text-center md:text-left">
 // Getting painting quotes is a nightmare
-// </h1>
+// </h2>
 // <p className="text-lg mb-6 text-center md:text-left">
 // Stop the awkward phone calls and in-home
 // estimates with strangers. Get guaranteed

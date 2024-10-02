@@ -4,13 +4,14 @@ import {
   InputsSelect,
   TInputsSelectProps,
 } from '@/components/inputs/select';
+import { TypographyFormTitle } from '@/components/typography/form/title';
 import { cx } from 'class-variance-authority';
 import { useRouter } from 'next/navigation';
 import type { FC } from 'react';
 
 type TProps = Partial<TInputsSelectProps> &
   Pick<TInputsSelectProps, 'onValueChange'>;
-export const DashboardClientHeader: FC<TProps> = (
+export const DashboardHomeownerHeader: FC<TProps> = (
   props
 ) => {
   const router = useRouter();
@@ -21,7 +22,7 @@ export const DashboardClientHeader: FC<TProps> = (
         'gap-2'
       )}
     >
-      <h3 className="typography-form-title">Your Quotes</h3>
+      <TypographyFormTitle>Your Quotes</TypographyFormTitle>
       <InputsSelect
         name="client-quote"
         placeholder="Select Quote"
