@@ -1,186 +1,155 @@
-import type { FC } from "react";
+import Image from 'next/image';
+import type { FC } from 'react';
+import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { IconsUpload } from '@/components/icons/upload';
+import { InputsFile } from '@/components/inputs/file';
+import { usePainterRegister } from '@/context/painter/register/provider';
+import { cx } from 'class-variance-authority';
+import { useAccountSettings } from '@/context/account-settings/provider';
+import { useAuth } from '@/context/auth/provider';
+import { InputsText } from '@/components/inputs/text';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { ComponentsPainterRegisterCoords } from '@/components/painter/register/coords';
+import { InputsSelect } from '@/components/inputs/select';
+import { TypographyFormTitle } from '@/components/typography/form/title';
 
-export const Index: FC = () => {
+export const ComponentsPainterRegister: FC = () => {
+  const {
+    address,
+    dispatchAddress,
+    addressInputRef,
+    range,
+    dispatchRange,
+  } = useAccountSettings();
+  const painterRegister = usePainterRegister();
+  const {
+    isLoading,
+    lat,
+    lng,
+    email,
+    businessName,
+    logoPreview,
+    phoneNumber,
+    password,
+    dispatchPassword,
+    dispatchEmail,
+    onLogoChange,
+    onSubmit,
+    dispatchBusinessName,
+    dipatchPhoneNumber,
+  } = painterRegister;
+
+  const submitTitle = isLoading
+    ? 'Registering...'
+    : 'Register';
+
   return (
-    <div>
-      <div>
-              <label
-                htmlFor="businessName"
-                className="block text-md font-medium text-gray-700"
-              >
-                Business or Personal Name
-              </label>
-              <input
-                type="text"
-                id="businessName"
-                value={businessName}
-                onChange={(event) =>
-                  dispatchBusinessName(event.target.value)
-                }
-                placeholder="Enter your business or personal name"
-                required
-                className="p-2 border rounded w-full"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-md font-medium text-gray-700"
-              >
-                Address
-              </label>
-              <input
-                type="text"
-                id="address"
-                ref={addressInputRef}
-                value={address}
-                onChange={(event) =>
-                  dispatchAddress(event.target.value)
-                }
-                placeholder="Enter your address"
-                required
-                className="p-2 border rounded w-full"
-              />
-            </div>
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-4"
+    >
+      <InputsText
+        value={businessName}
+        onChange={(event) =>
+          dispatchBusinessName(event.target.value)
+        }
+        placeholder="Business or Personal Name"
+        required
+      />
+      <InputsText
+        ref={addressInputRef}
+        value={address}
+        onChange={(event) =>
+          dispatchAddress(event.target.value)
+        }
+        placeholder="Address"
+        required
+      />
+      <div className='flex flex-row us gap-2'>
+        <TypographyFormTitle>
+          Range
+        </TypographyFormTitle>
+        <InputsSelect
+          name="range"
+          placeholder="Range (miles)"
+          value={range.toString()}
+          onValueChange={(_, value) =>
+            dispatchRange(Number(value))
+          }
+          required
+          basicValues={[10, 20, 30, 40, 50]}
+        />
+      </div>
 
-            <div>
-              <label
-                htmlFor="range"
-                className="block text-md font-medium text-gray-700"
-              >
-                Range (miles)
-              </label>
-              <select
-                id="range"
-                value={range}
-                onChange={(event) =>
-                  dispatchRange(Number(event.target.value))
-                }
-                required
-                className="p-2 border rounded w-full"
-              >
-                {[10, 20, 30, 40, 50].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {lat !== 0 && lng !== 0 && (
-              <>
-                <div className="text-left text-gray-700 mb-2">
-                  Drag Marker to adjust service location
-                </div>
-                <div
-                  ref={mapRef}
-                  style={{
-                    height: '400px',
-                    marginTop: '20px',
-                  }}
-                ></div>
-              </>
-            )}
-
-            <div>
-              <label
-                htmlFor="phoneNumber"
-                className="block text-md font-medium text-gray-700"
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phoneNumber"
-                value={phoneNumber}
-                onChange={(event) =>
-                  dipatchPhoneNumber(event.target.value)
-                }
-                placeholder="Enter your phone number"
-                required
-                className="p-2 border rounded w-full"
-              />
-            </div>
-            <div className="relative h-[96px]">
-              <InputsFile
-                title="Company Logo (optional)"
-                onFile={onLogoChange}
-                inputProps={{
-                  accept: 'image/*',
-                }}
-                classValue={cx(
-                  'px-4',
-                  logoPreview ? 'gap-6' : 'gap-2'
-                )}
-                isValue={Boolean(logoPreview)}
-                icon={{
-                  Leading: logoPreview
-                    ? () => (
-                        <PicOutline>
-                          <Image
-                            src={logoPreview}
-                            alt="Company Logo Preview"
-                            className="mb-2 w-24 h-24 object-cover rounded-full"
-                            width="96"
-                            height="96"
-                          />
-                        </PicOutline>
-                      )
-                    : IconsUpload,
-                }}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-md font-medium text-gray-700"
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(event) =>
-                  dispatchEmail(event.target.value)
-                }
-                placeholder="Enter your email"
-                required
-                className="p-2 border rounded w-full"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-md font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(event) =>
-                  dispatchPassword(event.target.value)
-                }
-                placeholder="Enter your password"
-                required
-                className="p-2 border rounded w-full"
-              />
-            </div>
-            <button
-              type="submit"
-              className={`button-green ${
-                isLoading
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Registering...' : 'Register'}
-            </button>
-
-    </div>
+      {lat !== 0 && lng !== 0 && (
+        <ComponentsPainterRegisterCoords />
+      )}
+      <InputsText
+        type="tel"
+        value={phoneNumber}
+        onChange={(event) =>
+          dipatchPhoneNumber(event.target.value)
+        }
+        placeholder="Phone Number"
+        required
+      />
+      <div className="relative h-[96px]">
+        <InputsFile
+          title="Company Logo (optional)"
+          onFile={onLogoChange}
+          inputProps={{
+            accept: 'image/*',
+          }}
+          classValue={cx(
+            'px-4',
+            logoPreview ? 'gap-6' : 'gap-2'
+          )}
+          isValue={Boolean(logoPreview)}
+          icon={{
+            Leading: logoPreview
+              ? () => (
+                  <PicOutline>
+                    <Image
+                      src={logoPreview}
+                      alt="Company Logo Preview"
+                      className="mb-2 w-24 h-24 object-cover rounded-full"
+                      width="96"
+                      height="96"
+                    />
+                  </PicOutline>
+                )
+              : IconsUpload,
+          }}
+        />
+      </div>
+      <InputsText
+        type="email"
+        value={email}
+        onChange={(event) =>
+          dispatchEmail(event.target.value)
+        }
+        placeholder="Email Address"
+        required
+      />
+      <InputsText
+        type="password"
+        value={password}
+        onChange={(event) =>
+          dispatchPassword(event.target.value)
+        }
+        placeholder="Password"
+        required
+      />
+      <ButtonsCvaButton
+        title={submitTitle}
+        type="submit"
+        disabled={isLoading}
+        intent="primary"
+        size="md"
+        center
+      >
+        {submitTitle}
+      </ButtonsCvaButton>
+    </form>
   );
 };

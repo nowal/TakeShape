@@ -27,7 +27,6 @@ import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
 import { painterInfoAtom, isPainterAtom } from '../../../atom';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
-import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
 type TConfig = any;
 export const usePainterRegisterState = (config?: TConfig) => {
@@ -60,7 +59,6 @@ export const usePainterRegisterState = (config?: TConfig) => {
   const circleRef = useRef<google.maps.Circle | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
-  useAuthNavigateHome();
   useAutoFillAddress({
     dispatchAddress: setAddress,
     addressInputRef,

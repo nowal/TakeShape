@@ -103,7 +103,7 @@ const SignupAccountForm = () => {
                 title={submitButtonTitle}
                 intent="primary"
                 size="md"
-                center={true}
+                center
               >
                 <div className="text-base font-bold">
                   {submitButtonTitle}
@@ -119,7 +119,6 @@ const SignupAccountForm = () => {
                   isDisabled={isLoading}
                   title={submitButtonTitle}
                   onTap={() => {
-                    //dispatchShowLoginInstead(true);
                     signIn.onSignInButtonClick();
                   }}
                   className="text-blue-600 hover:underline"

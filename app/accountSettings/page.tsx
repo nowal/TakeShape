@@ -36,7 +36,7 @@ const AccountSettingsPage = () => {
           )}
           <form
             onSubmit={onSubmit}
-            className="flex flex-col space-y-4"
+            className="flex flex-col gap-4"
           >
             <ComponentsAccountSettingsUser
               isPainter={isPainter}

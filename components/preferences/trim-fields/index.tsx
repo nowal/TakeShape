@@ -49,7 +49,7 @@ export const PreferencesTrimFields: FC = () => {
               <InputsSelect
                 placeholder="Trim Finish"
                 name="trimFinish"
-                value={trimFinish || ''}
+                value={trimFinish}
                 onValueChange={onValueChange}
                 basicValues={[
                   'Semi-Gloss',

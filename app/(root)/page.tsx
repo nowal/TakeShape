@@ -38,12 +38,12 @@ const Landing = () => {
           style={{
             filter: resolveUrlId(FILTER_GRAYSCALE_ID),
             objectPosition,
+            objectFit: 'cover',
           }}
           src={image.src}
           alt="Landing Hero, Happy Pic"
           quality="100"
           fill
-          objectFit="cover"
           priority
         />
         {viewport.isDimensions && !viewport.isResizing ? (

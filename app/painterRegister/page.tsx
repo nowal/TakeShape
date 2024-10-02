@@ -1,13 +1,9 @@
 'use client';
-import Image from 'next/image';
-import { InputsFile } from '@/components/inputs/file';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
-import { IconsUpload } from '@/components/icons/upload';
-import { cx } from 'class-variance-authority';
-import { usePainterRegister } from '@/context/painter/register/state';
+import { usePainterRegister } from '@/context/painter/register/provider';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
+import { ComponentsPainterRegister } from '@/components/painter/register';
 
 const PainterRegisterPage = () => {
   const {} = useAuth();
@@ -51,12 +47,9 @@ const PainterRegisterPage = () => {
             </ComponentsAccountSettingsNotifications>
           )}
 
-          <form
-            onSubmit={onSubmit}
-            className="flex flex-col space-y-4"
-          >
+    
+            <ComponentsPainterRegister />
 
-                      </form>
         </div>
       </div>
     </div>

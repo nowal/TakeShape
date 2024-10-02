@@ -22,9 +22,9 @@ export const usePainterRegister =
 export const PainterRegisterProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
-  const landing = usePainterRegisterState();
+  const value = usePainterRegisterState();
   return (
-    <PAINTER_REGISTER.Provider value={landing}>
+    <PAINTER_REGISTER.Provider value={value}>
       {children}
     </PAINTER_REGISTER.Provider>
   );

@@ -19,7 +19,7 @@ export const LandingDreamRoomImage: FC = () => {
           alt={alt}
           quality="100"
           fill
-          objectFit="contain"
+          style={{ objectFit: 'contain' }}
         />
       ) : (
         <Image
@@ -27,10 +27,10 @@ export const LandingDreamRoomImage: FC = () => {
           alt={alt}
           quality="100"
           fill
-          objectFit="cover"
-          objectPosition="right top"
           style={{
+            objectFit: 'cover',
             left: '25%',
+            objectPosition: 'right top',
           }}
         />
       )}
