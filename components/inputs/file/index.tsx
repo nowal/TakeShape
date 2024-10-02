@@ -10,12 +10,14 @@ export type TInputsFileProps =
   Partial<TButtonsCvaInputProps> & {
     title: string;
     onFile(file: File): void;
+    isValue?: boolean;
   };
 
 export const InputsFile: FC<TInputsFileProps> = ({
   onFile,
   inputProps,
   title,
+  isValue,
   children,
   ...props
 }) => {
@@ -37,7 +39,6 @@ export const InputsFile: FC<TInputsFileProps> = ({
   return (
     <>
       <ButtonsCvaInput
-        title={title}
         inputProps={{
           type: 'file',
           accept: 'video/*',
@@ -75,16 +76,17 @@ export const InputsFile: FC<TInputsFileProps> = ({
           ...inputProps,
         }}
         style={{ display: 'none' }}
-        intent="ghost-1"
+        intent={isValue ? 'ghost' : 'ghost-1'}
         size="fill"
         rounded="lg"
         icon={{ Leading: IconsUpload }}
         center
         {...props}
       >
-        <span className="relative typography-page-subtitle">
+        <div className="relative typography-page-subtitle">
           {title}
-        </span>
+        </div>
+        {children && <div><>{children}</></div>}
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
     </>

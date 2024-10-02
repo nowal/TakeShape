@@ -3,25 +3,38 @@ import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
+import { IconsLoading } from '@/components/icons/loading';
+import { ButtonsCvaInput } from '@/components/cva/input';
+import { InputsText } from '@/components/inputs/text';
 
 type TProps = TJob;
 export const DashboardPainterJobForm: FC<TProps> = (
   job
 ) => {
   const dashboardPainter = useDashboardPainter();
-  const { isLoading, price, onPriceSubmit, onFileChange } =
-    dashboardPainter;
-  const title = isLoading
+  const {
+    isSubmitting,
+    price,
+    selectedFile,
+    onPriceChange,
+    onQuoteSubmit,
+    onFileChange,
+  } = dashboardPainter;
+  const title = isSubmitting
     ? 'Submitting...'
     : 'Submit Quote';
-
+  console.log(selectedFile);
   return (
     <form
-      onSubmit={(e) =>
-        onPriceSubmit(e, job.jobId, parseFloat(price))
-      }
-      className="w-full lg:w-auto"
+      onSubmit={(event) => onQuoteSubmit(event, job.jobId)}
+      className="flex flex-col gap-2 w-full lg:w-auto"
     >
+      <InputsText
+        type="number"
+        value={price}
+        onChange={onPriceChange}
+        required
+      />
       <div className="relative h-[96px]">
         <InputsFile
           title="Invoice (optional)"
@@ -29,16 +42,21 @@ export const DashboardPainterJobForm: FC<TProps> = (
           inputProps={{
             accept: 'application/pdf',
           }}
-        />
+          isValue={Boolean(selectedFile)}
+          classValue="gap-4"
+        >
+          {selectedFile?.name}
+        </InputsFile>
       </div>
-
       <ButtonsCvaButton
         title={title}
         type="submit"
-        className={`button-color hover:bg-green-900 text-white font-bold py-1 px-4 mt-2 rounded w-full lg:w-auto ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
-        disabled={isLoading}
+        disabled={isSubmitting}
+        intent="primary"
+        size="sm"
+        rounded="lg"
+        center
+        icon={isSubmitting ? { Leading: IconsLoading } : {}}
       >
         {title}
       </ButtonsCvaButton>

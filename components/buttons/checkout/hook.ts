@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+import { TButtonsCheckoutProps } from '@/components/buttons/checkout';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
-export type TCheckoutButtonConfig = {
-  selectedQuoteAmount: number;
-  painterId: string;
-  userImageId: string;
-  userId: string;
-};
+export type TCheckoutButtonConfig = TButtonsCheckoutProps;
 export const useButtonsCheckout = ({
   selectedQuoteAmount,
+  depositAmount,
+  remainingAmount,
   painterId,
   userImageId,
   userId,
@@ -28,16 +26,17 @@ export const useButtonsCheckout = ({
     console.log('SESSION ID HOOK');
 
     const fetchSessionId = async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-      console.log('baseUrl ', baseUrl)
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      console.log('baseUrl ', baseUrl);
       try {
-        const url = `${baseUrl}/api/stripe/checkout` as const;
+        const url =
+          `${baseUrl}/api/stripe/checkout` as const;
         const body = JSON.stringify({
-          amount: selectedQuoteAmount * 0.1,
+          amount: depositAmount,
           painterId, // Include painterId in the request body
           userImageId, // Include userImageId in the request body
         });
-        console.log(url, body)
+        console.log(url, body);
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -60,8 +59,6 @@ export const useButtonsCheckout = ({
     if (isRedirecting) return; // Prevent further execution if already redirecting
 
     const stripe = await stripePromise;
-
-    console.log(stripe);
 
     if (!stripe) {
       console.error('Stripe is null');

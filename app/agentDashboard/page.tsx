@@ -14,7 +14,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import { PainterCard } from '../../components/painter-card';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 
 // Define the type for Painter data
 interface Painter {
@@ -384,7 +384,7 @@ export default function AgentDashboard() {
       )}
       <div>
         {loading ? (
-          <FallbacksLoading />
+          <FallbacksLoadingCircle />
         ) : error ? (
           <p className="text-red-600">{error}</p>
         ) : preferredPainters.length > 0 ? (

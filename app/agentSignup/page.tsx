@@ -250,6 +250,7 @@ export default function ReAgentSignup() {
               'px-4',
               profilePicturePreview ? 'gap-6' : 'gap-2'
             )}
+            isValue={Boolean(profilePicturePreview)}
             icon={{
               Leading: profilePicturePreview
                 ? () => (

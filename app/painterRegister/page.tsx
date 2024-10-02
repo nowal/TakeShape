@@ -430,6 +430,7 @@ const PainterRegisterPage = () => {
               'px-4',
               logoPreview ? 'gap-6' : 'gap-2'
             )}
+            isValue={Boolean(logoPreview)}
             icon={{
               Leading: logoPreview
                 ? () => (

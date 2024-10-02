@@ -21,11 +21,13 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
     dashboard;
   const handleCloseModal = () => dispatchShowModal(false);
   const depositFraction = 0.1;
-  const depositAmount =
-    selectedQuoteAmount * depositFraction;
+  const depositAmount = Math.round(
+    selectedQuoteAmount * depositFraction
+  );
   const remainingFraction = 1 - depositFraction;
-  const remainingAmount =
-    selectedQuoteAmount * remainingFraction;
+  const remainingAmount = Math.round(
+    selectedQuoteAmount * remainingFraction
+  );
 
   return (
     <ComponentsPortalBody>
@@ -78,7 +80,7 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               tail="Noah Waldron"
             />
           </div> */}
-          <ButtonsCheckout {...checkoutButtonProps} />
+          <ButtonsCheckout {...checkoutButtonProps} depositAmount={depositAmount} remainingAmount={remainingAmount} />
           <div className="flex flex-row justify-center gap-1.5">
             <IconsSecure />
             <p className="text-gray-7 text-xs font-semibold">

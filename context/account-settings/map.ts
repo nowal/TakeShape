@@ -4,6 +4,7 @@ import { useRef } from 'react';
 
 type TProps = TAccountSettingsConfig;
 export const useAccountSettingsMap = (config: TProps) => {
+  const { mapRef, dispatchAddress } = config;
   const mapInstanceRef = useRef<google.maps.Map | null>(
     null
   );
@@ -15,7 +16,7 @@ export const useAccountSettingsMap = (config: TProps) => {
     lng: number,
     range: number
   ) => {
-    if (window.google && config.mapRef.current) {
+    if (window.google && mapRef.current) {
       const bounds = new window.google.maps.LatLngBounds();
       const center = new window.google.maps.LatLng(
         lat,
@@ -37,7 +38,7 @@ export const useAccountSettingsMap = (config: TProps) => {
 
       if (!mapInstanceRef.current) {
         mapInstanceRef.current = new window.google.maps.Map(
-          config.mapRef.current,
+          mapRef.current,
           {
             center: { lat, lng },
             zoom: 10,
@@ -77,7 +78,7 @@ export const useAccountSettingsMap = (config: TProps) => {
           const newLng = markerRef
             .current!.getPosition()!
             .lng();
-          config.dispatchAddress(`${newLat}, ${newLng}`);
+          dispatchAddress(`${newLat}, ${newLng}`);
           handler(newLat, newLng, range);
         });
       } else {

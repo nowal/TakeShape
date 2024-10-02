@@ -9,13 +9,13 @@ import { useDashboardPainterCompleted } from '@/context/dashboard/painter/comple
 const CompletedQuotes = () => {
   const dashboardPainterCompleted =
     useDashboardPainterCompleted();
-  const { authLoading, jobs } = dashboardPainterCompleted;
+  const { isAuthLoading, jobs } = dashboardPainterCompleted;
 
   return (
     <ComponentsDashboardShell
       key="ComponentsDashboardShell"
       first={
-        authLoading ? (
+        isAuthLoading ? (
           <NotificationsHighlight>
             Retrieving Information...
           </NotificationsHighlight>

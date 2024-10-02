@@ -10,7 +10,7 @@ export const TypographyFormSubtitle: FC<TProps> = ({
 }) => {
   return (
     <h3
-      className={cx('typography-form-subtitle', classValue)}
+      className={cx('typography-form-subtitle text-left', classValue)}
       {...props}
     >
       {children}

@@ -9,7 +9,7 @@ import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
 
 export const ShellHeader = () => {
-  const { isUserSignedIn } = useAuth();
+  const { isUserSignedIn, signIn } = useAuth();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const viewport = useViewport();
@@ -44,10 +44,14 @@ export const ShellHeader = () => {
           <Link className="relative z-10" href="/">
             <ShellLogo />
           </Link>
-          {viewport.isDimensions && viewport.isSm ? (
-            <ShellHeaderMobileMenu />
-          ) : (
-            <HeaderOptions />
+          {!signIn.isAuthLoading && (
+            <>
+              {viewport.isDimensions && viewport.isSm ? (
+                <ShellHeaderMobileMenu />
+              ) : (
+                <HeaderOptions />
+              )}
+            </>
           )}
         </div>
       </header>

@@ -4,18 +4,19 @@ import Image from 'next/image';
 import { IconsPhone } from '@/components/icons/phone';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 import { cx } from 'class-variance-authority';
+import { TDivProps } from '@/types/dom';
 
-type TProps = { info: TPainterInfo };
-export const PainterCardInfo: FC<TProps> = ({ info }) => {
+type TProps = { info: TPainterInfo }  & TDivProps;
+export const PainterCardInfo: FC<TProps> = ({ info, classValue, ...props }) => {
   const { phoneNumber, logoUrl, businessName } = info;
 
   return (
     <div
       className={cx(
         'flex flex-row gap-3',
-        // 'bg-white shadow-08',
-        'fill-column-white-sm'
+        classValue,
       )}
+      {...props}
     >
       {logoUrl && (
         <Image

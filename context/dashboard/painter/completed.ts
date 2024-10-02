@@ -17,11 +17,14 @@ import {
 import axios from 'axios';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
+import { useAuth } from '@/context/auth/provider';
 
 export const useDashboardPainterCompleted = () => {
   const dashboardPainter = useDashboardPainter();
   const [jobList, setJobList] = useState<TJob[]>([]);
-  const [authLoading, setAuthLoading] = useState(true);
+  // const [authLoading, setAuthLoading] = useState(true);
+  const { signIn } = useAuth();
+  const { isAuthLoading,dispatchAuthLoading } = signIn;
   const firestore = getFirestore();
   const auth = getAuth();
   const storage = getStorage();
@@ -29,7 +32,7 @@ export const useDashboardPainterCompleted = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setAuthLoading(false); // Authentication state is confirmed, loading is done
+      dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
     // Cleanup the listener on unmount
@@ -249,7 +252,7 @@ export const useDashboardPainterCompleted = () => {
 
   return {
     ...dashboardPainter,
-    authLoading,
+    isAuthLoading,
     jobs: jobList,
   };
 };

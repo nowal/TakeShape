@@ -32,7 +32,7 @@ export const useDashboardPainterState = () => {
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
   const [price, setPrice] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
   const [selectedPage, setSelectedPage] =
     useState<TQuoteKey>('Available Quotes');
   const firestore = getFirestore();
@@ -42,98 +42,109 @@ export const useDashboardPainterState = () => {
   const user = auth.currentUser;
 
   const fetchPainterData = async () => {
-    if (user) {
-      const painterQuery = query(
-        collection(firestore, 'painters'),
-        where('userId', '==', user.uid)
-      );
-      const painterSnapshot = await getDocs(painterQuery);
-      if (!painterSnapshot.empty) {
-        const painterData = painterSnapshot.docs[0].data();
-
-        console.log('Painter Data:', painterData);
-
-        const userImagesQuery = collection(
-          firestore,
-          'userImages'
+    try {
+      if (user) {
+        const painterQuery = query(
+          collection(firestore, 'painters'),
+          where('userId', '==', user.uid)
         );
-        const userImagesSnapshot = await getDocs(
-          userImagesQuery
-        );
-        const jobs = await Promise.all(
-          userImagesSnapshot.docs.map(async (jobDoc) => {
-            const jobData = jobDoc.data() as TJob;
+        const painterSnapshot = await getDocs(painterQuery);
+        if (!painterSnapshot.empty) {
+          const painterData =
+            painterSnapshot.docs[0].data();
 
-            if (jobData.address) {
-              let { lat, lng } = jobData;
+          console.log('Painter Data:', painterData);
 
-              if (lat === undefined || lng === undefined) {
-                const geocodedLocation =
-                  await geocodeAddress(jobData.address);
-                if (geocodedLocation) {
-                  lat = geocodedLocation.lat;
-                  lng = geocodedLocation.lng;
-                }
-              }
+          const userImagesQuery = collection(
+            firestore,
+            'userImages'
+          );
+          const userImagesSnapshot = await getDocs(
+            userImagesQuery
+          );
+          const jobs = await Promise.all(
+            userImagesSnapshot.docs.map(async (jobDoc) => {
+              const jobData = jobDoc.data() as TJob;
 
-              if (lat !== undefined && lng !== undefined) {
-                const isWithinRange =
-                  await isJobWithinRange(
-                    painterData.address,
-                    painterData.range,
-                    { lat, lng }
-                  );
-                if (isWithinRange) {
-                  if (jobData.paintPreferencesId) {
-                    const paintPrefDocRef = doc(
-                      firestore,
-                      'paintPreferences',
-                      jobData.paintPreferencesId
-                    );
-                    const paintPrefDocSnap = await getDoc(
-                      paintPrefDocRef
-                    );
-                    if (paintPrefDocSnap.exists()) {
-                      jobData.paintPreferences =
-                        paintPrefDocSnap.data() as TPaintPreferences;
-                    }
+              if (jobData.address) {
+                let { lat, lng } = jobData;
+
+                if (
+                  lat === undefined ||
+                  lng === undefined
+                ) {
+                  const geocodedLocation =
+                    await geocodeAddress(jobData.address);
+                  if (geocodedLocation) {
+                    lat = geocodedLocation.lat;
+                    lng = geocodedLocation.lng;
                   }
-
-                  // Ensure the video URL is correct
-                  const videoUrl = await getVideoUrl(
-                    jobData.video
-                  );
-                  return {
-                    ...jobData,
-                    video: videoUrl,
-                    jobId: jobDoc.id,
-                  };
                 }
-              } else {
-                console.error(
-                  'Job address is missing latitude and/or longitude after geocoding:',
-                  jobData.address
-                );
+
+                if (
+                  lat !== undefined &&
+                  lng !== undefined
+                ) {
+                  const isWithinRange =
+                    await isJobWithinRange(
+                      painterData.address,
+                      painterData.range,
+                      { lat, lng }
+                    );
+                  if (isWithinRange) {
+                    if (jobData.paintPreferencesId) {
+                      const paintPrefDocRef = doc(
+                        firestore,
+                        'paintPreferences',
+                        jobData.paintPreferencesId
+                      );
+                      const paintPrefDocSnap = await getDoc(
+                        paintPrefDocRef
+                      );
+                      if (paintPrefDocSnap.exists()) {
+                        jobData.paintPreferences =
+                          paintPrefDocSnap.data() as TPaintPreferences;
+                      }
+                    }
+
+                    // Ensure the video URL is correct
+                    const videoUrl = await getVideoUrl(
+                      jobData.video
+                    );
+                    return {
+                      ...jobData,
+                      video: videoUrl,
+                      jobId: jobDoc.id,
+                    };
+                  }
+                } else {
+                  console.error(
+                    'Job address is missing latitude and/or longitude after geocoding:',
+                    jobData.address
+                  );
+                }
               }
-            }
-            return null;
-          })
+              return null;
+            })
+          );
+          const filteredJobs = jobs.filter(
+            (job) => job !== null
+          ) as TJob[];
+          const unquotedJobs = filteredJobs.filter(
+            (job) =>
+              !job.prices.some(
+                (price) => price.painterId === user.uid
+              )
+          );
+          setJobList(unquotedJobs);
+        }
+      } else {
+        console.log(
+          'No user found, unable to fetch painter data.'
         );
-        const filteredJobs = jobs.filter(
-          (job) => job !== null
-        ) as TJob[];
-        const unquotedJobs = filteredJobs.filter(
-          (job) =>
-            !job.prices.some(
-              (price) => price.painterId === user.uid
-            )
-        );
-        setJobList(unquotedJobs);
       }
-    } else {
-      console.log(
-        'No user found, unable to fetch painter data.'
-      );
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -259,57 +270,59 @@ export const useDashboardPainterState = () => {
     setPrice(value.replace(/[^0-9.]/g, '')); // This regex allows only numbers and decimal point
   };
 
-  const handlePriceSubmit = async (
+  const handleQuoteSubmit = async (
     event: FormEvent<HTMLFormElement>,
-    jobId: string,
-    amount: number
+    jobId: string
   ): Promise<void> => {
-    event.preventDefault();
-    setIsLoading(true); // Set loading state to true
-
-    if (!user || price === '') {
-      setIsLoading(false); // Reset loading state
-      return; // Ensure user exists and price is not empty
-    }
-
-    // Convert price back to a number before submitting
-    const numericPrice = parseFloat(price);
-    if (isNaN(numericPrice)) {
-      alert('Please enter a valid price');
-      setIsLoading(false); // Reset loading state
-      return;
-    }
-
-    let invoiceUrl = ''; // Initialize invoiceUrl as an empty string
-
-    // Only attempt to upload file and get URL if a file is selected
-    if (selectedFile) {
-      const invoicePath = `invoices/${user.uid}/${
-        selectedFile.name
-      }-${Date.now()}`; // Adding timestamp to make filename unique
-      const storageRef = ref(storage, invoicePath);
-
-      try {
-        const fileSnapshot = await uploadBytes(
-          storageRef,
-          selectedFile
-        );
-        invoiceUrl = await getDownloadURL(fileSnapshot.ref); // Get URL only if file upload succeeds
-      } catch (error) {
-        console.error('Error uploading invoice: ', error);
-      }
-    }
-
-    // Proceed to update the job with the new price (and invoiceUrl if available)
-    const newPrice = {
-      painterId: user.uid,
-      amount: amount,
-      timestamp: Date.now(),
-      ...(invoiceUrl && { invoiceUrl }), // Spread invoiceUrl into the object if it exists
-    };
-
-    const jobRef = doc(firestore, 'userImages', jobId);
+    console.log(event, jobId, user, price);
     try {
+      event.preventDefault();
+      setSubmitting(true); // Set loading state to true
+
+      if (!user || price === '') {
+        setSubmitting(false); // Reset loading state
+        return; // Ensure user exists and price is not empty
+      }
+
+      // Convert price back to a number before submitting
+      const numericPrice = parseFloat(price);
+      if (isNaN(numericPrice)) {
+        alert('Please enter a valid price');
+        setSubmitting(false); // Reset loading state
+        return;
+      }
+
+      let invoiceUrl = ''; // Initialize invoiceUrl as an empty string
+
+      // Only attempt to upload file and get URL if a file is selected
+      if (selectedFile) {
+        const invoicePath = `invoices/${user.uid}/${
+          selectedFile.name
+        }-${Date.now()}`; // Adding timestamp to make filename unique
+        const storageRef = ref(storage, invoicePath);
+
+        try {
+          const fileSnapshot = await uploadBytes(
+            storageRef,
+            selectedFile
+          );
+          invoiceUrl = await getDownloadURL(
+            fileSnapshot.ref
+          ); // Get URL only if file upload succeeds
+        } catch (error) {
+          console.error('Error uploading invoice: ', error);
+        }
+      }
+
+      // Proceed to update the job with the new price (and invoiceUrl if available)
+      const newPrice = {
+        painterId: user.uid,
+        amount: numericPrice,
+        timestamp: Date.now(),
+        ...(invoiceUrl && { invoiceUrl }), // Spread invoiceUrl into the object if it exists
+      };
+
+      const jobRef = doc(firestore, 'userImages', jobId);
       await updateDoc(jobRef, {
         prices: arrayUnion(newPrice),
       });
@@ -326,7 +339,7 @@ export const useDashboardPainterState = () => {
     } catch (updateError) {
       console.error('Error updating price: ', updateError);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setSubmitting(false); // Reset loading state
     }
   };
 
@@ -345,14 +358,15 @@ export const useDashboardPainterState = () => {
   return {
     price,
     selectedPage,
-    isLoading,
+    isSubmitting,
     jobs: jobList,
     user,
+    selectedFile,
     isJobWithinRange,
     dispatchJobList: setJobList,
     onPageChange: handlePageChange,
-    onPriceSubmit: handlePriceSubmit,
     onFileChange: handleFileChange,
     onPriceChange: handlePriceChange,
+    onQuoteSubmit: handleQuoteSubmit,
   };
 };

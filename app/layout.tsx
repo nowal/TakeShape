@@ -16,6 +16,7 @@ import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
 import { QuoteProvider } from '@/context/quote/provider';
 import { PreferencesProvider } from '@/context/preferences/provider';
 import { ContextProviders } from '@/context/providers';
+import { FallbacksLoading } from '@/components/fallbacks/loading';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -34,74 +35,18 @@ export default function RootLayout({
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            {/* <Suspense fallback={<div>Loading...</div>}>
-              <PreferencesProvider>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <AccountSettingsProvider>
-                    <Suspense
-                      fallback={<div>Loading...</div>}
-                    >
-                      <AuthProvider>
-                        <Suspense
-                          fallback={<div>Loading...</div>}
-                        >
-                          <QuoteProvider>
-                            <Suspense
-                              fallback={
-                                <div>Loading...</div>
-                              }
-                            >
-                              <DashboardProvider>
-                                <Suspense
-                                  fallback={
-                                    <div>Loading...</div>
-                                  }
-                                >
-                                  <DashboardPainterProvider>
-                                    <Suspense
-                                      fallback={
-                                        <div>
-                                          Loading...
-                                        </div>
-                                      }
-                                    > */}
-                                      <ContextProviders>
-                                        <ShellHeader />
-                                        <div className="relative min-h-[400px]">
-                                          <Suspense
-                                            fallback={
-                                              <div>
-                                                Loading...
-                                              </div>
-                                            }
-                                          >
-                                            {children}
-                                          </Suspense>
-                                        </div>
-                                        <ShellFooter />
-                                        <Suspense
-                                          fallback={
-                                            <div>
-                                              Loading...
-                                            </div>
-                                          }
-                                        >
-                                          <SignInModal />
-                                        </Suspense>
-                                      </ContextProviders>
-                                    {/* </Suspense>
-                                  </DashboardPainterProvider>
-                                </Suspense>
-                              </DashboardProvider>
-                            </Suspense>
-                          </QuoteProvider>
-                        </Suspense>
-                      </AuthProvider>
-                    </Suspense>
-                  </AccountSettingsProvider>
+            <ContextProviders>
+              <ShellHeader />
+              <div className="relative min-h-[400px]">
+                <Suspense fallback={<FallbacksLoading />}>
+                  {children}
                 </Suspense>
-              </PreferencesProvider>
-            </Suspense> */}
+              </div>
+              <ShellFooter />
+              <Suspense fallback={<FallbacksLoading />}>
+                <SignInModal />
+              </Suspense>
+            </ContextProviders>
           </div>
           <Script
             id="facebook-pixel"

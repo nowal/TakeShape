@@ -7,9 +7,9 @@ import type { FC } from 'react';
 export const PreferencesFooter: FC = () => {
   const router = useRouter();
   const preferences = usePreferences();
-  const { isLoading, onPreferenceSubmit } = preferences;
+  const { isLoading, onPreferenceSubmit, isSubmitting } = preferences;
 
-  const submitTitle = isLoading
+  const submitTitle = isSubmitting
     ? 'Submitting...'
     : 'Submit Preferences';
 
@@ -18,7 +18,6 @@ export const PreferencesFooter: FC = () => {
   return (
     <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
       <div className="flex flex-col items-end gap-4 my-4 xs:flex-row">
-        {/* <div>video.mp4</div> */}
         <ButtonsCvaButton
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}

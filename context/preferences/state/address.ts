@@ -6,6 +6,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
+import { useAuth } from '@/context/auth/provider';
 
 type TConfig = {
   loadingState: [boolean, Dispatch<boolean>];
@@ -23,9 +24,18 @@ export const usePreferencesStateAddress = (
     firestore,
   } = config;
   const [address, setAddress] = useState('');
-
+  const auth = useAuth();
+  console.log(auth);
+  const { isUserSignedIn, signIn } = auth;
   useEffect(() => {
+    console.log('MOUNT DOC ADDRESS SIDE EFFECT');
+
     const updateUserImageDoc = async () => {
+      console.log(
+        'usePreferencesStateAddress.useEffect.updateUserImageDoc.0'
+      );
+      console.log(currentUser, userImageId);
+
       if (currentUser === null || !userImageId) return;
       setLoading(true); // Set loading state to true
 
@@ -55,7 +65,13 @@ export const usePreferencesStateAddress = (
   }, []);
 
   useEffect(() => {
+    console.log('ADDRESS CHANGE SIDE EFFECT');
     const updateUserImageDoc = async () => {
+      console.log(
+        'usePreferencesStateAddress.useEffect.updateUserImageDoc.1'
+      );
+      console.log(currentUser, userImageId);
+
       if (currentUser === null || !userImageId) return;
       setLoading(true);
       const userImageDocRef = doc(
@@ -64,7 +80,7 @@ export const usePreferencesStateAddress = (
         userImageId
       );
       await updateDoc(userImageDocRef, {
-        address: address,
+        address,
       });
     };
 

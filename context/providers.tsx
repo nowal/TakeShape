@@ -16,13 +16,13 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
-        AuthProvider,
         QuoteProvider,
         DashboardProvider,
         DashboardPainterProvider,
         ViewportProvider,
-        PreferencesProvider,
         AccountSettingsProvider,
+        PreferencesProvider,
+        AuthProvider,
       ],
       _children,
       {}

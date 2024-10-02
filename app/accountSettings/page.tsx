@@ -3,9 +3,16 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
 import { ComponentsAccountSettingsUser } from '@/components/account-settings/user';
 import { useAccountSettings } from '@/context/account-settings/provider';
+import { useAuth } from '@/context/auth/provider';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const AccountSettingsPage = () => {
+  const { isUserSignedIn, signIn } = useAuth();
+  const { isAuthLoading } = signIn;
   const accountSettings = useAccountSettings();
+  const router = useRouter();
+
   const {
     isLoading,
     isPainter,
@@ -13,6 +20,15 @@ const AccountSettingsPage = () => {
     errorMessage,
     onSubmit,
   } = accountSettings;
+
+  useEffect(() => {
+    if (!isAuthLoading && !isUserSignedIn) {
+      router.push('/');
+    }
+  }, [isUserSignedIn, isAuthLoading]);
+
+  if (isAuthLoading) return null;
+
   return (
     <div className="relative flex flex-col gap-5 items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />

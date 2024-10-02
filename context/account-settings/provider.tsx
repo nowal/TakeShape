@@ -6,6 +6,7 @@ import {
   TAccountSettingsContext,
   TAccountSettingsStateConfig,
 } from '@/context/account-settings/types';
+import { usePreferences } from '@/context/preferences/provider';
 import {
   createContext,
   FC,
@@ -27,15 +28,19 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
-  const addressInputRef = useRef<HTMLInputElement|null>(null);
-  const mapRef = useRef<HTMLDivElement|null>(null);
-  const [address, setAddress] = useState('');
+  const addressInputRef = useRef<HTMLInputElement | null>(
+    null
+  );
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
+  const preferences = usePreferences();
+  console.log('preferences ', preferences);
+  const { address, dispatchAddress } = preferences;
   const config: TAccountSettingsConfig = {
     address,
-    dispatchAddress: setAddress,
+    dispatchAddress,
     addressInputRef,
-    mapRef
+    mapRef,
   };
 
   const accountSettingsMap = useAccountSettingsMap(config);
@@ -53,7 +58,7 @@ export const AccountSettingsProvider: FC<
       value={{
         ...accountSettings,
         ...config,
-        ...accountSettingsMap
+        ...accountSettingsMap,
       }}
     >
       {children}

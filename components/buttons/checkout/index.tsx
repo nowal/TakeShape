@@ -7,6 +7,8 @@ import { IconsStripe } from '@/components/icons/stripe';
 
 export type TButtonsCheckoutProps = {
   selectedQuoteAmount: number;
+  depositAmount: number;
+  remainingAmount: number;
   painterId: string;
   userImageId: string;
   userId: string;

@@ -95,6 +95,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           }}
           classValue="px-4 gap-6"
           center={false}
+          isValue={Boolean(logoSrc)}
           icon={{
             Leading: logoSrc
               ? () => (

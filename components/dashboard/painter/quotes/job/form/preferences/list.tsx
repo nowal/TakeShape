@@ -1,17 +1,20 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
+import { TypographyFormTitle } from '@/components/typography/form/title';
 
 type TProps = TJob;
 export const DashboardPainterJobFormPreferencesList: FC<
   TProps
 > = (job) => {
   return (
-    <ul className="list-disc pl-5">
-      <li className="font-semibold">
-        {job.paintPreferences?.laborAndMaterial
-          ? 'Labor and Material'
-          : 'Labor Only'}
+    <ul>
+      <li>
+        <TypographyFormTitle>
+          {job.paintPreferences?.laborAndMaterial
+            ? 'Labor and Material'
+            : 'Labor Only'}
+        </TypographyFormTitle>
       </li>
       {(
         [

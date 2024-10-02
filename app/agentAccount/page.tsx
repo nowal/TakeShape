@@ -21,6 +21,7 @@ import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { InputsFile } from '@/components/inputs/file';
 import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
+import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 
 const AgentAccount = () => {
   const [name, setName] = useState('');
@@ -157,7 +158,7 @@ const AgentAccount = () => {
       )}
 
       {isLoading ? (
-        <FallbacksLoading />
+        <FallbacksLoadingCircle />
       ) : (
         <form
           onSubmit={handleSubmit}
@@ -201,8 +202,7 @@ const AgentAccount = () => {
             />
           </div>
 
-                <div className="relative h-[96px]">
-
+          <div className="relative h-[96px]">
             {/* <label
               htmlFor="profilePicture"
               className="block text-md font-medium text-gray-700"
@@ -231,6 +231,7 @@ const AgentAccount = () => {
                 accept: 'image/*',
               }}
               classValue="px-4 gap-6"
+              isValue={Boolean(src)}
               icon={{
                 Leading: src
                   ? () => (

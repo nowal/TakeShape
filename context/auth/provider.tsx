@@ -33,9 +33,9 @@ export const AuthProvider: FC<PropsWithChildren> = ({
     dispatchUserSignedIn: setUserSignedIn,
   };
   const signIn = useSignIn(config);
- usePassiveSignOut(config); 
   const signUp = useSignUp(config);
   const menu = useAuthMenu(config);
+  usePassiveSignOut(config);
 
   return (
     <AUTH.Provider

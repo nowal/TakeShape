@@ -22,6 +22,7 @@ export const ComponentsAccountSettingsAgent: FC = () => {
           }}
           classValue="px-4 gap-4"
           center={false}
+          isValue={Boolean(profilePicSrc)}
           icon={{
             Leading: profilePicSrc
               ? () => (

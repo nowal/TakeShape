@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
+import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 
 export const SignInButton: FC = () => {
   const { signIn } = useAuth();
@@ -10,7 +10,7 @@ export const SignInButton: FC = () => {
   const [title, handler] = useSignInButton();
 
   if (isAuthLoading) {
-    return <FallbacksLoading />; // Or any other loading indicator
+    return <FallbacksLoadingCircle />;
   }
 
   return (

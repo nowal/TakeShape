@@ -9,14 +9,12 @@ export const DashboardPainterJobFormPreferences: FC<
   TProps
 > = (job) => {
   return (
-    <div className="details-box space-y-2 w-full lg:w-auto">
-      <div className="space-y-1">
+    <div>
+      <div>
         <TypographyFormTitle>
-          Paint Preferences:
+          Paint Preferences
         </TypographyFormTitle>
-        <DashboardPainterJobFormPreferencesList
-          {...job}
-        />
+        <DashboardPainterJobFormPreferencesList {...job} />
       </div>
       <div>
         <TypographyFormSubtitle>

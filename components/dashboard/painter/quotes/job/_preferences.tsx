@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { TJob } from '@/types';
 
 type TProps = TJob;
-export const DashboardPainterJobPreferences: FC<TProps> = (job) => {
+export const _DashboardPainterJobPreferences: FC<TProps> = (job) => {
   return (
     <div className="details-box space-y-2 w-full lg:w-auto">
       <p className="text-lg">
@@ -10,7 +10,7 @@ export const DashboardPainterJobPreferences: FC<TProps> = (job) => {
         <span className="font-semibold">{job.address}</span>
       </p>
       <div className="space-y-1">
-        <p className="text-lg">Paint Preferences:</p>
+        <p className="text-lg">Paint Preferences</p>
         <ul className="list-disc pl-5">
           <li className="font-semibold">
             {job.paintPreferences?.laborAndMaterial

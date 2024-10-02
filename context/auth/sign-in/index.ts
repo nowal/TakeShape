@@ -28,7 +28,7 @@ export const useSignIn = ({
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [authLoading, setAuthLoading] = useState(true);
+  const [isAuthLoading, setAuthLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false); // Loading state for login button
   const [errorMessage, setErrorMessage] = useState<
     string | null
@@ -39,7 +39,6 @@ export const useSignIn = ({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       dispatchUserSignedIn(Boolean(user));
-      // setSignedIn(!!user); // Set true if user exists, false otherwise
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
@@ -150,7 +149,7 @@ export const useSignIn = ({
   return {
     isLoading,
     isShowModal,
-    isAuthLoading: authLoading,
+    isAuthLoading,
     email,
     password,
     errorMessage,
@@ -160,5 +159,6 @@ export const useSignIn = ({
     onSignInButtonClick: handleClick,
     onSignIn: handleSignIn,
     dispatchSignInModalOpen: setShowModal,
+    dispatchAuthLoading:setAuthLoading
   };
 };

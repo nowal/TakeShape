@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
@@ -6,9 +6,7 @@ import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-ac
 import { ComponentsDashboard } from '@/components/dashboard';
 import { useDashboard } from '@/context/dashboard/provider';
 import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
-import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/_prev-quote-accepted';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
-import { ComponentsCongrats } from '@/components/congrats';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 
 const Dashboard = () => {

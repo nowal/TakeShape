@@ -1,11 +1,8 @@
-'use client';
-
-import React from 'react';
+'use client';;
 import { useRouter } from 'next/navigation';
-import { useAtom } from 'jotai';
 import { getFirestore, doc, getDocs, query, collection, where, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const QuoteTypeSelection = () => {
     const router = useRouter();

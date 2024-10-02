@@ -55,6 +55,9 @@ export const usePreferencesState = () => {
   const loadingState = useState<boolean>(false);
   const [isLoading, setLoading] = loadingState;
 
+  const submittingState = useState<boolean>(false);
+  const [isSubmitting, setSubmitting] = submittingState;
+
   const [isPopup, setShowPopup] = useState(false);
 
   const userImageId =
@@ -156,49 +159,58 @@ export const usePreferencesState = () => {
     morePreferences: boolean
   ) => {
     if (!auth.currentUser || !userImageId) return;
-    setLoading(true); // Set loading state to true
 
-    const userImageDocRef = doc(
-      firestore,
-      'userImages',
-      userImageId
-    );
-    const paintPrefDocRef = doc(
-      firestore,
-      'paintPreferences',
-      `${userImageId}-${auth.currentUser.uid}`
-    );
+    try {
+      setSubmitting(true); // Set loading state to true
 
-    // Build the updatedPreferences object conditionally
-    const updatedPreferences: TPaintPreferences =
-      resolvePreferencesCurrent({
-        defaultPreferences,
-        preferencesFlags: {
-          [PREFERENCES_NAME_BOOLEAN_CEILINGS]:
-            isShowCeilingFields,
-          [PREFERENCES_NAME_BOOLEAN_TRIM]: isShowTrimFields,
-          [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]:
-            isLaborAndMaterials,
-        },
+      const userImageDocRef = doc(
+        firestore,
+        'userImages',
+        userImageId
+      );
+      const paintPrefDocRef = doc(
+        firestore,
+        'paintPreferences',
+        `${userImageId}-${auth.currentUser.uid}`
+      );
+
+      // Build the updatedPreferences object conditionally
+      const updatedPreferences: TPaintPreferences =
+        resolvePreferencesCurrent({
+          defaultPreferences,
+          preferencesFlags: {
+            [PREFERENCES_NAME_BOOLEAN_CEILINGS]:
+              isShowCeilingFields,
+            [PREFERENCES_NAME_BOOLEAN_TRIM]:
+              isShowTrimFields,
+            [PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL]:
+              isLaborAndMaterials,
+          },
+        });
+
+      setPreferences(updatedPreferences);
+
+      await setDoc(paintPrefDocRef, updatedPreferences, {
+        merge: true,
       });
 
-    setPreferences(updatedPreferences);
+      await updateDoc(userImageDocRef, {
+        paintPreferencesId: paintPrefDocRef.id,
+        morePreferences,
+        laborAndMaterial: isLaborAndMaterials, // Update laborAndMaterial field
+        specialRequests, // Save special requests
+        moveFurniture: isMoveFurniture, // Save moveFurniture
+      });
 
-    await setDoc(paintPrefDocRef, updatedPreferences, {
-      merge: true,
-    });
-
-    await updateDoc(userImageDocRef, {
-      paintPreferencesId: paintPrefDocRef.id,
-      morePreferences,
-      laborAndMaterial: isLaborAndMaterials, // Update laborAndMaterial field
-      specialRequests, // Save special requests
-      moveFurniture: isMoveFurniture, // Save moveFurniture
-    });
-
-    // Pass userImageId to the dashboard
-    router.push(`${navigateTo}?userImageId=${userImageId}`);
-    setLoading(false); // Reset loading state
+      // Pass userImageId to the dashboard
+      router.push(
+        `${navigateTo}?userImageId=${userImageId}`
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubmitting(false); // Reset loading state
+    }
   };
 
   const handleValueChange: TValueChangeHandler = (
@@ -225,7 +237,10 @@ export const usePreferencesState = () => {
 
     const name = target.name;
 
-    if (target.type === 'radio'||target.type === 'checkbox') {
+    if (
+      target.type === 'radio' ||
+      target.type === 'checkbox'
+    ) {
       value = value === RADIO_VALUE_YES;
       if (name === PREFERENCES_NAME_BOOLEAN_CEILINGS) {
         setShowCeilingFields(value);
@@ -281,6 +296,7 @@ export const usePreferencesState = () => {
     isPopup,
     isCeilingsPainted,
     isLoading,
+    isSubmitting,
     isTrimAndDoorsPainted,
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
@@ -297,6 +313,7 @@ export const usePreferencesState = () => {
     dispatchShowTrimFields: setShowTrimFields,
     dispatchMoveFurniture: setMoveFurniture,
     dispatchPreferences: setPreferences,
+    dispatchSubmitting: setSubmitting,
     isLaborAndMaterials: isLaborAndMaterials === true,
     isShowCeilingFields,
     isShowTrimFields,

@@ -1,7 +1,7 @@
 import { ComponentsAccountSettingsAgent } from '@/components/account-settings/user/agent';
 import { ComponentsAccountSettingsHomeowner } from '@/components/account-settings/user/homeowner';
 import { ComponentsAccountSettingsPainter } from '@/components/account-settings/user/painter';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
 
@@ -14,7 +14,7 @@ export const ComponentsAccountSettingsUser: FC<TProps> = ({
   const { isDataLoading } = accountSettings;
 
   if (isDataLoading) {
-    return <FallbacksLoading />;
+    return <FallbacksLoadingCircle />;
   }
 
   if (isPainter) {
