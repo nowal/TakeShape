@@ -23,7 +23,7 @@ export const useDashboardPainterCompleted = () => {
   const dashboardPainter = useDashboardPainter();
   const [jobList, setJobList] = useState<TJob[]>([]);
   const { signIn } = useAuth();
-  const { isAuthLoading,dispatchAuthLoading } = signIn;
+  const { isAuthLoading, dispatchAuthLoading } = signIn;
   const firestore = getFirestore();
   const auth = getAuth();
   const storage = getStorage();

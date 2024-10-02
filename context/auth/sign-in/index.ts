@@ -29,7 +29,7 @@ export const useSignIn = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAuthLoading, setAuthLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // Loading state for login button
+  const [isSigningIn, setSigningIn] = useState(false); // Loading state for login button
   const [errorMessage, setErrorMessage] = useState<
     string | null
   >(null); // Error message state
@@ -56,7 +56,7 @@ export const useSignIn = ({
     e: FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setSigningIn(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
     const firestore = getFirestore(firebase);
 
@@ -106,7 +106,7 @@ export const useSignIn = ({
         'Incorrect email or password. Please try again.'
       ); // Set error message
     } finally {
-      setIsLoading(false); // Reset loading state
+      setSigningIn(false); // Reset loading state
     }
   };
 
@@ -146,7 +146,7 @@ export const useSignIn = ({
   };
 
   return {
-    isLoading,
+    isSigningIn,
     isShowModal,
     isAuthLoading,
     email,

@@ -9,9 +9,11 @@ import { SignUpSignIn } from '@/components/sign-up/sign-in';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
+  const { addressInputRef } = useAccountSettings();
   const {
     isLoading,
     errorMessage,
@@ -26,7 +28,6 @@ const SignupAccountForm = () => {
     dispatchName,
     dispatchPassword,
     dispatchShowLoginInstead,
-    addressInputRef,
   } = signUp;
 
   const submitButtonTitle = isLoading

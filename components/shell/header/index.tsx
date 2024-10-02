@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
@@ -8,7 +8,6 @@ import { useViewport } from '@/context/viewport';
 import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { IconsLoading1 } from '@/components/icons/loading/1';
 import { IconsLoading } from '@/components/icons/loading';
 
 export const ShellHeader = () => {
