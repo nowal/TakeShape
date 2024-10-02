@@ -2,6 +2,7 @@ import { AccountSettingsProvider } from '@/context/account-settings/provider';
 import { AuthProvider } from '@/context/auth/provider';
 import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
 import { DashboardProvider } from '@/context/dashboard/provider';
+import { PainterRegisterProvider } from '@/context/painter/register/provider';
 import { PreferencesProvider } from '@/context/preferences/provider';
 import { QuoteProvider } from '@/context/quote/provider';
 import { ViewportProvider } from '@/context/viewport';
@@ -16,6 +17,7 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
+        PainterRegisterProvider,
         QuoteProvider,
         DashboardProvider,
         DashboardPainterProvider,

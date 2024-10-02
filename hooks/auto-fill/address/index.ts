@@ -10,16 +10,20 @@ type TConfig = {
   dispatchAddress: Dispatch<string>;
 };
 export const useAutoFillAddress = (config: TConfig) => {
+  const { addressInputRef } = config;
   useEffect(() => {
     const initAutocomplete = async () => {
       try {
         await loadGoogleMapsScript(
           'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
         ); // Replace with your actual API key
-        if (window.google) {
+        if (
+          window.google &&
+          addressInputRef.current !== null
+        ) {
           const autocomplete =
             new window.google.maps.places.Autocomplete(
-              config.addressInputRef.current!,
+              addressInputRef.current,
               {
                 types: ['address'],
                 componentRestrictions: { country: 'us' },

@@ -12,7 +12,7 @@ import { ComponentsModalPanel } from '@/components/modal/panel';
 export const SignInModal: FC = () => {
   const { signIn } = useAuth();
   const {
-    isLoading,
+    isSigningIn,
     isShowModal,
     email,
     password,
@@ -24,7 +24,7 @@ export const SignInModal: FC = () => {
   } = signIn;
   const [title] = useSignInButton();
 
-  const submitButtonTitle = isLoading
+  const submitButtonTitle = isSigningIn
     ? 'Logging In...'
     : title;
 
@@ -36,7 +36,7 @@ export const SignInModal: FC = () => {
         title="Login"
         closeProps={{
           title: 'Close Login Modal',
-          disabled: isLoading,
+          disabled: isSigningIn,
           onTap: onClose,
         }}
       >
@@ -73,7 +73,7 @@ export const SignInModal: FC = () => {
               classValue="w-full text-center font-bold"
               intent="primary"
               size="sm"
-              disabled={isLoading}
+              disabled={isSigningIn}
             >
               {submitButtonTitle}
             </ButtonsCvaButton>

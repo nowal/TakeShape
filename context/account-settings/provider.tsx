@@ -13,7 +13,6 @@ import {
   PropsWithChildren,
   useContext,
   useRef,
-  useState,
 } from 'react';
 
 export const ACCOUNT_SETTINGS =
@@ -34,7 +33,6 @@ export const AccountSettingsProvider: FC<
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   const preferences = usePreferences();
-  console.log('preferences ', preferences);
   const { address, dispatchAddress } = preferences;
   const config: TAccountSettingsConfig = {
     address,

@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
@@ -7,6 +7,8 @@ import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 import { useViewport } from '@/context/viewport';
 import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { IconsLoading } from '@/components/icons/loading';
 
 export const ShellHeader = () => {
   const { isUserSignedIn, signIn } = useAuth();
@@ -44,9 +46,26 @@ export const ShellHeader = () => {
           <Link className="relative z-10" href="/">
             <ShellLogo />
           </Link>
-          {!signIn.isAuthLoading && (
+          {signIn.isAuthLoading ||
+          !viewport.isDimensions ? (
+            <ButtonsCvaButton
+              title="Authenticating"
+              classValue={cx(
+                'bg-white',
+                'shadow-md',
+                'z-10',
+                'text-white'
+              )}
+              rounded="full"
+              size="iconXl"
+              intent="icon"
+              center
+            >
+              <IconsLoading />
+            </ButtonsCvaButton>
+          ) : (
             <>
-              {viewport.isDimensions && viewport.isSm ? (
+              {viewport.isSm ? (
                 <ShellHeaderMobileMenu />
               ) : (
                 <HeaderOptions />

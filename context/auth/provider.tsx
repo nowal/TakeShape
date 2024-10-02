@@ -11,6 +11,7 @@ import {
   useContext,
   useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
 
 type TAuthContext = TAuthConfig & {
   isUserSignedIn: boolean;
@@ -27,10 +28,15 @@ export const useAuth = (): TAuthContext => useContext(AUTH);
 export const AuthProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
+  const router = useRouter()
   const [isUserSignedIn, setUserSignedIn] = useState(false);
+  const handleNavigateScrollTopClick = async (path: string) => {
+    router.push(path, { scroll: true });
+  };
   const config: TAuthConfig = {
     isUserSignedIn,
     dispatchUserSignedIn: setUserSignedIn,
+    onNavigateScrollTopClick:handleNavigateScrollTopClick
   };
   const signIn = useSignIn(config);
   const signUp = useSignUp(config);

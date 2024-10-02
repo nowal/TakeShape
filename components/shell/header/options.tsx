@@ -11,7 +11,6 @@ export const HeaderOptions: FC = () => {
 
   return (
     <div className="hidden items-center px-4 gap-2.5 sm:px-2 sm:flex">
-     
       {!isUserSignedIn && <SignInButton />}
       {!isQuotePage && <QuoteButton />}
       {isUserSignedIn && <AccountMenu />}

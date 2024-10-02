@@ -1,19 +1,17 @@
 'use client';
-
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { useRouter } from 'next/navigation';
-import { timestampPairsAtom } from '../../atom';
 import {
+  timestampPairsAtom,
   userDataAtom,
   isPainterAtom,
   documentIdAtom,
-  checkingAuthAtom,
   userTypeLoadingAtom,
   videoURLAtom,
   uploadStatusAtom,
   uploadProgressAtom,
-} from '../../atom'; // Import all required atoms
+} from '@/atom'; // Import all required atoms
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -28,19 +26,15 @@ import {
   doc,
   updateDoc,
 } from 'firebase/firestore';
-import { DashboardPainter } from '../../components/dashboard/painter';
-import QuoteButtonDashboard from '../../components/buttons/quote/quoteButtonDashboard';
-import { PainterCard } from '../../components/painter-card';
+import { DashboardPainter } from '@/components/dashboard/painter';
+import { PainterCard } from '@/components/painter/card';
 import RoomCard from '@/components/room-card';
 import {
   TTimestampPair,
   TUserData,
   TPaintPreferences,
 } from '@/types';
-import {
-  GoogleAnalytics,
-  GoogleTagManager,
-} from '@next/third-parties/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 type Price = {
   painterId: string;
@@ -55,9 +49,9 @@ const RoomPreferences = () => {
     timestampPairsAtom
   );
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
-  const [checkingAuth, setCheckingAuth] = useAtom(
-    checkingAuthAtom
-  );
+  // const [checkingAuth, setCheckingAuth] = useAtom(
+  //   checkingAuthAtom
+  // );
   const [userTypeLoading, setUserTypeLoading] = useAtom(
     userTypeLoadingAtom
   ); // Atom to manage loading state of user type check and data fetching
@@ -474,7 +468,6 @@ const RoomPreferences = () => {
           setIsPainter(false);
           setUserTypeLoading(false);
         }
-        setCheckingAuth(false);
         setUserTypeLoading(false);
       }
     );
@@ -484,13 +477,11 @@ const RoomPreferences = () => {
       // Reset states when component unmounts or user logs out
       setUserData(null);
       setIsPainter(false);
-      setCheckingAuth(true);
       setUserTypeLoading(true);
     };
   }, [
     setUserData,
     setIsPainter,
-    setCheckingAuth,
     setUserTypeLoading,
     auth,
     firestore,
@@ -803,7 +794,7 @@ const RoomPreferences = () => {
     }
   };
 
-  if (checkingAuth || userTypeLoading) {
+  if (userTypeLoading) {
     return (
       <div className="loading text-center text-lg mt-20">
         Retrieving Information...

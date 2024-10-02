@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from 'next';
 import { ShellHeader } from '@/components/shell/header';
 import { ShellFooter } from '@/components/shell/footer';
@@ -6,15 +5,8 @@ import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CssGlobal } from '@/css/global';
-import { ViewportProvider } from '@/context/viewport';
-import { AuthProvider } from '@/context/auth/provider';
 import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
-import { DashboardProvider } from '@/context/dashboard/provider';
-import { AccountSettingsProvider } from '@/context/account-settings/provider';
-import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
-import { QuoteProvider } from '@/context/quote/provider';
-import { PreferencesProvider } from '@/context/preferences/provider';
 import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 
@@ -66,9 +58,7 @@ export default function RootLayout({
             `}
           </Script>
           <noscript>
-            {
-              //  eslint-disable-next-line @next/next/no-img-element
-            }
+            {/* eslint-disable @next/next/no-img-element */}
             <img
               height="1"
               width="1"

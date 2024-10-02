@@ -1,4 +1,4 @@
-import { TPainterInfo } from '@/components/painter-card';
+import { TPainterInfo } from '@/components/painter/card';
 import { TAgentInfo, TPrice } from '@/types';
 import logoUrl from '@/public/landing/benefits/logos/0.png';
 import logoUrl1 from '@/public/landing/benefits/logos/1.png';

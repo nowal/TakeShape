@@ -1,7 +1,7 @@
 import { useCongrats } from '@/components/congrats/hook';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
-import { PainterCard } from '@/components/painter-card';
+import { PainterCard } from '@/components/painter/card';
 import type { FC } from 'react';
 
 export const CongratsPanelPainter: FC = () => {

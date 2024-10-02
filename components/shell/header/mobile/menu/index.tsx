@@ -14,7 +14,6 @@ import { MobileMenuModal } from '@/components/shell/header/mobile/menu/modal';
 export const ShellHeaderMobileMenu = () => {
   const { isUserSignedIn, menu } = useAuth();
   const {
-    onMenuClick,
     onDashboardClick,
     isMenuOpen,
     dispatchMenuOpen,
@@ -36,7 +35,7 @@ export const ShellHeaderMobileMenu = () => {
     ['Dashboard', onDashboardClick],
     [
       'Manage Account',
-      () => onMenuClick('/accountSettings'),
+      () => router.push('/accountSettings'),
     ],
   ] satisfies TAccountMenuListItem[];
 

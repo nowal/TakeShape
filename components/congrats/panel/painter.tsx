@@ -1,5 +1,5 @@
 import { useCongrats } from '@/components/congrats/hook';
-import { PainterCard } from '@/components/painter-card';
+import { PainterCard } from '@/components/painter/card';
 import type { FC } from 'react';
 
 export const CongratsPanelPainter: FC = () => {

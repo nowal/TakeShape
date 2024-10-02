@@ -4,12 +4,27 @@ import { LandingProblemAndDecision } from '@/components/landing/problem-and-deci
 import { LandingHero } from '@/components/landing/hero';
 import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
-import { useViewport } from '@/context/viewport';
 import { cx } from 'class-variance-authority';
 import QuoteButton from '@/components/buttons/quote/quoteButton';
+import Image from 'next/image';
+import image from '@/public/landing/hero.png';
+import { resolveUrlId } from '@/utils/css/format';
+import {
+  FilterGrayscale,
+  FILTER_GRAYSCALE_ID,
+} from '@/filters/grayscale';
+import { LandingHeroText } from '@/components/landing/hero/text';
+import { useMotionValue } from 'framer-motion';
+import { LandingHeroHandle } from '@/components/landing/hero/handle';
+import { TDimensionsReady } from '@/types/measure';
+import { LandingHeroHandleLine } from '@/components/landing/hero/handle/line';
+import { useObjectPosition } from '@/components/landing/hero/object-position';
+import { useViewport } from '@/context/viewport';
 
 const Landing = () => {
   const viewport = useViewport();
+  const objectPosition = useObjectPosition();
+
   return (
     <>
       <section
@@ -19,8 +34,22 @@ const Landing = () => {
         }}
       >
         <div className="h-0 lg:h-20" />
-        {viewport.isDimensions && (
+        <Image
+          style={{
+            filter: resolveUrlId(FILTER_GRAYSCALE_ID),
+            objectPosition,
+            objectFit: 'cover',
+          }}
+          src={image.src}
+          alt="Landing Hero, Happy Pic"
+          quality="100"
+          fill
+          priority
+        />
+        {viewport.isDimensions && !viewport.isResizing ? (
           <LandingHero {...viewport} />
+        ) : (
+          <LandingHeroText />
         )}
       </section>
       <section className={cx('relative', 'lg:h-[676px]')}>

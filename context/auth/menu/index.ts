@@ -20,6 +20,8 @@ import { useOutsideClick } from '@/hooks/use-outside-click';
 import { TAuthConfig } from '@/context/auth/types';
 
 export const useAuthMenu = (config: TAuthConfig) => {
+  const { onNavigateScrollTopClick, dispatchUserSignedIn } =
+    config;
   const [profilePictureUrl, setProfilePictureUrl] =
     useState<string | null>(null);
   const [isLoading, setLoading] = useState(true);
@@ -118,8 +120,8 @@ export const useAuthMenu = (config: TAuthConfig) => {
     console.log('SIGN OUT');
     try {
       await signOut(auth);
-      router.push('/');
-      config.dispatchUserSignedIn(false);
+      dispatchUserSignedIn(false);
+      onNavigateScrollTopClick('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -131,16 +133,15 @@ export const useAuthMenu = (config: TAuthConfig) => {
   };
 
   const handleDropdownClose = () => setMenuOpen(false);
-  const handleMenuClick = (path: string) => {
-    router.push(path);
-    handleDropdownClose();
-  };
-  const handleDashboardClick = () => {
+
+  const handleDashboardClick = async () => {
     if (isAgent) {
-      handleMenuClick('/agentDashboard');
+      onNavigateScrollTopClick('/agentDashboard');
     } else {
-      handleMenuClick('/dashboard');
+      onNavigateScrollTopClick('/dashboard');
     }
+    window.scrollTo(0, 0);
+    handleDropdownClose();
   };
   const outsideClickRef = useOutsideClick(
     handleDropdownClose
@@ -153,7 +154,6 @@ export const useAuthMenu = (config: TAuthConfig) => {
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,
     onDashboardClick: handleDashboardClick,
-    onMenuClick: handleMenuClick,
     onSignOut: handleSignOut,
     dispatchMenuOpen: setMenuOpen,
   };

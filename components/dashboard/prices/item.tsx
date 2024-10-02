@@ -1,12 +1,12 @@
 import type { FC } from 'react';
-import { PainterCard } from '@/components/painter-card';
+import { PainterCard } from '@/components/painter/card';
 import { TPrice } from '@/types';
 import { cx } from 'class-variance-authority';
 import { DashboardPricesItemFooter } from '@/components/dashboard/prices/footer';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { TElementProps } from '@/types/dom';
-import { PainterCardInfo } from '@/components/painter-card/info';
+import { PainterCardInfo } from '@/components/painter/card/info';
 import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 
 export type TDashboardPricesItemProps = {

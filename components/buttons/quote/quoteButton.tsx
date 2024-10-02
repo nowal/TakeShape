@@ -15,7 +15,7 @@ const QuoteButton: FC<TProps> = ({ ...props }) => {
     const unsubscribe = onAuthStateChanged(
       firebaseAuth,
       (user) => {
-        auth.dispatchUserSignedIn(!!user);
+        auth.dispatchUserSignedIn(Boolean(user));
       }
     );
     return () => unsubscribe(); // Cleanup subscription on unmount

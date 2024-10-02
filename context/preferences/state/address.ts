@@ -24,9 +24,7 @@ export const usePreferencesStateAddress = (
     firestore,
   } = config;
   const [address, setAddress] = useState('');
-  const auth = useAuth();
-  console.log(auth);
-  const { isUserSignedIn, signIn } = auth;
+
   useEffect(() => {
     console.log('MOUNT DOC ADDRESS SIDE EFFECT');
 

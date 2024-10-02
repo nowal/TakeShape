@@ -27,7 +27,7 @@ export const LandingFaqImage: FC = () => {
           alt={alt}
           quality="100"
           fill
-          objectFit="contain"
+          style={{ objectFit: 'contain' }}
         />
       ) : (
         <Image
@@ -35,7 +35,7 @@ export const LandingFaqImage: FC = () => {
           alt={alt}
           quality="100"
           fill
-          objectFit="contain"
+          style={{ objectFit: 'contain' }}
         />
       )}
     </div>

@@ -9,9 +9,11 @@ import { SignUpSignIn } from '@/components/sign-up/sign-in';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
+  const { addressInputRef } = useAccountSettings();
   const {
     isLoading,
     errorMessage,
@@ -26,7 +28,6 @@ const SignupAccountForm = () => {
     dispatchName,
     dispatchPassword,
     dispatchShowLoginInstead,
-    addressInputRef,
   } = signUp;
 
   const submitButtonTitle = isLoading
@@ -102,7 +103,7 @@ const SignupAccountForm = () => {
                 title={submitButtonTitle}
                 intent="primary"
                 size="md"
-                center={true}
+                center
               >
                 <div className="text-base font-bold">
                   {submitButtonTitle}
@@ -118,7 +119,6 @@ const SignupAccountForm = () => {
                   isDisabled={isLoading}
                   title={submitButtonTitle}
                   onTap={() => {
-                    //dispatchShowLoginInstead(true);
                     signIn.onSignInButtonClick();
                   }}
                   className="text-blue-600 hover:underline"
