@@ -9,7 +9,6 @@ import { TUploadStatusKey } from '@/atom/types';
 
 export const userDataAtom = atom<TUserData | null>(null);
 export const isPainterAtom = atom<boolean>(false);
-export const checkingAuthAtom = atom<boolean>(true);
 export const userTypeLoadingAtom = atom<boolean>(true);
 export const painterInfoAtom = atom({
   businessName: '',

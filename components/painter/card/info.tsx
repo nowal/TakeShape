@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TPainterInfo } from '@/components/painter-card';
+import { TPainterInfo } from '@/components/painter/card';
 import Image from 'next/image';
 import { IconsPhone } from '@/components/icons/phone';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';

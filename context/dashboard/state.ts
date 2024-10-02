@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import {
   userDataAtom,
   isPainterAtom,
-  checkingAuthAtom,
   userTypeLoadingAtom,
   uploadStatusAtom,
   uploadProgressAtom,
@@ -37,10 +36,7 @@ export const useDashboardState = () => {
   const [selectedQuoteAmount, setSelectedQuoteAmount] =
     useState<number>(0);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
-  const [checkingAuth, setCheckingAuth] = useAtom(
-    checkingAuthAtom
-  );
-  const [userTypeLoading, setUserTypeLoading] = useAtom(
+  const [isUserDataLoading, setUserDataLoading] = useAtom(
     userTypeLoadingAtom
   );
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -78,8 +74,7 @@ export const useDashboardState = () => {
       } else {
         setUserData(null);
         setPainter(false);
-        setCheckingAuth(false);
-        setUserTypeLoading(false);
+        setUserDataLoading(false);
       }
     });
 
@@ -97,130 +92,137 @@ export const useDashboardState = () => {
   }, [userData?.prices]);
 
   const fetchUserData = async () => {
-    if (!auth.currentUser) {
-      setCheckingAuth(false);
-      return;
-    }
-    console.log('Fetching user data...');
-    const userDocRef = doc(
-      firestore,
-      'users',
-      auth.currentUser.uid
-    );
-    const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      const userDocData = userDoc.data() as TUserData;
-      console.log('User data:', userDocData); // Add this log
-      // Since the user exists in the users collection, we set isPainter to false
-      setPainter(false);
-
-      const userImageIds = userDocData.userImages || [];
-      const userImagesData = await Promise.all(
-        userImageIds.map(async (id) => {
-          const userImageDocRef = doc(
-            firestore,
-            'userImages',
-            id
-          );
-          const userImageDoc = await getDoc(
-            userImageDocRef
-          );
-          const title =
-            userImageDoc.data()?.title || 'Untitled';
-          console.log(
-            `Fetched title for userImage ${id}: ${title}`
-          );
-          return { id, title };
-        })
-      );
-      setUserImageList(userImagesData);
-
-      const userImageIdFromParams =
-        searchParams.get('userImageId');
-      const initialUserImageId =
-        userImageIdFromParams ||
-        (userImageIds.length > 0 ? userImageIds[0] : '');
-      console.log('right after search params');
-
-      if (initialUserImageId) {
-        console.log('Initial');
-        console.log(initialUserImageId);
-        fetchUserImageData(initialUserImageId);
-        setSelectedUserImage(initialUserImageId);
+    try {
+      setUserDataLoading(true);
+      if (!auth.currentUser) {
+        console.log('NO USER');
+        return;
       }
+      console.log('Fetching user data...');
+      const userDocRef = doc(
+        firestore,
+        'users',
+        auth.currentUser.uid
+      );
+      const userDoc = await getDoc(userDocRef);
 
-      if (userDocData.reAgent) {
-        const reAgentId = userDocData.reAgent;
-        const agentDocRef = doc(
-          firestore,
-          'reAgents',
-          reAgentId
-        );
-        const agentDoc = await getDoc(agentDocRef);
+      if (userDoc.exists()) {
+        const userDocData = userDoc.data() as TUserData;
+        console.log('User data:', userDocData); // Add this log
+        // Since the user exists in the users collection, we set isPainter to false
+        setPainter(false);
 
-        if (agentDoc.exists()) {
-          const agentData = agentDoc.data();
-          setAgentInfo({
-            name: agentData.name,
-            profilePictureUrl: agentData.profilePictureUrl,
-            preferredPainters:
-              agentData.preferredPainters || [],
-          });
-          console.log(
-            'Agent info fetched successfully:',
-            agentData
-          );
-
-          if (
-            agentData.preferredPainters &&
-            agentData.preferredPainters.length > 0
-          ) {
-            const paintersQuery = query(
-              collection(firestore, 'painters'),
-              where(
-                'phoneNumber',
-                'in',
-                agentData.preferredPainters
-              )
+        const userImageIds = userDocData.userImages || [];
+        const userImagesData = await Promise.all(
+          userImageIds.map(async (id) => {
+            const userImageDocRef = doc(
+              firestore,
+              'userImages',
+              id
             );
-            const paintersSnapshot = await getDocs(
-              paintersQuery
+            const userImageDoc = await getDoc(
+              userImageDocRef
             );
-            const painterUserIds =
-              paintersSnapshot.docs.map(
-                (doc) => doc.data().userId
-              );
-            setPreferredPainterUserIds(painterUserIds);
+            const title =
+              userImageDoc.data()?.title || 'Untitled';
             console.log(
-              'Preferred Painter User IDs fetched:',
-              painterUserIds
+              `Fetched title for userImage ${id}: ${title}`
             );
+            return { id, title };
+          })
+        );
+        setUserImageList(userImagesData);
+
+        const userImageIdFromParams =
+          searchParams.get('userImageId');
+        const initialUserImageId =
+          userImageIdFromParams ||
+          (userImageIds.length > 0 ? userImageIds[0] : '');
+        console.log('right after search params');
+
+        if (initialUserImageId) {
+          console.log('Initial');
+          console.log(initialUserImageId);
+          fetchUserImageData(initialUserImageId);
+          setSelectedUserImage(initialUserImageId);
+        }
+
+        if (userDocData.reAgent) {
+          const reAgentId = userDocData.reAgent;
+          const agentDocRef = doc(
+            firestore,
+            'reAgents',
+            reAgentId
+          );
+          const agentDoc = await getDoc(agentDocRef);
+
+          if (agentDoc.exists()) {
+            const agentData = agentDoc.data();
+            setAgentInfo({
+              name: agentData.name,
+              profilePictureUrl:
+                agentData.profilePictureUrl,
+              preferredPainters:
+                agentData.preferredPainters || [],
+            });
+            console.log(
+              'Agent info fetched successfully:',
+              agentData
+            );
+
+            if (
+              agentData.preferredPainters &&
+              agentData.preferredPainters.length > 0
+            ) {
+              const paintersQuery = query(
+                collection(firestore, 'painters'),
+                where(
+                  'phoneNumber',
+                  'in',
+                  agentData.preferredPainters
+                )
+              );
+              const paintersSnapshot = await getDocs(
+                paintersQuery
+              );
+              const painterUserIds =
+                paintersSnapshot.docs.map(
+                  (doc) => doc.data().userId
+                );
+              setPreferredPainterUserIds(painterUserIds);
+              console.log(
+                'Preferred Painter User IDs fetched:',
+                painterUserIds
+              );
+            }
           }
         }
-      }
-    } else {
-      // Check if the user exists in the painters collection
-      console.log(auth.currentUser.uid);
-      const paintersQuery = query(
-        collection(firestore, 'painters'),
-        where('userId', '==', auth.currentUser.uid)
-      );
-      const paintersSnapshot = await getDocs(paintersQuery);
-
-      if (!paintersSnapshot.empty) {
-        // User exists in the painters collection
-        setPainter(true);
-        console.log('User is a painter'); // Add this log
       } else {
-        console.error(
-          'No user document found for the current user.'
+        // Check if the user exists in the painters collection
+        console.log(auth.currentUser.uid);
+        const paintersQuery = query(
+          collection(firestore, 'painters'),
+          where('userId', '==', auth.currentUser.uid)
         );
-      }
-    }
+        const paintersSnapshot = await getDocs(
+          paintersQuery
+        );
 
-    setCheckingAuth(false);
-    setUserTypeLoading(false);
+        if (!paintersSnapshot.empty) {
+          // User exists in the painters collection
+          setPainter(true);
+          console.log('User is a painter'); // Add this log
+        } else {
+          console.error(
+            'No user document found for the current user.'
+          );
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUserDataLoading(false);
+    }
   };
 
   const fetchUserImageData = async (
@@ -265,8 +267,7 @@ export const useDashboardState = () => {
     if (auth.currentUser) {
       fetchUserData();
     } else {
-      setCheckingAuth(false);
-      setUserTypeLoading(false);
+      setUserDataLoading(false);
     }
   }, [auth.currentUser]);
 
@@ -326,6 +327,7 @@ export const useDashboardState = () => {
   };
 
   return {
+    isUserDataLoading,
     isShowModal,
     isPainter,
     painterId,

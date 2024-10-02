@@ -11,7 +11,7 @@ import {
   isMocks,
   MOCKS_PAINTER_DATA,
 } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
-import { PainterCardInfo } from '@/components/painter-card/info';
+import { PainterCardInfo } from '@/components/painter/card/info';
 
 export type TPainterInfo = {
   businessName: string;

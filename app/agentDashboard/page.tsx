@@ -13,7 +13,7 @@ import {
   updateDoc,
   setDoc,
 } from 'firebase/firestore';
-import { PainterCard } from '../../components/painter-card';
+import { PainterCard } from '../../components/painter/card';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
