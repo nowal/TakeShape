@@ -6,14 +6,15 @@ import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-ac
 import { ComponentsDashboard } from '@/components/dashboard';
 import { useDashboard } from '@/context/dashboard/provider';
 import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
-import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/notifications';
+import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/_prev-quote-accepted';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
+import { ComponentsCongrats } from '@/components/congrats';
+import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 
 const Dashboard = () => {
   const dashboard = useDashboard();
   const {
     isShowModal,
-    isPainter,
     painterId,
     selectedQuoteAmount,
     userData,
@@ -31,9 +32,9 @@ const Dashboard = () => {
         second={
           <>
             {acceptedQuote ? (
-              <DashboardNotificationsQuoteAccepted
-                painterId={acceptedQuote.painterId}
-              />
+              <>
+                <ComponentsCongratsPanel />
+              </>
             ) : (
               <>
                 {userData && userData.prices && (

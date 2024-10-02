@@ -47,7 +47,7 @@ export const ComponentsDashboardShell: FC<TProps> = ({
         'relative left-1/2 -translate-x-1/2',
         'w-auto lg:w-0',
         // 'w-1 bg-red h-full',
-        'mt-8',
+        'my-8',
         'flex flex-col items-center lg:block'
       )}
     >
@@ -70,6 +70,7 @@ export const ComponentsDashboardShell: FC<TProps> = ({
         {second && <div style={secondStyle}>{second}</div>}
       </div>
       {children}
+      
     </div>
   );
 };

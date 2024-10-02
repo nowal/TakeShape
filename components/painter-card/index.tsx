@@ -27,7 +27,7 @@ export type PainterCardProps = {
 export const PainterCard: FC<PainterCardProps> = ({
   painterId,
 }) => {
-  const [painterData, seTPainterInfo] =
+  const [painterData, setPainterInfo] =
     useState<TPainterInfo | null>(
       isMocks() ? MOCKS_PAINTER_DATA : null
     );
@@ -46,7 +46,7 @@ export const PainterCard: FC<PainterCardProps> = ({
 
       if (!painterSnapshot.empty) {
         const painterDoc = painterSnapshot.docs[0].data();
-        seTPainterInfo(painterDoc as TPainterInfo);
+        setPainterInfo(painterDoc as TPainterInfo);
       } else {
         console.log('No such painter!');
       }

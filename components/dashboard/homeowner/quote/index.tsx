@@ -7,13 +7,12 @@ import { DashboardCard } from '@/components/dashboard/card';
 
 export const DashboardHomeownerQuote: FC = () => {
   const dashboard = useDashboard();
-  const { userData } = dashboard;
+  const { userData, acceptedQuote } = dashboard;
+  if (acceptedQuote) return null;
 
   return (
     <DashboardCard>
-      {userData && userData.video && (
-        <DashboardHomeownerVideo />
-      )}
+      <DashboardHomeownerVideo />
       <div>
         <h4
           className={cx(

@@ -1,7 +1,6 @@
 'use client';
 import type { FC } from 'react';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
-import { ButtonsCvaLink } from '@/components/cva/link';
 import { ComponentsModalPanel } from '@/components/modal/panel';
 import { CongratsPanelPainter } from '@/components/congrats/panel/painter';
 
@@ -31,18 +30,6 @@ export const ComponentsCongratsPanel: FC = () => {
             Contact Support
           </span>
         </ButtonsCvaAnchor>
-
-        <div className="absolute left-0 top-full w-full translate-y-8">
-          <ButtonsCvaLink
-            title="Contact Support, Call (615) 809-6429"
-            href="/"
-            center
-          >
-            <span className="text-xs font-semibold text-pink">
-              Continue
-            </span>
-          </ButtonsCvaLink>
-        </div>
       </div>
     </ComponentsModalPanel>
   );

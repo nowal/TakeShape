@@ -1,4 +1,3 @@
-
 import { useEffect, useState, Suspense } from 'react';
 import {
   useSearchParams,
@@ -11,9 +10,12 @@ import {
   updateDoc,
   arrayUnion,
 } from 'firebase/firestore';
+import { useDashboard } from '@/context/dashboard/provider';
 
-type TConfig = any;
-export const useCongrats = (config?:TConfig) => {
+export const useCongrats = () => {
+  const dashboard = useDashboard();
+  const { acceptedQuote, userData, userImageList } = dashboard;
+  console.log(userData,userImageList, acceptedQuote)
   const [painterUserId, setPainterUserId] = useState<
     string | null
   >(null);
@@ -25,7 +27,8 @@ export const useCongrats = (config?:TConfig) => {
 
   const userImageIdFromParams =
     searchParams.get('userImageId');
-  const painterUserIdFromParams =
+  const painterId =
+    acceptedQuote?.painterId ??
     searchParams.get('painterId');
 
   useEffect(() => {
@@ -35,10 +38,7 @@ export const useCongrats = (config?:TConfig) => {
       console.log('This even fired');
       setLoading(true);
 
-      if (
-        userImageIdFromParams &&
-        painterUserIdFromParams
-      ) {
+      if (userImageIdFromParams && painterId) {
         console.log('Is this true');
         try {
           const userImageRef = doc(
@@ -54,9 +54,7 @@ export const useCongrats = (config?:TConfig) => {
             const updatedPrices = (
               userImageData.prices || []
             ).map((price: any) => {
-              if (
-                price.painterId === painterUserIdFromParams
-              ) {
+              if (price.painterId === painterId) {
                 console.log("Get's the updated accepted");
                 return { ...price, accepted: true };
               }
@@ -65,9 +63,7 @@ export const useCongrats = (config?:TConfig) => {
 
             await updateDoc(userImageRef, {
               prices: updatedPrices,
-              acceptedPainters: arrayUnion(
-                painterUserIdFromParams
-              ),
+              acceptedPainters: arrayUnion(painterId),
             });
 
             console.log(
@@ -94,10 +90,10 @@ export const useCongrats = (config?:TConfig) => {
       setLoading(false);
     };
 
-    if (painterUserIdFromParams) {
+    if (painterId) {
       console.log('Where painterId coming from');
       // Update painterUserId state first
-      setPainterUserId(painterUserIdFromParams);
+      setPainterUserId(painterId);
 
       // Then check if userImageIdFromParams is available and call updateAcceptedQuote
       if (userImageIdFromParams) {
@@ -117,11 +113,9 @@ export const useCongrats = (config?:TConfig) => {
   }, [
     firestore,
     pathname,
-    painterUserIdFromParams,
+    painterId,
     userImageIdFromParams,
   ]);
 
-
-  return {isLoading,painterUserId,error}
-
-}
+  return { isLoading, painterId, error };
+};

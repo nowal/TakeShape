@@ -51,7 +51,7 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               Deposit amount
             </h5>
             <div className="text-2xl text-black">
-              ${depositAmount}
+              ${depositAmount.toLocaleString()}
             </div>
             <div className="text-gray-7 flex flex-row gap-1.5">
               <h6 className="text-xs font-medium">
@@ -59,7 +59,7 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               </h6>
               <div className="flex flex-row gap-1.5">
                 <p className="text-black text-xs font-medium">
-                  ${remainingAmount}
+                  ${remainingAmount.toLocaleString()}
                 </p>
                 <div title={`${remainingFraction * 100}%`}>
                   <IconsInfo />

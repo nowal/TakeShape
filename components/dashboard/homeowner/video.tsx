@@ -9,7 +9,7 @@ export const DashboardHomeownerVideo: FC = () => {
   const viewport = useViewport();
   const isXs =
     viewport.isDimensions && viewport.isXs;
-  if (!userData) return null;
+  if (!userData?.video) return null;
   return (
     <div
       style={{
