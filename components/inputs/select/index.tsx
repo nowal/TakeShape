@@ -1,10 +1,7 @@
 import { FC } from 'react';
 import { cx } from 'class-variance-authority';
 import * as Select from '@radix-ui/react-select';
-import {
-  TSelectValue,
-  TValueChangeHandler,
-} from '@/components/inputs/types';
+import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   InputsSelectValues,
   TInputsSelectValuesProps,
@@ -15,6 +12,7 @@ import {
   TResolveValuesConfig,
 } from '@/components/inputs/select/values';
 import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
+import './styles.css';
 
 export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Omit<
@@ -31,8 +29,7 @@ export type TInputsSelectProps = TBaseInputsSelectProps &
     placeholder: string;
     onValueChange: TValueChangeHandler;
     ListFc?: FC<
-      | TInputsSelectValuesProps
-      | TInputsSelectListBasicProps
+      TInputsSelectValuesProps | TInputsSelectListBasicProps
     >;
   };
 export const InputsSelect = ({
@@ -44,7 +41,6 @@ export const InputsSelect = ({
   onValueChange,
   ...props
 }: TInputsSelectProps) => {
-  console.log(props, placeholder)
   const values = resolveValues({ idValues, basicValues });
 
   return (
@@ -83,7 +79,7 @@ export const InputsSelect = ({
         <Select.Content
           position="popper"
           className={cx(
-            'max-h-[40vh]',
+            'SelectContent',
             'column-stretch',
             'my-2',
             'rounded-xl',

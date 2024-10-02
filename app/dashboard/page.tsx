@@ -5,15 +5,16 @@ import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-accept';
 import { ComponentsDashboard } from '@/components/dashboard';
 import { useDashboard } from '@/context/dashboard/provider';
-import { DashboardClientQuotes } from '@/components/dashboard/client/quotes';
-import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/notifications';
+import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
+import { DashboardNotificationsQuoteAccepted } from '@/components/dashboard/_prev-quote-accepted';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
+import { ComponentsCongrats } from '@/components/congrats';
+import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 
 const Dashboard = () => {
   const dashboard = useDashboard();
   const {
     isShowModal,
-    isPainter,
     painterId,
     selectedQuoteAmount,
     userData,
@@ -27,17 +28,17 @@ const Dashboard = () => {
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <ComponentsDashboardShell
         key="ComponentsDashboardShell"
-        left={<ComponentsDashboard isPainter={isPainter} />}
-        right={
+        first={<ComponentsDashboard />}
+        second={
           <>
             {acceptedQuote ? (
-              <DashboardNotificationsQuoteAccepted
-                painterId={acceptedQuote.painterId}
-              />
+              <>
+                <ComponentsCongratsPanel />
+              </>
             ) : (
               <>
                 {userData && userData.prices && (
-                  <DashboardClientQuotes />
+                  <DashboardHomeownerContractorQuotes />
                 )}
               </>
             )}

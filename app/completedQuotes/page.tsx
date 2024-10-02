@@ -14,7 +14,7 @@ const CompletedQuotes = () => {
   return (
     <ComponentsDashboardShell
       key="ComponentsDashboardShell"
-      left={
+      first={
         authLoading ? (
           <NotificationsHighlight>
             Retrieving Information...

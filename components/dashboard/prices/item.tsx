@@ -7,7 +7,7 @@ import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { TElementProps } from '@/types/dom';
 import { PainterCardInfo } from '@/components/painter-card/info';
-import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/client/quotes/mocks';
+import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 
 export type TDashboardPricesItemProps = {
   index: number; // max length of MOCKS_PAINTER_DATA_ITEMS
@@ -44,14 +44,14 @@ export const DashboardPricesItem: FC<
           'px-6 pt-6 pb-2'
         )}
       >
-        <div className='pb-3.5'>
-        {PainterCardInfoFc ? (
-          <PainterCardInfoFc
-            info={{ ...MOCKS_PAINTER_DATA_ITEMS[index] }}
-          />
-        ) : (
-          <PainterCard painterId={price.painterId} />
-        )}
+        <div className="pb-3.5">
+          {PainterCardInfoFc ? (
+            <PainterCardInfoFc
+              info={{ ...MOCKS_PAINTER_DATA_ITEMS[index] }}
+            />
+          ) : (
+            <PainterCard painterId={price.painterId} />
+          )}
         </div>
         <div
           className={cx(
@@ -63,9 +63,7 @@ export const DashboardPricesItem: FC<
               <span className="relative top-[2px] text-sm">
                 $
               </span>
-              <span>
-                {`${price.amount.toLocaleString()}`}
-              </span>
+              <span>{price.amount.toLocaleString()}</span>
             </p>
             {children}
             <DashboardPricesItemRecommended />

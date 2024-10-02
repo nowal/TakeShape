@@ -6,7 +6,6 @@ import {
   DASHBOARD_WIDTH_LEFT,
   DASHBOARD_WIDTH_RIGHT,
 } from '@/components/dashboard/constants';
-import { useDashboard } from '@/context/dashboard/provider';
 import { useViewport } from '@/context/viewport';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
@@ -20,37 +19,35 @@ const resolveSideStyle = (
 });
 
 type TProps = TPropsWithChildren<{
-  left?: JSX.Element;
-  right?: JSX.Element;
+  first?: JSX.Element;
+  second?: JSX.Element;
 }>;
 export const ComponentsDashboardShell: FC<TProps> = ({
-  left,
-  right,
+  first,
+  second,
   children,
 }) => {
-  const dashboard = useDashboard();
-  const { isPainter } = dashboard;
   const viewport = useViewport();
   const isLg = viewport.isDimensions && viewport.isLg;
   const isXs = viewport.isDimensions && viewport.isXs;
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
-  const isSingleColumn = isPainter || isXs;
-  const leftStyle = resolveSideStyle(
+  const isSingleColumn = isXs;
+  const firstStyle = resolveSideStyle(
     isSingleColumn,
     DASHBOARD_WIDTH_LEFT
   );
-  const rightStyle = resolveSideStyle(
+  const secondStyle = resolveSideStyle(
     isSingleColumn,
     DASHBOARD_WIDTH_RIGHT
   );
   return (
-    
     <div
       className={cx(
         'relative left-1/2 -translate-x-1/2',
         'w-auto lg:w-0',
-        'mt-8',
+        // 'w-1 bg-red h-full',
+        'my-8',
         'flex flex-col items-center lg:block'
       )}
     >
@@ -69,10 +66,11 @@ export const ComponentsDashboardShell: FC<TProps> = ({
           gap: DASHBOARD_GAP,
         }}
       >
-       {left && <div style={leftStyle}>{left}</div>}
-       {right && <div style={rightStyle}>{right}</div>}
+        {first && <div style={firstStyle}>{first}</div>}
+        {second && <div style={secondStyle}>{second}</div>}
       </div>
       {children}
+      
     </div>
   );
 };

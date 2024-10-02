@@ -6,9 +6,9 @@ import profilePic from '@/public/profilePic.jpeg';
 const AboutUs = () => {
   return (
     <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
-      <h1 className="text-center text-3xl font-bold leading-9 text-gray-900 sm:text-4xl sm:leading-10 my-6">
+      <h2 className="text-center text-3xl font-bold leading-9 text-gray-900 sm:text-4xl sm:leading-10 my-6">
         About Us
-      </h1>
+      </h2>
       <p className="text-base leading-6 text-gray-600">
         Hi, I&apos;m Noah. As a proffesional home-service
         estimator, I saw how much of a headache it is for

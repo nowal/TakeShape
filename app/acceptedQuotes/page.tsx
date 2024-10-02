@@ -1,10 +1,9 @@
-'use client';
+'use client';;
 import { useDashboardPainterAccepted } from '@/context/dashboard/painter/accepted';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/form';
 import { DashboardPainterJobFormAccepted } from '@/components/dashboard/painter/quotes/job/form/accepted';
 
 const AcceptedQuotes = () => {
@@ -15,7 +14,7 @@ const AcceptedQuotes = () => {
   return (
     <ComponentsDashboardShell
       key="ComponentsDashboardShell"
-      left={
+      first={
         authLoading ? (
           <NotificationsHighlight>
             Retrieving Information...
