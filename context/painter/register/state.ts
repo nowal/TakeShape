@@ -25,12 +25,12 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
-import { painterInfoAtom, isPainterAtom } from '../../atom';
+import { painterInfoAtom, isPainterAtom } from '../../../atom';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
 type TConfig = any;
-export const usePainterRegister = (config?: TConfig) => {
+export const usePainterRegisterState = (config?: TConfig) => {
   const [businessName, setBusinessName] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState(0);
