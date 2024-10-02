@@ -19,9 +19,9 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
-import { isPainterAtom } from '../../atom';
-import { loadGoogleMapsScript } from '../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { isPainterAtom } from '@/atom';
 import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
+import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 
 export const useAccountSettingsState = (
   config: TAccountSettingsStateConfig
@@ -64,6 +64,13 @@ export const useAccountSettingsState = (
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
+
+  const geocodeAddress = useAutoFillAddressGeocode({
+    dispatchAddress,
+    onInitializeMap,
+    addressInputRef,
+    range,
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -173,76 +180,6 @@ export const useAccountSettingsState = (
 
     return () => unsubscribe();
   }, [auth, firestore]);
-
-  useEffect(() => {
-    const initAutocomplete = async () => {
-      try {
-        await loadGoogleMapsScript(
-          'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
-        ); // Replace with your actual API key
-        if (window.google) {
-          const autocomplete =
-            new window.google.maps.places.Autocomplete(
-              addressInputRef.current!,
-              {
-                types: ['address'],
-                componentRestrictions: { country: 'us' },
-              }
-            );
-
-          autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (
-              !place.geometry ||
-              !place.geometry.location ||
-              !place.address_components
-            ) {
-              console.error(
-                'Error: place details are incomplete.'
-              );
-              return;
-            }
-
-            dispatchAddress(place.formatted_address ?? ''); // Add a fallback value
-            geocodeAddress(place.formatted_address ?? '');
-          });
-        }
-      } catch (error) {
-        console.error(
-          'Error loading Google Maps script:',
-          error
-        );
-      }
-    };
-
-    initAutocomplete();
-  }, []);
-
-  const geocodeAddress = (
-    address: string,
-    nextRange = range
-  ) => {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address }, (results, status) => {
-      if (
-        status === 'OK' &&
-        results &&
-        results[0].geometry.location
-      ) {
-        const location = results[0].geometry.location;
-        onInitializeMap(
-          location.lat(),
-          location.lng(),
-          nextRange
-        );
-      } else {
-        console.error(
-          'Geocode was not successful for the following reason: ' +
-            status
-        );
-      }
-    });
-  };
 
   const handleProfilePictureChange = (file: File) => {
     setNewProfilePicture(file);
