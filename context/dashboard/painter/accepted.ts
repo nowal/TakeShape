@@ -9,7 +9,7 @@ import {
   getDocs,
   doc,
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import {
   getStorage,
   ref,
@@ -29,16 +29,6 @@ export const useDashboardPainterAccepted = () => {
   const auth = getAuth();
   const storage = getStorage();
   const user = auth.currentUser;
-  // const [selectedPage, setSelectedPage] = useState('Accepted Quotes');
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
-    });
-
-    // Cleanup the listener on unmount
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (user) {

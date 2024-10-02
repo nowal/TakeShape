@@ -1,7 +1,4 @@
-import {
-  ButtonsCheckout,
-  TButtonsCheckoutProps,
-} from '@/components/buttons/checkout';
+import { ButtonsCheckout } from '@/components/buttons/checkout';
 import { IconsInfo } from '@/components/icons/info';
 import { IconsSecure } from '@/components/icons/secure';
 import { ComponentsModal } from '@/components/modal';
@@ -10,15 +7,14 @@ import { ComponentsPortalBody } from '@/components/portal/body';
 import { useDashboard } from '@/context/dashboard/provider';
 import type { FC } from 'react';
 
-type TProps = {
-  checkoutButtonProps: TButtonsCheckoutProps;
-};
-export const DashboardModalQuoteAccept: FC<TProps> = ({
-  checkoutButtonProps,
-}) => {
+export const DashboardModalQuoteAccept: FC = () => {
   const dashboard = useDashboard();
-  const { selectedQuoteAmount, dispatchShowModal } =
-    dashboard;
+  const {
+    painterId,
+    selectedQuoteAmount,
+    selectedUserImage,
+    dispatchShowModal,
+  } = dashboard;
   const handleCloseModal = () => dispatchShowModal(false);
   const depositFraction = 0.1;
   const depositAmount = Math.round(
@@ -80,7 +76,14 @@ export const DashboardModalQuoteAccept: FC<TProps> = ({
               tail="Noah Waldron"
             />
           </div> */}
-          <ButtonsCheckout {...checkoutButtonProps} depositAmount={depositAmount} remainingAmount={remainingAmount} />
+          <ButtonsCheckout
+            selectedQuoteAmount={selectedQuoteAmount}
+            painterId={painterId} // Make sure this is the correct painterId
+            userImageId={selectedUserImage} // Make sure this is the correct userImageId
+            userId={selectedUserImage}
+            depositAmount={depositAmount}
+            remainingAmount={remainingAmount}
+          />
           <div className="flex flex-row justify-center gap-1.5">
             <IconsSecure />
             <p className="text-gray-7 text-xs font-semibold">

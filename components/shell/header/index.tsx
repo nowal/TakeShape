@@ -7,6 +7,9 @@ import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 import { useViewport } from '@/context/viewport';
 import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { IconsLoading1 } from '@/components/icons/loading/1';
+import { IconsLoading } from '@/components/icons/loading';
 
 export const ShellHeader = () => {
   const { isUserSignedIn, signIn } = useAuth();
@@ -44,9 +47,26 @@ export const ShellHeader = () => {
           <Link className="relative z-10" href="/">
             <ShellLogo />
           </Link>
-          {!signIn.isAuthLoading && (
+          {signIn.isAuthLoading ||
+          !viewport.isDimensions ? (
+            <ButtonsCvaButton
+              title="Authenticating"
+              classValue={cx(
+                'bg-white',
+                'shadow-md',
+                'z-10',
+                'text-white'
+              )}
+              rounded="full"
+              size="iconXl"
+              intent="icon"
+              center
+            >
+              <IconsLoading />
+            </ButtonsCvaButton>
+          ) : (
             <>
-              {viewport.isDimensions && viewport.isSm ? (
+              {viewport.isSm ? (
                 <ShellHeaderMobileMenu />
               ) : (
                 <HeaderOptions />

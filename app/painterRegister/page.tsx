@@ -32,6 +32,7 @@ import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
+import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
 const PainterRegisterPage = () => {
   const [businessName, setBusinessName] = useState('');
@@ -63,6 +64,7 @@ const PainterRegisterPage = () => {
   const circleRef = useRef<google.maps.Circle | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
+  useAuthNavigateHome();
   useAutoFillAddress({dispatchAddress:setAddress,addressInputRef})
 
   useEffect(() => {
@@ -390,35 +392,6 @@ const PainterRegisterPage = () => {
             className="p-2 border rounded w-full"
           />
         </div>
-
-        {/* Removed per latest spec */}
-        {/* <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isInsured"
-          checked={isInsured}
-          onChange={(e) => setIsInsured(e.target.checked)}
-          className="mr-2"
-        />
-        <label htmlFor="isInsured" className="text-md font-medium text-gray-700">Are you insured?</label>
-      </div> */}
-
-        {/* <div>
-          <label
-            htmlFor="logo"
-            className="block text-md font-medium text-gray-700"
-          >
-            Company Logo (optional)
-          </label>
-       
-          <input
-            type="file"
-            id="logo"
-            onChange={handleLogoChange}
-            accept="image/png, image/jpeg, application/pdf" // Restrict file types
-            className="p-2 border rounded w-full"
-          />
-        </div> */}
         <div className="relative h-[96px]">
           <InputsFile
             title="Company Logo (optional)"

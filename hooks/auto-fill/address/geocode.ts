@@ -48,10 +48,13 @@ export const useAutoFillAddressGeocode = ({
         await loadGoogleMapsScript(
           'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
         ); // Replace with your actual API key
-        if (window.google) {
+        if (
+          window.google &&
+          addressInputRef.current !== null
+        ) {
           const autocomplete =
             new window.google.maps.places.Autocomplete(
-              addressInputRef.current!,
+              addressInputRef.current,
               {
                 types: ['address'],
                 componentRestrictions: { country: 'us' },
@@ -88,8 +91,6 @@ export const useAutoFillAddressGeocode = ({
 
   return geocodeAddress;
 };
-
-
 
 // useEffect(() => {
 //   const initAutocomplete = async () => {

@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { PainterCard } from '../../components/painter-card';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
+import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
 // Define the type for Painter data
 interface Painter {
@@ -25,6 +26,8 @@ interface Painter {
 }
 
 export default function AgentDashboard() {
+  useAuthNavigateHome();
+
   const [preferredPainters, setPreferredPainters] =
     useState<Painter[]>([]);
   const [loading, setLoading] = useState(true);

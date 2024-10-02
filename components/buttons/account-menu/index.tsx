@@ -10,7 +10,7 @@ import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 
 export const AccountMenu = () => {
-  const { menu } = useAuth();
+  const { menu, onNavigateScrollTopClick } = useAuth();
   const {
     isMenuOpen,
     isLoading,
@@ -18,7 +18,6 @@ export const AccountMenu = () => {
     outsideClickRef,
     onMenuOpenToggle,
     onDashboardClick,
-    onMenuClick,
   } = menu;
   const signInButtonItem = useSignInButton();
   const dashboardItem: TAccountMenuListItem = [
@@ -27,7 +26,7 @@ export const AccountMenu = () => {
   ];
   const manageAccountItem: TAccountMenuListItem = [
     'Manage Account',
-    () => onMenuClick('/accountSettings'),
+    () => onNavigateScrollTopClick('/accountSettings'),
   ];
   const items = [
     dashboardItem,

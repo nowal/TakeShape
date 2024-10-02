@@ -50,63 +50,63 @@ export const useSignUp = (config: TConfig) => {
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const addressInputRef = useRef<HTMLInputElement>(null);
+  // const addressInputRef = useRef<HTMLInputElement>(null);
 
   const agentId = searchParams.get('agentId');
   const userImageId = searchParams.get('userImageId');
 
   console.log(email, password, address, name);
 
-  useEffect(() => {
-    console.log('searchParams:', searchParams.toString());
-    console.log('agentId:', agentId);
-    console.log('userImageId:', userImageId);
+  // useEffect(() => { // might be duplicate in preferences
+  //   console.log('searchParams:', searchParams.toString());
+  //   console.log('agentId:', agentId);
+  //   console.log('userImageId:', userImageId);
 
-    const initAutocomplete = async () => {
-      try {
-        await loadGoogleMapsScript(
-          'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
-        ); // Replace with your actual API key
-        if (window.google) {
-          const autocomplete =
-            new window.google.maps.places.Autocomplete(
-              addressInputRef.current!,
-              {
-                types: ['address'],
-                componentRestrictions: { country: 'us' },
-              }
-            );
+  //   const initAutocomplete = async () => {
+  //     try {
+  //       await loadGoogleMapsScript(
+  //         'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
+  //       ); // Replace with your actual API key
+  //       if (window.google) {
+  //         const autocomplete =
+  //           new window.google.maps.places.Autocomplete(
+  //             addressInputRef.current!,
+  //             {
+  //               types: ['address'],
+  //               componentRestrictions: { country: 'us' },
+  //             }
+  //           );
 
-          autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (
-              !place.geometry ||
-              !place.geometry.location ||
-              !place.address_components
-            ) {
-              console.error(
-                'Error: place details are incomplete.'
-              );
-              return;
-            }
+  //         autocomplete.addListener('place_changed', () => {
+  //           const place = autocomplete.getPlace();
+  //           if (
+  //             !place.geometry ||
+  //             !place.geometry.location ||
+  //             !place.address_components
+  //           ) {
+  //             console.error(
+  //               'Error: place details are incomplete.'
+  //             );
+  //             return;
+  //           }
 
-            setAddress(place.formatted_address ?? ''); // Add a fallback value
-            setAddressComponents(
-              place.address_components ?? []
-            );
-            setErrorMessage(''); // Clear the error message when a valid address is selected
-          });
-        }
-      } catch (error) {
-        console.error(
-          'Error loading Google Maps script:',
-          error
-        );
-      }
-    };
+  //           setAddress(place.formatted_address ?? ''); // Add a fallback value
+  //           setAddressComponents(
+  //             place.address_components ?? []
+  //           );
+  //           setErrorMessage(''); // Clear the error message when a valid address is selected
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error(
+  //         'Error loading Google Maps script:',
+  //         error
+  //       );
+  //     }
+  //   };
 
-    initAutocomplete();
-  }, [agentId, userImageId, searchParams]);
+  //   initAutocomplete();
+  // }, [agentId, userImageId, searchParams]);
 
   const handleAddressChange = (
     e: ChangeEvent<HTMLInputElement>
@@ -137,7 +137,7 @@ export const useSignUp = (config: TConfig) => {
   ) => {
     event.preventDefault();
     setLoading(true); // Set loading state to true
-    console.log(event, validateAddress())
+    console.log(event, validateAddress());
     if (!validateAddress()) {
       setErrorMessage('Please enter a valid address.');
       setLoading(false);
@@ -187,10 +187,14 @@ export const useSignUp = (config: TConfig) => {
       }
 
       const quoteData = sessionStorage.getItem('quoteData');
-console.log("▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁");
-console.dir(quoteData);
-console.log("██████████████▓▒░ 🧨 ░▒ line: 189, file: index.ts ▓▒░ 🧨 ░▒██████████████");
-      
+      console.log(
+        '▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁'
+      );
+      console.dir(quoteData);
+      console.log(
+        '██████████████▓▒░ 🧨 ░▒ line: 189, file: index.ts ▓▒░ 🧨 ░▒██████████████'
+      );
+
       if (quoteData) {
         const quote = JSON.parse(quoteData);
         if (userImageId) {
@@ -326,6 +330,5 @@ console.log("██████████████▓▒░ 🧨 ░▒ lin
     dispatchPassword: setPassword,
     dispatchAddress: setAddress,
     dispatchShowLoginInstead: setShowLoginInstead,
-    addressInputRef,
   };
 };

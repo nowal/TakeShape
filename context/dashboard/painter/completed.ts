@@ -22,7 +22,6 @@ import { useAuth } from '@/context/auth/provider';
 export const useDashboardPainterCompleted = () => {
   const dashboardPainter = useDashboardPainter();
   const [jobList, setJobList] = useState<TJob[]>([]);
-  // const [authLoading, setAuthLoading] = useState(true);
   const { signIn } = useAuth();
   const { isAuthLoading,dispatchAuthLoading } = signIn;
   const firestore = getFirestore();

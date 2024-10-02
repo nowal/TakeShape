@@ -10,8 +10,7 @@ import {
   onAuthStateChanged,
   signOut,
 } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import firebase from '../../../lib/firebase';
+import firebase from '@/lib/firebase';
 import {
   getFirestore,
   collection,
@@ -24,6 +23,7 @@ import { TAuthConfig } from '@/context/auth/types';
 export const useSignIn = ({
   isUserSignedIn,
   dispatchUserSignedIn,
+  onNavigateScrollTopClick
 }: TAuthConfig) => {
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -34,7 +34,6 @@ export const useSignIn = ({
     string | null
   >(null); // Error message state
   const auth = getAuth(firebase);
-  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -42,14 +41,14 @@ export const useSignIn = ({
       setAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
-    const timeoutId = setTimeout(() => {
-      setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
-    }, 2000);
+    // const timeoutId = setTimeout(() => {
+    //   setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
+    // }, 2000);
 
     // Cleanup the listener and timeout on unmount
     return () => {
       unsubscribe();
-      clearTimeout(timeoutId);
+      // clearTimeout(timeoutId);
     };
   }, [auth]);
 
@@ -80,7 +79,7 @@ export const useSignIn = ({
         const agentDoc = await getDoc(agentDocRef);
 
         if (agentDoc.exists()) {
-          router.push('/agentDashboard');
+          onNavigateScrollTopClick('/agentDashboard');
         } else {
           // Link quote data to the user's account if they are not an agent
           const quoteData =
@@ -98,7 +97,7 @@ export const useSignIn = ({
             sessionStorage.removeItem('quoteData'); // Clean up
           }
 
-          router.push('/dashboard');
+          onNavigateScrollTopClick('/dashboard');
         }
       }
     } catch (error) {
@@ -114,7 +113,7 @@ export const useSignIn = ({
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      router.push('/');
+      onNavigateScrollTopClick('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -159,6 +158,6 @@ export const useSignIn = ({
     onSignInButtonClick: handleClick,
     onSignIn: handleSignIn,
     dispatchSignInModalOpen: setShowModal,
-    dispatchAuthLoading:setAuthLoading
+    dispatchAuthLoading: setAuthLoading,
   };
 };
