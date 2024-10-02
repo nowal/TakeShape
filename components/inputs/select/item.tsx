@@ -19,7 +19,8 @@ const SelectItem = forwardRef<HTMLDivElement, TProps>(
           'p-2',
           'px-3',
           'cursor-pointer outline-none select-none',
-          'data-[highlighted]:bg-white-1 data-[highlighted]:bg-opacity-50',
+          'text-gray-7',
+          'data-[highlighted]:text-pink data-[highlighted]:bg-white-1 data-[highlighted]:bg-opacity-50',
           'drop-shadow-05',
           'text-sm',
           classValue
@@ -30,12 +31,7 @@ const SelectItem = forwardRef<HTMLDivElement, TProps>(
         {...props}
         ref={forwardedRef}
       >
-        <h4 className={cx('text-gray-7')}>
-          <Select.ItemText>{children}</Select.ItemText>
-        </h4>
-        {/* <Select.ItemIndicator>
-          <IconsCheckboxChecked />
-        </Select.ItemIndicator> */}
+        <Select.ItemText>{children}</Select.ItemText>
       </Select.Item>
     );
   }
