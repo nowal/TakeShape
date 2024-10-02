@@ -6,7 +6,6 @@ import {
   DASHBOARD_WIDTH_LEFT,
   DASHBOARD_WIDTH_RIGHT,
 } from '@/components/dashboard/constants';
-import { useDashboard } from '@/context/dashboard/provider';
 import { useViewport } from '@/context/viewport';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
@@ -22,7 +21,6 @@ const resolveSideStyle = (
 type TProps = TPropsWithChildren<{
   first?: JSX.Element;
   second?: JSX.Element;
-  
 }>;
 export const ComponentsDashboardShell: FC<TProps> = ({
   first,
@@ -35,11 +33,11 @@ export const ComponentsDashboardShell: FC<TProps> = ({
   const largeWidth =
     DASHBOARD_WIDTH_LEFT + DASHBOARD_GAP / 2;
   const isSingleColumn = isXs;
-  const leftStyle = resolveSideStyle(
+  const firstStyle = resolveSideStyle(
     isSingleColumn,
     DASHBOARD_WIDTH_LEFT
   );
-  const rightStyle = resolveSideStyle(
+  const secondStyle = resolveSideStyle(
     isSingleColumn,
     DASHBOARD_WIDTH_RIGHT
   );
@@ -48,6 +46,7 @@ export const ComponentsDashboardShell: FC<TProps> = ({
       className={cx(
         'relative left-1/2 -translate-x-1/2',
         'w-auto lg:w-0',
+        // 'w-1 bg-red h-full',
         'mt-8',
         'flex flex-col items-center lg:block'
       )}
@@ -67,8 +66,8 @@ export const ComponentsDashboardShell: FC<TProps> = ({
           gap: DASHBOARD_GAP,
         }}
       >
-        {first && <div style={leftStyle}>{first}</div>}
-        {second && <div style={rightStyle}>{second}</div>}
+        {first && <div style={firstStyle}>{first}</div>}
+        {second && <div style={secondStyle}>{second}</div>}
       </div>
       {children}
     </div>

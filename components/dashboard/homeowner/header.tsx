@@ -1,4 +1,5 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
+import { DashboardHeader } from '@/components/dashboard/header';
 import { IconsPlus } from '@/components/icons/plus';
 import {
   InputsSelect,
@@ -16,12 +17,7 @@ export const DashboardHomeownerHeader: FC<TProps> = (
 ) => {
   const router = useRouter();
   return (
-    <div
-      className={cx(
-        'flex flex-row items-center justify-start',
-        'gap-2'
-      )}
-    >
+    <DashboardHeader>
       <TypographyFormTitle>Your Quotes</TypographyFormTitle>
       <InputsSelect
         name="client-quote"
@@ -45,6 +41,6 @@ export const DashboardHomeownerHeader: FC<TProps> = (
       >
         <IconsPlus />
       </ButtonsCvaButton>
-    </div>
+    </DashboardHeader>
   );
 };

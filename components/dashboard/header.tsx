@@ -1,22 +1,23 @@
-import { TElementProps } from '@/types/dom';
+import { TDivProps } from '@/types/dom';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
-type TProps = TElementProps;
-export const TypographyFormTitle: FC<TProps> = ({
-  classValue,
+type TProps = TDivProps;
+export const DashboardHeader: FC<TProps> = ({
   children,
+  classValue,
   ...props
 }) => {
   return (
-    <h3
+    <div
       className={cx(
-        'typography-form-title leading-[38px] text-left',
+        'flex flex-row items-center justify-start',
+        'gap-2',
         classValue
       )}
       {...props}
     >
       {children}
-    </h3>
+    </div>
   );
 };

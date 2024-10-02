@@ -20,7 +20,7 @@ export const DashboardPainterJobForm: FC<TProps> = (
       onSubmit={(e) =>
         onPriceSubmit(e, job.jobId, parseFloat(price))
       }
-      className="mt-4 w-full lg:w-auto"
+      className="w-full lg:w-auto"
     >
       <div className="relative h-[96px]">
         <InputsFile

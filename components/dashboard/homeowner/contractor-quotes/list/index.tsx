@@ -8,7 +8,7 @@ export const DashboardHomeownerContractorQuotesList: FC = () => {
     <div className="flex flex-col items-stretch">
       <div className="h-2" />
       <TypographyFormTitle>
-        Contractor ContractorQuotes
+        Contractor Quotes
       </TypographyFormTitle>
       <div className="h-5" />
       <DashboardHomeownerContractorQuotesListItems />

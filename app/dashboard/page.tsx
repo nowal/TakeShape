@@ -27,8 +27,8 @@ const Dashboard = () => {
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       <ComponentsDashboardShell
         key="ComponentsDashboardShell"
-        left={<ComponentsDashboard isPainter={isPainter} />}
-        right={
+        first={<ComponentsDashboard />}
+        second={
           <>
             {acceptedQuote ? (
               <DashboardNotificationsQuoteAccepted
