@@ -41,7 +41,7 @@ export const LandingBenefits: FC = () => {
             ],
             [
               'Fast and Free',
-              'Receive and approve quotes in a couple of clicks. Only pay a deposit when you\'re ready to paint.',
+              'Receive and approve quotes in a couple of clicks. Only pay a deposit when you are ready to paint.',
               LandingBenefitsCongrats,
             ],
           ] as const
