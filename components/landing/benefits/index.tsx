@@ -10,7 +10,7 @@ export const LandingBenefits: FC = () => {
     <div className="flex flex-col items-center w-full h-full overflow-hidden">
       <div className="h-20" />
       <h3 className="typography-landing-subtitle--responsive">
-        Benefits
+        House Painting Made Un-scary
       </h3>
       <div className="h-9" />
       <ul
@@ -22,8 +22,8 @@ export const LandingBenefits: FC = () => {
         {(
           [
             [
-              'Upload Your Video',
-              'Capture a video of your space and upload it. We only need 30 seconds per room.',
+              'No more in-home estimates',
+              'Get painting quotes without having more painters in your home.',
               () => (
                 <Image
                   alt="Upload Your Video"
@@ -35,13 +35,13 @@ export const LandingBenefits: FC = () => {
               ),
             ],
             [
-              'Receive Quotes',
-              'Local painters will see your video and provide you with their best price.',
+              'The best painter at the best price',
+              'Compare competitve quotes from local painters with verified experience.',
               LandingBenefitsReceieveQuotes,
             ],
             [
-              'Approve & Transform',
-              'Review the quotes, approve the price, and get ready to enjoy the color you love.',
+              'Fast and Free',
+              'Receive and approve quotes in a couple of clicks. Only pay a deposit when you\'re ready to paint.',
               LandingBenefitsCongrats,
             ],
           ] as const

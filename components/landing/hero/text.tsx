@@ -23,9 +23,8 @@ export const LandingHeroText: FC = () => {
         </h2>
         <div className="h-5" />
         <p className="text-xl">
-          Find the right paint color and painter for free
-          through one video of your space. This is your
-          home, your style, your terms.
+          Take one video of your space and get quotes from local painters.
+          No more in-home estimates. This is your home, your style, your terms.
         </p>
         <div className="h-7" />
         <div className="flex justify-start">

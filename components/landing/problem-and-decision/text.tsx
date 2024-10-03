@@ -24,7 +24,7 @@ export const LandingProblemAndDecisionText: FC = () => {
           'bg-white sm:bg-white-pink-4'
         )}
       >
-        Problem & Decision
+        You think it can't be this easy?
       </span>
       <div className="h-3" />
       <h2
@@ -33,11 +33,11 @@ export const LandingProblemAndDecisionText: FC = () => {
           'px-0 xs:px-7 md:px-0',
         )}
       >
-        Your painting quote is only a couple of clicks away
+        Getting painting quotes used to be a nightmare
       </h2>
       <div className="h-4" />
       <div className="text-pink font-bold text-xl	">
-        Getting painting quotes is a nightmare
+        Your painting quote is only clicks away
       </div>
       <div className="h-1" />
       <p className="text-gray-7">
