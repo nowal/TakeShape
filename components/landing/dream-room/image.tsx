@@ -28,8 +28,7 @@ export const LandingDreamRoomImage: FC = () => {
           quality="100"
           fill
           style={{
-            objectFit: 'cover',
-            left: '25%',
+            objectFit: 'contain',
             objectPosition: 'right top',
           }}
         />
