@@ -1,11 +1,17 @@
 'use client';
 import type { FC } from 'react';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel/index';
+import { TPropsWithChildren } from '@/types/dom/main';
 
-export const ComponentsCongrats: FC = () => {
+type TProps = TPropsWithChildren;
+export const ComponentsCongrats: FC<TProps> = ({
+  children,
+}) => {
   return (
     <div className="flex flex-col items-center bg-white py-12">
-      <ComponentsCongratsPanel />
+      <ComponentsCongratsPanel>
+        {children}
+      </ComponentsCongratsPanel>
     </div>
   );
 };

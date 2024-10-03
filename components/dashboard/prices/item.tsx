@@ -1,18 +1,18 @@
 import type { FC } from 'react';
-import { PainterCard } from '@/components/painter/card';
+import { PainterCardData } from '@/components/painter/card/data';
 import { TPrice } from '@/types';
 import { cx } from 'class-variance-authority';
 import { DashboardPricesItemFooter } from '@/components/dashboard/prices/footer';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
 import { TElementProps } from '@/types/dom';
-import { PainterCardInfo } from '@/components/painter/card/info';
+import { PainterCard } from '@/components/painter/card';
 import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 
 export type TDashboardPricesItemProps = {
   index: number; // max length of MOCKS_PAINTER_DATA_ITEMS
   price: TPrice;
-  PainterCardInfoFc?: typeof PainterCardInfo;
+  PainterCardFc?: typeof PainterCard;
 } & TElementProps;
 export const DashboardPricesItem: FC<
   TDashboardPricesItemProps
@@ -22,7 +22,7 @@ export const DashboardPricesItem: FC<
   classValue,
   children,
   style,
-  PainterCardInfoFc,
+  PainterCardFc,
   ...props
 }) => {
   return (
@@ -45,12 +45,12 @@ export const DashboardPricesItem: FC<
         )}
       >
         <div className="pb-3.5">
-          {PainterCardInfoFc ? (
-            <PainterCardInfoFc
-              info={{ ...MOCKS_PAINTER_DATA_ITEMS[index] }}
+          {PainterCardFc ? (
+            <PainterCardFc
+              {...MOCKS_PAINTER_DATA_ITEMS[index]}
             />
           ) : (
-            <PainterCard painterId={price.painterId} />
+            <PainterCardData painterId={price.painterId} />
           )}
         </div>
         <div

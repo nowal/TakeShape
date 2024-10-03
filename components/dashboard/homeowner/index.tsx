@@ -9,6 +9,8 @@ import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-ac
 import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel';
+import { PainterCardData } from '@/components/painter/card/data';
+import { PainterCardBackground } from '@/components/painter/card/background';
 
 export const DashboardHomeowner: FC = () => {
   const dashboard = useDashboard();
@@ -47,7 +49,13 @@ export const DashboardHomeowner: FC = () => {
       second={
         <>
           {acceptedQuote ? (
-            <ComponentsCongratsPanel />
+            <ComponentsCongratsPanel>
+              <PainterCardBackground>
+                <PainterCardData
+                  painterId={acceptedQuote.painterId}
+                />
+              </PainterCardBackground>
+            </ComponentsCongratsPanel>
           ) : (
             <>
               {userData && userData.prices && (

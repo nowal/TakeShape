@@ -5,7 +5,7 @@ import { LandingHero } from '@/components/landing/hero';
 import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
 import { cx } from 'class-variance-authority';
-import QuoteButton from '@/components/buttons/quote/quoteButton';
+import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import Image from 'next/image';
 import image from '@/public/landing/hero.png';
 import { resolveUrlId } from '@/utils/css/format';
@@ -52,10 +52,16 @@ const Landing = () => {
           <LandingHeroText />
         )}
       </section>
-      <section className={cx('relative', 'lg:h-[676px]')}>
+      <section
+        className={cx(
+          'relative',
+          'xl:h-[676px]',
+          'flex flex-col items-center px-0 sm:px-20 lg:px-44 xl:px-0'
+        )}
+      >
         <LandingBenefits />
       </section>
-      <div className="flex justify-center py-12 lg:py-0 lg:hidden">
+      <div className="flex justify-center py-12 xl:py-0 xl:hidden">
         <QuoteButton />
       </div>
       <section className={cx('relative lg:h-[645]')}>

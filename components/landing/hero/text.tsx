@@ -1,4 +1,4 @@
-import QuoteButton from '@/components/buttons/quote/quoteButton';
+import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 

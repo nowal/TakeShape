@@ -1,6 +1,6 @@
 import { useState, useEffect, FC, FormEvent } from 'react';
 import { useAtom } from 'jotai';
-import { timestampPairsAtom } from '../../atom';
+import { timestampPairsAtom } from '@/atom';
 import {
   updateDoc,
   DocumentReference,

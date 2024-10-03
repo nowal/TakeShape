@@ -1,37 +1,21 @@
 import type { FC } from 'react';
 import { MOCKS_PRICES } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { LandingBenefitsReceieveQuotesItem } from '@/components/landing/benefits/receive-quotes/item';
-import { PainterCardInfo } from '@/components/painter/card/info';
-import { cx } from 'class-variance-authority';
+import { PainterCard } from '@/components/painter/card';
+import { LandingBenefitsBackground } from '@/components/landing/benefits/background';
 
 export const LandingBenefitsReceieveQuotes: FC = () => {
   const prices = MOCKS_PRICES;
-  const isEmpty = !prices || prices.length === 0;
-
-  if (isEmpty) {
-    return (
-      <NotificationsHighlight>
-        No quotes
-      </NotificationsHighlight>
-    );
-  }
 
   return (
-    <div
-      className={cx(
-        'absolute inset-0 overflow-hidden border border-white-8',
-        'rounded-2xl lg:rounded-4xl',
-        'pointer-events-none'
-      )}
-    >
+    <LandingBenefitsBackground>
       <ul className="absolute -left-8 bottom-3/4 -translate-y-11 w-full scale-75">
         {prices.map((price, index) => {
           const offsetX = index * 2.8;
           const offsetY = offsetX * 1.8;
-
           const transform =
             `translate(${offsetX}rem, ${offsetY}rem)` as const;
+
           return (
             <LandingBenefitsReceieveQuotesItem
               key={`${price.painterId}-${index}`}
@@ -41,11 +25,11 @@ export const LandingBenefitsReceieveQuotes: FC = () => {
               }}
               price={price}
               index={index}
-              PainterCardInfoFc={PainterCardInfo}
+              PainterCardFc={PainterCard}
             />
           );
         })}
       </ul>
-    </div>
+    </LandingBenefitsBackground>
   );
 };

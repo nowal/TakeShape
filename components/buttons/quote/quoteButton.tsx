@@ -1,3 +1,4 @@
+
 import { useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
@@ -7,7 +8,7 @@ import {
 import { useAuth } from '@/context/auth/provider';
 
 type TProps = TButtonsCvaLinkProps;
-const QuoteButton: FC<TProps> = ({ ...props }) => {
+export const QuoteButton: FC<TProps> = ({ ...props }) => {
   const auth = useAuth();
   const firebaseAuth = getAuth();
 
@@ -39,5 +40,3 @@ const QuoteButton: FC<TProps> = ({ ...props }) => {
     </ButtonsCvaLink>
   );
 };
-
-export default QuoteButton;

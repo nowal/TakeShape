@@ -8,7 +8,7 @@ import {
   userTypeLoadingAtom,
   uploadStatusAtom,
   uploadProgressAtom,
-} from '../../atom';
+} from '@/atom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,

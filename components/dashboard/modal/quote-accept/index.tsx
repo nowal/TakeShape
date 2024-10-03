@@ -2,7 +2,7 @@ import { ButtonsCheckout } from '@/components/buttons/checkout';
 import { IconsInfo } from '@/components/icons/info';
 import { IconsSecure } from '@/components/icons/secure';
 import { ComponentsModal } from '@/components/modal';
-import { ComponentsModalPanel } from '@/components/modal/panel';
+import { ComponentsPanel } from '@/components/panel';
 import { ComponentsPortalBody } from '@/components/portal/body';
 import { useDashboard } from '@/context/dashboard/provider';
 import type { FC } from 'react';
@@ -28,7 +28,7 @@ export const DashboardModalQuoteAccept: FC = () => {
   return (
     <ComponentsPortalBody>
       <ComponentsModal>
-        <ComponentsModalPanel
+        <ComponentsPanel
           title="Deposit"
           // title="Congrats on accepting your quote!"
           classValue="gap-5"
@@ -90,7 +90,7 @@ export const DashboardModalQuoteAccept: FC = () => {
               The payment method is verified.
             </p>
           </div>
-        </ComponentsModalPanel>
+        </ComponentsPanel>
       </ComponentsModal>
     </ComponentsPortalBody>
   );

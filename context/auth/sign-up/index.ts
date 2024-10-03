@@ -3,13 +3,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import {
-  ChangeEvent,
-  FormEvent,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import {
   useRouter,
   useSearchParams,
@@ -28,8 +22,7 @@ import {
   isPainterAtom,
   painterInfoAtom,
   documentIdAtom,
-} from '../../../atom';
-import { loadGoogleMapsScript } from '../../../utils/loadGoogleMapsScript'; // Adjust the import path as needed
+} from '@/atom';
 import { TAuthConfig } from '@/context/auth/types';
 
 type TConfig = TAuthConfig;

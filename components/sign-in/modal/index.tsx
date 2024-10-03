@@ -7,7 +7,7 @@ import { ButtonsCvaLink } from '@/components/cva/link';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
-import { ComponentsModalPanel } from '@/components/modal/panel';
+import { ComponentsPanel } from '@/components/panel';
 
 export const SignInModal: FC = () => {
   const { signIn } = useAuth();
@@ -32,7 +32,7 @@ export const SignInModal: FC = () => {
   if (!isShowModal) return null;
   return (
     <ComponentsModal onTap={onClose}>
-      <ComponentsModalPanel
+      <ComponentsPanel
         title="Login"
         closeProps={{
           title: 'Close Login Modal',
@@ -92,7 +92,7 @@ export const SignInModal: FC = () => {
             </ButtonsCvaLink>
           </form>
         </>
-      </ComponentsModalPanel>
+      </ComponentsPanel>
     </ComponentsModal>
   );
 };

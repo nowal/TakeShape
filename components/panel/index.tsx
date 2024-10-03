@@ -1,17 +1,17 @@
 import type { FC, ReactElement } from 'react';
 import {
-  ComponentsModalPanelClose,
-  TComponentsModalPanelCloseProps,
-} from '@/components/modal/panel/close';
+  ComponentsPanelClose,
+  TComponentsPanelCloseProps,
+} from '@/components/panel/close';
 import { isString } from '@/utils/validation/is/string';
 import { cx } from 'class-variance-authority';
 import { TDivProps } from '@/types/dom';
 
 type TProps = Omit<TDivProps, 'title'> & {
   title?: string | JSX.Element;
-  closeProps?: TComponentsModalPanelCloseProps;
+  closeProps?: TComponentsPanelCloseProps;
 };
-export const ComponentsModalPanel: FC<TProps> = ({
+export const ComponentsPanel: FC<TProps> = ({
   title,
   closeProps,
   children,
@@ -39,7 +39,7 @@ export const ComponentsModalPanel: FC<TProps> = ({
     >
       <Title />
       {closeProps && (
-        <ComponentsModalPanelClose
+        <ComponentsPanelClose
           title="Close Login Modal"
           isIconOnly
           rounded="full"
@@ -50,7 +50,6 @@ export const ComponentsModalPanel: FC<TProps> = ({
           {...closeProps}
         />
       )}
-
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
 'use client';
-import QuoteButton from '@/components/buttons/quote/quoteButton';
+import {QuoteButton} from '@/components/buttons/quote/quoteButton';
 import { ButtonsCvaLink } from '@/components/cva/link';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';

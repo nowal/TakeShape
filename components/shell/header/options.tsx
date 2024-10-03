@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { SignInButton } from '../../buttons/sign-in-button';
-import QuoteButton from '../../buttons/quote/quoteButton';
-import { AccountMenu } from '../../buttons/account-menu';
 import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
+import { AccountMenu } from '@/components/buttons/account-menu';
+import { SignInButton } from '@/components/buttons/sign-in-button';
+import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 
 export const HeaderOptions: FC = () => {
   const { isUserSignedIn } = useAuth();

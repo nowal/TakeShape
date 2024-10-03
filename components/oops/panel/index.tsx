@@ -1,11 +1,11 @@
 'use client';
 import type { FC } from 'react';
-import { ComponentsModalPanel } from '@/components/modal/panel';
+import { ComponentsPanel } from '@/components/panel';
 import { ButtonsCvaButton } from '@/components/cva/button';
 
 export const ComponentsOopsPanel: FC = () => {
   return (
-    <ComponentsModalPanel classValue="text-center">
+    <ComponentsPanel classValue="text-center">
       <div className="flex flex-col gap-5">
         <div className="text-8xl">😭</div>
         <h2 className="text-base font-bold text-black px-2">
@@ -20,6 +20,6 @@ export const ComponentsOopsPanel: FC = () => {
           </span>
         </ButtonsCvaButton>
       </div>
-    </ComponentsModalPanel>
+    </ComponentsPanel>
   );
 };

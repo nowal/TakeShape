@@ -1,36 +1,18 @@
 'use client';
 import type { FC } from 'react';
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
-import { ComponentsModalPanel } from '@/components/modal/panel';
-import { CongratsPanelPainter } from '@/components/congrats/panel/painter';
+import { ComponentsPanel } from '@/components/panel';
+import { TPropsWithChildren } from '@/types/dom/main';
+import { ComponentsCongratsContent } from '@/components/congrats/content';
 
-export const ComponentsCongratsPanel: FC = () => {
+type TProps = TPropsWithChildren;
+export const ComponentsCongratsPanel: FC<TProps> = ({
+  children,
+}) => {
   return (
-    <ComponentsModalPanel classValue="text-center">
-      <div className="relative flex flex-col gap-5">
-        <div className="text-8xl">🎉</div>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-base font-bold text-black px-2">
-            Congratulations on accepting your quote!
-          </h2>
-          <p className="text-gray-7 text-sm">
-            Contractor will reach out within two days to
-            schedule your job. If you have any questions,
-            please contact us or you call your contractor
-            directly.
-          </p>
-        </div>
-        <CongratsPanelPainter />
-        <ButtonsCvaAnchor
-          title="Contact Support, Call (615) 809-6429"
-          href="tel:+16158096429"
-          center
-        >
-          <span className="text-xs text-gray-7 font-semibold">
-            Contact Support
-          </span>
-        </ButtonsCvaAnchor>
-      </div>
-    </ComponentsModalPanel>
+    <ComponentsPanel classValue="text-center">
+      <ComponentsCongratsContent>
+        {children}
+      </ComponentsCongratsContent>
+    </ComponentsPanel>
   );
 };

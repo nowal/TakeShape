@@ -1,4 +1,4 @@
-import { PainterCard } from '@/components/painter/card';
+import { PainterCardData } from '@/components/painter/card/data';
 import type { FC } from 'react';
 
 type TProps = { painterId: string };
@@ -10,7 +10,7 @@ export const DashboardNotificationsQuoteAccepted: FC<
       <h2 className="text-2xl font-medium">
         Congrats on accepting your quote with:
       </h2>
-      <PainterCard painterId={painterId} />
+      <PainterCardData painterId={painterId} />
       <h2 className="">
         They will reach out within two business days to
         schedule your job. If you have any questions, please

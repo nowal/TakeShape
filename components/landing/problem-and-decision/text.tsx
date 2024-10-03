@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import QuoteButton from '@/components/buttons/quote/quoteButton';
+import {QuoteButton} from '@/components/buttons/quote/quoteButton';
 import { cx } from 'class-variance-authority';
 
 export const LandingProblemAndDecisionText: FC = () => {

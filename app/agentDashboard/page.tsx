@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
@@ -13,18 +13,15 @@ import {
   updateDoc,
   setDoc,
 } from 'firebase/firestore';
-import { PainterCard } from '../../components/painter/card';
+import { PainterCardData } from '@/components/painter/card/data';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
-// Define the type for Painter data
 interface Painter {
   userId: string;
   name: string;
   phoneNumber: string;
-  // Add other fields as necessary
 }
-
 export default function AgentDashboard() {
   useAuthNavigateHome();
 
@@ -397,7 +394,9 @@ export default function AgentDashboard() {
                 key={painter.userId}
                 className="flex items-center justify-between mb-4"
               >
-                <PainterCard painterId={painter.userId} />
+                <PainterCardData
+                  painterId={painter.userId}
+                />
                 <button
                   onClick={() =>
                     handleRemovePainter(painter.phoneNumber)

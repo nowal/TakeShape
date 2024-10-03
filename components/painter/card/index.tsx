@@ -1,70 +1,44 @@
-import React, { FC, useEffect, useState } from 'react';
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore';
-import { IconsLoading } from '@/components/icons/loading';
-import {
-  isMocks,
-  MOCKS_PAINTER_DATA,
-} from '@/components/dashboard/homeowner/contractor-quotes/mocks';
-import { PainterCardInfo } from '@/components/painter/card/info';
+import type { FC } from 'react';
+import Image from 'next/image';
+import { IconsPhone } from '@/components/icons/phone';
+import { ButtonsCvaAnchor } from '@/components/cva/anchor';
+import { cx } from 'class-variance-authority';
+import { TClassValueProps } from '@/types/dom';
+import { TPainterData } from '@/components/painter/card/types';
 
-export type TPainterInfo = {
-  businessName: string;
-  logoUrl?: string;
-  phoneNumber?: string;
-  reviews?: number[];
-};
-
-export type PainterCardProps = {
-  painterId: string;
-};
-
-export const PainterCard: FC<PainterCardProps> = ({
-  painterId,
+type TProps = TPainterData & TClassValueProps;
+export const PainterCard: FC<TProps> = ({
+  classValue,
+  ...info
 }) => {
-  const [painterData, setPainterInfo] =
-    useState<TPainterInfo | null>(
-      isMocks() ? MOCKS_PAINTER_DATA : null
-    );
-  const firestore = getFirestore();
+  const { phoneNumber, logoUrl, businessName } = info;
 
-  useEffect(() => {
-    const fetchPainterData = async () => {
-      const painterQuery = query(
-        collection(firestore, 'painters'),
-        where('userId', '==', painterId)
-      );
-      console.log(
-        'retrieving info for painter ' + painterId
-      );
-      const painterSnapshot = await getDocs(painterQuery);
-
-      if (!painterSnapshot.empty) {
-        const painterDoc = painterSnapshot.docs[0].data();
-        setPainterInfo(painterDoc as TPainterInfo);
-      } else {
-        console.log('No such painter!');
-      }
-    };
-
-    if (painterId) {
-      fetchPainterData();
-    }
-  }, [painterId, firestore]);
-
-  if (!painterData) {
-    return (
-      <div className="flex flex-row gap-2 text-xs">
-        <IconsLoading classValue="text-white" />
-        Loading painter data...
+  return (
+    <div className={cx('flex flex-row gap-3', classValue)}>
+      {logoUrl && (
+        <Image
+          src={logoUrl}
+          alt={`${businessName} Logo`}
+          className="size-12 rounded-full"
+          width="48"
+          height="48"
+        />
+      )}
+      <div className="flex flex-col gap-1.5">
+        <h5 className="text-base font-semibold text-black">
+          {businessName}
+        </h5>
+        <ButtonsCvaAnchor
+          href={`tel:${phoneNumber}`}
+          classValue="flex flex-row items-center gap-1 h-[16px]"
+          title={`Call ${phoneNumber}`}
+          icon={{ Leading: IconsPhone }}
+        >
+          <h6 className="text-gray-9 text-xs font-medium">
+            {phoneNumber}
+          </h6>
+        </ButtonsCvaAnchor>
       </div>
-    );
-  }
-
-  return <PainterCardInfo info={painterData} />;
+    </div>
+  );
 };

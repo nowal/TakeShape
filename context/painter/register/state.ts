@@ -25,7 +25,7 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
-import { painterInfoAtom, isPainterAtom } from '../../../atom';
+import { painterInfoAtom, isPainterAtom } from '@/atom';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 
 type TConfig = any;

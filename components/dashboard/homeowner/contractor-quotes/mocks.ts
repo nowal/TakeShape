@@ -1,8 +1,8 @@
-import { TPainterInfo } from '@/components/painter/card';
 import { TAgentInfo, TPrice } from '@/types';
 import logoUrl from '@/public/landing/benefits/logos/0.png';
 import logoUrl1 from '@/public/landing/benefits/logos/1.png';
 import logoUrl2 from '@/public/landing/benefits/logos/2.png';
+import { TPainterData } from '@/components/painter/card/types';
 
 export const isMocks = () =>
   process.env.NEXT_PUBLIC_MOCKS === 'true';
@@ -33,32 +33,33 @@ export const MOCKS_PRICES: TPrice[] = [
 
 export const MOCKS_AGENT_INFO: TAgentInfo = {
   name: 'Alex',
-  profilePictureUrl: 'https://i.imgur.com/2hakYvC.png',
+  profilePictureUrl: logoUrl.src,
   preferredPainters: ['Jonny', 'Sam'],
 };
+
 // public/landing/benefits/logos/2.png
-export const MOCKS_PAINTER_DATA: TPainterInfo = {
+export const MOCKS_PAINTER_DATA: TPainterData = {
   businessName: 'Powers Paint Shop',
-  logoUrl: logoUrl.src, //'https://i.imgur.com/DfmNsa2.png',
+  logoUrl: logoUrl.src,
   phoneNumber: '123123123',
   reviews: [12, 2, 56],
 };
 
-export const MOCKS_PAINTER_DATA_1: TPainterInfo = {
+export const MOCKS_PAINTER_DATA_1: TPainterData = {
   businessName: 'Leroy Merlin Paint',
   logoUrl: logoUrl1.src,
   phoneNumber: '123123123',
   reviews: [12, 2, 56],
 };
 
-export const MOCKS_PAINTER_DATA_2: TPainterInfo = {
+export const MOCKS_PAINTER_DATA_2: TPainterData = {
   businessName: 'Color Picker Services',
   logoUrl: logoUrl2.src,
   phoneNumber: '123123123',
   reviews: [12, 2, 56],
 };
 
-export const MOCKS_PAINTER_DATA_ITEMS: TPainterInfo[] = [
+export const MOCKS_PAINTER_DATA_ITEMS: TPainterData[] = [
   MOCKS_PAINTER_DATA,
   MOCKS_PAINTER_DATA_1,
   MOCKS_PAINTER_DATA_2,

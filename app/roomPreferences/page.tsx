@@ -27,7 +27,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { DashboardPainter } from '@/components/dashboard/painter';
-import { PainterCard } from '@/components/painter/card';
+import { PainterCardData } from '@/components/painter/card/data';
 import RoomCard from '@/components/room-card';
 import {
   TTimestampPair,
@@ -828,7 +828,7 @@ const RoomPreferences = () => {
             key={index}
             className="flex items-center justify-between mb-5 p-3 border border-gray-300 rounded shadow-md"
           >
-            <PainterCard painterId={price.painterId} />
+            <PainterCardData painterId={price.painterId} />
             <div className="flex-2 flex items-center justify-between pl-5 border-l-2 border-gray-300 gap-10">
               <p className="text-lg font-bold">
                 Quote:{' '}
@@ -1149,7 +1149,7 @@ export default RoomPreferences;
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
-import { timestampPairsAtom, userDataAtom } from '../../atom/atom';
+import { timestampPairsAtom, userDataAtom } from '@/atom/atom';
 import RoomCard from '@/components/roomCard';
 import { getFirestore, setDoc, getDoc, arrayUnion, arrayRemove, DocumentReference, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';

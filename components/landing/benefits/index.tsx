@@ -1,13 +1,11 @@
 import Image from 'next/image';
 import { LandingBenefitsItem } from '@/components/landing/benefits/item/item';
-import { useViewport } from '@/context/viewport';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 import { LandingBenefitsReceieveQuotes } from '@/components/landing/benefits/receive-quotes';
+import { LandingBenefitsCongrats } from '@/components/landing/benefits/congrats';
 
 export const LandingBenefits: FC = () => {
-  const viewport = useViewport();
-
   return (
     <div className="flex flex-col items-center w-full h-full overflow-hidden">
       <div className="h-20" />
@@ -17,7 +15,7 @@ export const LandingBenefits: FC = () => {
       <div className="h-9" />
       <ul
         className={cx(
-          'flex flex-col items-stretch w-full justify-stretch lg:flex-row',
+          'flex flex-col items-stretch w-full justify-stretch xl:flex-row',
           'gap-5 px-9'
         )}
       >
@@ -44,44 +42,21 @@ export const LandingBenefits: FC = () => {
             [
               'Approve & Transform',
               'Review the quotes, approve the price, and get ready to enjoy the color you love.',
-              () => (
-                <Image
-                  alt="Receive Quotes"
-                  src={`/landing/benefits/${'2'}.png`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  style={{ objectFit: 'cover' }}
-                />
-              ),
+              LandingBenefitsCongrats,
             ],
           ] as const
-        ).map(
-          (
-            [title, description, ImageFc],
-            index,
-            { length: count }
-          ) => {
-            return (
-              <li
-                className="flex-1"
+        ).map(([title, description, ImageFc]) => {
+          return (
+            <li className="flex-1" key={title}>
+              <LandingBenefitsItem
                 key={title}
-                style={{
-                  width:
-                    viewport.isDimensions && viewport.isLg
-                      ? '100%'
-                      : `${(index / count) * 100}%`,
-                }}
-              >
-                <LandingBenefitsItem
-                  key={title}
-                  title={title}
-                  description={description}
-                  ImageFc={ImageFc}
-                />
-              </li>
-            );
-          }
-        )}
+                title={title}
+                description={description}
+                ImageFc={ImageFc}
+              />
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

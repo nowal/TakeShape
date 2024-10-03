@@ -10,7 +10,7 @@ import {
   doc,
   updateDoc,
 } from 'firebase/firestore';
-import { PainterCard } from '../painter/card';
+import { PainterCardData } from '../painter/card/data';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '@/components/stripePayment';
@@ -144,7 +144,7 @@ export const PaymentModal: FC<ModalProps> = ({
             Please enter your phone number and address below
             so that we can connect you with:
           </p>
-          <PainterCard painterId={painterId} />
+          <PainterCardData painterId={painterId} />
           <input
             type="tel"
             value={phoneNumber}
@@ -176,7 +176,7 @@ export const PaymentModal: FC<ModalProps> = ({
 
       {modalStep === 2 && (
         <div className="modal-content bg-white p-8 rounded-lg shadow-lg relative w-96 max-w-95-percent">
-          <PainterCard painterId={painterId} />
+          <PainterCardData painterId={painterId} />
           <p className="mt-4 mb-6">
             We hold a 2% deposit for the painter that is
             fully applied to your quoted price. Securely pay

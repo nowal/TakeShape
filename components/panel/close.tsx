@@ -5,8 +5,8 @@ import {
 } from '@/components/cva/button';
 import { IconsCloseFat } from '@/components/icons/close/fat';
 
-export type TComponentsModalPanelCloseProps = Partial<TButtonsCvaButtonProps>;
-export const ComponentsModalPanelClose: FC<TComponentsModalPanelCloseProps> = (
+export type TComponentsPanelCloseProps = Partial<TButtonsCvaButtonProps>;
+export const ComponentsPanelClose: FC<TComponentsPanelCloseProps> = (
   props
 ) => {
   return (
