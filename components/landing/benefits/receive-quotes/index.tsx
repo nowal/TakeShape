@@ -25,11 +25,13 @@ export const LandingBenefitsReceieveQuotes: FC = () => {
         'pointer-events-none'
       )}
     >
-      <ul className="absolute -left-8 bottom-3/4 -translate-y-4 w-full scale-75">
+      <ul className="absolute -left-8 bottom-3/4 -translate-y-11 w-full scale-75">
         {prices.map((price, index) => {
-          const offset = index * 2.8;
+          const offsetX = index * 2.8;
+          const offsetY = offsetX * 1.8;
+
           const transform =
-            `translate(${offset}rem, ${offset}rem)` as const;
+            `translate(${offsetX}rem, ${offsetY}rem)` as const;
           return (
             <LandingBenefitsReceieveQuotesItem
               key={`${price.painterId}-${index}`}

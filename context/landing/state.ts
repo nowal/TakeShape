@@ -21,7 +21,6 @@ export const useLandingState = () => {
         'uploadedImageUrls',
         JSON.stringify(imageUrls)
       );
-      console.log('hello');
       router.push('/signup');
     }
   }, [imageUrls, router]);

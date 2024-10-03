@@ -28,7 +28,6 @@ export const LandingBenefits: FC = () => {
               'Capture a video of your space and upload it. We only need 30 seconds per room.',
               () => (
                 <Image
-                  key="0"
                   alt="Upload Your Video"
                   src={`/landing/benefits/${'0'}.png`}
                   fill
@@ -47,7 +46,6 @@ export const LandingBenefits: FC = () => {
               'Review the quotes, approve the price, and get ready to enjoy the color you love.',
               () => (
                 <Image
-                  key="2"
                   alt="Receive Quotes"
                   src={`/landing/benefits/${'2'}.png`}
                   fill
