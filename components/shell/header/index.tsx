@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
@@ -22,56 +22,64 @@ export const ShellHeader = () => {
       {!isHome && <div style={{ height }} />}
       <header
         className={cx(
-          'fixed max-w-shell w-full',
-          'top-0 inset-x-0 pt-3.5 px-6 z-20 sm:px-9',
+          'flex justify-center',
+          'fixed w-full',
+          'top-0 inset-x-0 pt-3.5 z-20',
           'z-10'
         )}
-        style={{ height }}
       >
         <div
           className={cx(
-            'relative',
-            'flex items-center justify-between w-full',
-            'pl-4.5 pr-2.5 py-2.5 sm:pl-7 sm:pr-2 sm:py-3'
+            'relative max-w-shell w-full',
+            'px-6 sm:px-9'
           )}
+          style={{ height }}
         >
           <div
             className={cx(
-              'absolute inset-0',
-              'shadow-09 sm:shadow-08',
-              'rounded-[0.70013rem] sm:rounded-15.1875',
-              isUserSignedIn ? 'bg-white-5' : 'bg-white'
+              'relative',
+              'flex items-center justify-between w-full',
+              'pl-4.5 pr-2.5 py-2.5 sm:pl-7 sm:pr-2 sm:py-3'
             )}
-          />
-          <Link className="relative z-10" href="/">
-            <ShellLogo />
-          </Link>
-          {signIn.isAuthLoading ||
-          !viewport.isDimensions ? (
-            <ButtonsCvaButton
-              title="Authenticating"
-              classValue={cx(
-                'bg-white',
-                'shadow-md',
-                'z-10',
-                'text-white'
+          >
+            <div
+              className={cx(
+                'absolute inset-0',
+                'shadow-09 sm:shadow-08',
+                'rounded-[0.70013rem] sm:rounded-15.1875',
+                isUserSignedIn ? 'bg-white-5' : 'bg-white'
               )}
-              rounded="full"
-              size="iconXl"
-              intent="icon"
-              center
-            >
-              <IconsLoading />
-            </ButtonsCvaButton>
-          ) : (
-            <>
-              {viewport.isSm ? (
-                <ShellHeaderMobileMenu />
-              ) : (
-                <HeaderOptions />
-              )}
-            </>
-          )}
+            />
+            <Link className="relative z-10" href="/">
+              <ShellLogo />
+            </Link>
+            {signIn.isAuthLoading ||
+            !viewport.isDimensions ? (
+              <ButtonsCvaButton
+                title="Authenticating"
+                classValue={cx(
+                  'bg-white',
+                  'shadow-md',
+                  'z-10',
+                  'text-white'
+                )}
+                rounded="full"
+                size="iconXl"
+                intent="icon"
+                center
+              >
+                <IconsLoading />
+              </ButtonsCvaButton>
+            ) : (
+              <>
+                {viewport.isSm ? (
+                  <ShellHeaderMobileMenu />
+                ) : (
+                  <HeaderOptions />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </header>
     </>
