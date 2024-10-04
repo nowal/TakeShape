@@ -13,8 +13,9 @@ export const LandingHeroText: FC = () => {
       <div
         className="flex absolute inset-0 lg:hidden"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(1, 1, 0, 0.00) 0%, rgba(1, 1, 0, 0.70) 100%)',
+          backgroundImage:
+          'linear-gradient(180deg, rgba(1, 1, 0, 0.00) 0%, rgba(1, 1, 0, 0.50) 100%)',
+            // 'linear-gradient(180deg, rgba(1, 1, 0, 0.00) 0%, rgba(1, 1, 0, 0.70) 100%)',
         }}
       />
       <div className="relative flex flex-col px-10 text-left pb-16 lg:pb-0">

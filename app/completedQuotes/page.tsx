@@ -13,7 +13,7 @@ const CompletedQuotes = () => {
   if (isAuthLoading) return <FallbacksLoadingCircle />;
 
   return (
-    <ComponentsDashboardShell>
+    // <ComponentsDashboardShell>
       <DashboardPainterWithSelect>
         <DashboardPainterQuotes
           type="Completed"
@@ -21,7 +21,7 @@ const CompletedQuotes = () => {
           JobInfoFc={DashboardPainterJobPreferences}
         />
       </DashboardPainterWithSelect>
-    </ComponentsDashboardShell>
+    // </ComponentsDashboardShell>
   );
 };
 

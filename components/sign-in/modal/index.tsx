@@ -41,7 +41,7 @@ export const SignInModal: FC = () => {
         }}
       >
         <>
-        <div className='h-4'/>
+          <div className="h-4" />
           <form
             onSubmit={onSignIn}
             className="flex flex-col items-stretch"

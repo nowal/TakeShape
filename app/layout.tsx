@@ -9,6 +9,7 @@ import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { ShellChildren } from '@/components/shell/children';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -29,11 +30,7 @@ export default function RootLayout({
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
             <ContextProviders>
               <ShellHeader />
-              <div className="relative min-h-[400px]">
-                <Suspense fallback={<FallbacksLoading />}>
-                  {children}
-                </Suspense>
-              </div>
+              <ShellChildren>{children}</ShellChildren>
               <ShellFooter />
               <Suspense fallback={<FallbacksLoading />}>
                 <SignInModal />

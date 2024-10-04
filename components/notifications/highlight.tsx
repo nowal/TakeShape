@@ -19,6 +19,7 @@ export const NotificationsHighlight: FC<TProps> = ({
         classDisplay ?? 'flex',
         classValue
       )}
+      role="alert"
       {...props}
     >
       {children}

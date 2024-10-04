@@ -18,7 +18,7 @@ export const ComponentsModalPosition: FC<TProps> = ({
     <motion.div
       layout="size"
       className={cx(
-        'flex items-center justify-center fixed inset-0 z-10',
+        'flex items-center justify-center fixed inset-0 z-20',
         classValue
       )}
       {...props}

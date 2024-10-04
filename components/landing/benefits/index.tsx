@@ -16,7 +16,7 @@ export const LandingBenefits: FC = () => {
       <ul
         className={cx(
           'flex flex-col items-stretch w-full justify-stretch xl:flex-row',
-          'gap-5 px-9'
+          'gap-12 px-9 xl:gap-5'
         )}
       >
         {(
@@ -37,14 +37,14 @@ export const LandingBenefits: FC = () => {
               LandingBenefitsCongrats,
             ],
           ] as const
-        ).map(([title, description, ImageFc]) => {
+        ).map(([title, description, PreviewFc]) => {
           return (
             <li className="flex-1" key={title}>
               <LandingBenefitsItem
                 key={title}
                 title={title}
                 description={description}
-                ImageFc={ImageFc}
+                PreviewFc={PreviewFc}
               />
             </li>
           );
