@@ -1,9 +1,9 @@
-import Image from 'next/image';
-import { LandingBenefitsItem } from '@/components/landing/benefits/item/item';
+import { LandingBenefitsItem } from '@/components/landing/benefits/item';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 import { LandingBenefitsReceieveQuotes } from '@/components/landing/benefits/receive-quotes';
 import { LandingBenefitsCongrats } from '@/components/landing/benefits/congrats';
+import { LandingBenefitsUpload } from '@/components/landing/benefits/upload';
 
 export const LandingBenefits: FC = () => {
   return (
@@ -24,15 +24,7 @@ export const LandingBenefits: FC = () => {
             [
               'No more in-home estimates',
               'Get painting quotes without having more painters in your home.',
-              () => (
-                <Image
-                  alt="Upload Your Video"
-                  src={`/landing/benefits/${'0'}.png`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  style={{ objectFit: 'cover' }}
-                />
-              ),
+              LandingBenefitsUpload,
             ],
             [
               'The best painter at the best price',
