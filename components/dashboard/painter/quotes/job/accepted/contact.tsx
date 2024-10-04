@@ -3,7 +3,7 @@ import { TJob } from '@/types';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 
 type TProps = TJob;
-export const DashboardPainterJobFormAcceptedContact: FC<
+export const DashboardPainterJobAcceptedContact: FC<
   TProps
 > = (job) => {
   return (

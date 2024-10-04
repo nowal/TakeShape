@@ -4,11 +4,10 @@ import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { IconsLoading } from '@/components/icons/loading';
-import { ButtonsCvaInput } from '@/components/cva/input';
 import { InputsText } from '@/components/inputs/text';
 
 type TProps = TJob;
-export const DashboardPainterJobForm: FC<TProps> = (
+export const DashboardPainterJob: FC<TProps> = (
   job
 ) => {
   const dashboardPainter = useDashboardPainter();
@@ -23,7 +22,6 @@ export const DashboardPainterJobForm: FC<TProps> = (
   const title = isSubmitting
     ? 'Submitting...'
     : 'Submit Quote';
-  console.log(selectedFile);
   return (
     <form
       onSubmit={(event) => onQuoteSubmit(event, job.jobId)}

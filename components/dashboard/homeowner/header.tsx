@@ -6,8 +6,8 @@ import {
   TInputsSelectProps,
 } from '@/components/inputs/select';
 import { TypographyFormTitle } from '@/components/typography/form/title';
+import { useAuth } from '@/context/auth/provider';
 import { cx } from 'class-variance-authority';
-import { useRouter } from 'next/navigation';
 import type { FC } from 'react';
 
 type TProps = Partial<TInputsSelectProps> &
@@ -15,7 +15,7 @@ type TProps = Partial<TInputsSelectProps> &
 export const DashboardHomeownerHeader: FC<TProps> = (
   props
 ) => {
-  const router = useRouter();
+  const { onNavigateScrollTopClick } = useAuth();
   return (
     <DashboardHeader>
       <TypographyFormTitle>Your Quotes</TypographyFormTitle>
@@ -25,7 +25,7 @@ export const DashboardHomeownerHeader: FC<TProps> = (
         {...props}
       />
       <ButtonsCvaButton
-        onTap={() => router.push('/quote')}
+        onTap={() => onNavigateScrollTopClick('/quote')}
         title="Add New Quote"
         isIconOnly
         size="iconMd"

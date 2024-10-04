@@ -16,10 +16,14 @@ export const ShellHeader = () => {
   const isHome = pathname === '/';
   const viewport = useViewport();
   const height = viewport.headerHeight;
+  const heightWithPadding =
+    viewport.headerHeightWithPadding;
 
   return (
     <>
-      {!isHome && <div style={{ height }} />}
+      {!isHome && (
+        <div style={{ height }} />
+      )}
       <header
         className={cx(
           'flex justify-center',

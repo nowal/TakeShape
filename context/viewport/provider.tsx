@@ -23,11 +23,14 @@ import {
 type TViewportContext = TViewport & {
   landingHeroHeight: number;
   headerHeight: number;
+  headerHeightWithPadding: number;
 };
 const INIT: TViewportContext = {
   ...INIT_VIEWPORT,
   landingHeroHeight: LANDING_HERO_HEIGHT,
   headerHeight: HEADER_HEIGHT,
+  headerHeightWithPadding:
+    HEADER_HEIGHT + HEADER_HEIGHT_PADDING,
 };
 
 export const VIEWPORT =
@@ -40,7 +43,10 @@ export const ViewportProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const viewport = useViewportMeasure();
-
+  const headerHeight =
+    viewport.isDimensions && viewport.isSm
+      ? HEADER_HEIGHT_SM
+      : HEADER_HEIGHT;
   return (
     <VIEWPORT.Provider
       value={{
@@ -49,10 +55,9 @@ export const ViewportProvider: FC<PropsWithChildren> = ({
           viewport.isDimensions && viewport.isMd
             ? LANDING_HERO_HEIGHT_LG
             : LANDING_HERO_HEIGHT,
-        headerHeight:
-          (viewport.isDimensions && viewport.isSm
-            ? HEADER_HEIGHT_SM
-            : HEADER_HEIGHT) + HEADER_HEIGHT_PADDING,
+        headerHeight,
+        headerHeightWithPadding:
+          headerHeight + HEADER_HEIGHT_PADDING,
       }}
     >
       {children}

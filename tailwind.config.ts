@@ -25,6 +25,7 @@ const config: Config = {
         poppins: 'var(--font-poppins)',
       },
       fontSize: {
+        '3.5xl': '2rem',
         '4.5xl': '2.5rem',
       },
       colors: {
@@ -53,6 +54,7 @@ const config: Config = {
         'white-8': '#F6F6F6',
 
         'white-green': '#F0FFF5',
+        'white-green-1': '#F1FFF2',
 
         'white-pink': '#FFF9FA',
         'white-pink-1': '#FFF6F7',
@@ -68,6 +70,7 @@ const config: Config = {
         green: '#83A68F',
         'green-1': '#395A44',
         'green-2': '#00D66E',
+        'green-3': '#5DC661',
 
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',
@@ -78,10 +81,11 @@ const config: Config = {
         'gray-7': '#5F5F5F',
         'gray-8': '#f8f8f8',
         'gray-9': '#AAAAAA',
-        'gray-10': '#ececec',
+        'gray-10': '#ECECEC',
         'gray-11': '#E2E2E2',
         'gray-12': '#CCCCCC',
         'gray-13': '#E4E4E4',
+        'gray-14': '#E8E8E8',
 
         stripe: '#6772E5',
       },
@@ -95,6 +99,7 @@ const config: Config = {
         '05': '0px 4px 90.8px rgba(0, 0, 0, 0.05)',
       },
       boxShadow: {
+        '32-08': '0px 4px 32px 0px rgba(0, 0, 0, 0.08)',
         '08': '0px 4px 90.8px 0px rgba(0, 0, 0, 0.08)',
         '09': '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
         'pink-bottom-08':

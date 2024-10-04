@@ -1,5 +1,6 @@
 import { DashboardHomeowner } from '@/components/dashboard/homeowner';
 import { DashboardPainter } from '@/components/dashboard/painter';
+import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useViewport } from '@/context/viewport';
@@ -19,6 +20,13 @@ export const ComponentsDashboard: FC = () => {
     signIn.isAuthLoading;
 
   if (isLoading) return null;
-  if (isPainter) return <DashboardPainter />;
-  return <DashboardHomeowner />;
+  return (
+    <ComponentsDashboardShell>
+      {isPainter ? (
+        <DashboardPainter />
+      ) : (
+        <DashboardHomeowner />
+      )}
+    </ComponentsDashboardShell>
+  );
 };
