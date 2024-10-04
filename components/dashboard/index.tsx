@@ -21,12 +21,12 @@ export const ComponentsDashboard: FC = () => {
 
   if (isLoading) return null;
   return (
-    <ComponentsDashboardShell>
+    <>
       {isPainter ? (
         <DashboardPainter />
       ) : (
         <DashboardHomeowner />
       )}
-    </ComponentsDashboardShell>
+    </>
   );
 };

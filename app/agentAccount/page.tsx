@@ -1,5 +1,4 @@
 'use client';
-
 import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
@@ -17,7 +16,6 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { InputsFile } from '@/components/inputs/file';
 import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';

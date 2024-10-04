@@ -7,14 +7,11 @@ import { ShellFooterList } from '@/components/shell/footer/list';
 import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
 import { ShellLogo } from '@/components/shell/logo';
 import { cx } from 'class-variance-authority';
-import { usePathname } from 'next/navigation';
 
 export const ShellFooter = () => {
-  const pathname = usePathname();
-  const isHome = pathname === '/';
+
   return (
     <div className='flex flex-col items-stretch'>
-      {!isHome && <div className="h-8" />}
       <footer
         style={{
           marginTop: '-0.9375rem',

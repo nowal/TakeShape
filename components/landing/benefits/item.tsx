@@ -4,12 +4,12 @@ import type { FC } from 'react';
 type TProps = {
   title: string;
   description: string;
-  ImageFc: FC;
+  PreviewFc: FC;
 };
 export const LandingBenefitsItem: FC<TProps> = ({
   title,
   description,
-  ImageFc,
+  PreviewFc,
 }) => {
   return (
     <div
@@ -29,7 +29,8 @@ export const LandingBenefitsItem: FC<TProps> = ({
           paddingBottom: '64%',
         }}
       >
-        <ImageFc />
+        <div className='absolute inset-24 bg-pink opacity-10 xl:opacity-20' style={{filter:'blur(4.8rem)'}}/>
+        <PreviewFc />
       </div>
       <div>
         <h4 className="text-2xl font-bold text-black tight-02">

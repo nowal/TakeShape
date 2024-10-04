@@ -9,15 +9,8 @@ import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import Image from 'next/image';
 import image from '@/public/landing/hero.png';
 import { resolveUrlId } from '@/utils/css/format';
-import {
-  FilterGrayscale,
-  FILTER_GRAYSCALE_ID,
-} from '@/filters/grayscale';
+import { FILTER_GRAYSCALE_ID } from '@/filters/grayscale';
 import { LandingHeroText } from '@/components/landing/hero/text';
-import { useMotionValue } from 'framer-motion';
-import { LandingHeroHandle } from '@/components/landing/hero/handle';
-import { TDimensionsReady } from '@/types/measure';
-import { LandingHeroHandleLine } from '@/components/landing/hero/handle/line';
 import { useObjectPosition } from '@/components/landing/hero/object-position';
 import { useViewport } from '@/context/viewport';
 
