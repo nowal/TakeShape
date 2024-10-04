@@ -16,6 +16,7 @@ export const DashboardPainterWithSelect: FC<TProps> = (
 
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
+      <div className="h-8" />
       <DashboardHeader>
         <TypographyFormTitle>Dashboard</TypographyFormTitle>
         <InputsSelect
@@ -30,8 +31,8 @@ export const DashboardPainterWithSelect: FC<TProps> = (
           }}
         />
       </DashboardHeader>
-      <div className="h-8" />
-      {props.children}
+      <div className='h-8'/>
+      <div>{props.children}</div>
     </div>
   );
 };

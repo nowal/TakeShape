@@ -1,7 +1,11 @@
-import { CommonIcon } from '@/components/icon';
-import type { FC } from 'react';
+import {
+  CommonIcon,
+  TCommonIconFC,
+} from '@/components/icon';
 
-export const IconsLaborAndMaterials: FC = () => {
+export const IconsLaborAndMaterials: TCommonIconFC = (
+  props
+) => {
   return (
     <CommonIcon
       width="66"
@@ -9,6 +13,7 @@ export const IconsLaborAndMaterials: FC = () => {
       viewBox="0 0 66 52"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M23.3038 4.34937C27.6201 4.34937 31.1192 7.84842 31.1192 12.1647V14.7602C24.3218 11.9626 17.7506 11.9617 10.9531 14.7592V12.1647C10.9531 7.84842 14.4522 4.34937 18.7685 4.34937H23.3038Z"

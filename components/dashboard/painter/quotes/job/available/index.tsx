@@ -1,17 +1,16 @@
 import type { FC } from 'react';
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { IconsLoading } from '@/components/icons/loading';
-import { ButtonsCvaInput } from '@/components/cva/input';
 import { InputsText } from '@/components/inputs/text';
+import { useDashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/available/form';
 
 type TProps = TJob;
-export const DashboardPainterJobForm: FC<TProps> = (
-  job
-) => {
-  const dashboardPainter = useDashboardPainter();
+export const DashboardPainterJob: FC<TProps> = (job) => {
+  const dashboardPainter = useDashboardPainterJobForm(
+    job.jobId
+  );
   const {
     isSubmitting,
     price,
@@ -23,10 +22,10 @@ export const DashboardPainterJobForm: FC<TProps> = (
   const title = isSubmitting
     ? 'Submitting...'
     : 'Submit Quote';
-  console.log(selectedFile);
+
   return (
     <form
-      onSubmit={(event) => onQuoteSubmit(event, job.jobId)}
+      onSubmit={onQuoteSubmit}
       className="flex flex-col gap-2 w-full lg:w-auto"
     >
       <InputsText

@@ -17,7 +17,7 @@ export const DashboardPainterQuotes: FC<TProps> = ({
   return (
     <>
       {jobs.length > 0 ? (
-        <>
+        <div className='flex flex-col items-stretch gap-3'>
           {jobs.map((job) => (
             <DashboardPainterJob
               key={job.jobId}
@@ -25,7 +25,7 @@ export const DashboardPainterQuotes: FC<TProps> = ({
               JobInfoFc={JobInfoFc}
             />
           ))}
-        </>
+        </div>
       ) : (
         <NotificationsHighlight>
           No {type} Quotes at this time

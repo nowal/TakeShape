@@ -1,6 +1,9 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
-import { ComponentsDashboardShell } from '@/components/dashboard/shell';
+import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
+import { DashboardPainterJobPrice } from '@/components/dashboard/painter/quotes/job/price';
+import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
+import { cx } from 'class-variance-authority';
 
 export type TDashboardPainterJobProps = {
   job: TJob;
@@ -9,20 +12,30 @@ export type TDashboardPainterJobProps = {
 export const DashboardPainterJob: FC<
   TDashboardPainterJobProps
 > = ({ job, JobInfoFc }) => {
-  console.log('job ', job);
   return (
-    <ComponentsDashboardShell
+    <ComponentsDashboardLayout
       first={
-        <video
-          src={`${job.video}#t=0.001`}
-          autoPlay
-          controls
-          playsInline
-          muted={true}
-          className="w-full lg:w-96"
-        />
+        <div className="flex flex-col items-stretch gap-4">
+          <video
+            src={`${job.video}#t=0.001`}
+            controls
+            muted
+            className="w-full rounded-xl"
+          />
+          <DashboardPainterJobPrice {...job} />
+        </div>
       }
-      second={<>{JobInfoFc && <JobInfoFc {...job} />}</>}
+      second={
+        <div className="pl-2">
+          {JobInfoFc && <JobInfoFc {...job} />}
+        </div>
+      }
+      backgroundProps={{
+        classValue: cx(
+          'rounded-2xl border border-gray-14 bg-white shadow-08',
+          'pl-6 py-6 pr-7.5'
+        ),
+      }}
     />
   );
 };

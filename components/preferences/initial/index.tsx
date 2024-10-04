@@ -1,4 +1,4 @@
-import { IconsLabor } from '@/components/icons/labor';
+import { IconsLabor51 } from '@/components/icons/labor/51';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
 import { PreferencesInitialInput } from '@/components/preferences/initial/input';
 import { PreferencesInitialText } from '@/components/preferences/initial/text';
@@ -32,7 +32,7 @@ export const PreferencesInitial: FC<TProps> = (
       </PreferencesInitialInput>
       <div>OR</div>
       <PreferencesInitialInput
-        Icon={IconsLabor}
+        Icon={IconsLabor51}
         inputProps={INPUT_PROPS}
         value="labor"
         isChecked={!props.isLaborAndMaterials}

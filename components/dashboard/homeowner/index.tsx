@@ -7,7 +7,7 @@ import type { FC } from 'react';
 import { DashboardHomeownerQuote } from '@/components/dashboard/homeowner/quote';
 import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-accept';
 import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
-import { ComponentsDashboardShell } from '@/components/dashboard/shell';
+import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 import { PainterCardData } from '@/components/painter/card/data';
 import { PainterCardBackground } from '@/components/painter/card/background';
@@ -25,8 +25,8 @@ export const DashboardHomeowner: FC = () => {
   const isDepositScreen =
     selectedQuoteAmount > 0 && isShowModal;
   return (
-    <ComponentsDashboardShell
-      key="ComponentsDashboardShell"
+    <ComponentsDashboardLayout
+      key="ComponentsDashboardLayout"
       first={
         <div
           className={cx(
@@ -67,6 +67,6 @@ export const DashboardHomeowner: FC = () => {
       }
     >
       {isDepositScreen && <DashboardModalQuoteAccept />}
-    </ComponentsDashboardShell>
+    </ComponentsDashboardLayout>
   );
 };
