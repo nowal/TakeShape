@@ -1,4 +1,5 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
+import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { IconsPlus } from '@/components/icons/plus';
 import {
@@ -24,23 +25,10 @@ export const DashboardHomeownerHeader: FC<TProps> = (
         placeholder="Select Quote"
         {...props}
       />
-      <ButtonsCvaButton
+      <ButtonsCvaButtonAdd
         onTap={() => onNavigateScrollTopClick('/quote')}
         title="Add New Quote"
-        isIconOnly
-        size="iconMd"
-        rounded="full"
-        center
-        classValue={cx(
-          'text-pink',
-          'bg-white',
-          'hover:bg-white-7 active:bg-pink active:text-white',
-          'shadow-md',
-          'z-10'
-        )}
-      >
-        <IconsPlus />
-      </ButtonsCvaButton>
+      />
     </DashboardHeader>
   );
 };

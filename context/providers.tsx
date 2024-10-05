@@ -1,4 +1,5 @@
 import { AccountSettingsProvider } from '@/context/account-settings/provider';
+import { AgentDashboardProvider } from '@/context/agent/dashboard/provider';
 import { AgentRegisterProvider } from '@/context/agent/register/provider';
 import { AuthProvider } from '@/context/auth/provider';
 import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
@@ -18,6 +19,7 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
+        AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,
         QuoteProvider,
