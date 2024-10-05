@@ -2,7 +2,7 @@
 import { AgentDashboardButtons } from '@/components/agent-dashboard/buttons';
 import { AgentDashboardAdd } from '@/components/agent-dashboard/add';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
-import { AgentDashboardList } from '@/components/agent-dashboard/list';
+import { AgentDashboardList } from '@/components/agent-dashboard/list/list';
 import { ComponentsPanel } from '@/components/panel';
 
 const AgentDashboard = () => {

@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { useIsomorphicLayoutEffect } from 'framer-motion';
 import { measureContainer } from '@/context/viewport/measure-container';
-import { useEventListener } from '@/hooks/use-event-listener';
-import { useTimeoutRef } from '@/hooks/use-timeout-ref';
+import { useEventListener } from '@/hooks/event-listener';
+import { useTimeoutRef } from '@/hooks/timeout-ref';
 import {
   TDimensionsInit,
   TDimensionsReady,

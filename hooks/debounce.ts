@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useTimeoutRef } from '@/hooks/use-timeout-ref';
+import { useTimeoutRef } from '@/hooks/timeout-ref';
 
 export const useDebounce = () => {
   const { timeoutRef, endTimeout } = useTimeoutRef();
