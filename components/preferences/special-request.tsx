@@ -24,7 +24,7 @@ export const PreferencesSpecialRequest: FC<TProps> = ({
         placeholder="E.g. Don't paint ceilings in bedrooms, don't remove nails in the wall"
         rows={3}
         className={cx(
-          'rounded-lg border border-white-3 bg-white-2 w-full px-4.5 py-3.5 outline-none',
+          'rounded-lg border border-gray-7 bg-white-2 w-full px-4.5 py-3.5 outline-none',
           classValue
         )}
         value={specialRequests}

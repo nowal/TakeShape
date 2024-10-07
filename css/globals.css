@@ -7,6 +7,12 @@
   --background-start-rgb: 255, 255, 255; /* White for background */
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
   --pink: #ff385c;
+  --red: #ff0000;
+  --green: #83a68f;
+  --green-1: #395a44;
+  --green-2: #00d66e;
+  --green-3: #5dc661;
+
   --black-05: rgba(0, 0, 0, 0.05);
   --black-08: rgba(0, 0, 0, 0.08);
   --black-09: rgba(0, 0, 0, 0.09);
@@ -186,6 +192,9 @@ input {
   }
   .typography-landing-hero-title--responsive {
     @apply typography-landing-hero-title--sm md:typography-landing-hero-title--lg;
+  }
+  .typography-button-pink {
+    @apply text-pink font-semibold font-semibold;
   }
 }
 

@@ -1,4 +1,4 @@
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import type { FC } from 'react';
 
 type TProps = { children: string };
@@ -6,9 +6,9 @@ export const SignUpNotificationsError: FC<TProps> = ({
   children,
 }) => {
   return (
-    <NotificationsHighlight role="alert">
+    <NotificationsInlineHighlight role="alert">
       <strong className="font-bold">Error: </strong>
       <span className="block sm:inline">{children}</span>
-    </NotificationsHighlight>
+    </NotificationsInlineHighlight>
   );
 };

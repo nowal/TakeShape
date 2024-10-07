@@ -3,7 +3,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { cx } from 'class-variance-authority';
 import { QuoteInstructions } from '@/components/quote/instructions';
 import { useQuote } from '@/context/quote/provider';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { QuoteInstructionsBackground } from '@/components/quote/instructions/background';
 import { QuoteInput } from '@/components/quote/input';
 
@@ -15,9 +15,9 @@ const QuotePage = () => {
       <GoogleAnalytics gaId="G-47EYLN83WE" />
 
       {isLoading && currentStep === 2 && (
-        <NotificationsHighlight>
+        <NotificationsInlineHighlight>
           Uploading, please wait...
-        </NotificationsHighlight>
+        </NotificationsInlineHighlight>
       )}
 
       {currentStep === 1 && (

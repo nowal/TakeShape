@@ -46,7 +46,6 @@ const config: Config = {
         white: '#FFF',
         'white-1': '#F8F8F8',
         'white-2': '#F9F9F9',
-        'white-3': '#F5F5F5',
         'white-4': '#EDEDED',
         'white-5': '#FDFDFD',
         'white-6': '#f4f4f4',
@@ -65,12 +64,12 @@ const config: Config = {
         pink: 'var(--pink)',
         'pink-1': '#E73152',
 
-        red: '#ff0000',
+        red: 'var(--red)',
 
-        green: '#83A68F',
-        'green-1': '#395A44',
-        'green-2': '#00D66E',
-        'green-3': '#5DC661',
+        green: 'var(--green)',
+        'green-1': 'var(--green-1)',
+        'green-2': 'var(--green-2)',
+        'green-3': 'var(--green-3)',
 
         gray: '#AFAFAF',
         'gray-1': '#D3D3D3',

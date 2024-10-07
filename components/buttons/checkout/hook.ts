@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { TButtonsCheckoutProps } from '@/components/buttons/checkout';
+import { GENERIC_ERROR_MESSAGE } from '@/constants/errors';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -48,7 +49,9 @@ export const useButtonsCheckout = ({
         console.log('Session ID:', data.sessionId); // Log the sessionId
         setSessionId(data.sessionId);
       } catch (error) {
-        console.error(error);
+        const errorMessage = GENERIC_ERROR_MESSAGE;
+
+        console.error( errorMessage,error);
       }
     };
 
@@ -110,10 +113,9 @@ export const useButtonsCheckout = ({
         );
       }
     } catch (error) {
-      console.error(
-        'Error storing painter information:',
-        error
-      );
+      const errorMessage =
+        'Error storing painter information';
+      console.error(errorMessage, error);
     }
   };
 

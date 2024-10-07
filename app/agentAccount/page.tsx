@@ -20,6 +20,8 @@ import { InputsFile } from '@/components/inputs/file';
 import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
+import { notifyError } from '@/utils/notifications';
+import { errorUpdating } from '@/utils/error';
 
 const AgentAccount = () => {
   const [name, setName] = useState('');
@@ -60,13 +62,14 @@ const AgentAccount = () => {
               );
             }
           } catch (error) {
+            const errorMessage =
+              'Failed to load agent data. Please try again later.';
             console.error(
               'Error fetching agent data:',
               error
             );
-            setErrorMessage(
-              'Failed to load agent data. Please try again later.'
-            );
+            setErrorMessage(errorMessage);
+            notifyError(errorMessage);
           } finally {
             setIsLoading(false); // Stop loading
           }
@@ -128,10 +131,13 @@ const AgentAccount = () => {
 
       router.push('/agentDashboard');
     } catch (error) {
-      console.error('Error updating agent info: ', error);
-      setErrorMessage(
-        'An unexpected error occurred. Please try again.'
-      );
+      const errorMessage =
+        'An unexpected error occurred. Please try again.';
+      const errorMessage2 = errorUpdating('agent info');
+      console.error(errorMessage2, error);
+      setErrorMessage(errorMessage);
+      notifyError(errorMessage);
+      notifyError(errorMessage2);
     } finally {
       setIsLoading(false); // Reset loading state
     }

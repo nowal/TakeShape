@@ -1,4 +1,4 @@
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { TDivProps } from '@/types/dom';
 import type { FC } from 'react';
 
@@ -14,11 +14,11 @@ export const ComponentsAccountSettingsNotifications: FC<
     //   <strong className="font-bold">Error: </strong>
     //   <span className="block sm:inline">{children}</span>
     // </div>
-    <NotificationsHighlight>
+    <NotificationsInlineHighlight>
       <>
         <strong className="font-bold">Error: </strong>
         <span className="block sm:inline">{children}</span>
       </>
-    </NotificationsHighlight>
+    </NotificationsInlineHighlight>
   );
 };

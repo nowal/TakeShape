@@ -4,7 +4,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { ComponentsModal } from '@/components/modal';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaLink } from '@/components/cva/link';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { ComponentsPanel } from '@/components/panel';
@@ -60,9 +60,9 @@ export const SignInModal: FC = () => {
                 placeholder="Password"
               />
               {errorMessage && (
-                <NotificationsHighlight>
+                <NotificationsInlineHighlight>
                   <p>{errorMessage}</p>
-                </NotificationsHighlight>
+                </NotificationsInlineHighlight>
               )}
             </div>
             <div className="h-5" />

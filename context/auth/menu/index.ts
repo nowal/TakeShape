@@ -16,7 +16,7 @@ import {
   ref,
   getDownloadURL,
 } from 'firebase/storage';
-import { useOutsideClick } from '@/hooks/use-outside-click';
+import { useOutsideClick } from '@/hooks/outside-click';
 import { TAuthConfig } from '@/context/auth/types';
 
 export const useAuthMenu = (config: TAuthConfig) => {

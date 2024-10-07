@@ -5,7 +5,7 @@ import {
 } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { DashboardPricesItem } from '@/components/dashboard/prices/item';
 import { DashboardPricesItemRecommended } from '@/components/dashboard/prices/recommended';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useDashboard } from '@/context/dashboard/provider';
 import { TPrice } from '@/types';
 
@@ -24,9 +24,9 @@ export const DashboardHomeownerContractorQuotesListItems: FC<TProps> = ({
 
   if (isEmpty) {
     return (
-      <NotificationsHighlight>
+      <NotificationsInlineHighlight>
         <>No quotes</>
-      </NotificationsHighlight>
+      </NotificationsInlineHighlight>
     );
   }
 

@@ -1,4 +1,4 @@
-import {useIsomorphicLayoutEffect} from './use-isomorphic-layout-effect';
+import {useIsomorphicLayoutEffect} from './isomorphic-layout-effect';
 import type {RefObject} from 'react';
 import {useEffect, useRef} from 'react';
 

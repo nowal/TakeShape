@@ -7,7 +7,7 @@ import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
 import { InputsText } from '@/components/inputs/text';
 import { useAgentRegisterState } from '@/context/agent/register/state';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { ComponentsRegisterShell } from '@/components/register/shell';
 
@@ -36,9 +36,9 @@ const AgentSignup = () => {
     <ComponentsRegisterShell title="Painter Registration">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       {errorMessage && (
-        <NotificationsHighlight>
+        <NotificationsInlineHighlight>
           {errorMessage}
-        </NotificationsHighlight>
+        </NotificationsInlineHighlight>
       )}
       <form
         onSubmit={onSubmit}

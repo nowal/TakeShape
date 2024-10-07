@@ -4,6 +4,9 @@ import {
   useEffect,
 } from 'react';
 import { loadGoogleMapsScript } from '@/utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { GENERIC_ERROR_MESSAGE } from '@/constants/errors';
+import { errorLoading } from '@/utils/error';
+import { notifyError } from '@/utils/notifications';
 
 type TConfig = {
   addressInputRef: MutableRefObject<HTMLInputElement | null>;
@@ -53,10 +56,11 @@ export const useAutoFillAddress = (config: TConfig) => {
           });
         }
       } catch (error) {
-        console.error(
-          'Error loading Google Maps script:',
-          error
+        const errorMessage = errorLoading(
+          'Google Maps script'
         );
+        notifyError(errorMessage);
+        console.error(errorMessage, error);
       }
     };
 

@@ -10,6 +10,7 @@ import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ShellChildren } from '@/components/shell/children';
+import { Slide, ToastContainer } from 'react-toastify';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -28,6 +29,7 @@ export default function RootLayout({
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
+            <ToastContainer transition={Slide} />
             <ContextProviders>
               <ShellHeader />
               <ShellChildren>{children}</ShellChildren>
@@ -65,7 +67,6 @@ export default function RootLayout({
             />
           </noscript>
         </body>
-
         <GoogleAnalytics gaId="G-47EYLN83WE" />
       </Provider>
     </html>

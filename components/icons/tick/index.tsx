@@ -1,7 +1,7 @@
+import { TCommonIconFC } from '@/components/icon';
 import { CommonIcon12 } from '@/components/icon/12';
-import type { FC } from 'react';
 
-export const IconsTick: FC = () => {
+export const IconsTick: TCommonIconFC = (props) => {
   return (
     <CommonIcon12
       d="M2.25 5.67857L4.97727 8.25L9.75 3.75"
@@ -12,6 +12,7 @@ export const IconsTick: FC = () => {
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
       }}
+      {...props}
     />
   );
 };

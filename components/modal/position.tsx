@@ -1,7 +1,7 @@
 import { cx } from 'class-variance-authority';
 import { motion } from 'framer-motion';
 import { FC } from 'react';
-import { useFreezeScrollBar } from '@/hooks/use-freeze-scroll';
+import { useFreezeScrollBar } from '@/hooks/freeze-scroll';
 import { TDivMotionProps } from '@/types/dom';
 
 type TProps = TDivMotionProps & {
