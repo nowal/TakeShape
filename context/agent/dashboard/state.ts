@@ -119,13 +119,14 @@ export const useAgentDashboardState = () => {
           setPreferredPainters([]);
         }
       } catch (error) {
+        const errorMessage =
+          'Failed to fetch recommended painters. Please try again later.';
         console.error(
           'Error fetching recommended painters:',
           error
         );
-        setError(
-          'Failed to fetch recommended painters. Please try again later.'
-        );
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }

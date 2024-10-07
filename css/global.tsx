@@ -7,6 +7,8 @@ import {
 import './reset.css';
 import './typography/index.css';
 import './globals.css';
+import 'react-toastify/dist/ReactToastify.css';
+import './notifications.css';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 const openSans = Open_Sans({ subsets: ['latin'] });
@@ -14,6 +16,7 @@ const poppins = Poppins({
   subsets: ['latin'],
   weight: ['500'],
 });
+
 export const CssGlobal = () => {
   return (
     <style jsx global>

@@ -7,6 +7,12 @@
   --background-start-rgb: 255, 255, 255; /* White for background */
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
   --pink: #ff385c;
+  --red: #ff0000;
+  --green: #83a68f;
+  --green-1: #395A44;
+  --green-2: #00D66E;
+  --green-3: #5DC661;
+
   --black-05: rgba(0, 0, 0, 0.05);
   --black-08: rgba(0, 0, 0, 0.08);
   --black-09: rgba(0, 0, 0, 0.09);

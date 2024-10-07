@@ -18,7 +18,8 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
       key={painter.userId}
       className={cx(
         'flex items-center justify-between',
-        'bg-white-2'
+        'bg-white-2',
+        'rounded-lg'
       )}
     >
       <PainterCardData painterId={painter.userId} />

@@ -1,5 +1,9 @@
 import type { FC } from 'react';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
+import { ButtonsCvaInput } from '@/components/cva/input';
+import { InputsText } from '@/components/inputs/text';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { NotificationsHighlight } from '@/components/notifications/highlight';
 
 export const AgentDashboardAdd: FC = () => {
   const agentDashboard = useAgentDashboard();
@@ -13,41 +17,43 @@ export const AgentDashboardAdd: FC = () => {
     onInvitePainter,
   } = agentDashboard;
 
+  const submitTitle = 'Submit';
+  const inviteTitle = 'Send Invite';
   return (
     <div>
-      <input
-        type="text"
-        value={newPainterPhone}
-        onChange={(event) =>
-          dispatchNewPainterPhone(event.target.value)
-        }
-        placeholder="Painter Phone Number"
-        className="p-2 border rounded w-full mb-2"
-      />
-      <button
-        onClick={onAddPainter}
-        className="button-green"
-      >
-        Submit
-      </button>
+      <div>
+        <InputsText
+          value={newPainterPhone}
+          onChange={(event) =>
+            dispatchNewPainterPhone(event.target.value)
+          }
+          placeholder="Painter's Phone Number"
+        />
+        <ButtonsCvaButton
+          title={submitTitle}
+          onTap={onAddPainter}
+        >
+          {submitTitle}
+        </ButtonsCvaButton>
+      </div>
       {searchError && (
         <div>
-          <p className="">{searchError}</p>
-          <input
-            type="text"
+          <NotificationsHighlight>
+            {searchError}
+          </NotificationsHighlight>
+          <InputsText
             value={newPainterName}
             onChange={(event) =>
               dispatchNewPainterName(event.target.value)
             }
             placeholder="Painter Name"
-            className="p-2 border rounded w-full mb-2"
           />
-          <button
-            onClick={onInvitePainter}
-            className="button-green"
+          <ButtonsCvaButton
+            title={inviteTitle}
+            onTap={onInvitePainter}
           >
-            Send Invite
-          </button>
+            {submitTitle}
+          </ButtonsCvaButton>
         </div>
       )}
     </div>
