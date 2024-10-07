@@ -3,7 +3,7 @@ import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { NotificationsInlineInfo } from '@/components/notifications/inline/info';
-import { AgentDashboardCancel } from '@/components/agent-dashboard/buttons/cancel';
+import { AgentDashboardButtonsCancel } from '@/components/agent-dashboard/buttons/cancel';
 import { TypographyButtonPrimary } from '@/components/typography/button/primary';
 import { NOOP } from '@/constants/functions';
 import { IconsLoading } from '@/components/icons/loading';
@@ -66,7 +66,7 @@ export const AgentDashboardAdd: FC = () => {
             />
             <div className="h-3.5" />
             <div className="flex flex-row justify-between">
-              <AgentDashboardCancel />
+              <AgentDashboardButtonsCancel />
               <ButtonsCvaButton
                 title={inviteTitle}
                 onTap={
@@ -88,7 +88,7 @@ export const AgentDashboardAdd: FC = () => {
           </div>
         ) : (
           <div className="flex flex-row justify-between">
-            <AgentDashboardCancel />
+            <AgentDashboardButtonsCancel />
             <ButtonsCvaButton
               title={addTitle}
               onTap={isAddDisabled ? NOOP : onAddPainter}

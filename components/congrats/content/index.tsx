@@ -1,35 +1,41 @@
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
-import { TPropsWithChildren } from '@/types/dom/main';
+import { TDivProps } from '@/types/dom';
+import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
-type TProps = TPropsWithChildren;
-export const ComponentsCongratsContent: FC<TProps> = ({
+export type TComponentsCongratsContentProps = {
+  emoji: string;
+  title: string;
+  long: string;
+  footer: JSX.Element;
+} & TDivProps;
+export const ComponentsCongratsContent: FC<
+  TComponentsCongratsContentProps
+> = ({
+  classValue,
+  emoji,
+  title,
+  long,
+  footer,
   children,
+  ...props
 }) => {
   return (
-    <div className="relative flex flex-col gap-5">
-      <div className="text-8xl">🎉</div>
+    <div
+      className={cx(
+        'relative flex flex-col gap-5',
+        classValue
+      )}
+      {...props}
+    >
+      <div className="text-8xl">{emoji}</div>
       <div className="flex flex-col gap-2">
         <h2 className="text-base font-bold text-black px-2">
-          Congratulations on accepting with:
+          {title}
         </h2>
         {children}
-        <p className="text-gray-7 text-sm">
-          Contractor will reach out within two days to
-          schedule your job. If you have any questions,
-          please contact us or you call your contractor
-          directly.
-        </p>
+        <p className="text-gray-7 text-sm">{long}</p>
       </div>
-      <ButtonsCvaAnchor
-        title="Contact Support, Call (615) 809-6429"
-        href="tel:+16158096429"
-        center
-      >
-        <span className="text-xs text-gray-7 font-semibold">
-          Contact Support
-        </span>
-      </ButtonsCvaAnchor>
+      {footer}
     </div>
   );
 };

@@ -16,6 +16,7 @@ import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { TPainter } from '@/context/agent/dashboard/types';
 import { toast } from 'react-toastify';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
+import { TAgentInfo, TPainterInviteData } from '@/types';
 
 const INIT_LOADING_RECORD = {
   invite: null,
@@ -39,6 +40,9 @@ export const useAgentDashboardState = () => {
     useState<TPainter[]>([]);
   const [loadingRecord, setLoadingRecord] =
     useState<TLoadingRecord>(INIT_LOADING_RECORD);
+
+  const [inviteSuccess, setInviteSuccess] =
+    useState<TPainterInviteData | null>(null);
 
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -169,8 +173,6 @@ export const useAgentDashboardState = () => {
 
   const handleAddPainterStart = () => {
     setAddingPainter(true);
-    console.log(inputPhoneRef.current);
-
     timeoutRef.timeoutRef.current = setTimeout(() => {
       inputPhoneRef.current?.focus();
     }, 100);
@@ -182,6 +184,7 @@ export const useAgentDashboardState = () => {
     setAddingPainter(false);
     setError('');
     setSearchError('');
+    setInviteSuccess(null);
   };
 
   const handleAddPainter = async () => {
@@ -269,8 +272,6 @@ export const useAgentDashboardState = () => {
       return;
     handleUpdateLoadingRecord({ invite: true });
 
-    setSearchError(null);
-
     try {
       const agentDocRef = doc(
         firestore,
@@ -294,22 +295,25 @@ export const useAgentDashboardState = () => {
           name: newPainterName,
           phoneNumber: newPainterPhone,
           agentId: currentUser.uid,
-        };
+        } as const;
 
         await setDoc(
           doc(firestore, 'painterInvites', newPainterPhone),
           inviteData
         );
 
-        handleAddPainterCancel();
-        setNewPainterPhone('');
-        setNewPainterName('');
+        setInviteSuccess(inviteData);
+      } else {
+        const errorMessage =
+          'Error sending invitation. Could not find user.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
       const errorMessage =
         'Error inviting painter. Please try again later.';
       console.error('Error inviting painter:', error);
-      setSearchError(errorMessage);
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       handleUpdateLoadingRecord({ invite: null });
@@ -344,12 +348,12 @@ export const useAgentDashboardState = () => {
     loadingRecord,
     inputPhoneRef,
     inputNameRef,
+    inviteSuccess,
     onInvitePainter: handleInvitePainter,
     dispatchPreferredPainters: setPreferredPainters,
     dispatchError: setError,
     dispatchNewPainterName: setNewPainterName,
     dispatchNewPainterPhone: setNewPainterPhone,
-
     dispatchSearchError: setSearchError,
     onGenerateInviteLink: handleGenerateInviteLink,
     onAddPainter: handleAddPainter,

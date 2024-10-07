@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 
-export const AgentDashboardCancel: FC = () => {
+export const AgentDashboardButtonsCancel: FC = () => {
   const agentDashboard = useAgentDashboard();
   const {
     searchError,

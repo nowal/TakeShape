@@ -44,6 +44,12 @@ export type TAgentInfo = {
   profilePictureUrl: string;
   preferredPainters: string[];
 } | null;
+
+export type TPainterInviteData = {
+  name: string;
+  phoneNumber: string;
+  agentId: string;
+};
 export type TTimestampPair = {
   startTime: number;
   endTime?: number;
