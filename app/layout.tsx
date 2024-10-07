@@ -10,6 +10,8 @@ import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ShellChildren } from '@/components/shell/children';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -23,6 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <ToastContainer />
       <Provider>
         <body className="font-montserrat">
           <CssGlobal />
@@ -65,7 +68,6 @@ export default function RootLayout({
             />
           </noscript>
         </body>
-
         <GoogleAnalytics gaId="G-47EYLN83WE" />
       </Provider>
     </html>

@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { TPainter } from '@/context/agent/dashboard/types';
+import { toast } from 'react-toastify';
 
 export const useAgentDashboardState = () => {
   useAuthNavigateHome();
@@ -301,7 +302,7 @@ export const useAgentDashboardState = () => {
     setInviteLink(inviteLink);
     try {
       await navigator.clipboard.writeText(inviteLink);
-      alert('Invite link copied to clipboard');
+      toast.info('Invite link copied to clipboard');
     } catch (error) {
       console.error('Failed to copy invite link: ', error);
     }
