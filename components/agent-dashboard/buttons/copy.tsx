@@ -4,23 +4,29 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsCopy } from '@/components/icons/copy';
 import { useTimebomb } from '@/hooks/time-bomb';
 import { IconsTick14 } from '@/components/icons/tick/14';
+import { NOOP } from '@/constants/functions';
 
 export const AgentDashboardButtonsCopy: FC = () => {
   const agentDashboard = useAgentDashboard();
   const { onGenerateInviteLink } = agentDashboard;
 
-  const { isArmed, trigger } = useTimebomb();
+  const { isArmed, trigger } = useTimebomb(1000);
   const inviteTitle = isArmed ? 'Copied' : 'Invite Link';
 
-  const handleTap = () => {
-    trigger();
-    onGenerateInviteLink();
+  const handleTap = async () => {
+    try {
+      await onGenerateInviteLink();
+      trigger();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <ButtonsCvaButton
       title={inviteTitle}
-      onTap={handleTap}
+      onTap={isArmed ? NOOP : handleTap}
+      isDisabled={isArmed}
       icon={
         isArmed
           ? { Trailing: IconsTick14 }

@@ -1,7 +1,7 @@
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 import { ComponentsAccountSettingsUserInputsName } from '@/components/account-settings/user/inputs/name';
 import { InputsText } from '@/components/inputs/text';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
 
@@ -30,9 +30,9 @@ export const ComponentsAccountSettingsHomeowner: FC =
           {agentError && (
             <>
             <div className='h-1'/>
-              <NotificationsHighlight>
+              <NotificationsInlineHighlight>
                 {agentError}
-              </NotificationsHighlight>
+              </NotificationsInlineHighlight>
             </>
           )}
         </div>

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { TJob } from '@/types';
 
 type TProps = {
@@ -27,9 +27,9 @@ export const DashboardPainterQuotes: FC<TProps> = ({
           ))}
         </div>
       ) : (
-        <NotificationsHighlight>
+        <NotificationsInlineHighlight>
           No {type} Quotes at this time
-        </NotificationsHighlight>
+        </NotificationsInlineHighlight>
       )}
     </>
   );

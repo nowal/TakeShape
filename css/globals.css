@@ -9,9 +9,9 @@
   --pink: #ff385c;
   --red: #ff0000;
   --green: #83a68f;
-  --green-1: #395A44;
-  --green-2: #00D66E;
-  --green-3: #5DC661;
+  --green-1: #395a44;
+  --green-2: #00d66e;
+  --green-3: #5dc661;
 
   --black-05: rgba(0, 0, 0, 0.05);
   --black-08: rgba(0, 0, 0, 0.08);
@@ -192,6 +192,9 @@ input {
   }
   .typography-landing-hero-title--responsive {
     @apply typography-landing-hero-title--sm md:typography-landing-hero-title--lg;
+  }
+  .typography-button-pink {
+    @apply text-pink font-semibold font-semibold;
   }
 }
 

@@ -1,4 +1,4 @@
-import { NotificationsHighlight } from '@/components/notifications/highlight';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useDashboard } from '@/context/dashboard/provider';
 import type { FC } from 'react';
 
@@ -6,8 +6,8 @@ export const DashboardHomeownerUploading: FC = () => {
   const dashboard = useDashboard();
   const { uploadProgress } = dashboard;
   return (
-    <NotificationsHighlight>
+    <NotificationsInlineHighlight>
       Uploading: {uploadProgress.toFixed(2)}%
-    </NotificationsHighlight>
+    </NotificationsInlineHighlight>
   );
 };

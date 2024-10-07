@@ -16,7 +16,7 @@ export const IconsLoading1: FC<TProps> = ({ ...props }) => {
           cy="12"
           r="9.5"
           fill="none"
-          stroke-linecap="round"
+          strokeLinecap="round"
           stroke-width="3"
         >
           <animate

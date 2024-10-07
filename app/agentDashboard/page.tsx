@@ -7,15 +7,18 @@ import { ComponentsPanel } from '@/components/panel';
 
 const AgentDashboard = () => {
   const agentDashboard = useAgentDashboard();
-  const { addingPainter } = agentDashboard;
+  const { isAddingPainter } = agentDashboard;
   return (
     <div className="flex justify-center">
       <ComponentsPanel title="Your Painters List">
         <div className="h-5.5" />
         <AgentDashboardButtons />
         <div className="h-8" />
-        {addingPainter && <AgentDashboardAdd />}
-        <AgentDashboardList />
+        {isAddingPainter ? (
+          <AgentDashboardAdd />
+        ) : (
+          <AgentDashboardList />
+        )}
       </ComponentsPanel>
     </div>
   );

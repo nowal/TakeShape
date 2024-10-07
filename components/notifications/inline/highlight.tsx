@@ -5,7 +5,7 @@ import { cx } from 'class-variance-authority';
 type TProps = TElementProps & {
   classDisplay?: string;
 };
-export const NotificationsHighlight: FC<TProps> = ({
+export const NotificationsInlineHighlight: FC<TProps> = ({
   children,
   classDisplay,
   classValue,

@@ -17,9 +17,10 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
     <div
       key={painter.userId}
       className={cx(
-        'flex items-center justify-between',
+        'flex justify-between',
         'bg-white-2',
-        'rounded-lg'
+        'rounded-lg',
+        'p-2.5'
       )}
     >
       <PainterCardData painterId={painter.userId} />
@@ -30,9 +31,11 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
           onRemovePainter(painter.phoneNumber)
         }
         isIconOnly
-        size="iconMd"
+        size="iconSm"
         isDisabled={isRemoving}
-        classValue="text-pink p-2.5"
+        classValue="text-pink"
+        intent="icon"
+         center
       >
         {isRemoving ? <IconsLoading /> : <IconsCloseAlt />}
       </ButtonsCvaButton>

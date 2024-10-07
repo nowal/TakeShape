@@ -17,6 +17,9 @@ export const buttonsCvaConfig = cva(
         iconXl: ['relative', 'size-12'],
         iconLg: ['relative', 'size-10'],
         iconMd: ['relative', 'size-8'],
+        iconSm: ['relative', 'size-6'],
+        iconXs: ['relative', 'size-4','leading-none'],
+
         fill: ['absolute inset-0'],
       },
       center: {

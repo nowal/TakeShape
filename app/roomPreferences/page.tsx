@@ -36,6 +36,8 @@ import {
 } from '@/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { toast } from 'react-toastify';
+import { errorUpdating } from '@/utils/error';
+import { notifyError } from '@/utils/notifications';
 
 type Price = {
   painterId: string;
@@ -626,10 +628,9 @@ const RoomPreferences = () => {
         })
           .then(() => {})
           .catch((error) => {
-            console.error(
-              'Error updating Firestore: ',
-              error
-            );
+            const errorMessage = errorUpdating('Firestore');
+            console.error(errorMessage, error);
+            notifyError(errorMessage);
           });
       }
 

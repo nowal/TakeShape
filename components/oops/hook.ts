@@ -1,4 +1,3 @@
-
 import { useEffect, useState, Suspense } from 'react';
 import {
   useSearchParams,
@@ -11,9 +10,11 @@ import {
   updateDoc,
   arrayUnion,
 } from 'firebase/firestore';
+import { errorUpdating } from '@/utils/error';
+import { notifyError } from '@/utils/notifications';
 
 type TConfig = any;
-export const useCongrats = (config?:TConfig) => {
+export const useCongrats = (config?: TConfig) => {
   const [painterUserId, setPainterUserId] = useState<
     string | null
   >(null);
@@ -80,13 +81,14 @@ export const useCongrats = (config?:TConfig) => {
             );
           }
         } catch (error) {
-          console.error(
-            'Error updating user image:',
-            error
-          );
-          setError(
-            'An error occurred while updating the quote. Please try again.'
-          );
+          const errorMessage =
+            'An error occurred while updating the quote. Please try again.';
+
+          const errorMessage1 = errorUpdating('user image');
+
+          console.error(errorMessage1, error);
+          setError(errorMessage);
+          notifyError(errorMessage);
         } finally {
           setLoading(false);
         }
@@ -121,7 +123,5 @@ export const useCongrats = (config?:TConfig) => {
     userImageIdFromParams,
   ]);
 
-
-  return {isLoading,painterUserId,error}
-
-}
+  return { isLoading, painterUserId, error };
+};

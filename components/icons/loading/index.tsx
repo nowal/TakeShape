@@ -11,6 +11,7 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
       width="1em"
       height="1em"
       viewBox="0 0 24 24"
+      fill="none"
       {...props}
     >
       <circle cx="12" cy="2" r="0" fill="currentColor">

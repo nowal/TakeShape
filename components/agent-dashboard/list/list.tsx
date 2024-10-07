@@ -1,34 +1,32 @@
 import type { FC } from 'react';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
-import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { AgentDashboardItem } from '@/components/agent-dashboard/list/item';
+import { NotificationsInlineInfo } from '@/components/notifications/inline/info';
+import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 export const AgentDashboardList: FC = () => {
   const agentDashboard = useAgentDashboard();
-  const {
-    isLoading,
-    error,
-    preferredPainters,
-  } = agentDashboard;
-  
-  if (isLoading) return <FallbacksLoadingCircle />;
+  const { isLoading, error, preferredPainters } =
+    agentDashboard;
+
+  if (isLoading) return <FallbacksLoadingCircleCenter classValue='p-2.5' />;
   if (error)
     return (
-      <NotificationsHighlight>
+      <NotificationsInlineInfo>
         {error}
-      </NotificationsHighlight>
+      </NotificationsInlineInfo>
     );
   if (!preferredPainters) return null;
   const isEmpty = preferredPainters.length === 0;
   if (isEmpty)
     return (
-      <NotificationsHighlight>
+      <NotificationsInlineInfo>
         No recommended painters added yet.
-      </NotificationsHighlight>
+      </NotificationsInlineInfo>
     );
   return (
-    <div>
+    <div className='flex flex-col items-stretch gap-2'>
       {preferredPainters.map((painter) => {
         if (painter.userId) {
           return (

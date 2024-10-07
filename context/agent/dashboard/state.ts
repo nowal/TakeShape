@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
@@ -15,16 +15,35 @@ import {
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { TPainter } from '@/context/agent/dashboard/types';
 import { toast } from 'react-toastify';
+import { useTimeoutRef } from '@/hooks/timeout-ref';
+
+const INIT_LOADING_RECORD = {
+  invite: null,
+  add: null,
+} as const;
+type TLoadingRecord = Record<
+  keyof typeof INIT_LOADING_RECORD,
+  null | boolean
+>;
 
 export const useAgentDashboardState = () => {
+  const timeoutRef = useTimeoutRef();
+  const inputPhoneRef = useRef<HTMLInputElement | null>(
+    null
+  );
+  const inputNameRef = useRef<HTMLInputElement | null>(
+    null
+  );
   useAuthNavigateHome();
-
   const [preferredPainters, setPreferredPainters] =
     useState<TPainter[]>([]);
-  const [isLoading, setLoading] = useState(true);
+  const [loadingRecord, setLoadingRecord] =
+    useState<TLoadingRecord>(INIT_LOADING_RECORD);
 
+  const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [addingPainter, setAddingPainter] = useState(false);
+  const [isAddingPainter, setAddingPainter] =
+    useState(false);
   const [newPainterPhone, setNewPainterPhone] =
     useState('');
   const [newPainterName, setNewPainterName] = useState('');
@@ -35,7 +54,11 @@ export const useAgentDashboardState = () => {
   const [agentName, setAgentName] = useState('');
   const auth = getAuth();
   const firestore = getFirestore();
-
+  const handleUpdateLoadingRecord = (
+    partial: Partial<TLoadingRecord>
+  ) => {
+    setLoadingRecord((prev) => ({ ...prev, ...partial }));
+  };
   useEffect(() => {
     const fetchAgentName = async () => {
       const currentUser = auth.currentUser;
@@ -144,11 +167,27 @@ export const useAgentDashboardState = () => {
     return () => unsubscribe(); // Cleanup subscription on unmount
   }, [auth, firestore]);
 
+  const handleAddPainterStart = () => {
+    setAddingPainter(true);
+    console.log(inputPhoneRef.current);
+
+    timeoutRef.timeoutRef.current = setTimeout(() => {
+      inputPhoneRef.current?.focus();
+    }, 100);
+  };
+
+  const handleAddPainterCancel = () => {
+    setNewPainterPhone('');
+    setNewPainterName('');
+    setAddingPainter(false);
+    setError('');
+    setSearchError('');
+  };
+
   const handleAddPainter = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser || !newPainterPhone) return;
-
-    setLoading(true);
+    handleUpdateLoadingRecord({ add: true });
     setSearchError(null);
 
     try {
@@ -171,7 +210,18 @@ export const useAgentDashboardState = () => {
           currentUser.uid
         );
         const agentDoc = await getDoc(agentDocRef);
-
+        if (
+          preferredPainters.some(
+            (v) => v.userId === painterData.userId
+          )
+        ) {
+          const message =
+            'This painter has already been added.';
+          setError(message);
+          toast.error(message);
+          setSearchError('');
+          return;
+        }
         if (agentDoc.exists()) {
           const agentData = agentDoc.data();
           const updatedPreferredPainters = [
@@ -187,22 +237,29 @@ export const useAgentDashboardState = () => {
             ...preferredPainters,
             painterData,
           ]);
-          setAddingPainter(false);
           setNewPainterPhone('');
         }
+        handleAddPainterCancel();
+
+        // setSearchError('');
       } else {
-        setSearchError(
-          'Painter not found. Please input name and we will send them an invite.'
-        );
+        const message =
+          'Painter not found. Please input name and we will send them an invite.';
+        setSearchError(message);
+        setError('');
+        timeoutRef.timeoutRef.current = setTimeout(() => {
+          inputNameRef.current?.focus();
+        }, 100);
+        toast.info(message);
       }
     } catch (error) {
       const errorMessage =
         'Error adding painter. Please try again later.';
       console.error('Error adding painter:', error);
-      setSearchError(errorMessage);
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      handleUpdateLoadingRecord({ add: null });
     }
   };
 
@@ -210,8 +267,8 @@ export const useAgentDashboardState = () => {
     const currentUser = auth.currentUser;
     if (!currentUser || !newPainterPhone || !newPainterName)
       return;
+    handleUpdateLoadingRecord({ invite: true });
 
-    setLoading(true);
     setSearchError(null);
 
     try {
@@ -244,17 +301,19 @@ export const useAgentDashboardState = () => {
           inviteData
         );
 
-        setAddingPainter(false);
+        handleAddPainterCancel();
         setNewPainterPhone('');
         setNewPainterName('');
       }
     } catch (error) {
+      const errorMessage =
+        'Error inviting painter. Please try again later.';
       console.error('Error inviting painter:', error);
-      setSearchError(
-        'Error inviting painter. Please try again later.'
-      );
+      setSearchError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      handleUpdateLoadingRecord({ invite: null });
+      setSearchError('');
     }
   };
 
@@ -275,20 +334,27 @@ export const useAgentDashboardState = () => {
   return {
     isLoading,
     error,
-    addingPainter,
+    isAddingPainter,
     agentName,
     preferredPainters,
     newPainterName,
     newPainterPhone,
     searchError,
     inviteLink,
+    loadingRecord,
+    inputPhoneRef,
+    inputNameRef,
     onInvitePainter: handleInvitePainter,
     dispatchPreferredPainters: setPreferredPainters,
     dispatchError: setError,
-    dispatchAddingPainter: setAddingPainter,
     dispatchNewPainterName: setNewPainterName,
     dispatchNewPainterPhone: setNewPainterPhone,
+
+    dispatchSearchError: setSearchError,
     onGenerateInviteLink: handleGenerateInviteLink,
     onAddPainter: handleAddPainter,
+    onAddPainterStart: handleAddPainterStart,
+    onAddPainterCancel: handleAddPainterCancel,
+    onUpdateLoadingRecord: handleUpdateLoadingRecord,
   };
 };

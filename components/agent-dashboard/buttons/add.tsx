@@ -1,18 +1,40 @@
 import type { FC } from 'react';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
+import { NOOP } from '@/constants/functions';
+import { IconsChevronsLeft } from '@/components/icons/chevrons/left';
 
 export const AgentDashboardButtonsAdd: FC = () => {
   const agentDashboard = useAgentDashboard();
-  const { dispatchAddingPainter } = agentDashboard;
+  const {
+    onAddPainterStart,
+    onAddPainterCancel,
+    isAddingPainter,
+  } = agentDashboard;
   const addTitle = 'Add New';
+  const backTitle = 'Back';
+
+  const isDisabled =
+    isAddingPainter
+
+  if (isDisabled) {
+    return (
+      <ButtonsCvaButtonAdd
+        onTap={onAddPainterCancel}
+        title={backTitle}
+        icon={{Leading:IconsChevronsLeft}}
+      >
+        {backTitle}
+      </ButtonsCvaButtonAdd>
+    );
+  }
   return (
-      <div className="flex flex-row items-center gap-1.5">
-        <ButtonsCvaButtonAdd
-          onTap={() => dispatchAddingPainter(true)}
-          title={addTitle}
-        />
-        {addTitle}
-      </div>
+    <ButtonsCvaButtonAdd
+      onTap={isDisabled ? NOOP : onAddPainterStart}
+      title={addTitle}
+      isDisabled={isDisabled}
+    >
+      {addTitle}
+    </ButtonsCvaButtonAdd>
   );
 };

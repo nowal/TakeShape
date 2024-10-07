@@ -21,6 +21,7 @@ import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { notifyError } from '@/utils/notifications';
+import { errorUpdating } from '@/utils/error';
 
 const AgentAccount = () => {
   const [name, setName] = useState('');
@@ -132,8 +133,11 @@ const AgentAccount = () => {
     } catch (error) {
       const errorMessage =
         'An unexpected error occurred. Please try again.';
-      console.error('Error updating agent info: ', error);
+      const errorMessage2 = errorUpdating('agent info');
+      console.error(errorMessage2, error);
       setErrorMessage(errorMessage);
+      notifyError(errorMessage);
+      notifyError(errorMessage2);
     } finally {
       setIsLoading(false); // Reset loading state
     }
