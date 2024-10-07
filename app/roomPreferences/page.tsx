@@ -35,6 +35,7 @@ import {
   TPaintPreferences,
 } from '@/types';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { toast } from 'react-toastify';
 
 type Price = {
   painterId: string;
@@ -564,7 +565,7 @@ const RoomPreferences = () => {
       );
 
       if (isWithinExistingPair) {
-        alert(
+        toast.error(
           'You cannot add a new room within the time range of an existing room. Please choose a different time.'
         );
         return; // Prevent further execution
@@ -717,7 +718,7 @@ const RoomPreferences = () => {
     );
 
     if (isWithinExistingPair) {
-      alert(
+      toast.error(
         'You cannot end a room within the time range of an existing room. Please choose an earlier time.'
       );
       return; // Prevent further execution

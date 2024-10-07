@@ -14,6 +14,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
+import { toast } from 'react-toastify';
 
 export const useDashboardPainterJobForm = (id: string) => {
   const { onFetchPainterData } = useDashboardPainter();
@@ -55,7 +56,7 @@ export const useDashboardPainterJobForm = (id: string) => {
       // Convert price back to a number before submitting
       const numericPrice = parseFloat(price);
       if (isNaN(numericPrice)) {
-        alert('Please enter a valid price');
+        toast.error('Please enter a valid price');
         setSubmitting(false); // Reset loading state
         return;
       }
