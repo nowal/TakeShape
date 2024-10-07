@@ -5,16 +5,14 @@ import { cx } from 'class-variance-authority';
 import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
 
 type TProps = TJob;
-
 export const DashboardPainterJobPrice: FC<TProps> = (
   job
 ) => {
   const dashboardPainter = useDashboardPainter();
   const { user } = dashboardPainter;
   const price = job.prices
-    .find((price) => price.painterId === user?.uid)
+    .find((value) => value.painterId === user?.uid)
     ?.amount.toFixed(2);
-
   if (!price) return null;
   return (
     <div

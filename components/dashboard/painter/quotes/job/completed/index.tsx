@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
-import { DashboardPainterJobPreferences } from '@/components/dashboard/painter/quotes/job/preferences';
+import { DashboardPreferences } from '@/components/dashboard/preferences';
 import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
 import { DashboardPainterJobPrice } from '@/components/dashboard/painter/quotes/job/price';
 
@@ -13,7 +13,7 @@ export const DashboardPainterJobCompleted: FC<TProps> = (
     <>
       <DashboardPainterJobPrice {...job} />
       <DashboardPainterJobInvoice {...job} />
-      <DashboardPainterJobPreferences {...job} />
+      <DashboardPreferences {...job} />
     </>
   );
 };

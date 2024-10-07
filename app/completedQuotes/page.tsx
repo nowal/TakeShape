@@ -1,6 +1,6 @@
 'use client';
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJobPreferences } from '@/components/dashboard/painter/quotes/job/preferences';
+import { DashboardPainterJobPreferences } from '@/components/dashboard/preferences';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { ComponentsDashboardShell } from '@/components/dashboard/shell';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';

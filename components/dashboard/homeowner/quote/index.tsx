@@ -4,12 +4,12 @@ import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 import { DashboardHomeownerQuoteButton } from '@/components/dashboard/homeowner/quote/button';
 import { DashboardCard } from '@/components/dashboard/card';
+import { DashboardPreferences } from '@/components/dashboard/preferences';
 
 export const DashboardHomeownerQuote: FC = () => {
   const dashboard = useDashboard();
   const { userData, acceptedQuote } = dashboard;
-  if (acceptedQuote) return null;
-
+  console.log(userData, acceptedQuote);
   return (
     <DashboardCard>
       <DashboardHomeownerVideo />
@@ -26,7 +26,23 @@ export const DashboardHomeownerQuote: FC = () => {
         </h4>
         <div>{userData?.reAgent}</div>
       </div>
-      <DashboardHomeownerQuoteButton />
+
+      {acceptedQuote ? (
+        <>
+          {userData ? (
+            <DashboardPreferences
+              {...userData.paintPreferences}
+              specialRequests={userData.specialRequests}
+              moveFurniture={userData.moveFurniture}
+              laborAndMaterial={userData.laborAndMaterial}
+            >
+              Your Preferences
+            </DashboardPreferences>
+          ) : null}
+        </>
+      ) : (
+        <DashboardHomeownerQuoteButton />
+      )}
     </DashboardCard>
   );
 };

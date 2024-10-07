@@ -57,11 +57,7 @@ export const DashboardHomeowner: FC = () => {
               </PainterCardBackground>
             </ComponentsCongratsPanel>
           ) : (
-            <>
-              {userData && userData.prices && (
-                <DashboardHomeownerContractorQuotes />
-              )}
-            </>
+            <DashboardHomeownerContractorQuotes />
           )}
         </>
       }

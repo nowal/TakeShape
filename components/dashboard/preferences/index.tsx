@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJob } from '@/types';
+import { TJobUserData, TPaintPreferences } from '@/types';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 import { TypographyDetailsTitle } from '@/components/typography/details/title';
 import { DashboardPainterJobPanel } from '@/components/dashboard/painter/quotes/job/panel';
@@ -7,19 +7,23 @@ import { TypographyDetailsPink } from '@/components/typography/details/pink';
 import { IconsLabor25 } from '@/components/icons/labor/25';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
 import { cx } from 'class-variance-authority';
-import { DashboardPainterJobPreferencesRow } from '@/components/dashboard/painter/quotes/job/preferences/row';
+import { DashboardPainterJobPreferencesRow } from '@/components/dashboard/preferences/row';
+import { TPropsWithChildren } from '@/types/dom/main';
 
-type TProps = TJob;
-export const DashboardPainterJobPreferences: FC<TProps> = (
-  job
-) => {
+type TProps = TPropsWithChildren<
+  TPaintPreferences & TJobUserData
+>;
+export const DashboardPreferences: FC<TProps> = ({
+  children,
+  ...paintPreferences
+}) => {
   const isLaborAndMaterials =
-    job.paintPreferences?.laborAndMaterial;
+    paintPreferences?.laborAndMaterial;
   return (
     <div className="flex flex-col items-stretch gap-3">
       <div>
         <TypographyFormSubtitle>
-          Client Preferences
+          {children ?? 'Client Preferences'}
         </TypographyFormSubtitle>
       </div>
       <div
@@ -46,72 +50,67 @@ export const DashboardPainterJobPreferences: FC<TProps> = (
         items={[
           [
             'Color',
-            job.paintPreferences?.laborAndMaterial
-              ? job.paintPreferences?.color || 'N/A'
+            paintPreferences?.laborAndMaterial
+              ? paintPreferences?.color || 'N/A'
               : 'N/A',
           ],
           [
             'Finish',
-            job.paintPreferences?.laborAndMaterial
-              ? job.paintPreferences?.finish || 'N/A'
+            paintPreferences?.laborAndMaterial
+              ? paintPreferences?.finish || 'N/A'
               : 'N/A',
           ],
           [
             'Quality',
-            (job.paintPreferences?.laborAndMaterial
-              ? job.paintPreferences?.paintQuality || 'N/A'
+            (paintPreferences?.laborAndMaterial
+              ? paintPreferences?.paintQuality || 'N/A'
               : 'N/A'
             )
               .replace('Quality', '')
               .trim(),
           ],
         ]}
-        {...job}
       />
-      {job.paintPreferences?.ceilings && (
+      {paintPreferences?.ceilings && (
         <DashboardPainterJobPreferencesRow
           title="Ceilings"
           items={[
             [
               'Color',
-              job.paintPreferences?.ceilings &&
-              job.paintPreferences?.laborAndMaterial
-                ? job.paintPreferences?.ceilingColor ||
-                  'N/A'
+              paintPreferences?.ceilings &&
+              paintPreferences?.laborAndMaterial
+                ? paintPreferences?.ceilingColor || 'N/A'
                 : 'N/A',
             ],
             [
               'Finish',
-              job.paintPreferences?.ceilings &&
-              job.paintPreferences?.laborAndMaterial
-                ? job.paintPreferences?.ceilingFinish ||
-                  'N/A'
+              paintPreferences?.ceilings &&
+              paintPreferences?.laborAndMaterial
+                ? paintPreferences?.ceilingFinish || 'N/A'
                 : 'N/A',
             ],
           ]}
-          {...job}
         />
       )}
-      {job.paintPreferences?.trim && (
+      {paintPreferences?.trim && (
         <DashboardPainterJobPreferencesRow
           title="Trim and Doors"
           items={[
             [
               'Color',
-              job.paintPreferences?.trim &&
-              job.paintPreferences?.laborAndMaterial
-                ? job.paintPreferences?.trimColor || 'N/A'
+              paintPreferences?.trim &&
+              paintPreferences?.laborAndMaterial
+                ? paintPreferences?.trimColor || 'N/A'
                 : 'N/A',
             ],
             [
               'Finish',
-              job.paintPreferences?.trim &&
-              job.paintPreferences?.laborAndMaterial
-                ? job.paintPreferences?.trimFinish || 'N/A'
+              paintPreferences?.trim &&
+              paintPreferences?.laborAndMaterial
+                ? paintPreferences?.trimFinish || 'N/A'
                 : 'N/A',
             ],
           ]}
-          {...job}
         />
       )}
       <DashboardPainterJobPanel classValue="flex flex-row justify-between">
@@ -119,16 +118,16 @@ export const DashboardPainterJobPreferences: FC<TProps> = (
           Move Furniture
         </TypographyDetailsTitle>
         <TypographyDetailsPink classValue="font-semibold">
-          {job.moveFurniture ? 'Yes' : 'No'}
+          {paintPreferences.moveFurniture ? 'Yes' : 'No'}
         </TypographyDetailsPink>
       </DashboardPainterJobPanel>
-      {job.specialRequests && (
+      {paintPreferences.specialRequests && (
         <DashboardPainterJobPanel classValue="flex flex-col">
           <TypographyDetailsPink>
             Special Requests
           </TypographyDetailsPink>
           <TypographyDetailsTitle>
-            {job.specialRequests}
+            {paintPreferences.specialRequests}
           </TypographyDetailsTitle>
         </DashboardPainterJobPanel>
       )}

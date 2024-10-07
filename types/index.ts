@@ -16,12 +16,19 @@ export type TUserImageRecord = {
   title?: string;
 };
 
-export type TUserData = {
+export type TJobUserData = Pick<
+  TJob,
+  | 'moveFurniture'
+  | 'specialRequests'
+  | 'laborAndMaterial'
+>;
+export type TUserData = TJobUserData & {
   email?: string;
   quote?: string | null;
   video?: string;
   reAgent?: string;
   paintPreferencesId?: string;
+  paintPreferences?: TPaintPreferences;
   userImages?: string[]; // Array of userImage IDs
   prices?: TPrice[];
   title?: string;
@@ -30,15 +37,16 @@ export type TPaintPreferencesFlags = Record<
   TPreferencesNameBooleansKey,
   boolean
 >;
-export type TPaintPreferences = TPaintPreferencesFlags & {
-  color?: string;
-  finish?: string;
-  ceilingColor?: string;
-  ceilingFinish?: string;
-  trimColor?: string;
-  trimFinish?: string;
-  paintQuality?: string;
-};
+export type TPaintPreferences =
+  Partial<TPaintPreferencesFlags> & {
+    color?: string;
+    finish?: string;
+    ceilingColor?: string;
+    ceilingFinish?: string;
+    trimColor?: string;
+    trimFinish?: string;
+    paintQuality?: string;
+  };
 export type TAgentInfo = {
   name: string;
   profilePictureUrl: string;
@@ -58,12 +66,19 @@ export type TTimestampPair = {
   ceilings?: boolean;
   trim?: boolean;
   roomName: string;
-
   paintCeilings?: boolean;
   paintTrimAndDoors?: boolean;
   dontPaintAtAll?: boolean;
 };
-
+type TJobPrice = {
+  painterId: string;
+  amount: number;
+  invoiceUrl?: string;
+  timestamp: number;
+};
+type TAcceptedQuote = {
+  acceptedQuoteId: string;
+};
 export type TJob = {
   jobId: string;
   video: string;
@@ -78,15 +93,9 @@ export type TJob = {
   address: string;
   lat?: number;
   lng?: number;
-  prices: Array<{
-    painterId: string;
-    amount: number;
-    invoiceUrl?: string;
-    timestamp: number;
-  }>;
-  acceptedQuotes?: Array<{
-    acceptedQuoteId: string;
-  }>;
+  prices: TJobPrice[];
+  laborAndMaterial?: boolean;
+  acceptedQuotes?: TAcceptedQuote[];
 };
 
 export type TSelectIdTitleItem = {

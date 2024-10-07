@@ -11,11 +11,13 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import { useDashboard } from '@/context/dashboard/provider';
+import { notifyError } from '@/utils/notifications';
 
 export const useCongrats = () => {
   const dashboard = useDashboard();
-  const { acceptedQuote, userData, userImageList } = dashboard;
-  console.log(userData,userImageList, acceptedQuote)
+  const { acceptedQuote, userData, userImageList } =
+    dashboard;
+  console.log(userData, userImageList, acceptedQuote);
   const [painterUserId, setPainterUserId] = useState<
     string | null
   >(null);
@@ -70,19 +72,21 @@ export const useCongrats = () => {
               'Quote accepted and userImage updated successfully!'
             );
           } else {
-            console.error('User image document not found');
-            setError(
-              'An error occurred while updating the quote. Please try again.'
+            const errorMessage =
+              'An error occurred while updating the quote. Please try again.';
+            console.error(
+              'User image document not found',
+              errorMessage
             );
+            setError(errorMessage);
+            notifyError(errorMessage);
           }
         } catch (error) {
-          console.error(
-            'Error updating user image:',
-            error
-          );
-          setError(
-            'An error occurred while updating the quote. Please try again.'
-          );
+          const errorMessage =
+            'An error occurred while updating the quote. Please try again.';
+          console.error(errorMessage, error);
+          setError(errorMessage);
+          notifyError(errorMessage);
         } finally {
           setLoading(false);
         }
@@ -104,10 +108,14 @@ export const useCongrats = () => {
         setLoading(false);
       }
     } else {
+      const errorMessage =
+        'An error occurred. Please try again.';
+
       console.error(
         'No painterId (userId) found in URL params'
       );
-      setError('An error occurred. Please try again.');
+      setError(errorMessage);
+      notifyError(errorMessage);
       setLoading(false);
     }
   }, [
