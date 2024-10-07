@@ -1,5 +1,6 @@
 import { TAccountSettingsMapReturn } from '@/context/account-settings/types';
 import { loadGoogleMapsScript } from '@/utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { notifyError } from '@/utils/notifications';
 import {
   Dispatch,
   MutableRefObject,
@@ -79,10 +80,10 @@ export const useAutoFillAddressGeocode = ({
           });
         }
       } catch (error) {
-        console.error(
-          'Error loading Google Maps script:',
-          error
-        );
+        const errorMessage =
+          'Error loading Google Maps script';
+        console.error(errorMessage, error);
+        notifyError(errorMessage);
       }
     };
 

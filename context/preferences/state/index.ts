@@ -26,6 +26,7 @@ import { usePreferencesStateAddress } from '@/context/preferences/state/address'
 import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import { TPaintPreferences } from '@/types';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
+import { notifyError } from '@/utils/notifications';
 
 export const usePreferencesState = () => {
   const firestore = getFirestore();
@@ -207,6 +208,9 @@ export const usePreferencesState = () => {
         `${navigateTo}?userImageId=${userImageId}`
       );
     } catch (error) {
+      const errorMessage =
+        'Error submitting preferences. Please try again.';
+      notifyError(errorMessage);
       console.error(error);
     } finally {
       setSubmitting(false); // Reset loading state

@@ -1,4 +1,6 @@
 'use client';
+
+import { errorAuth } from '@/utils/error/auth';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -40,7 +42,9 @@ export const useSignUp = (config: TConfig) => {
   const [painterInfo] = useAtom(painterInfoAtom);
   const [isShowLoginInstead, setShowLoginInstead] =
     useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<
+    null | string
+  >('');
   const router = useRouter();
   const searchParams = useSearchParams();
   // const addressInputRef = useRef<HTMLInputElement>(null);
@@ -180,13 +184,6 @@ export const useSignUp = (config: TConfig) => {
       }
 
       const quoteData = sessionStorage.getItem('quoteData');
-      console.log(
-        '▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▅▅▅▅▆▆▆▆▇▇▇▇██▓▒░ 🧨 ░▒▓█▓▒░ 🧨 ░▒▓██▇▇▇▇▆▆▆▆▅▅▅▅▄▄▄▃▃▃▃▂▂▂▂▁▁▁▁'
-      );
-      console.dir(quoteData);
-      console.log(
-        '██████████████▓▒░ 🧨 ░▒ line: 189, file: index.ts ▓▒░ 🧨 ░▒██████████████'
-      );
 
       if (quoteData) {
         const quote = JSON.parse(quoteData);
@@ -233,39 +230,13 @@ export const useSignUp = (config: TConfig) => {
         router.push('/quote');
       }
     } catch (error) {
-      console.error('Error signing up: ', error);
-      const errorCode = (error as { code: string }).code;
-
-      switch (errorCode) {
-        case 'auth/email-already-in-use':
-          setErrorMessage(
-            'The email address is already in use by another account.'
-          );
-          break;
-        case 'auth/weak-password':
-          setErrorMessage('The password is too weak.');
-          break;
-        case 'auth/invalid-email':
-          setErrorMessage(
-            'The email address is not valid.'
-          );
-          break;
-        case 'auth/operation-not-allowed':
-          setErrorMessage(
-            'Email/password accounts are not enabled.'
-          );
-          break;
-        case 'auth/network-request-failed':
-          setErrorMessage(
-            'Network error. Please try again.'
-          );
-          break;
-        default:
-          setErrorMessage(
-            'An unexpected error occurred. Please try again.'
-          );
-          break;
-      }
+      const errorMessage = errorAuth(error);
+      setErrorMessage(errorMessage);
+      console.error(
+        'Error signing up: ',
+        errorMessage,
+        error
+      );
     } finally {
       setLoading(false); // Reset loading state
     }

@@ -244,7 +244,10 @@ export const useDashboardPainterCompleted = () => {
     try {
       return await getDownloadURL(videoRef);
     } catch (error) {
-      console.error('Error getting video URL: ', error);
+      const errorMessage = 'Error getting video URL';
+      notifyError(errorMessage);
+      setErrorMessage(errorMessage);
+      console.error(errorMessage, error);
       return '';
     }
   };

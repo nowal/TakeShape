@@ -1,3 +1,4 @@
+import { errorAuth } from '@/utils/error/auth';
 import { useState } from 'react';
 import {
   getAuth,
@@ -26,7 +27,9 @@ export const useAgentRegisterState = () => {
   const [profilePicturePreview, setProfilePicturePreview] =
     useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<
+    string | null
+  >('');
   const router = useRouter();
 
   const handleProfilePictureChange = (file: File) => {
@@ -89,38 +92,8 @@ export const useAgentRegisterState = () => {
       router.push('/agentDashboard');
     } catch (error) {
       console.error('Error signing up: ', error);
-      const errorCode = (error as { code: string }).code;
-
-      switch (errorCode) {
-        case 'auth/email-already-in-use':
-          setErrorMessage(
-            'The email address is already in use by another account.'
-          );
-          break;
-        case 'auth/weak-password':
-          setErrorMessage('The password is too weak.');
-          break;
-        case 'auth/invalid-email':
-          setErrorMessage(
-            'The email address is not valid.'
-          );
-          break;
-        case 'auth/operation-not-allowed':
-          setErrorMessage(
-            'Email/password accounts are not enabled.'
-          );
-          break;
-        case 'auth/network-request-failed':
-          setErrorMessage(
-            'Network error. Please try again.'
-          );
-          break;
-        default:
-          setErrorMessage(
-            'An unexpected error occurred. Please try again.'
-          );
-          break;
-      }
+      const errorMessage = errorAuth(error);
+      setErrorMessage(errorMessage);
     } finally {
       setSubmitting(false); // Reset loading state
     }
@@ -134,12 +107,12 @@ export const useAgentRegisterState = () => {
     profilePicturePreview,
     errorMessage,
     phoneNumber,
-    dispatchName:setName,
+    dispatchName: setName,
     dispatchPassword: setPassword,
     dispatchEmail: setEmail,
     dipatchPhoneNumber: setPhoneNumber,
     dispatchSubmitting: setSubmitting,
-    onProfilePictureChange:handleProfilePictureChange,
+    onProfilePictureChange: handleProfilePictureChange,
     onSubmit: handleSubmit,
   };
 };

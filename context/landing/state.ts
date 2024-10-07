@@ -45,7 +45,11 @@ export const useLandingState = () => {
       );
       setEmailForSubscription(''); // Clear the input field after subscribing
     } catch (error) {
-      console.error('Error subscribing email:', error);
+      const errorMessage = 'Error subscribing email';
+      notifyError(errorMessage);
+      setErrorMessage(errorMessage);
+      console.error(errorMessage, error);
+      
     }
   };
 

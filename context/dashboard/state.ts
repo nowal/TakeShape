@@ -257,9 +257,11 @@ export const useDashboardState = () => {
         title,
       });
     } else {
-      console.error(
-        'No user image document found for the current user image ID.'
-      );
+      const errorMessage =
+        'No user image document found for the current user image ID.';
+      console.error(errorMessage, error);
+      setErrorMessage(errorMessage);
+      notifyError(errorMessage);
     }
   };
 
@@ -316,13 +318,22 @@ export const useDashboardState = () => {
           setSelectedQuoteAmount(amount);
           setShowModal(true);
         } else {
-          console.error('No selected user image.');
+          const errorMessage = 'No selected user image';
+          console.error(errorMessage, error);
+          setErrorMessage(errorMessage);
+          notifyError(errorMessage);
         }
       } else {
-        console.error('No authenticated user.');
+        const errorMessage = 'No authenticated user';
+        console.error(errorMessage, error);
+        setErrorMessage(errorMessage);
+        notifyError(errorMessage);
       }
     } catch (error) {
-      console.log(error);
+      const errorMessage = 'Error accepting quote';
+      console.error(errorMessage, error);
+      setErrorMessage(errorMessage);
+      notifyError(errorMessage);
     }
   };
 

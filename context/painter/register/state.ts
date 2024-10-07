@@ -1,5 +1,7 @@
 'use client';
 
+import { notifyError } from '@/utils/notifications';
+import {errorAuth} from "@/utils/error/auth"
 import {
   useState,
   useEffect,
@@ -29,7 +31,9 @@ import { painterInfoAtom, isPainterAtom } from '@/atom';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 
 type TConfig = any;
-export const usePainterRegisterState = (config?: TConfig) => {
+export const usePainterRegisterState = (
+  config?: TConfig
+) => {
   const [businessName, setBusinessName] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState(0);
@@ -44,7 +48,7 @@ export const usePainterRegisterState = (config?: TConfig) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string|null>(null);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] =
     useAtom(painterInfoAtom);
@@ -195,38 +199,9 @@ export const usePainterRegisterState = (config?: TConfig) => {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error registering painter: ', error);
-      const errorCode = (error as { code: string }).code;
-
-      switch (errorCode) {
-        case 'auth/email-already-in-use':
-          setErrorMessage(
-            'The email address is already in use by another account.'
-          );
-          break;
-        case 'auth/weak-password':
-          setErrorMessage('The password is too weak.');
-          break;
-        case 'auth/invalid-email':
-          setErrorMessage(
-            'The email address is not valid.'
-          );
-          break;
-        case 'auth/operation-not-allowed':
-          setErrorMessage(
-            'Email/password accounts are not enabled.'
-          );
-          break;
-        case 'auth/network-request-failed':
-          setErrorMessage(
-            'Network error. Please try again.'
-          );
-          break;
-        default:
-          setErrorMessage(
-            'An unexpected error occurred. Please try again.'
-          );
-          break;
-      }
+      const errorMessage: null | string = errorAuth(error);
+      notifyError(errorMessage);
+      setErrorMessage(errorMessage);
     } finally {
       setIsLoading(false); // Reset loading state
     }
@@ -258,8 +233,9 @@ export const usePainterRegisterState = (config?: TConfig) => {
 
       return logoUrl;
     } catch (error) {
+      const errorMessage = 'Error uploading logo';
+      notifyError(errorMessage);
       console.error('Error uploading logo: ', error);
-      throw new Error('Error uploading logo.');
     }
   };
 
@@ -284,7 +260,7 @@ export const usePainterRegisterState = (config?: TConfig) => {
     painterInfo,
     phoneNumber,
     password,
-    dispatchPassword:setPassword,
+    dispatchPassword: setPassword,
     dispatchEmail: setEmail,
     dipatchPhoneNumber: setPhoneNumber,
     dispatchBusinessName: setBusinessName,

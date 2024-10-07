@@ -154,7 +154,10 @@ export const useDashboardPainterAccepted = () => {
         );
       }
     } catch (error) {
-      console.error('Geocoding request failed:', error);
+      const errorMessage = 'Geocoding request failed';
+      console.error(errorMessage, error);
+      setErrorMessage(errorMessage);
+      notifyError(errorMessage);
     }
     return null;
   };
@@ -224,7 +227,10 @@ export const useDashboardPainterAccepted = () => {
     try {
       return await getDownloadURL(videoRef);
     } catch (error) {
-      console.error('Error getting video URL: ', error);
+      const errorMessage = 'Error getting video URL';
+      console.error(errorMessage, error);
+      notifyError(errorMessage);
+      setErrorMessage(errorMessage);
       return '';
     }
   };

@@ -24,6 +24,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { notifyError } from '@/utils/notifications';
 
 export const useQuoteState = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -146,13 +147,14 @@ export const useQuoteState = () => {
         router.push(`/signup?userImageId=${docRef.id}`);
       }
     } catch (error) {
+      const errorMessage =
+        'Error creating user image document. Please try again.';
+      notifyError(errorMessage);
       console.error(
         'Error creating user image document: ',
         error
       );
-      setErrorMessage(
-        'Error creating user image document. Please try again.'
-      );
+      setErrorMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -235,6 +237,6 @@ export const useQuoteState = () => {
     handleCreateUserImage,
     handleCheckboxChange,
     handlePrevious,
-    dispatchTitle:setTitle
+    dispatchTitle: setTitle,
   };
 };

@@ -132,6 +132,9 @@ export const useDashboardPainterState = () => {
         );
       }
     } catch (error) {
+      const errorMessage = 'Error fetching painter data';
+      notifyError(errorMessage);
+      setErrorMessage(errorMessage);
       console.error(error);
     }
   };
@@ -160,7 +163,10 @@ export const useDashboardPainterState = () => {
         );
       }
     } catch (error) {
-      console.error('Geocoding request failed:', error);
+      const errorMessage = 'Geocoding request failed';
+      console.error(errorMessage, error);
+      setErrorMessage(errorMessage);
+      notifyError(errorMessage)
     }
     return null;
   };
@@ -238,7 +244,11 @@ export const useDashboardPainterState = () => {
     try {
       return await getDownloadURL(videoRef);
     } catch (error) {
-      console.error('Error getting video URL: ', error);
+      const errorMessage = 'Error getting video URL';
+      console.error(errorMessage, error);
+      setErrorMessage(errorMessage);
+
+      notifyError(errorMessage);
       return '';
     }
   };
