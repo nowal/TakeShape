@@ -2,7 +2,6 @@
 
 import { GENERIC_ERROR_MESSAGE } from '@/constants/errors';
 import { notifyError } from '@/utils/notifications';
-import console from 'console';
 // Assuming this is a React component in your Next.js application
 import React, { useState, useRef } from 'react';
 
@@ -44,7 +43,7 @@ const Luma3DModelPage = () => {
     } catch (error) {
       const errorMessage = GENERIC_ERROR_MESSAGE;
       console.error(errorMessage, error);
-      notifyError(errorMessage)
+      notifyError(errorMessage);
     }
   };
 
