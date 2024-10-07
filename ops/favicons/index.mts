@@ -98,5 +98,6 @@ try {
   // console.log(response.files); // Array of { name: string, contents: <string> }
   // console.log(response.html); // Array of strings (html elements)
 } catch (error) {
+
   console.log(error); // Error description e.g. "An unknown error has occurred"
 }
