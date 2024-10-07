@@ -14,7 +14,7 @@ const init = async () => {
     await page.setViewport(size);
 
     const website_url =
-      'https://www.takeshapehome.com/dashboard';
+      'https://www.takeshapehome.com/agentDashboard';
     await page.goto(website_url, {
       waitUntil: ['load', 'networkidle0'],
     });
