@@ -29,6 +29,7 @@ import {
   TAcceptQuoteHandler,
   TQuoteChangeHandler,
 } from '@/types';
+import { notifyError } from '@/utils/notifications';
 
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
@@ -259,8 +260,7 @@ export const useDashboardState = () => {
     } else {
       const errorMessage =
         'No user image document found for the current user image ID.';
-      console.error(errorMessage, error);
-      setErrorMessage(errorMessage);
+      console.error(errorMessage);
       notifyError(errorMessage);
     }
   };
@@ -319,20 +319,17 @@ export const useDashboardState = () => {
           setShowModal(true);
         } else {
           const errorMessage = 'No selected user image';
-          console.error(errorMessage, error);
-          setErrorMessage(errorMessage);
+          console.error(errorMessage);
           notifyError(errorMessage);
         }
       } else {
         const errorMessage = 'No authenticated user';
-        console.error(errorMessage, error);
-        setErrorMessage(errorMessage);
+        console.error(errorMessage);
         notifyError(errorMessage);
       }
     } catch (error) {
       const errorMessage = 'Error accepting quote';
       console.error(errorMessage, error);
-      setErrorMessage(errorMessage);
       notifyError(errorMessage);
     }
   };

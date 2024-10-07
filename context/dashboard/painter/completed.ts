@@ -18,6 +18,7 @@ import axios from 'axios';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { useAuth } from '@/context/auth/provider';
+import { notifyError } from '@/utils/notifications';
 
 export const useDashboardPainterCompleted = () => {
   const dashboardPainter = useDashboardPainter();
@@ -246,7 +247,6 @@ export const useDashboardPainterCompleted = () => {
     } catch (error) {
       const errorMessage = 'Error getting video URL';
       notifyError(errorMessage);
-      setErrorMessage(errorMessage);
       console.error(errorMessage, error);
       return '';
     }

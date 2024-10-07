@@ -6,6 +6,7 @@ import {
   collection,
   addDoc,
 } from 'firebase/firestore';
+import { notifyError } from '@/utils/notifications';
 
 export const useLandingState = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -47,7 +48,6 @@ export const useLandingState = () => {
     } catch (error) {
       const errorMessage = 'Error subscribing email';
       notifyError(errorMessage);
-      setErrorMessage(errorMessage);
       console.error(errorMessage, error);
       
     }

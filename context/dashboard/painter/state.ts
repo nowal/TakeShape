@@ -18,6 +18,7 @@ import {
 } from 'firebase/storage';
 import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correct
 import { TQuoteKey } from '@/components/dashboard/painter/types';
+import { notifyError } from '@/utils/notifications';
 
 export const useDashboardPainterState = () => {
   const [jobList, setJobList] = useState<TJob[]>([]);
@@ -134,7 +135,6 @@ export const useDashboardPainterState = () => {
     } catch (error) {
       const errorMessage = 'Error fetching painter data';
       notifyError(errorMessage);
-      setErrorMessage(errorMessage);
       console.error(error);
     }
   };
@@ -165,8 +165,7 @@ export const useDashboardPainterState = () => {
     } catch (error) {
       const errorMessage = 'Geocoding request failed';
       console.error(errorMessage, error);
-      setErrorMessage(errorMessage);
-      notifyError(errorMessage)
+      notifyError(errorMessage);
     }
     return null;
   };
@@ -246,8 +245,6 @@ export const useDashboardPainterState = () => {
     } catch (error) {
       const errorMessage = 'Error getting video URL';
       console.error(errorMessage, error);
-      setErrorMessage(errorMessage);
-
       notifyError(errorMessage);
       return '';
     }

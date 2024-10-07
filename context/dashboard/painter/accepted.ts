@@ -19,6 +19,7 @@ import axios from 'axios';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { useAuth } from '@/context/auth/provider';
+import { notifyError } from '@/utils/notifications';
 
 export const useDashboardPainterAccepted = () => {
   const dashboardPainter = useDashboardPainter();
@@ -156,7 +157,6 @@ export const useDashboardPainterAccepted = () => {
     } catch (error) {
       const errorMessage = 'Geocoding request failed';
       console.error(errorMessage, error);
-      setErrorMessage(errorMessage);
       notifyError(errorMessage);
     }
     return null;
@@ -230,7 +230,6 @@ export const useDashboardPainterAccepted = () => {
       const errorMessage = 'Error getting video URL';
       console.error(errorMessage, error);
       notifyError(errorMessage);
-      setErrorMessage(errorMessage);
       return '';
     }
   };
