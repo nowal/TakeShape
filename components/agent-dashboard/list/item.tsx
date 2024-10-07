@@ -3,11 +3,16 @@ import { PainterCardData } from '@/components/painter/card/data';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import { TPainter } from '@/context/agent/dashboard/types';
+import { IconsCloseAlt } from '@/components/icons/close/alt';
+import { useAgentDashboardRemove } from '@/components/agent-dashboard/list/remove';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TPainter;
 export const AgentDashboardItem: FC<TProps> = (painter) => {
-  const agentDashboard = useAgentDashboard();
-  const { onRemovePainter } = agentDashboard;
+  const agentDashboardRemove = useAgentDashboardRemove();
+  const { onRemovePainter, removingUser } = agentDashboardRemove;
+  const isRemoving = removingUser === painter.phoneNumber;
   return (
     <div
       key={painter.userId}
@@ -17,12 +22,19 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
       )}
     >
       <PainterCardData painterId={painter.userId} />
-      <button
-        onClick={() => onRemovePainter(painter.phoneNumber)}
-        className="ml-4 text-3xl font-bold"
+      <ButtonsCvaButton
+        title="Remove painter"
+        onTap={() =>
+          !isRemoving &&
+          onRemovePainter(painter.phoneNumber)
+        }
+        isIconOnly
+        size="iconMd"
+        isDisabled={isRemoving}
+        classValue="text-pink p-2.5"
       >
-        &times;
-      </button>
+        {isRemoving ? <IconsLoading /> : <IconsCloseAlt />}
+      </ButtonsCvaButton>
     </div>
   );
 };

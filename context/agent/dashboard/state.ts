@@ -22,6 +22,7 @@ export const useAgentDashboardState = () => {
   const [preferredPainters, setPreferredPainters] =
     useState<TPainter[]>([]);
   const [isLoading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [addingPainter, setAddingPainter] = useState(false);
   const [newPainterPhone, setNewPainterPhone] =
@@ -194,10 +195,11 @@ export const useAgentDashboardState = () => {
         );
       }
     } catch (error) {
+      const errorMessage =
+        'Error adding painter. Please try again later.';
       console.error('Error adding painter:', error);
-      setSearchError(
-        'Error adding painter. Please try again later.'
-      );
+      setSearchError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -255,45 +257,6 @@ export const useAgentDashboardState = () => {
     }
   };
 
-  const handleRemovePainter = async (
-    phoneNumber: string
-  ) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    try {
-      const agentDocRef = doc(
-        firestore,
-        'reAgents',
-        currentUser.uid
-      );
-      const agentDoc = await getDoc(agentDocRef);
-
-      if (agentDoc.exists()) {
-        const agentData = agentDoc.data();
-        const updatedPreferredPainters =
-          agentData.preferredPainters.filter(
-            (p: string) => p !== phoneNumber
-          );
-
-        await updateDoc(agentDocRef, {
-          preferredPainters: updatedPreferredPainters,
-        });
-
-        setPreferredPainters(
-          preferredPainters.filter(
-            (painter) => painter.phoneNumber !== phoneNumber
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error removing painter:', error);
-      setError(
-        'Error removing painter. Please try again later.'
-      );
-    }
-  };
-
   const handleGenerateInviteLink = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
@@ -319,11 +282,12 @@ export const useAgentDashboardState = () => {
     searchError,
     inviteLink,
     onInvitePainter: handleInvitePainter,
+    dispatchPreferredPainters: setPreferredPainters,
+    dispatchError: setError,
     dispatchAddingPainter: setAddingPainter,
     dispatchNewPainterName: setNewPainterName,
     dispatchNewPainterPhone: setNewPainterPhone,
     onGenerateInviteLink: handleGenerateInviteLink,
     onAddPainter: handleAddPainter,
-    onRemovePainter: handleRemovePainter,
   };
 };

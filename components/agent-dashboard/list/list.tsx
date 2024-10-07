@@ -3,6 +3,7 @@ import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { NotificationsHighlight } from '@/components/notifications/highlight';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { AgentDashboardItem } from '@/components/agent-dashboard/list/item';
+import { useAgentDashboardRemove } from '@/components/agent-dashboard/list/remove';
 
 export const AgentDashboardList: FC = () => {
   const agentDashboard = useAgentDashboard();
@@ -10,8 +11,8 @@ export const AgentDashboardList: FC = () => {
     isLoading,
     error,
     preferredPainters,
-    onRemovePainter,
   } = agentDashboard;
+  
   if (isLoading) return <FallbacksLoadingCircle />;
   if (error)
     return (

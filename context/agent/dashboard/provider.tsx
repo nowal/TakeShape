@@ -6,7 +6,6 @@ import {
   PropsWithChildren,
   useContext,
 } from 'react';
-import { toast } from 'react-toastify';
 
 type TAgentDashboardContext = ReturnType<
   typeof useAgentDashboardState
