@@ -14,7 +14,6 @@ export const AccountMenu = () => {
   const {
     isMenuOpen,
     isLoading,
-    profilePictureUrl,
     outsideClickRef,
     onMenuOpenToggle,
     onDashboardClick,
@@ -45,11 +44,7 @@ export const AccountMenu = () => {
         intent="icon"
         center
       >
-        <AccountMenuIcon
-          isMenuOpen={isMenuOpen}
-          isLoading={isLoading}
-          profilePictureUrl={profilePictureUrl}
-        />
+        <AccountMenuIcon />
       </ButtonsCvaButton>
       {isMenuOpen && <AccountMenuList items={items} />}
     </div>

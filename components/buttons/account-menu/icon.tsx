@@ -4,24 +4,20 @@ import { FC } from 'react';
 import { IconsLoading } from '@/components/icons/loading';
 import { IconsHamburger } from '@/components/icons/hamburger';
 import { AccountMenuCross } from '@/components/buttons/account-menu/cross';
+import { useAuth } from '@/context/auth/provider';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
-type TProps = {
-  isMenuOpen: boolean;
-  isLoading: boolean;
-  profilePictureUrl: string | null;
-};
-export const AccountMenuIcon: FC<TProps> = ({
-  isMenuOpen,
-  isLoading,
-  profilePictureUrl,
-}) => {
+export const AccountMenuIcon: FC = () => {
+  const { profilePictureSrc } = useAccountSettings();
+  const { menu, onNavigateScrollTopClick } = useAuth();
+  const { isMenuOpen, isLoading } = menu;
   if (isMenuOpen) return <AccountMenuCross />;
   if (isLoading)
     return <IconsLoading classValue="size-6 text-white" />;
-  if (profilePictureUrl)
+  if (profilePictureSrc)
     return (
       <Image
-        src={profilePictureUrl}
+        src={profilePictureSrc}
         alt="Profile"
         className="size-6 object-cover"
         width="24"

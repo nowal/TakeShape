@@ -1,6 +1,5 @@
-'use client';
+'use client';;
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { getAuth, signOut } from 'firebase/auth';
 import {
   getFirestore,
@@ -18,17 +17,17 @@ import {
 } from 'firebase/storage';
 import { useOutsideClick } from '@/hooks/outside-click';
 import { TAuthConfig } from '@/context/auth/types';
+import { isAgentAtom, isPainterAtom, isProfilePicAtom } from '@/atom';
+import { useAtom } from 'jotai';
 
 export const useAuthMenu = (config: TAuthConfig) => {
   const { onNavigateScrollTopClick, dispatchUserSignedIn } =
     config;
-  const [profilePictureUrl, setProfilePictureUrl] =
-    useState<string | null>(null);
+  const [profilePictureSrc, setProfilePictureUrl] = useAtom(isProfilePicAtom);
   const [isLoading, setLoading] = useState(true);
   const [isMenuOpen, setMenuOpen] = useState(false);
-  const [isPainter, setPainter] = useState(false);
-  const [isAgent, setAgent] = useState(false);
-  const router = useRouter();
+  const [isPainter, setPainter] = useAtom(isPainterAtom);
+  const [isAgent, setAgent] = useAtom(isAgentAtom);
   const auth = getAuth();
   const firestore = getFirestore();
   const storage = getStorage();
@@ -150,7 +149,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
   return {
     isMenuOpen,
     isLoading,
-    profilePictureUrl,
+    profilePictureSrc,
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,
     onDashboardClick: handleDashboardClick,

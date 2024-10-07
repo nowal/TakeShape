@@ -7,7 +7,7 @@ import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 
 export const ComponentsAccountSettingsAgent: FC = () => {
-  const { profilePicSrc, onProfilePictureChange } =
+  const { profilePictureSrc, onProfilePictureChange } =
     useAccountSettings();
 
   return (
@@ -22,13 +22,13 @@ export const ComponentsAccountSettingsAgent: FC = () => {
           }}
           classValue="px-4 gap-4"
           center={false}
-          isValue={Boolean(profilePicSrc)}
+          isValue={Boolean(profilePictureSrc)}
           icon={{
-            Leading: profilePicSrc
+            Leading: profilePictureSrc
               ? () => (
                   <PicOutline>
                     <Image
-                      src={profilePicSrc}
+                      src={profilePictureSrc}
                       alt="Profile Picture"
                       className="mb-2 w-24 h-24 object-cover rounded-full"
                       width="96"

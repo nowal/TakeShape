@@ -29,7 +29,7 @@ export default function RootLayout({
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            <ToastContainer transition={Slide} />
+            <ToastContainer transition={Slide} hideProgressBar />
             <ContextProviders>
               <ShellHeader />
               <ShellChildren>{children}</ShellChildren>

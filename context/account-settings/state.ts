@@ -19,7 +19,7 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
-import { isPainterAtom } from '@/atom';
+import { isAgentAtom, isPainterAtom, isProfilePicAtom } from '@/atom';
 import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
 import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 
@@ -34,11 +34,11 @@ export const useAccountSettingsState = (
   } = config;
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   // const [painterInfo, setPainterInfo] = useAtom(painterInfoAtom);
-  const [isAgent, setAgent] = useState(false); // New state for isAgent
+  const [isAgent, setAgent] = useAtom(isAgentAtom); // New state for isAgent
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [profilePictureUrl, setProfilePictureUrl] =
-    useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useAtom(isProfilePicAtom);
+
   const [newProfilePicture, setNewProfilePicture] =
     useState<File | null>(null);
   const [
@@ -89,6 +89,7 @@ export const useAccountSettingsState = (
               setAgent(true);
               setPainter(false);
               const agentData = agentDoc.data();
+              console.log(agentData)
               setName(agentData.name || '');
               setPhoneNumber(agentData.phoneNumber || '');
               setProfilePictureUrl(
@@ -108,6 +109,10 @@ export const useAccountSettingsState = (
                 setAgent(false);
                 const painterData =
                   painterSnapshot.docs[0].data();
+                  console.log(painterData)
+                  setProfilePictureUrl(
+                    painterData.profilePictureUrl || null
+                  );
                 setBusinessName(
                   painterData.businessName || ''
                 );
@@ -368,7 +373,7 @@ export const useAccountSettingsState = (
     }
   };
 
-  const profilePicSrc =
+  const profilePictureSrc =
     newProfilePicturePreview || profilePictureUrl;
 
   const logoSrc = logoPreview || logoUrl;
@@ -378,7 +383,7 @@ export const useAccountSettingsState = (
     isPainter,
     isLoading,
     isDataLoading,
-    profilePicSrc,
+    profilePictureSrc,
     logoSrc,
     name,
     errorMessage,
