@@ -27,7 +27,6 @@ export const useAgentDashboardRemove = () => {
     phoneNumber: string
   ) => {
     const currentUser = auth.currentUser;
-    console.log(currentUser);
     if (!currentUser) {
       toast.error('No current user found.');
       return;

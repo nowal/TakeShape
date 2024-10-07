@@ -1,6 +1,5 @@
 import type { FC } from 'react';
 import { PainterCardData } from '@/components/painter/card/data';
-import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import { TPainter } from '@/context/agent/dashboard/types';
 import { IconsCloseAlt } from '@/components/icons/close/alt';
@@ -11,7 +10,8 @@ import { IconsLoading } from '@/components/icons/loading';
 type TProps = TPainter;
 export const AgentDashboardItem: FC<TProps> = (painter) => {
   const agentDashboardRemove = useAgentDashboardRemove();
-  const { onRemovePainter, removingUser } = agentDashboardRemove;
+  const { onRemovePainter, removingUser } =
+    agentDashboardRemove;
   const isRemoving = removingUser === painter.phoneNumber;
   return (
     <div
