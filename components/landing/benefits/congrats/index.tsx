@@ -14,7 +14,7 @@ export const LandingBenefitsCongrats: FC = () => {
           'relative',
           'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
           'mt-0 xl:mt-8',
-          'scale-100 xl:scale-75',
+          'scale-75 sm:scale-100 xl:scale-75',
           'flex items-center justify-center'
         )}
       >

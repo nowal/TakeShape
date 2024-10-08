@@ -3,13 +3,19 @@ import { MOCKS_PRICES } from '@/components/dashboard/homeowner/contractor-quotes
 import { LandingBenefitsReceieveQuotesItem } from '@/components/landing/benefits/receive-quotes/item';
 import { PainterCard } from '@/components/painter/card';
 import { LandingBenefitsBackground } from '@/components/landing/benefits/background';
+import { cx } from 'class-variance-authority';
 
 export const LandingBenefitsReceieveQuotes: FC = () => {
   const prices = MOCKS_PRICES;
 
   return (
     <LandingBenefitsBackground>
-      <ul className="absolute -left-8 bottom-3/4 -translate-y-11 w-full scale-75">
+      <ul
+        className={cx(
+          'absolute -left-8 bottom-3/4 -translate-y-11 w-full scale-75',
+          'scale-75 sm:scale-100 xl:scale-75'
+        )}
+      >
         {prices.map((price, index) => {
           const offsetX = index * 2.8;
           const offsetY = offsetX * 1.8;
