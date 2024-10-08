@@ -15,12 +15,14 @@ export const LandingBenefitsReceieveQuotesItem: FC<
   const { preferredPainterUserIds } = dashboard;
   const isPreferredPainter =
     preferredPainterUserIds.includes(price.painterId);
+
   if (isPreferredPainter) {
     console.log(
       'Rendering agent info for painter:',
       price.painterId
     );
   }
+  
   return (
     <DashboardPricesItem price={price} {...rest}>
       {isPreferredPainter && (

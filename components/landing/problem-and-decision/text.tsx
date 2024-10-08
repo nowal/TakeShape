@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import {QuoteButton} from '@/components/buttons/quote/quoteButton';
+import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import { cx } from 'class-variance-authority';
 
 export const LandingProblemAndDecisionText: FC = () => {
@@ -24,13 +24,13 @@ export const LandingProblemAndDecisionText: FC = () => {
           'bg-white sm:bg-white-pink-4'
         )}
       >
-        
+        Problem & Decision
       </span>
       <div className="h-3" />
       <h2
         className={cx(
           'typography-landing-subtitle--responsive',
-          'px-0 xs:px-7 md:px-0',
+          'px-0 xs:px-7 md:px-0'
         )}
       >
         Getting painting quotes used to be a nightmare

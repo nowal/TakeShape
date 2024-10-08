@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { cx } from 'class-variance-authority';
 import { QuoteInstructions } from '@/components/quote/instructions';
 import { QuoteInstructionsBackground } from '@/components/quote/instructions/background';
-import { QuoteInput } from '@/components/quote/input';
+import { ComponentsQuoteInput } from '@/components/quote/input';
 
 export const ComponentsQuote: FC = () => {
   return (
@@ -23,7 +23,7 @@ export const ComponentsQuote: FC = () => {
             'xs:w-[21rem]'
           )}
         />
-        <QuoteInput />
+        <ComponentsQuoteInput />
         <div
           className={cx(
             'relative',

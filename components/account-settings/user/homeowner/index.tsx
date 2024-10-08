@@ -19,14 +19,14 @@ export const ComponentsAccountSettingsHomeowner: FC =
         <ComponentsAccountSettingsUserInputsName />
         <ComponentsAccountSettingsUserInputsAddress />
         <div>
-          <InputsText
+          {/* <InputsText
             placeholder="Real Estate Agent (optional)"
             value={agentName ? agentName : newAgentName}
             onChange={(event) =>
               dispatchNewAgentName(event.target.value)
             }
-          />
-     
+          /> */}
+  
           {agentError && (
             <>
             <div className='h-1'/>

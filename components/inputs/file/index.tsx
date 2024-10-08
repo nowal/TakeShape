@@ -5,6 +5,7 @@ import {
 } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
+import { cx } from 'class-variance-authority';
 
 export type TInputsFileProps =
   Partial<TButtonsCvaInputProps> & {
@@ -14,6 +15,7 @@ export type TInputsFileProps =
   };
 
 export const InputsFile: FC<TInputsFileProps> = ({
+  classValue,
   onFile,
   inputProps,
   title,
@@ -83,10 +85,19 @@ export const InputsFile: FC<TInputsFileProps> = ({
         center
         {...props}
       >
-        <div className="relative typography-page-subtitle">
+        <div
+          className={cx(
+            'relative',
+            classValue ?? 'typography-file-md'
+          )}
+        >
           {title}
         </div>
-        {children && <div><>{children}</></div>}
+        {children && (
+          <div>
+            <>{children}</>
+          </div>
+        )}
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
     </>

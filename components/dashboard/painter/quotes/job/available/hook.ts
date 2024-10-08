@@ -6,7 +6,6 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
 import {
   getStorage,
   ref,
@@ -16,7 +15,7 @@ import {
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { toast } from 'react-toastify';
 
-export const useDashboardPainterJobForm = (id: string) => {
+export const useDashboardPainterJobAvailable = (id: string) => {
   const { onFetchPainterData } = useDashboardPainter();
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
@@ -25,7 +24,6 @@ export const useDashboardPainterJobForm = (id: string) => {
   const firestore = getFirestore();
   const storage = getStorage(); // Initialize Firebase Storage
   const auth = getAuth();
-  const router = useRouter();
   const user = auth.currentUser;
 
   const handleFileChange = (file: File) => {

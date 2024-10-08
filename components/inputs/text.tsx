@@ -12,13 +12,13 @@ const InputsText = forwardRef<HTMLInputElement, TProps>(
     ref
   ) => {
     return (
-      <label className="block text-md font-medium text-gray-700">
+      <label className="block">
         <input
           type="text"
           ref={ref}
           className={cx(
             'border border-gray-4 w-full bg-white-1',
-            'typography-signup-input',
+            'typography-text-input',
             classValue,
             classPadding ?? 'px-6 py-4',
             classRounded ?? 'rounded-lg'

@@ -1,5 +1,5 @@
 import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job/available';
+import { DashboardPainterJobAvailable } from '@/components/dashboard/painter/quotes/job/available';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 
@@ -11,7 +11,7 @@ export const DashboardPainter = () => {
       <DashboardPainterQuotes
         type="Available"
         jobs={jobs}
-        JobInfoFc={DashboardPainterJob}
+        JobInfoFc={DashboardPainterJobAvailable}
       />
     </DashboardPainterWithSelect>
   );

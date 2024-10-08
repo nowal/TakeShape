@@ -3,13 +3,13 @@ import { Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { SignUpSignIn } from '@/components/sign-up/sign-in';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
 import { useAccountSettings } from '@/context/account-settings/provider';
+import { PreferencesNotificationsInlineInformation } from '@/components/preferences/notifications/information';
 
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
@@ -130,11 +130,7 @@ const SignupAccountForm = () => {
               </p>
             </div>
           </div>
-          <NotificationsInlineHighlight>
-            None of your information will be shared with
-            painters until you accept a quote. Rest assured,
-            your privacy is our priority.
-          </NotificationsInlineHighlight>
+          <PreferencesNotificationsInlineInformation />
         </div>
       </div>
     </div>

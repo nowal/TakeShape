@@ -15,7 +15,6 @@ export const PainterCardData: FC<TProps> = ({
     return (
       <div className="flex flex-row gap-2 text-xs">
         <IconsLoading classValue="text-white" />
-        {/* Loading painter data... */}
       </div>
     );
   }

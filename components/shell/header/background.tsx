@@ -3,7 +3,7 @@ import { useAuth } from '@/context/auth/provider';
 import { cx } from 'class-variance-authority';
 
 export const ShellHeaderBackground: FC = () => {
-  const { isUserSignedIn, signIn } = useAuth();
+  const { isUserSignedIn } = useAuth();
 
   return (
     <div

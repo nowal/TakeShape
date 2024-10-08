@@ -134,11 +134,17 @@ const config: Config = {
         7.5: '1.875rem',
         9.5: '2.375rem',
         12.5: '3.125rem',
+        15: '3.75rem',
       },
       screens: {
         ...defaultTheme.screens,
         xs: `${SCREEN_XS}px`,
         xxs: `${SCREEN_XXS}px`,
+      },
+      scale: {
+        '60': '0.6',
+        '80': '0.8',
+        '120': '1.2',
       },
     },
   },
