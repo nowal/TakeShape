@@ -14,7 +14,7 @@ export const LandingBenefitsUpload: FC = () => {
           'flex items-center justify-center'
         )}
       >
-        <QuoteInput />
+        <QuoteInput fixedTitle="Full House" />
       </div>
     </LandingBenefitsBackground>
   );

@@ -5,7 +5,8 @@ import { InputsText } from '@/components/inputs/text';
 import { useQuote } from '@/context/quote/provider';
 import { FC } from 'react';
 
-export const QuoteInput: FC = () => {
+type TProps = {fixedTitle?:string}
+export const QuoteInput: FC<TProps> = ({fixedTitle}) => {
   const {
     isUploading,
     title,
@@ -35,7 +36,7 @@ export const QuoteInput: FC = () => {
           </div>
         </div>
         <InputsText
-          value={title}
+          value={fixedTitle ?? title}
           onChange={(event) =>
             dispatchTitle(event.target.value)
           }
