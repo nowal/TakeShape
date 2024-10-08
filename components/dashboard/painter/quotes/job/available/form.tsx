@@ -1,4 +1,4 @@
-import { FC, Fragment } from 'react';
+import { FC } from 'react';
 import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
@@ -7,7 +7,9 @@ import { useDashboardPainterJobAvailable } from '@/components/dashboard/painter/
 import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TJob;
-export const DashboardPainterJobForm: FC<TProps> = (job) => {
+export const DDashboardPainterJobAvailableForm: FC<TProps> = (
+  job
+) => {
   const dashboardPainter = useDashboardPainterJobAvailable(
     job.jobId
   );
