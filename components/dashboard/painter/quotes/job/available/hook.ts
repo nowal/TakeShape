@@ -15,7 +15,7 @@ import {
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { toast } from 'react-toastify';
 
-export const useDashboardPainterJobForm = (id: string) => {
+export const useDashboardPainterJobAvailable = (id: string) => {
   const { onFetchPainterData } = useDashboardPainter();
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
