@@ -2,9 +2,9 @@ import type { FC } from 'react';
 import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
-import { IconsLoading } from '@/components/icons/loading';
 import { InputsText } from '@/components/inputs/text';
 import { useDashboardPainterJobForm } from '@/components/dashboard/painter/quotes/job/available/form';
+import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TJob;
 export const DashboardPainterJob: FC<TProps> = (job) => {
@@ -30,6 +30,7 @@ export const DashboardPainterJob: FC<TProps> = (job) => {
     >
       <InputsText
         type="number"
+        placeholder="Price"
         value={price}
         onChange={onPriceChange}
         required
@@ -42,7 +43,7 @@ export const DashboardPainterJob: FC<TProps> = (job) => {
             accept: 'application/pdf',
           }}
           isValue={Boolean(selectedFile)}
-          classValue="gap-4"
+          gap="xl"
         >
           {selectedFile?.name}
         </InputsFile>
@@ -51,7 +52,6 @@ export const DashboardPainterJob: FC<TProps> = (job) => {
         title={title}
         type="submit"
         disabled={isSubmitting}
-        intent="primary"
         size="sm"
         rounded="lg"
         center

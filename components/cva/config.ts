@@ -10,16 +10,39 @@ export const buttonsCvaConfig = cva(
       },
       size: {
         none: [],
-        xxs: ['relative', 'px-4', 'py-2', 'rounded-4xl', 'leading-none'],
-        xs: ['relative', 'px-4', 'py-3', 'rounded-4xl', 'leading-none'],
-        sm: ['relative', 'px-7', 'py-2.5', 'rounded-4xl', 'leading-leading'],
-        md: ['relative', 'px-6', 'py-4', 'rounded-5xl', 'leading-leading'],
+        xxs: [
+          'relative',
+          'px-4',
+          'py-2',
+          'rounded-4xl',
+          'leading-none',
+        ],
+        xs: [
+          'relative',
+          'px-4',
+          'py-3',
+          'rounded-4xl',
+          'leading-none',
+        ],
+        sm: [
+          'relative',
+          'px-7',
+          'py-2.5',
+          'rounded-4xl',
+          'leading-leading',
+        ],
+        md: [
+          'relative',
+          'px-6',
+          'py-4',
+          'rounded-5xl',
+          'leading-leading',
+        ],
         iconXl: ['relative', 'size-12'],
         iconLg: ['relative', 'size-10'],
         iconMd: ['relative', 'size-8'],
         iconSm: ['relative', 'size-6'],
-        iconXs: ['relative', 'size-4','leading-none'],
-
+        iconXs: ['relative', 'size-4', 'leading-none'],
         fill: ['absolute inset-0'],
       },
       center: {
@@ -38,6 +61,14 @@ export const buttonsCvaConfig = cva(
         '4xl': ['rounded-4xl'],
         full: ['rounded-full'],
       },
+      gap: {
+        xs: 'gap-0.25',
+        sm: 'gap-0.5',
+        md: 'gap-1',
+        lg: 'gap-2',
+        xl: 'gap-3',
+        '2xl': 'gap-4',
+      },
       intent: {
         primary: [
           'bg-pink',
@@ -45,22 +76,14 @@ export const buttonsCvaConfig = cva(
           'active:bg-black',
           'text-white',
           'border',
-          // 'border-gray-4',
           'border-pink',
-          'gap-1',
-          'font-bold'
+          'font-bold',
         ],
-        ghost: [
-          'bg-white',
-          'border-gray',
-          'border',
-          'gap-1',
-        ],
+        ghost: ['bg-white', 'border-gray', 'border'],
         'ghost-1': [
           'bg-white-pink',
           'border-pink',
           'border',
-          'gap-1',
         ],
         icon: [],
         none: ['text-inherit', 'size-auto'],
@@ -87,6 +110,7 @@ export const buttonsCvaConfig = cva(
       },
     ],
     defaultVariants: {
+      gap: 'md',
       intent: 'none',
       isDisabled: false,
       isIconOnly: false,

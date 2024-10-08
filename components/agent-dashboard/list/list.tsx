@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { AgentDashboardItem } from '@/components/agent-dashboard/list/item';
 import { NotificationsInlineInfo } from '@/components/notifications/inline/info';
@@ -10,7 +9,6 @@ export const AgentDashboardList: FC = () => {
   const { isLoading, error, preferredPainters } =
     agentDashboard;
 
-  if (isLoading) return <FallbacksLoadingCircleCenter classValue='p-2.5' />;
   if (error)
     return (
       <NotificationsInlineInfo>
@@ -26,7 +24,7 @@ export const AgentDashboardList: FC = () => {
       </NotificationsInlineInfo>
     );
   return (
-    <div className='flex flex-col items-stretch gap-2'>
+    <div className="flex flex-col items-stretch gap-2">
       {preferredPainters.map((painter) => {
         if (painter.userId) {
           return (
@@ -38,6 +36,9 @@ export const AgentDashboardList: FC = () => {
         }
         return null;
       })}
+      {isLoading && (
+        <FallbacksLoadingCircleCenter classValue="p-2.5" />
+      )}
     </div>
   );
 };

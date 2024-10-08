@@ -6,10 +6,12 @@ import {
   ButtonsCvaButton,
   TButtonsCvaButtonProps,
 } from '@/components/cva/button';
+import { cx } from 'class-variance-authority';
 
 type TProps = Partial<TButtonsCvaButtonProps>;
 export const AgentDashboardButtonsBack: FC<TProps> = ({
   children,
+  classValue,
   ...props
 }) => {
   const agentDashboard = useAgentDashboard();
@@ -21,6 +23,7 @@ export const AgentDashboardButtonsBack: FC<TProps> = ({
       onTap={onAddPainterCancel}
       title={backTitle}
       icon={{ Leading: IconsChevronsLeft }}
+      classValue={cx( classValue)}
       {...props}
     >
       {children ?? backTitle}

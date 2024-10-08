@@ -20,7 +20,8 @@ export const ComponentsAccountSettingsAgent: FC = () => {
           inputProps={{
             accept: 'image/*',
           }}
-          classValue="px-4 gap-4"
+          gap='2xl'
+          classValue="px-4"
           center={false}
           isValue={Boolean(profilePictureSrc)}
           icon={{

@@ -7,10 +7,7 @@ export const ButtonsCvaChildren: FC<
   TButtonsCvaChildrenProps
 > = ({ children, layout = 'preserve-aspect' }) => {
   return (
-    <motion.div
-      className="truncate mt-[-1px] pointer-events-none"
-      // layout={layout}
-    >
+    <motion.div className="truncate mt-[-1px] pointer-events-none">
       {children}
     </motion.div>
   );

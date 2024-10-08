@@ -2,7 +2,6 @@ import type { FC } from 'react';
 import { TJob } from '@/types';
 import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { DashboardPainterJobPrice } from '@/components/dashboard/painter/quotes/job/price';
-import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
 import { cx } from 'class-variance-authority';
 
 export type TDashboardPainterJobProps = {

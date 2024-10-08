@@ -2,7 +2,6 @@ import type { FC } from 'react';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
 import { NOOP } from '@/constants/functions';
-import { title } from 'process';
 import { AgentDashboardButtonsBack } from '@/components/agent-dashboard/buttons/back';
 
 export const AgentDashboardButtonsAdd: FC = () => {
@@ -14,7 +13,9 @@ export const AgentDashboardButtonsAdd: FC = () => {
   const isDisabled = isAddingPainter;
 
   if (isDisabled) {
-    return <AgentDashboardButtonsBack />;
+    return (
+      <AgentDashboardButtonsBack classValue="gap-1" />
+    );
   }
   return (
     <ButtonsCvaButtonAdd

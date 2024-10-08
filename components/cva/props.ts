@@ -11,6 +11,7 @@ export const useButtonsCvaProps = ({
   icon,
   intent,
   size,
+  gap,
   center,
   rounded,
   classValue,
@@ -31,6 +32,7 @@ export const useButtonsCvaProps = ({
         buttonsCvaConfig({
           intent,
           size,
+          gap,
           center,
           rounded,
           isDisabled,
@@ -39,7 +41,7 @@ export const useButtonsCvaProps = ({
             (!children && !Icon.isLeading) ||
             (!children && !Icon.isTrailing),
         }),
-        classValue,
+        classValue
       ),
       ...(isDisabled
         ? { tabIndex: -1, 'aria-disabled': isDisabled }

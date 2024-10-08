@@ -5,6 +5,9 @@ import { ComponentsAccountSettingsUser } from '@/components/account-settings/use
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
+import { ButtonsCvaButton } from '@/components/cva/button';
+import { IconsLoading } from '@/components/icons/loading';
+import { IconsLoading16 } from '@/components/icons/loading/16';
 
 const AccountSettingsPage = () => {
   const { signIn } = useAuth();
@@ -20,6 +23,8 @@ const AccountSettingsPage = () => {
   useAuthNavigateHome();
 
   if (isAuthLoading) return null;
+
+  const submitTitle = isLoading ? 'Updating' : 'Update';
 
   return (
     <div className="relative flex flex-col gap-5 items-center">
@@ -42,16 +47,20 @@ const AccountSettingsPage = () => {
               isPainter={isPainter}
               isAgent={isAgent}
             />
-            <button
+            <ButtonsCvaButton
+              title={submitTitle}
+              icon={
+                isLoading ? { Leading: IconsLoading16 } : {}
+              }
               type="submit"
-              className={`button-green ${
-                isLoading
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
+              isDisabled={isLoading}
+              intent="primary"
+              size="sm"
+              gap="xl"
+              center
             >
-              {isLoading ? 'Updating...' : 'Update'}
-            </button>
+              {submitTitle}
+            </ButtonsCvaButton>
           </form>
         </div>
       </div>

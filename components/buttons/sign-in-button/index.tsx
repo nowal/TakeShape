@@ -18,7 +18,6 @@ export const SignInButton: FC = () => {
       onTap={handler}
       title={title}
       intent="ghost"
-      layout={false}
       size="sm"
     >
       {title}

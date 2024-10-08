@@ -39,7 +39,7 @@ export const QuoteInstructions: FC = () => {
         title={SEE_VIDEO_TITLE}
         icon={{ Trailing: IconsVideo }}
         size="none"
-        classValue="gap-2"
+        gap="lg"
         isDisabled
       >
         <span className="typography-pink-xs">

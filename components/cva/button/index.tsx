@@ -13,7 +13,7 @@ const ButtonsCvaButton = forwardRef<
 >(({ type, onTap, title, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
 
-  const { Icon, ...cvaProps } = useButtonsCvaProps({
+  const { Icon, className, ...cvaProps } = useButtonsCvaProps({
     isDisabled,
     ...props,
   });
@@ -27,6 +27,7 @@ const ButtonsCvaButton = forwardRef<
       title={title}
       onTap={isDisabled ? NOOP : onTap}
       type={type}
+      className={className}
       {...cvaProps}
       layout={false}
     >

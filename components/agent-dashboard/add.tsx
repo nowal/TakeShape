@@ -46,6 +46,11 @@ export const AgentDashboardAdd: FC = () => {
           }
           placeholder="Painter's Phone Number"
           disabled={isPainterNotFound}
+          onKeyDown={({ key }) => {
+            if (key === 'Enter' && !isAddDisabled) {
+              onAddPainter();
+            }
+          }}
         />
         <div className="h-3.5" />
       </div>
@@ -63,6 +68,11 @@ export const AgentDashboardAdd: FC = () => {
                 dispatchNewPainterName(event.target.value)
               }
               placeholder="Painter Name"
+              onKeyDown={({ key }) => {
+                if (key === 'Enter' && !isInviteDisabled) {
+                  onInvitePainter();
+                }
+              }}
             />
             <div className="h-3.5" />
             <div className="flex flex-row justify-between">
