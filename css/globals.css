@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import '~react-toastify/dist/ReactToastify.min.css';
+@import 'react-toastify/dist/ReactToastify.min.css';
 
 :root {
   --foreground-rgb: 0, 0, 0; /* Black for text */
@@ -116,8 +116,14 @@ input {
   .typography-page-title-semibold {
     @apply typography-page-title-base font-semibold;
   }
-  .typography-page-subtitle {
-    @apply text-center text-black-2 text-base font-semibold font-open-sans;
+  .typography-file-base {
+    @apply text-center text-black-2 font-semibold font-open-sans;
+  }
+  .typography-file-md {
+    @apply typography-file-base text-base;
+  }
+  .typography-file-sm {
+    @apply typography-file-base text-sm;
   }
   .typography-page-title-preferences {
     @apply text-center text-black-6 text-2xl font-bold font-montserrat tracking-tight-06;
@@ -142,6 +148,9 @@ input {
   }
   .typography-signup-input {
     @apply text-black-4 font-medium text-sm;
+  }
+  .typography-text-input {
+    @apply text-black font-medium text-sm;
   }
   .typography-form-title-base {
     @apply text-black text-center text-base font-montserrat;

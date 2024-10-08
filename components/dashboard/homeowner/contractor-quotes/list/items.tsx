@@ -10,12 +10,11 @@ import { useDashboard } from '@/context/dashboard/provider';
 import { TPrice } from '@/types';
 
 type TProps = { prices?: TPrice[] };
-export const DashboardHomeownerContractorQuotesListItems: FC<TProps> = ({
-  prices: _prices,
-}) => {
+export const DashboardHomeownerContractorQuotesListItems: FC<
+  TProps
+> = ({ prices: _prices }) => {
   const dashboard = useDashboard();
-  const { preferredPainterUserIds, userData } =
-    dashboard;
+  const { preferredPainterUserIds, userData } = dashboard;
   const prices =
     _prices ??
     (isMocks() ? MOCKS_PRICES : userData?.prices ?? []);
@@ -23,16 +22,17 @@ export const DashboardHomeownerContractorQuotesListItems: FC<TProps> = ({
   const isEmpty = !prices || prices.length === 0;
 
   if (isEmpty) {
-    return (
-      <NotificationsInlineHighlight>
-        <>No quotes</>
-      </NotificationsInlineHighlight>
-    );
+    return null;
+    //  (
+    //   <NotificationsInlineHighlight>
+    //     <>No quotes</>
+    //   </NotificationsInlineHighlight>
+    // );
   }
 
   return (
     <ul className="flex flex-col items-stretch gap-2">
-      {prices.map((price:TPrice, index) => {
+      {prices.map((price: TPrice, index) => {
         const isPreferredPainter =
           preferredPainterUserIds.includes(price.painterId);
         console.log(

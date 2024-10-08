@@ -26,7 +26,7 @@ const QuotePage = () => {
             <h2 className="typography-page-title">
               Get an Instant Painting Quote Today
             </h2>
-            <h3 className="typography-page-subtitle">
+            <h3 className="typography-file-md">
               Upload a Video, Receive a Quote Within Minutes
             </h3>
           </div>

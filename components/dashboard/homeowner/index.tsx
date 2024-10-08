@@ -6,7 +6,7 @@ import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 import { DashboardHomeownerQuote } from '@/components/dashboard/homeowner/quote';
 import { DashboardModalQuoteAccept } from '@/components/dashboard/modal/quote-accept';
-import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes';
+import { DashboardHomeownerContractorQuotes } from '@/components/dashboard/homeowner/contractor-quotes/index';
 import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 import { PainterCardData } from '@/components/painter/card/data';
