@@ -17,14 +17,14 @@ export const MOCKS_PRICES: TPrice[] = [
   },
   {
     painterId: 'Sam',
-    amount: 400,
+    amount: 1300,
     invoiceUrl: 'INV3412341',
     timestamp: 6456245624,
     accepted: true,
   },
   {
     painterId: 'Jonny',
-    amount: 10000,
+    amount: 1150,
     invoiceUrl: 'INV34413',
     timestamp: 112323,
     accepted: false,
@@ -39,23 +39,23 @@ export const MOCKS_AGENT_INFO: TAgentInfo = {
 
 // public/landing/benefits/logos/2.png
 export const MOCKS_PAINTER_DATA: TPainterData = {
-  businessName: 'Powers Paint Shop',
+  businessName: 'Jeffrey\'s Painting',
   logoUrl: logoUrl.src,
-  phoneNumber: '123123123',
+  phoneNumber: '(615) 738-9954',
   reviews: [12, 2, 56],
 };
 
 export const MOCKS_PAINTER_DATA_1: TPainterData = {
-  businessName: 'Leroy Merlin Paint',
+  businessName: 'Murfreesboro Homes',
   logoUrl: logoUrl1.src,
-  phoneNumber: '123123123',
+  phoneNumber: '(901) 542-0927',
   reviews: [12, 2, 56],
 };
 
 export const MOCKS_PAINTER_DATA_2: TPainterData = {
-  businessName: 'Color Picker Services',
+  businessName: 'Richardson Interior\'s',
   logoUrl: logoUrl2.src,
-  phoneNumber: '123123123',
+  phoneNumber: '(615) 2293-5501',
   reviews: [12, 2, 56],
 };
 
