@@ -85,6 +85,7 @@ const config: Config = {
         'gray-12': '#CCCCCC',
         'gray-13': '#E4E4E4',
         'gray-14': '#E8E8E8',
+        'gray-15': '#F5F5F5',
 
         stripe: '#6772E5',
       },
