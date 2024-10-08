@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { TDivMotionProps } from '@/types/dom';
 import { ComponentsModalBackground } from '@/components/modal/background';
 import { ComponentsModalPosition } from '@/components/modal/position';
+import { ComponentsPortalBody } from '@/components/portal/body';
 
 type TProps = TDivMotionProps;
 export const MobileMenuModal: FC<TProps> = ({
@@ -9,14 +10,16 @@ export const MobileMenuModal: FC<TProps> = ({
   ...props
 }) => {
   return (
-    <ComponentsModalPosition>
-      <>
-        <ComponentsModalBackground
-          classBackgroundColor="bg-white"
-          {...props}
-        />
-        {children}
-      </>
-    </ComponentsModalPosition>
+    <ComponentsPortalBody>
+      <ComponentsModalPosition>
+        <>
+          <ComponentsModalBackground
+            classBackgroundColor="bg-white"
+            {...props}
+          />
+          {children}
+        </>
+      </ComponentsModalPosition>
+    </ComponentsPortalBody>
   );
 };

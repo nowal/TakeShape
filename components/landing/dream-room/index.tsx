@@ -7,7 +7,7 @@ export const LandingDreamRoom: FC = () => {
   return (
     <div
       className={cx(
-        'relative h-full w-full bg-white-4',
+        'relative h-full w-full',
         'flex flex-row items-start',
         'pt-24',
         'lg:items-center lg:pt-0'

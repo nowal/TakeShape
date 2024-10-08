@@ -1,10 +1,8 @@
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { ButtonsCvaLink } from '@/components/cva/link';
 
 export const DashboardFooter: FC = () => {
-  const router = useRouter();
   const resubmitTitle = 'Resubmit Video';
 
   return (
