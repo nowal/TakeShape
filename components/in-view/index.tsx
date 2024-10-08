@@ -33,7 +33,7 @@ export const InView = ({
   ...props
 }: TInViewProps) => {
   const { ref, ...rest } = useInView({
-    threshold: 1,
+    threshold: 0.2,
     ...options,
   });
 

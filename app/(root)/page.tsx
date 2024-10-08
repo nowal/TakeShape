@@ -15,6 +15,7 @@ import { useObjectPosition } from '@/components/landing/hero/object-position';
 import { useViewport } from '@/context/viewport';
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 import { AnimationFadeUp } from '@/components/animation/fade-up';
+import { AnimationFade } from '@/components/animation/fade';
 
 const Landing = () => {
   const viewport = useViewport();
@@ -29,7 +30,7 @@ const Landing = () => {
         }}
       >
         <div className="h-0 lg:h-20" />
-        <AnimationFadeUp classValue="absolute inset-0">
+        <AnimationFade classValue="absolute inset-0">
           <Image
             style={{
               filter: resolveUrlId(FILTER_GRAYSCALE_ID),
@@ -43,7 +44,7 @@ const Landing = () => {
             priority
             loading="eager"
           />
-        </AnimationFadeUp>
+        </AnimationFade>
 
         {viewport.isDimensions && !viewport.isResizing ? (
           <LandingHero {...viewport} />
