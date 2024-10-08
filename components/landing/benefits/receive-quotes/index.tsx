@@ -12,8 +12,8 @@ export const LandingBenefitsReceieveQuotes: FC = () => {
     <LandingBenefitsBackground>
       <ul
         className={cx(
-          'absolute -left-8 bottom-3/4 -translate-y-11 w-full scale-75',
-          'scale-75 sm:scale-100 xl:scale-75'
+          '-translate-y-15 absolute -left-8 bottom-3/4 lg:-translate-y-11 w-full scale-75',
+          'scale-60 sm:scale-80 xl:scale-75'
         )}
       >
         {prices.map((price, index) => {

@@ -214,9 +214,10 @@ export const useDashboardState = () => {
           setPainter(true);
           console.log('User is a painter'); // Add this log
         } else {
-          console.error(
-            'No user document found for the current user.'
-          );
+          const errorMessage =
+            'No user document found for the current user.';
+          console.error(errorMessage);
+          notifyError(errorMessage);
         }
       }
     } catch (error) {

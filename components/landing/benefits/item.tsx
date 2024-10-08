@@ -24,11 +24,11 @@ export const LandingBenefitsItem: FC<TProps> = ({
         className={cx(
           'relative',
           'bg-white-8',
-          'rounded-2xl xl:rounded-4xl'
+          'rounded-2xl xl:rounded-4xl',
+          'pb-[100%] lg:pb-[64%]'
         )}
         style={{
           width: '100%',
-          paddingBottom: '64%',
         }}
       >
         <ReplacersFill>
