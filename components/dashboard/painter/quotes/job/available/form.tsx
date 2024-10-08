@@ -29,9 +29,9 @@ export const DDashboardPainterJobAvailableForm: FC<TProps> = (
   return (
     <form
       onSubmit={onQuoteSubmit}
-      className="flex flex-col gap-2 w-full lg:w-auto"
+      className="flex flex-col gap-4 w-full lg:w-auto"
     >
-      <div className="flex flex-col sm:flex-row justify-stretch items-stretch gap-2">
+      <div className="flex flex-col sm:flex-row justify-stretch items-stretch gap-4">
         {(
           [
             {

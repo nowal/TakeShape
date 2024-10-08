@@ -9,7 +9,7 @@ export const DashboardPainterJobAvailable: FC<TProps> = (
   job
 ) => {
   return (
-    <div className="flex flex-col items-stretch">
+    <div className="flex flex-col items-stretch gap-4">
       <DashboardPreferences {...job} />
       <DDashboardPainterJobAvailableForm {...job} />
     </div>
