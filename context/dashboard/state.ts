@@ -273,11 +273,11 @@ export const useDashboardState = () => {
     }
   }, [auth.currentUser]);
 
-  useEffect(() => {
-    if (uploadStatus === 'completed') {
-      window.location.reload();
-    }
-  }, [uploadStatus]);
+  // useEffect(() => {
+  //   if (uploadStatus === 'completed') {
+  //     window.location.reload();
+  //   }
+  // }, [uploadStatus]);
 
   const handleQuoteChange: TQuoteChangeHandler = async (
     userImageId: string
