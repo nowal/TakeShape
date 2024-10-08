@@ -7,7 +7,6 @@ import {
 import './reset.css';
 import './typography/index.css';
 import './globals.css';
-import 'react-toastify/dist/ReactToastify.css';
 import './notifications.css';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
