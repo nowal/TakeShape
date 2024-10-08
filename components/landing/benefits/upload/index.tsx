@@ -10,7 +10,7 @@ export const LandingBenefitsUpload: FC = () => {
         className={cx(
           'relative',
           'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-          'scale-75 sm:scale-120 xl:scale-75',
+          'scale-75 sm:scale-90 md:scale-110 xl:scale-75',
           'flex items-center justify-center'
         )}
       >
