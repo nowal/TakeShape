@@ -12,12 +12,7 @@ type TProps = {
   noProps: TButtonsCvaInputProps;
 };
 export const InputsRadioYesNo: FC<TProps> = (props) => {
-  const {
-    name,
-    onChange,
-    yesProps,
-    noProps,
-  } = props;
+  const { name, onChange, yesProps, noProps } = props;
   return (
     <ul className="flex flex-row gap-2">
       {(
@@ -26,7 +21,7 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
           ['No', noProps],
         ] as const
       ).map(([title, { inputProps, ...restProps }]) => {
-        console.log(inputProps, restProps)
+        console.log(inputProps, restProps);
         return (
           <li key={title}>
             <ButtonsCvaInput
@@ -45,6 +40,7 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
                 type: 'radio',
                 name,
                 onChange,
+                classValue: 'cursor-pointer',
                 ...inputProps,
               }}
               rounded="4xl"
@@ -53,7 +49,7 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
               {title}
             </ButtonsCvaInput>
           </li>
-        )
+        );
       })}
     </ul>
   );

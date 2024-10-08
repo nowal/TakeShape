@@ -17,7 +17,7 @@ export const resolveValues = (
         id: value.toString(),
         title: value.toString(),
       }));
-    if (basicToIdValues) return basicToIdValues;
+    return basicToIdValues;
   }
 
   return config.idValues ?? [];

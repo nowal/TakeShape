@@ -4,6 +4,7 @@ import { InputsRow } from '@/components/inputs/row';
 import { usePreferences } from '@/context/preferences/provider';
 import type { FC } from 'react';
 import { PreferencesInputsColorBrand } from '@/components/preferences/inputs/color-brand';
+import { PAINT_PREFERENCES_DEFAULTS_SEMI_GLOSS } from '@/atom/constants';
 
 export const PreferencesLaborAndMaterials: FC = () => {
   const preferences = usePreferences();
@@ -52,13 +53,13 @@ export const PreferencesLaborAndMaterials: FC = () => {
           <InputsSelect
             placeholder="Wall finish"
             name="finish"
-            value={finish || ''}
+            value={finish}
             onValueChange={onValueChange}
             basicValues={[
               'Eggshell',
               'Flat',
               'Satin',
-              'Semi-Gloss',
+              PAINT_PREFERENCES_DEFAULTS_SEMI_GLOSS,
               'High Gloss',
             ]}
           />

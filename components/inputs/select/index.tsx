@@ -42,6 +42,7 @@ export const InputsSelect = ({
   ...props
 }: TInputsSelectProps) => {
   const values = resolveValues({ idValues, basicValues });
+  console.log(name,values)
 
   return (
     <Select.Root

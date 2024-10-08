@@ -1,4 +1,8 @@
-import { PREFERENCES_NAME_BOOLEAN_TRIM } from '@/atom/constants';
+import {
+  PAINT_PREFERENCES_DEFAULTS_SEMI_GLOSS,
+  PREFERENCES_NAME_BOOLEAN_TRIM,
+  PREFERENCES_NAME_STRING_TRIM_FINISH,
+} from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
 import { InputsRow } from '@/components/inputs/row';
 import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
@@ -20,7 +24,7 @@ export const PreferencesTrimFields: FC = () => {
   } = preferences;
   const isSelected =
     isShowTrimFields && isLaborAndMaterials;
-
+  console.log('trim f ', trimFinish);
   return (
     <div className="fill-gray-col">
       <InputsRadioYesNoRow
@@ -48,11 +52,11 @@ export const PreferencesTrimFields: FC = () => {
             input={
               <InputsSelect
                 placeholder="Trim Finish"
-                name="trimFinish"
-                value={trimFinish}
+                name={PREFERENCES_NAME_STRING_TRIM_FINISH}
+                value={trimFinish || ''}
                 onValueChange={onValueChange}
                 basicValues={[
-                  'Semi-Gloss',
+                  PAINT_PREFERENCES_DEFAULTS_SEMI_GLOSS,
                   'Flat',
                   'Eggshell',
                   'Satin',
