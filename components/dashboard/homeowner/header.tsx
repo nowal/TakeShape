@@ -1,14 +1,11 @@
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
 import { DashboardHeader } from '@/components/dashboard/header';
-import { IconsPlus } from '@/components/icons/plus';
 import {
   InputsSelect,
   TInputsSelectProps,
 } from '@/components/inputs/select';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { useAuth } from '@/context/auth/provider';
-import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
 type TProps = Partial<TInputsSelectProps> &

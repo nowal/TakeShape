@@ -14,7 +14,7 @@ export const InputsRow: FC<TProps> = ({
   return (
     <div
       className={cx(
-        'relative flex flex-row items-center py-2 px-4 justify-between w-full gap-2',
+        'relative flex flex-col items-center py-2 px-4 justify-between w-full gap-2 xs:flex-row',
         classValue
       )}
     >

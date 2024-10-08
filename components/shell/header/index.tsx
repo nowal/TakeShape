@@ -13,7 +13,7 @@ import { AnimationFadeUp } from '@/components/animation/fade-up';
 import { ShellHeaderBackground } from '@/components/shell/header/background';
 
 export const ShellHeader = () => {
-  const { isUserSignedIn, signIn } = useAuth();
+  const { signIn } = useAuth();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const viewport = useViewport();
@@ -23,7 +23,7 @@ export const ShellHeader = () => {
     <>
       <header
         className={cx(
-          isHome ? 'fixed' : 'absolute',
+          isHome ? 'fixed' : 'relative',
           'flex justify-center',
           'w-full',
           'top-0 inset-x-0 pt-3.5 z-20',
@@ -35,6 +35,7 @@ export const ShellHeader = () => {
             'relative max-w-shell w-full',
             'px-6 sm:px-9'
           )}
+          options={{ triggerOnce: true }}
         >
           {(props) => {
             if (!props.inView) return null;

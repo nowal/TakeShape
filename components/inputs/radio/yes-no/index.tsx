@@ -21,7 +21,6 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
           ['No', noProps],
         ] as const
       ).map(([title, { inputProps, ...restProps }]) => {
-        console.log(inputProps, restProps);
         return (
           <li key={title}>
             <ButtonsCvaInput

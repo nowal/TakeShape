@@ -124,7 +124,7 @@ input {
   .typography-pink-xs {
     @apply text-pink text-xs leading-7 font-semibold font-open-sans;
   }
-  .typography-signup-notification {
+  .typography-inline-notification {
     @apply text-pink text-xs leading-[18px] font-semibold font-open-sans;
   }
   .typography-logo-title {

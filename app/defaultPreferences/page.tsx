@@ -6,13 +6,11 @@ import { cx } from 'class-variance-authority';
 import { PreferencesLaborAndMaterials } from '@/components/preferences/labor-and-materials';
 import { PreferencesCeilingFields } from '@/components/preferences/ceiling-fields';
 import { PreferencesTrimFields } from '@/components/preferences/trim-fields';
-import { PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE } from '@/atom/constants';
 import { PreferencesFooter } from '@/components/preferences/footer';
 import { usePreferences } from '@/context/preferences/provider';
 import { PreferencesInitial } from '@/components/preferences/initial';
 import { PreferencesSpecialRequest } from '@/components/preferences/special-request';
 import { PreferencesNotificationsPaintPreferences } from '@/components/preferences/notifications/paint-preferences';
-import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
 import { PreferencesMoveFurniture } from '@/components/preferences/move-furniture';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
@@ -22,18 +20,12 @@ const Preferences: FC = () => {
   const {
     isPopup,
     isLaborAndMaterials,
-    isLoading,
-    isMoveFurniture,
     onLaborAndMaterialsChange,
-    onPreferenceSubmit,
-    dispatchMoveFurniture,
-    dispatchSpecialRequests,
-    specialRequests,
   } = preferences;
   return (
     <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center w-full">
         <div className="flex flex-col items-stretch w-full sm:w-[709px]">
           <div className="h-6" />
           <>
