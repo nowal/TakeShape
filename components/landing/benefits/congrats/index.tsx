@@ -18,7 +18,7 @@ export const LandingBenefitsCongrats: FC = () => {
           'flex items-center justify-center'
         )}
       >
-        <ComponentsCongratsPanel>
+        <ComponentsCongratsPanel short="Contractor will reach out within two days to schedule your job.">
           <PainterCardBackground>
             <PainterCard {...MOCKS_PAINTER_DATA} />
           </PainterCardBackground>
