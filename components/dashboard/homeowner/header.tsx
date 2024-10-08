@@ -9,7 +9,7 @@ import { useAuth } from '@/context/auth/provider';
 import type { FC } from 'react';
 
 type TProps = Partial<TInputsSelectProps> &
-  Pick<TInputsSelectProps, 'onValueChange'>;
+  Pick<TInputsSelectProps, 'onValueChange' | 'value'>;
 export const DashboardHomeownerHeader: FC<TProps> = (
   props
 ) => {

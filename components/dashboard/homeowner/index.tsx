@@ -20,6 +20,7 @@ export const DashboardHomeowner: FC = () => {
     isShowModal,
     selectedQuoteAmount,
     userData,
+    selectedUserImage,
     acceptedQuote,
   } = dashboard;
   const isDepositScreen =
@@ -35,9 +36,13 @@ export const DashboardHomeowner: FC = () => {
           )}
         >
           <DashboardHomeownerHeader
-            onValueChange={(_, value) =>
-              isString(value) ? onQuoteChange(value) : null
-            }
+            onValueChange={(_, value) => {
+              if (isString(value)) {
+                console.log(value);
+                onQuoteChange(value);
+              }
+            }}
+            value={selectedUserImage}
             idValues={userImageList}
           />
           {uploadStatus === 'uploading' && (
