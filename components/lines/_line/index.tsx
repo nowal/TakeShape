@@ -14,7 +14,7 @@ export const Lines_Line: FC<TLines_LineProps> = ({
   ...props
 }) => {
   return (
-    <motion.div
+    <motion.hr
       className={cx(
         "grow pointer-events-none",
         positionClass ?? "relative",

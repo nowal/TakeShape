@@ -39,7 +39,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
         />
       </div>
 
-      <ComponentsAccountSettingsUserInputsAddress type="address" />
+      <ComponentsAccountSettingsUserInputsAddress />
 
       <div className="flex flex-row items-center gap-3">
         <TypographyFormTitle>

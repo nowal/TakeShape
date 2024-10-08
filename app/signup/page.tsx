@@ -10,6 +10,7 @@ import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { PreferencesNotificationsInlineInformation } from '@/components/preferences/notifications/information';
+import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
@@ -55,14 +56,13 @@ const SignupAccountForm = () => {
               {errorMessage}
             </SignUpNotificationsError>
           )}
-          <div className="rounded-3xl bg-white shadow-08 px-4 py-6 w-full fill-column-white-sm">
+          <div className="rounded-3xl px-4 py-6 w-full fill-column-white-sm">
             <form
               onSubmit={onSubmit}
-              className="flex flex-col gap-y-4"
+              className="flex flex-col gap-4"
             >
               <InputsText
                 type="email"
-                id="email"
                 value={email}
                 onChange={(event) =>
                   dispatchEmail(event.target.value)
@@ -79,20 +79,12 @@ const SignupAccountForm = () => {
                 placeholder="Name"
                 required
               />
-              <InputsText
-                id="address"
-                ref={addressInputRef}
-                value={address}
-                onChange={onAddressChange}
-                placeholder="Address"
-                required
-              />
+              <ComponentsAccountSettingsUserInputsAddress />
               <InputsText
                 type="password"
-                id="password"
                 value={password}
-                onChange={(e) =>
-                  dispatchPassword(e.target.value)
+                onChange={(event) =>
+                  dispatchPassword(event.target.value)
                 }
                 placeholder="Password"
                 required
@@ -111,7 +103,7 @@ const SignupAccountForm = () => {
               </ButtonsCvaButton>
             </form>
             <div className="mt-3.5 text-center">
-              <p className="flex flex-row  justify-center gap-1.5">
+              <p className="flex flex-row justify-center gap-1.5">
                 <span className="text-black-5">
                   {ALREADY_HAVE_AN_ACCOUNT_TEXT}
                 </span>
