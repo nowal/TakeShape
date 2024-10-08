@@ -6,7 +6,7 @@ import { useQuote } from '@/context/quote/provider';
 import { FC } from 'react';
 
 type TProps = {fixedTitle?:string}
-export const QuoteInput: FC<TProps> = ({fixedTitle}) => {
+export const ComponentsQuoteInput: FC<TProps> = ({fixedTitle}) => {
   const {
     isUploading,
     title,

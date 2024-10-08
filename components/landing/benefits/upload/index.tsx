@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { cx } from 'class-variance-authority';
 import { LandingBenefitsBackground } from '@/components/landing/benefits/background';
-import { QuoteInput } from '@/components/quote/input';
+import { ComponentsQuoteInput } from '@/components/quote/input';
 
 export const LandingBenefitsUpload: FC = () => {
   return (
@@ -14,7 +14,7 @@ export const LandingBenefitsUpload: FC = () => {
           'flex items-center justify-center'
         )}
       >
-        <QuoteInput fixedTitle="Full House" />
+        <ComponentsQuoteInput fixedTitle="Full House" />
       </div>
     </LandingBenefitsBackground>
   );

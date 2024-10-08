@@ -5,7 +5,7 @@ import { QuoteInstructions } from '@/components/quote/instructions';
 import { useQuote } from '@/context/quote/provider';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { QuoteInstructionsBackground } from '@/components/quote/instructions/background';
-import { QuoteInput } from '@/components/quote/input';
+import { ComponentsQuoteInput } from '@/components/quote/input';
 
 const QuotePage = () => {
   const { isLoading, currentStep } = useQuote();
@@ -13,7 +13,6 @@ const QuotePage = () => {
   return (
     <div className="p-8 pt-20">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-
       {isLoading && currentStep === 2 && (
         <NotificationsInlineHighlight>
           Uploading, please wait...
@@ -38,7 +37,7 @@ const QuotePage = () => {
                 'xs:w-[21rem]'
               )}
             />
-            <QuoteInput />
+            <ComponentsQuoteInput />
             <div
               className={cx(
                 'relative',
