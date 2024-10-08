@@ -22,7 +22,7 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
     return () => unsubscribe(); // Cleanup subscription on unmount
   }, [firebaseAuth]);
 
-  if (auth.isUserSignedIn) {
+  if (auth.isUserSignedIn || auth.signIn.isAuthLoading) {
     return null; // Don't render the button if user is not signed in
   }
 

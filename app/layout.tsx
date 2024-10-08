@@ -11,6 +11,8 @@ import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ShellChildren } from '@/components/shell/children';
 import { Slide, ToastContainer } from 'react-toastify';
+import { MotionConfig } from 'framer-motion';
+import { MOTION_CONFIG } from '@/constants/animation';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -29,15 +31,20 @@ export default function RootLayout({
           <CssGlobal />
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            <ToastContainer transition={Slide} hideProgressBar />
-            <ContextProviders>
-              <ShellHeader />
-              <ShellChildren>{children}</ShellChildren>
-              <ShellFooter />
-              <Suspense fallback={<FallbacksLoading />}>
-                <SignInModal />
-              </Suspense>
-            </ContextProviders>
+            <ToastContainer
+              transition={Slide}
+              hideProgressBar
+            />
+            <MotionConfig transition={MOTION_CONFIG}>
+              <ContextProviders>
+                <ShellHeader />
+                <ShellChildren>{children}</ShellChildren>
+                <ShellFooter />
+                <Suspense fallback={<FallbacksLoading />}>
+                  <SignInModal />
+                </Suspense>
+              </ContextProviders>
+            </MotionConfig>
           </div>
           <Script
             id="facebook-pixel"

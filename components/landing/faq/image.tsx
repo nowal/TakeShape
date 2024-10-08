@@ -28,6 +28,7 @@ export const LandingFaqImage: FC = () => {
           quality="100"
           fill
           style={{ objectFit: 'contain' }}
+          loading="lazy"
         />
       ) : (
         <Image
@@ -36,6 +37,7 @@ export const LandingFaqImage: FC = () => {
           quality="100"
           fill
           style={{ objectFit: 'contain' }}
+          loading="lazy"
         />
       )}
     </div>

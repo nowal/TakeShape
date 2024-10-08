@@ -3,6 +3,7 @@ import { LandingFaqTitle } from '@/components/landing/faq/title';
 import { LandingFaqList } from '@/components/landing/faq/list';
 import { LandingFaqImage } from '@/components/landing/faq/image';
 import { cx } from 'class-variance-authority';
+import { ReplacersFill } from '@/components/replacers/fill';
 
 export const LandingFaq = () => {
   return (

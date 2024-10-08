@@ -1,3 +1,5 @@
+import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
+import { ReplacersFill } from '@/components/replacers/fill';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
@@ -29,10 +31,15 @@ export const LandingBenefitsItem: FC<TProps> = ({
           paddingBottom: '64%',
         }}
       >
-        <div className='absolute inset-24 bg-pink opacity-10 xl:opacity-20' style={{filter:'blur(4.8rem)'}}/>
+        <ReplacersFill>
+          <div
+            className="absolute inset-24 bg-pink opacity-10 xl:opacity-20"
+            style={{ filter: 'blur(4.8rem)' }}
+          />
+        </ReplacersFill>
         <PreviewFc />
       </div>
-      <div>
+      <InViewReplacersFadeUp>
         <h4 className="text-2xl font-bold text-black tight-02">
           {title}
         </h4>
@@ -40,7 +47,7 @@ export const LandingBenefitsItem: FC<TProps> = ({
         <p className="text-base font-medium text-gray-7">
           {description}
         </p>
-      </div>
+      </InViewReplacersFadeUp>
     </div>
   );
 };

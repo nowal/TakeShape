@@ -1,5 +1,6 @@
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { IconsChevronsUp } from '@/components/icons/chevrons/up';
+import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 import { FAQ_COPY_ROWS } from '@/components/landing/faq/constants';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { cx } from 'class-variance-authority';
@@ -10,7 +11,8 @@ export const LandingFaqList: FC = () => {
     number | null
   >(null);
   const paddingClass = 'p-6 lg:px-16 lg:py-9';
-  const paddingClassAnswer = 'px-6 pt-0 pb-6 lg:px-16 lg:pb-9';
+  const paddingClassAnswer =
+    'px-6 pt-0 pb-6 lg:px-16 lg:pb-9';
 
   const handleToggle = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
@@ -36,9 +38,16 @@ export const LandingFaqList: FC = () => {
                   paddingClass
                 )}
               >
-                <div className="text-left">
-                  {faq.question}
-                </div>
+                <InViewReplacersFadeUp
+                  fadeUpProps={{
+                    delay: index * 0.1+0.1,
+                  }}
+                >
+                  <div className="text-left">
+                    {faq.question}
+                  </div>
+                </InViewReplacersFadeUp>
+
                 <div>
                   {activeIndex === index ? (
                     <IconsChevronsUp />

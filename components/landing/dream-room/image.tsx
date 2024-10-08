@@ -20,6 +20,8 @@ export const LandingDreamRoomImage: FC = () => {
           quality="100"
           fill
           style={{ objectFit: 'contain' }}
+          loading='lazy'
+
         />
       ) : (
         <Image
@@ -31,6 +33,8 @@ export const LandingDreamRoomImage: FC = () => {
             objectFit: 'contain',
             objectPosition: 'right top',
           }}
+          loading='lazy'
+
         />
       )}
     </div>

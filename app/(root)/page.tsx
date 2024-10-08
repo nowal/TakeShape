@@ -13,6 +13,8 @@ import { FILTER_GRAYSCALE_ID } from '@/filters/grayscale';
 import { LandingHeroText } from '@/components/landing/hero/text';
 import { useObjectPosition } from '@/components/landing/hero/object-position';
 import { useViewport } from '@/context/viewport';
+import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
+import { AnimationFadeUp } from '@/components/animation/fade-up';
 
 const Landing = () => {
   const viewport = useViewport();
@@ -27,18 +29,22 @@ const Landing = () => {
         }}
       >
         <div className="h-0 lg:h-20" />
-        <Image
-          style={{
-            filter: resolveUrlId(FILTER_GRAYSCALE_ID),
-            objectPosition,
-            objectFit: 'cover',
-          }}
-          src={image.src}
-          alt="Landing Hero, Happy Pic"
-          quality="100"
-          fill
-          priority
-        />
+        <AnimationFadeUp classValue="absolute inset-0">
+          <Image
+            style={{
+              filter: resolveUrlId(FILTER_GRAYSCALE_ID),
+              objectPosition,
+              objectFit: 'cover',
+            }}
+            src={image.src}
+            alt="Landing Hero, Happy Pic"
+            quality="100"
+            fill
+            priority
+            loading="eager"
+          />
+        </AnimationFadeUp>
+
         {viewport.isDimensions && !viewport.isResizing ? (
           <LandingHero {...viewport} />
         ) : (
