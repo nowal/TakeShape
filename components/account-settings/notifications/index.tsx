@@ -9,7 +9,7 @@ export const ComponentsAccountSettingsNotifications: FC<
     <NotificationsInlineHighlight>
       <>
         <strong className="font-bold">Error: </strong>
-        <span className="block sm:inline">{children}</span>
+        <span className="block sm:inline text-left">{children}</span>
       </>
     </NotificationsInlineHighlight>
   );

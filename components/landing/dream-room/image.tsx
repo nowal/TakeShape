@@ -24,7 +24,7 @@ export const LandingDreamRoomImage: FC = () => {
           alt={alt}
           quality="90"
           fill
-          style={{ objectFit: 'contain' }}
+          style={{ objectFit: 'contain', objectPosition:'center bottom' }}
           loading="lazy"
         />
       ) : (
