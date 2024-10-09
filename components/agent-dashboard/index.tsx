@@ -7,10 +7,12 @@ import { AgentDashboardButtons } from '@/components/agent-dashboard/buttons';
 import { AgentDashboardList } from '@/components/agent-dashboard/list/list';
 import { AgentDashboardSuccess } from '@/components/agent-dashboard/success';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
+import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 
 export const ComponentsAgentDashboard: FC = () => {
   const agentDashboard = useAgentDashboard();
   const { isAddingPainter, inviteSuccess } = agentDashboard;
+  useAuthNavigateHome();
 
   return (
     <div className="flex justify-center">
