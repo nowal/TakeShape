@@ -12,10 +12,13 @@ export const useQuoteTitle = () => {
   const isError = uploadStatus === 'error';
 
   if (isError) return 'Upload Failed';
-  if (isCompleted) return 'Done';
-  if (isInitUploading) {
-    if (isUploading) return formatUploading(progress);
-    return 'Uploading...';
+  if (progress > 0) {
+    if (isCompleted) return 'Done';
+    if (isInitUploading) {
+      if (isUploading) return formatUploading(progress);
+      return 'Uploading...';
+    }
   }
+
   return 'Upload your video';
 };

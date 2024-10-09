@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -19,6 +19,7 @@ import {
   PAINT_PREFERENCES_DEFAULTS,
   PREFERENCES_NAME_BOOLEAN_CEILINGS,
   PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL,
+  PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE,
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
@@ -37,33 +38,69 @@ export const usePreferencesState = () => {
   const [defaultPreferences, setPreferences] = useAtom(
     defaultPreferencesAtom
   );
+  const [isLaborAndMaterials, setLaborAndMaterial] =
+    useState<boolean>(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL
+      ]
+    );
+
   const [isShowCeilingFields, setShowCeilingFields] =
-    useState(defaultPreferences.ceilings || false);
+    useState(
+      defaultPreferences.ceilings ||
+        PAINT_PREFERENCES_DEFAULTS[
+          PREFERENCES_NAME_BOOLEAN_CEILINGS
+        ]
+    );
 
   const [isShowTrimFields, setShowTrimFields] = useState(
-    defaultPreferences.trim || false
+    defaultPreferences.trim ||
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_TRIM
+      ]
   );
-  const [isLaborAndMaterials, setLaborAndMaterial] =
-    useState<boolean>(true);
-
-  const [specialRequests, setSpecialRequests] =
-    useState<string>('');
 
   const [isMoveFurniture, setMoveFurniture] =
-    useState<boolean>(false);
-
+    useState<boolean>(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE
+      ]
+    );
+  const [specialRequests, setSpecialRequests] =
+    useState<string>('');
   const loadingState = useState<boolean>(false);
   const [isLoading, setLoading] = loadingState;
-
+  const [isResubmitting, setResubmitting] = useState(false);
+  const [isFetchingPreferences, setFetchingPreferences] =
+    useState(false);
   const submittingState = useState<boolean>(false);
   const [isSubmitting, setSubmitting] = submittingState;
-
   const [isPopup, setShowPopup] = useState(false);
 
-  const userImageId =
-    typeof window !== 'undefined' &&
-    (searchParams.get('userImageId') ||
-      sessionStorage.getItem('userImageId'));
+  const handleResetPreferences = () => {
+    setPreferences(PAINT_PREFERENCES_DEFAULTS);
+    setSpecialRequests('');
+    setShowTrimFields(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_TRIM
+      ]
+    );
+    setLaborAndMaterial(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL
+      ]
+    );
+    setMoveFurniture(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_MOVE_FURNITURE
+      ]
+    );
+    setShowCeilingFields(
+      PAINT_PREFERENCES_DEFAULTS[
+        PREFERENCES_NAME_BOOLEAN_CEILINGS
+      ]
+    );
+  };
 
   const preferencesStateColor = usePreferencesStateColor({
     dispatchPreferences: setPreferences,
@@ -75,6 +112,14 @@ export const usePreferencesState = () => {
       ...defaultPreferences,
     });
   }, []);
+
+  const handleReset = () => {
+    if (isResubmitting) {
+      setResubmitting(false);
+    } else {
+      handleResetPreferences();
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,8 +138,19 @@ export const usePreferencesState = () => {
     }
   }, [authInitialized, auth.currentUser, firestore]);
 
-  const fetchUserPreferences = async () => {
+  const resolveUserImage = () =>
+    typeof window !== 'undefined' &&
+    (searchParams.get('userImageId') ||
+      sessionStorage.getItem('userImageId'));
+
+  const fetchUserPreferences = async (
+    nextUserImage?: string
+  ) => {
+    const userImageId = nextUserImage ?? resolveUserImage();
+
+    console.log('FETCH USER PREFERENCES ');
     if (!auth.currentUser || !userImageId) return;
+    setFetchingPreferences(true);
 
     const userImageDocRef = doc(
       firestore,
@@ -144,12 +200,14 @@ export const usePreferencesState = () => {
         laborAndMaterial: isLaborAndMaterials,
       });
     }
+    setFetchingPreferences(false);
   };
 
   const handlePreferenceSubmit = async (
     navigateTo: string,
     morePreferences: boolean
   ) => {
+    const userImageId = resolveUserImage();
     if (!auth.currentUser || !userImageId) return;
 
     try {
@@ -293,14 +351,17 @@ export const usePreferencesState = () => {
     isLoading,
     isSubmitting,
     isTrimAndDoorsPainted,
+    isFetchingPreferences,
+    onReset: handleReset,
+    onResetPreferences: handleResetPreferences,
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
       handleLaborAndMaterialsChange,
     onColorChange: handleColorChange,
     onColorValueChange: handleColorValueChange,
-
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
+    onFetchUserPreferences: fetchUserPreferences,
     specialRequests,
     dispatchSpecialRequests: setSpecialRequests,
     isMoveFurniture: Boolean(isMoveFurniture),
@@ -309,6 +370,8 @@ export const usePreferencesState = () => {
     dispatchMoveFurniture: setMoveFurniture,
     dispatchPreferences: setPreferences,
     dispatchSubmitting: setSubmitting,
+    isResubmitting,
+    dispatchResubmitting: setResubmitting,
     isLaborAndMaterials: isLaborAndMaterials === true,
     isShowCeilingFields,
     isShowTrimFields,

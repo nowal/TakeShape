@@ -1,4 +1,4 @@
-import { useState, Dispatch } from 'react';
+import { useState, Dispatch, useRef } from 'react';
 import {
   uploadProgressAtom,
   uploadStatusAtom,
@@ -12,10 +12,11 @@ import {
   ref as storageRef,
   uploadBytesResumable,
   getDownloadURL,
+  UploadTask,
 } from 'firebase/storage';
-import { notifyError } from '@/utils/notifications';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useTimebomb } from '@/hooks/time-bomb';
+import { usePreferences } from '@/context/preferences/provider';
 
 type TConfig = {
   auth: any;
@@ -27,17 +28,24 @@ export const useQuoteUpload = ({
   firestore,
   dispatchErrorMessage,
 }: TConfig) => {
+  const { dispatchResubmitting } = usePreferences();
+  const { dispatchUserData } = useDashboard();
   const [progress, setUploadProgress] = useAtom(
     uploadProgressAtom
   );
-  const [videoUrl, setVideoURL] = useAtom(videoURLAtom);
   const [uploadStatus, setUploadStatus] = useAtom(
     uploadStatusAtom
   );
+  const uploadTaskRef = useRef<UploadTask | null>(null);
   const [isUploading, setUploading] = useState(false);
-  const [fileName, setFileName] = useState<string|null>(null);
-  const { dispatchUserData } = useDashboard();
-  const { trigger } = useTimebomb(4000, () => {
+
+  const [videoUrl, setVideoURL] = useAtom(videoURLAtom);
+
+  const [fileName, setFileName] = useState<string | null>(
+    null
+  );
+
+  const { trigger: delayReset } = useTimebomb(4000, () => {
     setUploadStatus('idle');
     setFileName('');
   });
@@ -56,10 +64,13 @@ export const useQuoteUpload = ({
     const name = file.name;
     const storage = getStorage(firebase);
     const fileRef = storageRef(storage, `uploads/${name}`);
-    const uploadTask = uploadBytesResumable(fileRef, file);
+    uploadTaskRef.current = uploadBytesResumable(
+      fileRef,
+      file
+    );
     setFileName(name);
 
-    uploadTask.on(
+    uploadTaskRef.current.on(
       'state_changed',
       (snapshot) => {
         // Handle progress
@@ -69,7 +80,7 @@ export const useQuoteUpload = ({
           100;
         setUploadProgress(progress);
         setUploadStatus('uploading');
-        console.log('Upload is ' + progress + '% done');
+        console.log('Upload is ' + progress + '% uploaded');
       },
       (error) => {
         const errorMessage = 'Error uploading video';
@@ -77,17 +88,19 @@ export const useQuoteUpload = ({
         const userErrorMessage =
           'Error uploading video. Please try again.';
         dispatchErrorMessage(userErrorMessage);
-        notifyError(userErrorMessage);
+        // notifyError(userErrorMessage);
         setUploading(false);
+        setUploadStatus('idle');
       },
       async () => {
         // Handle successful uploads on complete
+        if (!uploadTaskRef.current) return;
         const url = await getDownloadURL(
-          uploadTask.snapshot.ref
+          uploadTaskRef.current.snapshot.ref
         );
         console.log('File available at', url);
         setUploadStatus('completed');
-        trigger();
+        delayReset();
 
         setVideoURL(url);
         setUploading(false);
@@ -112,12 +125,29 @@ export const useQuoteUpload = ({
     );
   };
 
+  const handleResubmit = () => {
+    if (uploadTaskRef.current) {
+      uploadTaskRef.current.cancel();
+    }
+    setFileName('');
+    setUploading(false);
+    setUploadProgress(0);
+    setUploadStatus('idle');
+    dispatchResubmitting(true);
+  };
+
   return {
     progress,
     videoUrl,
     uploadStatus,
     onUpload: handler,
+    dispatchUploadStatus: setUploadStatus,
+    dispatchUploading: setUploading,
+    dispatchUploadProgress: setUploadProgress,
+    dispatchFileName: setFileName,
     fileName,
     isUploading,
+    uploadTaskRef,
+    onResubmit: handleResubmit,
   };
 };

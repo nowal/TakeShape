@@ -3,8 +3,12 @@ import { useDashboard } from '@/context/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 import { ButtonsCvaLink } from '@/components/cva/link';
+import { usePreferences } from '@/context/preferences/provider';
+import { IconsLoading } from '@/components/icons/loading';
 
 export const DashboardHomeownerQuoteButton: FC = () => {
+  const preferences = usePreferences();
+  const { isFetchingPreferences } = preferences;
   const dashboard = useDashboard();
   const { selectedUserImage } = dashboard;
 
@@ -27,6 +31,7 @@ export const DashboardHomeownerQuoteButton: FC = () => {
         href={`/defaultPreferences?userImageId=${selectedUserImage}`}
         size="fill"
         center
+        isDisabled={isFetchingPreferences}
       >
         <div
           className={cx(
@@ -35,7 +40,11 @@ export const DashboardHomeownerQuoteButton: FC = () => {
             'gap-2'
           )}
         >
-          <IconsQuote />
+          {isFetchingPreferences ? (
+            <IconsLoading />
+          ) : (
+            <IconsQuote />
+          )}
           <span className="font-semibold text-sm">
             {preferencesTitle}
           </span>

@@ -20,6 +20,7 @@ export const useQuoteState = () => {
     trim: false,
   });
   const [errorMessage, setErrorMessage] = useState(''); // Add errorMessage state
+
   const auth = getAuth();
   const firestore = getFirestore(firebase);
 

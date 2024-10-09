@@ -19,11 +19,13 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { TAuthConfig } from '@/context/auth/types';
+import { isProfilePicAtom } from '@/atom';
+import { useAtom } from 'jotai';
 
 export const useSignIn = ({
   isUserSignedIn,
   dispatchUserSignedIn,
-  onNavigateScrollTopClick
+  onNavigateScrollTopClick,
 }: TAuthConfig) => {
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -34,6 +36,9 @@ export const useSignIn = ({
     string | null
   >(null); // Error message state
   const auth = getAuth(firebase);
+  const [profilePictureSrc, setProfilePictureUrl] = useAtom(
+    isProfilePicAtom
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -116,6 +121,8 @@ export const useSignIn = ({
       onNavigateScrollTopClick('/');
     } catch (error) {
       console.error('Error signing out:', error);
+    } finally {
+      setProfilePictureUrl(null);
     }
     sessionStorage.clear();
   };

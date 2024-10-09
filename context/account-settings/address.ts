@@ -23,8 +23,6 @@ export const useAccountSettingsAddress = () => {
 
   useEffect(() => {
     const updateUserImageDoc = async () => {
-      console.log(currentUser, userImageId);
-
       if (currentUser === null || !userImageId) return;
 
       const userImageDocRef = doc(
@@ -54,8 +52,6 @@ export const useAccountSettingsAddress = () => {
 
   useEffect(() => {
     const updateUserImageDoc = async () => {
-      console.log(currentUser, userImageId);
-
       if (currentUser === null || !userImageId) return;
       const userImageDocRef = doc(
         firestore,

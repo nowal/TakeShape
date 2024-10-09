@@ -30,6 +30,8 @@ import {
   TQuoteChangeHandler,
 } from '@/types';
 import { notifyError } from '@/utils/notifications';
+import { usePreferences } from '@/context/preferences/provider';
+import { useQueryParamsSet } from '@/hooks/query-params/set';
 
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
@@ -41,7 +43,6 @@ export const useDashboardState = () => {
     userTypeLoadingAtom
   );
   const [isVideoLoading, setVideoLoading] = useState(false);
-
   const [phoneNumber, setPhoneNumber] = useState('');
   const [painterId, setPainterId] = useState('');
   const [
@@ -68,6 +69,8 @@ export const useDashboardState = () => {
     preferredPainterUserIds,
     setPreferredPainterUserIds,
   ] = useState<string[]>([]);
+  const { onFetchUserPreferences } = usePreferences();
+  const handleSetParam = useQueryParamsSet();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -150,8 +153,9 @@ export const useDashboardState = () => {
         if (initialUserImageId) {
           console.log('Initial');
           console.log(initialUserImageId);
-          fetchUserImageData(initialUserImageId);
           setSelectedUserImage(initialUserImageId);
+          handleSetParam('userImageId', initialUserImageId);
+          fetchUserImageData(initialUserImageId);
         }
 
         if (userDocData.reAgent) {
@@ -269,7 +273,6 @@ export const useDashboardState = () => {
       const errorMessage =
         'No user image document found for the current user image ID.';
       console.error(errorMessage);
-      notifyError(errorMessage);
     }
   };
 
@@ -286,11 +289,15 @@ export const useDashboardState = () => {
   //     window.location.reload();
   //   }
   // }, [uploadStatus]);
-
+  const handleSelectedUserImage = (next: string) => {
+    setSelectedUserImage(next);
+    handleSetParam('userImageId', next);
+  };
   const handleQuoteChange: TQuoteChangeHandler = async (
     userImageId: string
   ) => {
-    setSelectedUserImage(userImageId);
+    handleSelectedUserImage(userImageId);
+    onFetchUserPreferences(userImageId);
     await fetchUserImageData(userImageId);
   };
 
@@ -360,7 +367,7 @@ export const useDashboardState = () => {
     dispatchShowModal: setShowModal,
     dispatchVideoLoading: setVideoLoading,
     dispatchUserImageList: setUserImageList,
-    dispatchSelectedUserImage: setSelectedUserImage,
+    onSelectedUserImage: handleSelectedUserImage,
     dispatchUserData: setUserData,
     isVideoLoading,
     onQuoteChange: handleQuoteChange,

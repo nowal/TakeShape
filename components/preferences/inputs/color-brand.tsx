@@ -23,15 +23,13 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
     // onSelectBrandValueChange,
     // paintBrands,
     // onColorValueChange,
-    selectedBrandMatchesRecord,
+    // selectedBrandMatchesRecord,
     onColorChange,
   } = preferences;
 
   // const value = selectedBrandRecord[name];
 
-  const colors = selectedBrandMatchesRecord[name];
-
-  console.log(colors, props.value);
+  // const colors = selectedBrandMatchesRecord[name];
 
   return (
     <div className="flex flex-row justify-end grow gap-1">

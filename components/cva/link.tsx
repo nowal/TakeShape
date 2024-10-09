@@ -40,8 +40,9 @@ const ButtonsCvaLink = forwardRef<
       ref={ref}
       onTap={onTap}
       {...cvaProps}
+      layout={false}
     >
-      <ButtonsCvaContent Icon={Icon}>
+      <ButtonsCvaContent Icon={Icon} layout={false}>
         {props.children ?? props.title ?? ''}
       </ButtonsCvaContent>
     </LinkMotion>

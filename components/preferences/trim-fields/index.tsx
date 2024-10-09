@@ -24,7 +24,6 @@ export const PreferencesTrimFields: FC = () => {
   } = preferences;
   const isSelected =
     isShowTrimFields && isLaborAndMaterials;
-  console.log('trim f ', trimFinish);
   return (
     <div className="fill-gray-col">
       <InputsRadioYesNoRow

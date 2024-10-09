@@ -2,13 +2,20 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { ButtonsCvaLink } from '@/components/cva/link';
 import { IconsRedo } from '@/components/icons/redo';
 import { usePreferences } from '@/context/preferences/provider';
-import { useRouter } from 'next/navigation';
+import { useQuote } from '@/context/quote/provider';
 import type { FC } from 'react';
 
 export const PreferencesFooter: FC = () => {
+  const quote = useQuote();
+  const {
+   onResubmit
+  } = quote;
   const preferences = usePreferences();
-  const { isLoading, onPreferenceSubmit, isSubmitting } =
-    preferences;
+  const {
+    isLoading,
+    onPreferenceSubmit,
+    isSubmitting,
+  } = preferences;
 
   const submitTitle = isSubmitting
     ? 'Submitting...'
@@ -18,10 +25,11 @@ export const PreferencesFooter: FC = () => {
 
   return (
     <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
-      <div className="flex flex-col items-end gap-4 my-4 xs:flex-row">
+      <div onClick={onResubmit} className="flex flex-col items-end gap-4 my-4 xs:flex-row">
         <ButtonsCvaLink
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}
+          
           href="/quote"
           gap="lg"
         >

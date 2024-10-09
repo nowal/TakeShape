@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
 import { ComponentsAccountSettingsUser } from '@/components/account-settings/user';
@@ -6,7 +6,6 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { IconsLoading } from '@/components/icons/loading';
 import { IconsLoading16 } from '@/components/icons/loading/16';
 
 const AccountSettingsPage = () => {

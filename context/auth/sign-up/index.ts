@@ -20,26 +20,21 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { useAtom } from 'jotai';
-import {
-  isPainterAtom,
-  painterInfoAtom,
-  documentIdAtom,
-} from '@/atom';
+import { isPainterAtom } from '@/atom';
 import { TAuthConfig } from '@/context/auth/types';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
 type TConfig = TAuthConfig;
 export const useSignUp = (config: TConfig) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [address, setAddress] = useState('');
+  const {address,dispatchAddress}= useAccountSettings();
   const [addressComponents, setAddressComponents] =
     useState<any[]>([]);
   const [isLoading, setLoading] = useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
-  const [docId, setDocId] = useAtom(documentIdAtom);
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [painterInfo] = useAtom(painterInfoAtom);
   const [isShowLoginInstead, setShowLoginInstead] =
     useState(false);
   const [errorMessage, setErrorMessage] = useState<
@@ -52,67 +47,17 @@ export const useSignUp = (config: TConfig) => {
   const agentId = searchParams.get('agentId');
   const userImageId = searchParams.get('userImageId');
 
-  console.log(email, password, address, name);
-
-  // useEffect(() => { // might be duplicate in preferences
-  //   console.log('searchParams:', searchParams.toString());
-  //   console.log('agentId:', agentId);
-  //   console.log('userImageId:', userImageId);
-
-  //   const initAutocomplete = async () => {
-  //     try {
-  //       await loadGoogleMapsScript(
-  //         'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
-  //       ); // Replace with your actual API key
-  //       if (window.google) {
-  //         const autocomplete =
-  //           new window.google.maps.places.Autocomplete(
-  //             addressInputRef.current!,
-  //             {
-  //               types: ['address'],
-  //               componentRestrictions: { country: 'us' },
-  //             }
-  //           );
-
-  //         autocomplete.addListener('place_changed', () => {
-  //           const place = autocomplete.getPlace();
-  //           if (
-  //             !place.geometry ||
-  //             !place.geometry.location ||
-  //             !place.address_components
-  //           ) {
-  //             console.error(
-  //               'Error: place details are incomplete.'
-  //             );
-  //             return;
-  //           }
-
-  //           setAddress(place.formatted_address ?? ''); // Add a fallback value
-  //           setAddressComponents(
-  //             place.address_components ?? []
-  //           );
-  //           setErrorMessage(''); // Clear the error message when a valid address is selected
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error(
-  //         'Error loading Google Maps script:',
-  //         error
-  //       );
-  //     }
-  //   };
-
-  //   initAutocomplete();
-  // }, [agentId, userImageId, searchParams]);
-
   const handleAddressChange = (
-    e: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
-    setAddress(e.target.value);
+    const next = event.target.value;
+    dispatchAddress(next);
+    console.log(next);
     setErrorMessage(''); // Clear the error message when the user starts typing
   };
 
   const validateAddress = () => {
+    return true;//need to work out how to set address components
     const requiredComponents = [
       'street_number',
       'route',
@@ -133,14 +78,12 @@ export const useSignUp = (config: TConfig) => {
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
-    setLoading(true); // Set loading state to true
-    console.log(event, validateAddress());
-    if (!validateAddress()) {
+    const isAddressValid = validateAddress();
+    if (!isAddressValid) {
       setErrorMessage('Please enter a valid address.');
-      setLoading(false);
       return;
     }
-
+    setLoading(true); // Set loading state to true
     try {
       const auth = getAuth();
       const firestore = getFirestore();
@@ -292,7 +235,7 @@ export const useSignUp = (config: TConfig) => {
     dispatchName: setName,
     dispatchEmail: setEmail,
     dispatchPassword: setPassword,
-    dispatchAddress: setAddress,
+    dispatchAddress,
     dispatchShowLoginInstead: setShowLoginInstead,
   };
 };

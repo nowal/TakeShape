@@ -21,6 +21,7 @@ import { TPaintPreferences } from '@/types';
 import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
+import { usePreferences } from '@/context/preferences/provider';
 
 type TConfig = {
   quoteTitle: string;
@@ -47,7 +48,7 @@ export const useQuoteSubmit = ({
   const firestore = getFirestore(firebase);
   const {
     dispatchUserImageList,
-    dispatchSelectedUserImage,
+    onQuoteChange,
     dispatchUserData,
   } = useDashboard();
 
@@ -110,7 +111,11 @@ export const useQuoteSubmit = ({
           ...prev,
           nextUserImage,
         ]);
-        dispatchSelectedUserImage(nextUserImage.id);
+
+        // onReset();
+        onQuoteChange(nextUserImage.id);
+        router.push(`/defaultPreferences?userImageId=${docRef.id}`);
+
       } else {
         // Handle non-logged-in user case
         sessionStorage.setItem(
