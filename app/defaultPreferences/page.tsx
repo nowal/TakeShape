@@ -20,8 +20,12 @@ const Preferences: FC = () => {
   const {
     isPopup,
     isLaborAndMaterials,
+    isFetchingPreferences,
     onLaborAndMaterialsChange,
   } = preferences;
+
+  if (isFetchingPreferences) return <FallbacksLoading />;
+  
   return (
     <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />

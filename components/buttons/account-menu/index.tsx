@@ -13,7 +13,6 @@ export const AccountMenu = () => {
   const { menu, onNavigateScrollTopClick } = useAuth();
   const {
     isMenuOpen,
-    isLoading,
     outsideClickRef,
     onMenuOpenToggle,
     onDashboardClick,

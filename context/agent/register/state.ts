@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth/provider';
 
 export const useAgentRegisterState = () => {
-  const { signIn, dispatchUserSignedIn } = useAuth();
+  const {   dispatchUserSignedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');

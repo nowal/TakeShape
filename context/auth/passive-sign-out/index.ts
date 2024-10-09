@@ -5,13 +5,17 @@ import {
   signOut,
 } from 'firebase/auth';
 import { TAuthConfig } from '@/context/auth/types';
+import { isProfilePicAtom } from '@/atom';
+import { useAtom } from 'jotai';
 
 export const usePassiveSignOut = ({
   dispatchUserSignedIn,
 }: TAuthConfig) => {
   const auth = getAuth();
   const TIMEOUT_DURATION = 1800 * 1000;
-
+  const [profilePictureSrc, setProfilePictureUrl] = useAtom(
+    isProfilePicAtom
+  );
   const handleSignOut = useCallback(() => {
     signOut(auth)
       .then(() => {
@@ -19,6 +23,9 @@ export const usePassiveSignOut = ({
       })
       .catch((error) => {
         console.error('Error signing out: ', error);
+      })
+      .finally(() => {
+        setProfilePictureUrl(null);
       });
   }, [auth]);
 

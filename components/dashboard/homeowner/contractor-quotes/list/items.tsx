@@ -18,7 +18,7 @@ export const DashboardHomeownerContractorQuotesListItems: FC<
   const prices =
     _prices ??
     (isMocks() ? MOCKS_PRICES : userData?.prices ?? []);
-  console.log('Rendering quotes with prices:', prices);
+  // console.log('Rendering quotes with prices:', prices);
   const isEmpty = !prices || prices.length === 0;
 
   if (isEmpty) {

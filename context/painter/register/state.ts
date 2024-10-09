@@ -47,9 +47,9 @@ export const usePainterRegisterState = (
   >(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string|null>(null);
-  const [isPainter, setIsPainter] = useAtom(isPainterAtom);
+  const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [painterInfo, setPainterInfo] =
     useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
@@ -159,7 +159,7 @@ export const usePainterRegisterState = (
     e: FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setLoading(true); // Set loading state to true
     setErrorMessage(''); // Reset error message
 
     try {
@@ -194,7 +194,7 @@ export const usePainterRegisterState = (
 
       await setDoc(painterDocRef, painterData);
       console.log('Painter info saved:', painterData);
-      setIsPainter(true); // Set the user as a painter
+      setPainter(true); // Set the user as a painter
 
       router.push('/dashboard');
     } catch (error) {
@@ -203,7 +203,7 @@ export const usePainterRegisterState = (
       notifyError(errorMessage);
       setErrorMessage(errorMessage);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setLoading(false); // Reset loading state
     }
   };
 

@@ -9,7 +9,7 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 
 export const AccountMenuIcon: FC = () => {
   const { profilePictureSrc } = useAccountSettings();
-  const { menu, onNavigateScrollTopClick } = useAuth();
+  const { menu } = useAuth();
   const { isMenuOpen, isLoading } = menu;
   if (isMenuOpen) return <AccountMenuCross />;
   if (isLoading)

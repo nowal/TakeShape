@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import { useRouter } from 'next/navigation';
 import { ButtonsCvaLink } from '@/components/cva/link';
 
 export const DashboardFooter: FC = () => {

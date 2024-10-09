@@ -1,12 +1,14 @@
-import { useRouter } from 'next/navigation';
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsQuote } from '@/components/icons/quote';
 import { useDashboard } from '@/context/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
+import { ButtonsCvaLink } from '@/components/cva/link';
+import { usePreferences } from '@/context/preferences/provider';
+import { IconsLoading } from '@/components/icons/loading';
 
 export const DashboardHomeownerQuoteButton: FC = () => {
-  const router = useRouter();
+  const preferences = usePreferences();
+  const { isFetchingPreferences } = preferences;
   const dashboard = useDashboard();
   const { selectedUserImage } = dashboard;
 
@@ -24,15 +26,12 @@ export const DashboardHomeownerQuoteButton: FC = () => {
           '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
       }}
     >
-      <ButtonsCvaButton
+      <ButtonsCvaLink
         title={preferencesTitle}
-        onTap={() =>
-          router.push(
-            `/defaultPreferences?userImageId=${selectedUserImage}`
-          )
-        }
+        href={`/defaultPreferences?userImageId=${selectedUserImage}`}
         size="fill"
         center
+        isDisabled={isFetchingPreferences}
       >
         <div
           className={cx(
@@ -41,12 +40,16 @@ export const DashboardHomeownerQuoteButton: FC = () => {
             'gap-2'
           )}
         >
-          <IconsQuote />
+          {isFetchingPreferences ? (
+            <IconsLoading />
+          ) : (
+            <IconsQuote />
+          )}
           <span className="font-semibold text-sm">
             {preferencesTitle}
           </span>
         </div>
-      </ButtonsCvaButton>
+      </ButtonsCvaLink>
     </div>
   );
 };

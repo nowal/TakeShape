@@ -11,14 +11,14 @@ export const ComponentsDashboard: FC = () => {
   const { signIn } = auth;
   const dashboard = useDashboard();
   const { isPainter, isUserDataLoading } = dashboard;
+  const isReady =
+    viewport.isDimensions &&
+    !isUserDataLoading &&
+    !signIn.isSigningIn &&
+    !signIn.isAuthLoading;
 
-  const isLoading =
-    !viewport.isDimensions ||
-    isUserDataLoading ||
-    signIn.isSigningIn ||
-    signIn.isAuthLoading;
+  if (!isReady) return null;
 
-  if (isLoading) return null;
   return (
     <>
       {isPainter ? (

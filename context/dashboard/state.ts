@@ -30,6 +30,8 @@ import {
   TQuoteChangeHandler,
 } from '@/types';
 import { notifyError } from '@/utils/notifications';
+import { usePreferences } from '@/context/preferences/provider';
+import { useQueryParamsSet } from '@/hooks/query-params/set';
 
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
@@ -40,6 +42,7 @@ export const useDashboardState = () => {
   const [isUserDataLoading, setUserDataLoading] = useAtom(
     userTypeLoadingAtom
   );
+  const [isVideoLoading, setVideoLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [painterId, setPainterId] = useState('');
   const [
@@ -66,6 +69,8 @@ export const useDashboardState = () => {
     preferredPainterUserIds,
     setPreferredPainterUserIds,
   ] = useState<string[]>([]);
+  const { onFetchUserPreferences } = usePreferences();
+  const handleSetParam = useQueryParamsSet();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -91,6 +96,10 @@ export const useDashboardState = () => {
       setAcceptedQuote(acceptedQuoteFromPrices || null);
     }
   }, [userData?.prices]);
+
+  useEffect(() => {
+    setVideoLoading(true);
+  }, [userData?.video]);
 
   const fetchUserData = async () => {
     try {
@@ -144,8 +153,9 @@ export const useDashboardState = () => {
         if (initialUserImageId) {
           console.log('Initial');
           console.log(initialUserImageId);
-          fetchUserImageData(initialUserImageId);
           setSelectedUserImage(initialUserImageId);
+          handleSetParam('userImageId', initialUserImageId);
+          fetchUserImageData(initialUserImageId);
         }
 
         if (userDocData.reAgent) {
@@ -214,14 +224,15 @@ export const useDashboardState = () => {
           setPainter(true);
           console.log('User is a painter'); // Add this log
         } else {
-          const errorMessage =
+          const logMessage =
             'No user document found for the current user.';
-          console.error(errorMessage);
-          notifyError(errorMessage);
+          console.log(logMessage);
         }
       }
     } catch (error) {
-      console.error(error);
+      const errorMessage = 'Failed to fetch User Data.';
+      console.error(error, errorMessage);
+      notifyError(errorMessage);
     } finally {
       setUserDataLoading(false);
     }
@@ -262,7 +273,6 @@ export const useDashboardState = () => {
       const errorMessage =
         'No user image document found for the current user image ID.';
       console.error(errorMessage);
-      notifyError(errorMessage);
     }
   };
 
@@ -279,11 +289,15 @@ export const useDashboardState = () => {
   //     window.location.reload();
   //   }
   // }, [uploadStatus]);
-
+  const handleSelectedUserImage = (next: string) => {
+    setSelectedUserImage(next);
+    handleSetParam('userImageId', next);
+  };
   const handleQuoteChange: TQuoteChangeHandler = async (
     userImageId: string
   ) => {
-    setSelectedUserImage(userImageId);
+    handleSelectedUserImage(userImageId);
+    onFetchUserPreferences(userImageId);
     await fetchUserImageData(userImageId);
   };
 
@@ -351,6 +365,11 @@ export const useDashboardState = () => {
     selectedUserImage,
     selectedQuoteAmount,
     dispatchShowModal: setShowModal,
+    dispatchVideoLoading: setVideoLoading,
+    dispatchUserImageList: setUserImageList,
+    onSelectedUserImage: handleSelectedUserImage,
+    dispatchUserData: setUserData,
+    isVideoLoading,
     onQuoteChange: handleQuoteChange,
   };
 };

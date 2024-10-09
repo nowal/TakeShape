@@ -13,8 +13,6 @@ import { FILTER_GRAYSCALE_ID } from '@/filters/grayscale';
 import { LandingHeroText } from '@/components/landing/hero/text';
 import { useObjectPosition } from '@/components/landing/hero/object-position';
 import { useViewport } from '@/context/viewport';
-import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
-import { AnimationFadeUp } from '@/components/animation/fade-up';
 import { AnimationFade } from '@/components/animation/fade';
 
 const Landing = () => {

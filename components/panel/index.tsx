@@ -32,8 +32,8 @@ export const ComponentsPanel: FC<TProps> = ({
   return (
     <div
       className={cx(
-        'fill-column-white-sm w-full xs:w-[345px]',
-        classValue
+        'fill-column-white-sm',
+        classValue ?? 'w-[320px] xs:w-[345px]'
       )}
       {...props}
     >

@@ -4,54 +4,84 @@ import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
 import { useQuote } from '@/context/quote/provider';
 import { FC } from 'react';
+import { useQuoteTitle } from '@/components/quote/title';
+import { IconsTick20 } from '@/components/icons/tick/20';
+import { IconsLoading } from '@/components/icons/loading';
+import { isString } from '@/utils/validation/is/string';
 
 type TProps = { fixedTitle?: string };
 export const ComponentsQuoteInput: FC<TProps> = ({
   fixedTitle,
 }) => {
   const {
-    isUploading,
-    title: _title,
+    uploadStatus,
+    fileName,
+    quoteTitle: _quoteTitle,
     dispatchTitle,
     onFileUpload,
+    onSubmit,
   } = useQuote();
-  const title = fixedTitle ?? _title;
-  const isValue = Boolean(title);
+  const quoteTitle = fixedTitle ?? _quoteTitle;
+
+  const isUploading = uploadStatus === 'uploading';
+  const isCompleted = uploadStatus === 'completed';
+  const isError = uploadStatus === 'error';
+  const fileTitle = useQuoteTitle();
+  const isReady = Boolean(quoteTitle) && isString(fileName);
 
   return (
     <div className="flex flex-col items-center gap-[26px]">
-      <div
+      <form
         className={cx(
           'fill-column-white',
           'gap-2.5',
           'xs:w-[23.875rem]'
         )}
+        onSubmit={onSubmit}
       >
         <div className="relative w-full">
-          <div className="h-[7.25rem]">
+          <div
+            className={cx(
+              'relative h-[7.25rem]',
+              isCompleted && 'text-green',
+              isError && 'text-red'
+            )}
+          >
             <InputsFile
-              title={
-                isUploading
-                  ? 'Uploading...'
-                  : 'Upload your video'
-              }
+              title={fileTitle}
               onFile={onFileUpload}
+              {...(isCompleted
+                ? {
+                    icon: { Leading: IconsTick20 },
+                    intent: 'ghost-success',
+                  }
+                : isUploading
+                ? {
+                    icon: { Leading: IconsLoading },
+                  }
+                : {})}
               inputProps={{}}
-            />
+            >
+              {fileName && (
+                <div className="absolute right-0 bottom-0 w-full truncate font-open-sans text-xs p-2 text-gray text-left">
+                  <div>{fileName}</div>
+                </div>
+              )}
+            </InputsFile>
           </div>
         </div>
         <InputsText
-          value={title}
+          value={quoteTitle}
           onChange={(event) =>
             dispatchTitle(event.target.value)
           }
-          placeholder="Enter Title (e.g. Bedroom Walls)"
+          placeholder="Enter Title (e.g. Bedroom Walls) *"
         />
         <ButtonsQuoteSubmit
           title="Submit Video"
-          isDisabled={!isValue}
+          isDisabled={!isReady}
         />
-      </div>
+      </form>
     </div>
   );
 };

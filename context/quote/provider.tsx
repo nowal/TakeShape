@@ -18,9 +18,9 @@ export const useQuote = (): TQuoteContext =>
 export const QuoteProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const landing = useQuoteState();
+  const value = useQuoteState();
   return (
-    <QUOTE.Provider value={landing}>
+    <QUOTE.Provider value={value}>
       {children}
     </QUOTE.Provider>
   );

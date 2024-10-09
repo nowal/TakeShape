@@ -8,6 +8,7 @@ import './reset.css';
 import './typography/index.css';
 import './globals.css';
 import './notifications.css';
+import 'react-toastify/ReactToastify.min.css';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 const openSans = Open_Sans({ subsets: ['latin'] });

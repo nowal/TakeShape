@@ -4,7 +4,6 @@ import {
   useEffect,
 } from 'react';
 import { loadGoogleMapsScript } from '@/utils/loadGoogleMapsScript'; // Adjust the import path as needed
-import { GENERIC_ERROR_MESSAGE } from '@/constants/errors';
 import { errorLoading } from '@/utils/error';
 import { notifyError } from '@/utils/notifications';
 
