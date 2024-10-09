@@ -7,7 +7,7 @@ export const errorAuth = (error: TError) => {
   let errorMessage: null | string = null;
 
   switch (errorCode) {
-    case 'invalid-argument':
+    case 'invalid-argument': // Apparantly IOS only - https://stackoverflow.com/questions/67088746/firebase-error-request-contains-an-invalid-argument
       errorMessage =
         'Request contains an invalid argument..';
       break;

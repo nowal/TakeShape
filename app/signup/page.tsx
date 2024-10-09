@@ -1,5 +1,5 @@
-'use client';;
-import { Suspense } from 'react';
+'use client';
+import { Suspense, useEffect } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
@@ -19,15 +19,17 @@ const SignupAccountForm = () => {
     isShowLoginInstead,
     name,
     email,
-    address,
     password,
     onSubmit,
-    onAddressChange,
     dispatchEmail,
     dispatchName,
     dispatchPassword,
     dispatchShowLoginInstead,
   } = signUp;
+
+  useEffect(() => {
+    signIn.onClose();
+  }, []);
 
   const submitButtonTitle = isLoading
     ? 'Signing up...'

@@ -8,6 +8,7 @@ import { NotificationsInlineHighlight } from '@/components/notifications/inline/
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { ComponentsPanel } from '@/components/panel';
+import { usePathname } from 'next/navigation';
 
 export const SignInModal: FC = () => {
   const { signIn } = useAuth();
@@ -23,12 +24,14 @@ export const SignInModal: FC = () => {
     onClose,
   } = signIn;
   const [title] = useSignInButton();
+  const pathname = usePathname();
 
   const submitButtonTitle = isSigningIn
     ? 'Logging In...'
     : title;
 
   const signUpTitle = 'Sign Up';
+
   if (!isShowModal) return null;
   return (
     <ComponentsModal onTap={onClose}>
@@ -77,19 +80,22 @@ export const SignInModal: FC = () => {
             >
               {submitButtonTitle}
             </ButtonsCvaButton>
-            <div className="h-2" />
-            <ButtonsCvaLink
-              onTap={onClose}
-              href="/signup"
-              title={signUpTitle}
-              size="sm"
-              center
-              classValue="w-full"
-            >
-              <span className="text-pink font-bold">
-                {signUpTitle}
-              </span>
-            </ButtonsCvaLink>
+            {pathname !== '/signup' && (
+              <>
+                <div className="h-2" />
+                <ButtonsCvaLink
+                  href="/signup"
+                  title={signUpTitle}
+                  size="sm"
+                  center
+                  classValue="w-full"
+                >
+                  <span className="text-pink font-bold">
+                    {signUpTitle}
+                  </span>
+                </ButtonsCvaLink>
+              </>
+            )}
           </form>
         </>
       </ComponentsPanel>
