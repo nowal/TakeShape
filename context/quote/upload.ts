@@ -45,10 +45,10 @@ export const useQuoteUpload = ({
     null
   );
 
-  const { trigger: delayReset } = useTimebomb(4000, () => {
-    setUploadStatus('idle');
-    setFileName('');
-  });
+  // const { trigger: delayReset } = useTimebomb(4000, () => {
+  //   setUploadStatus('idle');
+  //   setFileName('');
+  // });
 
   const handler = (file: File) => {
     if (auth.currentUser === null) {
@@ -100,7 +100,7 @@ export const useQuoteUpload = ({
         );
         console.log('File available at', url);
         setUploadStatus('completed');
-        delayReset();
+        // delayReset();
 
         setVideoURL(url);
         setUploading(false);
