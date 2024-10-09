@@ -39,7 +39,6 @@ export const useQuoteUpload = ({
     if (auth.currentUser === null) {
       const errorMessage = 'No authenticated user';
       console.log(errorMessage);
-      notifyError(errorMessage);
     } else {
       console.log(
         'Authenticated user UID: ',

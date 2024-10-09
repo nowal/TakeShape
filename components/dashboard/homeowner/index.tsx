@@ -19,12 +19,12 @@ export const DashboardHomeowner: FC = () => {
   const {
     isShowModal,
     selectedQuoteAmount,
-    userData,
     selectedUserImage,
     acceptedQuote,
   } = dashboard;
   const isDepositScreen =
     selectedQuoteAmount > 0 && isShowModal;
+
   return (
     <ComponentsDashboardLayout
       key="ComponentsDashboardLayout"

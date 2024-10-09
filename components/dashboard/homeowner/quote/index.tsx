@@ -11,7 +11,7 @@ export const DashboardHomeownerQuote: FC = () => {
   return (
     <DashboardCard>
       <DashboardHomeownerVideo />
-      {userData && <div>{userData.reAgent}</div>}
+      {userData?.reAgent && <div>{userData.reAgent}</div>}
       {acceptedQuote ? (
         <>
           {userData ? (

@@ -12,13 +12,14 @@ export const ComponentsDashboard: FC = () => {
   const dashboard = useDashboard();
   const { isPainter, isUserDataLoading } = dashboard;
 
-  const isLoading =
-    !viewport.isDimensions ||
-    isUserDataLoading ||
-    signIn.isSigningIn ||
-    signIn.isAuthLoading;
+  const isReady =
+    viewport.isDimensions &&
+    !isUserDataLoading &&
+    !signIn.isSigningIn &&
+    !signIn.isAuthLoading;
 
-  if (isLoading) return null;
+  if (!isReady) return null;
+
   return (
     <>
       {isPainter ? (

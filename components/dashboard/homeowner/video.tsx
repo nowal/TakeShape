@@ -2,14 +2,19 @@ import type { FC } from 'react';
 import { useDashboard } from '@/context/dashboard/provider';
 import { DASHBOARD_VIDEO_WIDTH } from '@/components/dashboard/constants';
 import { useViewport } from '@/context/viewport';
+import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 
 export const DashboardHomeownerVideo: FC = () => {
   const dashboard = useDashboard();
   const { userData, videoRef } = dashboard;
   const viewport = useViewport();
-  const isXs =
-    viewport.isDimensions && viewport.isXs;
-  if (!userData?.video) return null;
+  const isXs = viewport.isDimensions && viewport.isXs;
+  if (!userData?.video)
+    return (
+      <NotificationsInlineHighlight>
+        No video uploaded
+      </NotificationsInlineHighlight>
+    );
   return (
     <div
       style={{

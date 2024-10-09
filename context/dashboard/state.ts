@@ -214,14 +214,15 @@ export const useDashboardState = () => {
           setPainter(true);
           console.log('User is a painter'); // Add this log
         } else {
-          const errorMessage =
+          const logMessage =
             'No user document found for the current user.';
-          console.error(errorMessage);
-          notifyError(errorMessage);
+          console.log(logMessage);
         }
       }
     } catch (error) {
-      console.error(error);
+      const errorMessage = 'Failed to fetch User Data.';
+      console.error(error, errorMessage);
+      notifyError(errorMessage);
     } finally {
       setUserDataLoading(false);
     }

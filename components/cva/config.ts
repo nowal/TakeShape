@@ -85,11 +85,21 @@ export const buttonsCvaConfig = cva(
           'border-pink',
           'border',
         ],
+        'ghost-success': [
+          'bg-white-green',
+          'border-green-2',
+          'border',
+        ],
         icon: [],
         none: ['text-inherit', 'size-auto'],
       },
     },
     compoundVariants: [
+      {
+        intent: 'primary',
+        isDisabled: true,
+        className: ['active:bg-pink', 'active:bg-pink'],
+      },
       {
         intent: 'ghost',
         isDisabled: true,
@@ -99,6 +109,11 @@ export const buttonsCvaConfig = cva(
         intent: 'ghost',
         isDisabled: false,
         className: ['text-pink'],
+      },
+      {
+        intent: 'ghost-success',
+        isDisabled: false,
+        className: ['text-green-2'],
       },
       {
         isDisabled: true,

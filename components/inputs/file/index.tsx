@@ -27,7 +27,6 @@ export const InputsFile: FC<TInputsFileProps> = ({
   ...props
 }) => {
   const [isFocus, setFocus] = useState(false);
-
   const handleChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
@@ -79,7 +78,6 @@ export const InputsFile: FC<TInputsFileProps> = ({
           onDrop: () => {
             setFocus(false);
           },
-          classValue: 'hidden',
           ...inputProps,
         }}
         intent={isValue ? 'ghost' : 'ghost-1'}

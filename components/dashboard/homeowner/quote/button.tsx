@@ -1,12 +1,10 @@
-import { useRouter } from 'next/navigation';
-import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsQuote } from '@/components/icons/quote';
 import { useDashboard } from '@/context/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
+import { ButtonsCvaLink } from '@/components/cva/link';
 
 export const DashboardHomeownerQuoteButton: FC = () => {
-  const router = useRouter();
   const dashboard = useDashboard();
   const { selectedUserImage } = dashboard;
 
@@ -24,13 +22,9 @@ export const DashboardHomeownerQuoteButton: FC = () => {
           '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
       }}
     >
-      <ButtonsCvaButton
+      <ButtonsCvaLink
         title={preferencesTitle}
-        onTap={() =>
-          router.push(
-            `/defaultPreferences?userImageId=${selectedUserImage}`
-          )
-        }
+        href={`/defaultPreferences?userImageId=${selectedUserImage}`}
         size="fill"
         center
       >
@@ -46,7 +40,7 @@ export const DashboardHomeownerQuoteButton: FC = () => {
             {preferencesTitle}
           </span>
         </div>
-      </ButtonsCvaButton>
+      </ButtonsCvaLink>
     </div>
   );
 };
