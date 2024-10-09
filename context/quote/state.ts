@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   uploadProgressAtom,
@@ -25,6 +25,7 @@ import {
 } from 'firebase/storage';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { notifyError } from '@/utils/notifications';
+import { useQuoteUpload } from '@/context/quote/upload';
 
 export const useQuoteState = () => {
   const [zipCode, setZipCode] = useState('');
@@ -37,18 +38,14 @@ export const useQuoteState = () => {
   });
   const [providingOwnPaint, setProvidingOwnPaint] =
     useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [isUserSignedIn, setIsUserLoggedIn] =
     useState(false); // State to keep track of user's authentication status
-  const [fileUrl, setFileUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); // Add errorMessage state
   const auth = getAuth();
   const router = useRouter();
   const firestore = getFirestore(firebase);
-  const [, setUploadProgress] = useAtom(uploadProgressAtom);
-  const [, setVideoURL] = useAtom(videoURLAtom);
-  const [, setUploadStatus] = useAtom(uploadStatusAtom);
+
   const [, setDocumentId] = useAtom(documentIdAtom);
 
   useEffect(() => {
@@ -76,17 +73,17 @@ export const useQuoteState = () => {
   }, [auth, firestore]);
 
   const handleCheckboxChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
     setPaintPreferences({
       ...paintPreferences,
-      [e.target.name]: e.target.checked,
+      [event.target.name]: event.target.checked,
     });
   };
 
-  const handleCreateUserImage = async () => {
+  const handleSubmit = async () => {
     console.log('Creating user image document');
-    setIsLoading(true);
+    setLoading(true);
     setErrorMessage('');
 
     try {
@@ -151,84 +148,24 @@ export const useQuoteState = () => {
       );
       setErrorMessage(errorMessage);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleFileUpload = (file: File) => {
-    if (auth.currentUser != null) {
-      console.log(
-        'Authenticated user UID: ',
-        auth.currentUser.uid
-      );
-    } else {
-      console.log('No authenticated user');
-    }
-    setIsUploading(true); // Move to the next step immediately without waiting for the upload to finish
-
-    const storage = getStorage(firebase);
-    const fileRef = storageRef(
-      storage,
-      `uploads/${file.name}`
-    );
-    const uploadTask = uploadBytesResumable(fileRef, file);
-
-    handleCreateUserImage(); // Create the user image document immediately
-
-    // Store the upload promise in the state or a ref
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        // Handle progress
-        const progress =
-          (snapshot.bytesTransferred /
-            snapshot.totalBytes) *
-          100;
-        setUploadProgress(progress);
-        setUploadStatus('uploading');
-        console.log('Upload is ' + progress + '% done');
-      },
-      (error) => {
-        console.error('Error uploading video: ', error);
-        setErrorMessage(
-          'Error uploading video. Please try again.'
-        );
-        setIsUploading(false);
-      },
-      async () => {
-        // Handle successful uploads on complete
-        const url = await getDownloadURL(
-          uploadTask.snapshot.ref
-        );
-        console.log('File available at', url);
-        setUploadStatus('completed');
-        setFileUrl(url); // Save the URL once the upload is complete
-        setVideoURL(url);
-        setIsUploading(false);
-
-        // Update the userImage document with the video URL
-        const docId = sessionStorage.getItem('userImageId');
-        if (docId) {
-          await updateDoc(
-            doc(firestore, 'userImages', docId),
-            {
-              video: url,
-            }
-          );
-          console.log(
-            `Updated userImage document ${docId} with video URL`
-          );
-        }
-      }
-    );
-  };
+  const { fileName, isUploading, onUpload } =
+    useQuoteUpload({
+      auth,
+      firestore,
+      dispatchErrorMessage: setErrorMessage,
+    });
 
   return {
+    fileName,
     isLoading,
     isUploading,
     title,
-    onFileUpload: handleFileUpload,
-    handleCreateUserImage,
+    onFileUpload: onUpload,
+    onSubmit: handleSubmit,
     handleCheckboxChange,
     dispatchTitle: setTitle,
   };

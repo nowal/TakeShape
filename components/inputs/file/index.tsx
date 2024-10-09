@@ -6,15 +6,18 @@ import {
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
+import { ClassValue } from 'class-variance-authority/dist/types';
 
 export type TInputsFileProps =
   Partial<TButtonsCvaInputProps> & {
     title: string;
     onFile(file: File): void;
     isValue?: boolean;
+    titleClassValue?: ClassValue;
   };
 
 export const InputsFile: FC<TInputsFileProps> = ({
+  titleClassValue,
   classValue,
   onFile,
   inputProps,
@@ -41,6 +44,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
   return (
     <>
       <ButtonsCvaInput
+        classValue={cx('px-4', classValue)}
         inputProps={{
           type: 'file',
           accept: 'video/*',
@@ -75,9 +79,9 @@ export const InputsFile: FC<TInputsFileProps> = ({
           onDrop: () => {
             setFocus(false);
           },
+          classValue: 'hidden',
           ...inputProps,
         }}
-        style={{ display: 'none' }}
         intent={isValue ? 'ghost' : 'ghost-1'}
         size="fill"
         rounded="lg"
@@ -88,16 +92,12 @@ export const InputsFile: FC<TInputsFileProps> = ({
         <div
           className={cx(
             'relative',
-            classValue ?? 'typography-file-md'
+            titleClassValue ?? 'typography-file-md'
           )}
         >
           {title}
         </div>
-        {children && (
-          <div>
-            <>{children}</>
-          </div>
-        )}
+        <>{children}</>
       </ButtonsCvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
     </>

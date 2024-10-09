@@ -11,24 +11,27 @@ export const ComponentsQuoteInput: FC<TProps> = ({
 }) => {
   const {
     isUploading,
+    fileName,
     title: _title,
     dispatchTitle,
     onFileUpload,
+    onSubmit,
   } = useQuote();
   const title = fixedTitle ?? _title;
   const isValue = Boolean(title);
 
   return (
     <div className="flex flex-col items-center gap-[26px]">
-      <div
+      <form
         className={cx(
           'fill-column-white',
           'gap-2.5',
           'xs:w-[23.875rem]'
         )}
+        onSubmit={onSubmit}
       >
         <div className="relative w-full">
-          <div className="h-[7.25rem]">
+          <div className="relative h-[7.25rem]">
             <InputsFile
               title={
                 isUploading
@@ -37,7 +40,11 @@ export const ComponentsQuoteInput: FC<TProps> = ({
               }
               onFile={onFileUpload}
               inputProps={{}}
-            />
+            >
+              <div className="absolute right-0 bottom-0 w-full truncate font-open-sans text-xs p-2 text-gray">
+                {fileName}
+              </div>
+            </InputsFile>
           </div>
         </div>
         <InputsText
@@ -45,13 +52,13 @@ export const ComponentsQuoteInput: FC<TProps> = ({
           onChange={(event) =>
             dispatchTitle(event.target.value)
           }
-          placeholder="Enter Title (e.g. Bedroom Walls)"
+          placeholder="Enter Title (e.g. Bedroom Walls) *"
         />
         <ButtonsQuoteSubmit
           title="Submit Video"
           isDisabled={!isValue}
         />
-      </div>
+      </form>
     </div>
   );
 };

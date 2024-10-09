@@ -8,6 +8,7 @@ export const ButtonsQuoteSubmit: FC<
 > = ({ title, ...props }) => {
   return (
     <ButtonsCvaButton
+    type="submit"
       title={title}
       intent="primary"
       size="sm"

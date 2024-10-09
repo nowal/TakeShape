@@ -9,13 +9,14 @@ import { cx } from 'class-variance-authority';
 
 type TElementProps = TLabelMotionProps & {
   inputProps: TInputMotionProps;
+  bottom?: JSX.Element;
 };
 export type TButtonsCvaInputProps =
   TButtonsCvaProps<TElementProps>;
 const ButtonsCvaInput = forwardRef<
   HTMLLabelElement,
   TButtonsCvaInputProps
->(({ inputProps, ...props }, ref) => {
+>(({ inputProps, children, ...props }, ref) => {
   const { classValue, ...restInputProps } = inputProps;
   const { Icon, ...cvaProps } = useButtonsCvaProps(props);
   return (
@@ -30,7 +31,7 @@ const ButtonsCvaInput = forwardRef<
         layout={false}
       />
       <ButtonsCvaContent Icon={Icon} layout={false}>
-        {props.children}
+        {children}
       </ButtonsCvaContent>
     </motion.label>
   );
