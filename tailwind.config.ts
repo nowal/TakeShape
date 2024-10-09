@@ -135,6 +135,7 @@ const config: Config = {
         9.5: '2.375rem',
         12.5: '3.125rem',
         15: '3.75rem',
+        34: '8.5rem'
       },
       screens: {
         ...defaultTheme.screens,

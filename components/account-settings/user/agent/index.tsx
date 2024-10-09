@@ -13,7 +13,7 @@ export const ComponentsAccountSettingsAgent: FC = () => {
   return (
     <>
       <ComponentsAccountSettingsUserInputsName />
-      <div className="relative h-[96px]">
+      <div className="relative h-24">
         <InputsFile
           title="Profile Picture"
           onFile={onProfilePictureChange}
@@ -21,7 +21,7 @@ export const ComponentsAccountSettingsAgent: FC = () => {
             accept: 'image/*',
           }}
           gap='2xl'
-          classValue="px-4"
+          classValue="px-5.5"
           center={false}
           isValue={Boolean(profilePictureSrc)}
           icon={{
