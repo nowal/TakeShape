@@ -14,6 +14,7 @@ import {
   SCREEN_SM,
   SCREEN_XS,
 } from '@/constants/theme';
+import * as RDD from 'react-device-detect';
 
 const RESIZE_COOLDOWN = 400;
 
@@ -91,6 +92,7 @@ export const useViewportMeasure = (
   };
 
   const handleResize = () => {
+    if (RDD.isMobile) return;
     handleSize({
       ...INIT_VIEWPORT,
       isResizing: true,
