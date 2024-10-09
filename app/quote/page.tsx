@@ -5,17 +5,17 @@ import { NotificationsInlineHighlight } from '@/components/notifications/inline/
 import { ComponentsQuote } from '@/components/quote';
 
 const QuotePage = () => {
-  const { isLoading, currentStep } = useQuote();
-
+  const { isLoading } = useQuote();
+  if (isLoading)
+    return (
+      <NotificationsInlineHighlight>
+        Uploading, please wait...
+      </NotificationsInlineHighlight>
+    );
   return (
     <>
       <GoogleAnalytics gaId="G-47EYLN83WE" />
-      {isLoading && currentStep === 2 && (
-        <NotificationsInlineHighlight>
-          Uploading, please wait...
-        </NotificationsInlineHighlight>
-      )}
-      {currentStep === 1 && <ComponentsQuote />}
+      <ComponentsQuote />
     </>
   );
 };

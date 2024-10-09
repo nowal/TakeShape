@@ -27,7 +27,6 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { notifyError } from '@/utils/notifications';
 
 export const useQuoteState = () => {
-  const [currentStep, setCurrentStep] = useState(1);
   const [zipCode, setZipCode] = useState('');
   const [description, setDescription] = useState('');
   const [title, setTitle] = useState(''); // New title state
@@ -83,10 +82,6 @@ export const useQuoteState = () => {
       ...paintPreferences,
       [e.target.name]: e.target.checked,
     });
-  };
-
-  const handlePrevious = async () => {
-    setCurrentStep(1);
   };
 
   const handleCreateUserImage = async () => {
@@ -231,12 +226,10 @@ export const useQuoteState = () => {
   return {
     isLoading,
     isUploading,
-    currentStep,
     title,
     onFileUpload: handleFileUpload,
     handleCreateUserImage,
     handleCheckboxChange,
-    handlePrevious,
     dispatchTitle: setTitle,
   };
 };
