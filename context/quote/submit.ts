@@ -111,11 +111,8 @@ export const useQuoteSubmit = ({
           ...prev,
           nextUserImage,
         ]);
-
-        // onReset();
         onQuoteChange(nextUserImage.id);
         router.push(`/defaultPreferences?userImageId=${docRef.id}`);
-
       } else {
         // Handle non-logged-in user case
         sessionStorage.setItem(

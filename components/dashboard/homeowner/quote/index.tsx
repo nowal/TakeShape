@@ -13,28 +13,24 @@ export const DashboardHomeownerQuote: FC = () => {
     <DashboardCard>
       <DashboardHomeownerVideo />
       {userData?.reAgent && <div>{userData.reAgent}</div>}
-      {!isVideoLoading && (
-        <>
-          {acceptedQuote ? (
-            <>
-              {userData ? (
-                <DashboardPreferences
-                  {...userData.paintPreferences}
-                  specialRequests={userData.specialRequests}
-                  moveFurniture={userData.moveFurniture}
-                  laborAndMaterial={
-                    userData.laborAndMaterial
-                  }
-                >
-                  Your Preferences
-                </DashboardPreferences>
-              ) : null}
-            </>
-          ) : (
-            <DashboardHomeownerQuoteButton />
-          )}
-        </>
-      )}
+      <>
+        {acceptedQuote ? (
+          <>
+            {userData ? (
+              <DashboardPreferences
+                {...userData.paintPreferences}
+                specialRequests={userData.specialRequests}
+                moveFurniture={userData.moveFurniture}
+                laborAndMaterial={userData.laborAndMaterial}
+              >
+                Your Preferences
+              </DashboardPreferences>
+            ) : null}
+          </>
+        ) : (
+          <DashboardHomeownerQuoteButton />
+        )}
+      </>
     </DashboardCard>
   );
 };

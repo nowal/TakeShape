@@ -113,14 +113,6 @@ export const usePreferencesState = () => {
     });
   }, []);
 
-  const handleReset = () => {
-    if (isResubmitting) {
-      setResubmitting(false);
-    } else {
-      handleResetPreferences();
-    }
-  };
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -150,6 +142,10 @@ export const usePreferencesState = () => {
 
     console.log('FETCH USER PREFERENCES ');
     if (!auth.currentUser || !userImageId) return;
+    if (isResubmitting) {
+      setResubmitting(false);
+      return;
+    }
     setFetchingPreferences(true);
 
     const userImageDocRef = doc(
@@ -352,7 +348,6 @@ export const usePreferencesState = () => {
     isSubmitting,
     isTrimAndDoorsPainted,
     isFetchingPreferences,
-    onReset: handleReset,
     onResetPreferences: handleResetPreferences,
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
