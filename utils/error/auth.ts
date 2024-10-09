@@ -7,6 +7,10 @@ export const errorAuth = (error: TError) => {
   let errorMessage: null | string = null;
 
   switch (errorCode) {
+    case 'invalid-argument':
+      errorMessage =
+        'Request contains an invalid argument..';
+      break;
     case 'auth/email-already-in-use':
       errorMessage =
         'The email address is already in use by another account.';
