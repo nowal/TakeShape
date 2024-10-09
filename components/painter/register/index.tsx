@@ -12,6 +12,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { ComponentsPainterRegisterCoords } from '@/components/painter/register/coords';
 import { InputsSelect } from '@/components/inputs/select';
 import { TypographyFormTitle } from '@/components/typography/form/title';
+import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 
 export const ComponentsPainterRegister: FC = () => {
   const {
@@ -56,19 +57,9 @@ export const ComponentsPainterRegister: FC = () => {
         placeholder="Business or Personal Name"
         required
       />
-      <InputsText
-        ref={addressInputRef}
-        value={address}
-        onChange={(event) =>
-          dispatchAddress(event.target.value)
-        }
-        placeholder="Address"
-        required
-      />
-      <div className='flex flex-row us gap-2'>
-        <TypographyFormTitle>
-          Range
-        </TypographyFormTitle>
+      <ComponentsAccountSettingsUserInputsAddress />
+      <div className="flex flex-row us gap-2">
+        <TypographyFormTitle>Range</TypographyFormTitle>
         <InputsSelect
           name="range"
           placeholder="Range (miles)"
