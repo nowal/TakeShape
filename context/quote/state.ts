@@ -12,7 +12,7 @@ import { useAuth } from '@/context/auth/provider';
 
 export const useQuoteState = () => {
   const { dispatchUserSignedIn } = useAuth();
-  const [title, setTitle] = useState(''); // New title state
+  const [quoteTitle, setTitle] = useState(''); // New title state
   const [zipCode, setZipCode] = useState('');
   const [paintPreferences, setPaintPreferences] = useState({
     walls: false,
@@ -50,8 +50,9 @@ export const useQuoteState = () => {
   const quoteSubmit = useQuoteSubmit({
     zipCode,
     paintPreferences,
-    title,
+    quoteTitle,
     dispatchErrorMessage: setErrorMessage,
+    dispatchTitle: setTitle,
   });
 
   const { onUpload, ...quoteUpload } = useQuoteUpload({
@@ -61,7 +62,7 @@ export const useQuoteState = () => {
   });
 
   return {
-    title,
+    quoteTitle,
     errorMessage,
     onFileUpload: onUpload,
     dispatchTitle: setTitle,

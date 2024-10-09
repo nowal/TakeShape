@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import type { FC } from 'react';
 
 export const PreferencesFooter: FC = () => {
-  const router = useRouter();
   const preferences = usePreferences();
   const { isLoading, onPreferenceSubmit, isSubmitting } =
     preferences;

@@ -1,41 +1,31 @@
-import { Dispatch, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   doc,
-  Firestore,
   getDoc,
+  getFirestore,
   updateDoc,
 } from 'firebase/firestore';
-import { Auth } from 'firebase/auth';
-import { useAuth } from '@/context/auth/provider';
+import { getAuth } from 'firebase/auth';
+import { useSearchParams } from 'next/navigation';
 
-type TConfig = {
-  loadingState: [boolean, Dispatch<boolean>];
-  firestore: Firestore;
-  currentUser: Auth['currentUser'] | null;
-  userImageId: any;
-};
-export const usePreferencesStateAddress = (
-  config: TConfig
-) => {
-  const {
-    loadingState: [isLoading, setLoading],
-    currentUser,
-    userImageId,
-    firestore,
-  } = config;
+export const useAccountSettingsAddress = () => {
+  const searchParams = useSearchParams();
+
+  const userImageId =
+    typeof window !== 'undefined' &&
+    (searchParams.get('userImageId') ||
+      sessionStorage.getItem('userImageId'));
   const [address, setAddress] = useState('');
 
-  useEffect(() => {
-    console.log('MOUNT DOC ADDRESS SIDE EFFECT');
+  const firestore = getFirestore();
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
 
+  useEffect(() => {
     const updateUserImageDoc = async () => {
-      console.log(
-        'usePreferencesStateAddress.useEffect.updateUserImageDoc.0'
-      );
       console.log(currentUser, userImageId);
 
       if (currentUser === null || !userImageId) return;
-      setLoading(true); // Set loading state to true
 
       const userImageDocRef = doc(
         firestore,
@@ -63,15 +53,10 @@ export const usePreferencesStateAddress = (
   }, []);
 
   useEffect(() => {
-    console.log('ADDRESS CHANGE SIDE EFFECT');
     const updateUserImageDoc = async () => {
-      console.log(
-        'usePreferencesStateAddress.useEffect.updateUserImageDoc.1'
-      );
       console.log(currentUser, userImageId);
 
       if (currentUser === null || !userImageId) return;
-      setLoading(true);
       const userImageDocRef = doc(
         firestore,
         'userImages',

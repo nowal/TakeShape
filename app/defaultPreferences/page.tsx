@@ -22,6 +22,7 @@ const Preferences: FC = () => {
     isLaborAndMaterials,
     onLaborAndMaterialsChange,
   } = preferences;
+
   return (
     <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />

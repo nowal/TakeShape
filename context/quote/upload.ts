@@ -14,6 +14,8 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { notifyError } from '@/utils/notifications';
+import { useDashboard } from '@/context/dashboard/provider';
+import { useTimebomb } from '@/hooks/time-bomb';
 
 type TConfig = {
   auth: any;
@@ -33,7 +35,12 @@ export const useQuoteUpload = ({
     uploadStatusAtom
   );
   const [isUploading, setUploading] = useState(false);
-  const [fileName, setFileName] = useState('');
+  const [fileName, setFileName] = useState<string|null>(null);
+  const { dispatchUserData } = useDashboard();
+  const { trigger } = useTimebomb(4000, () => {
+    setUploadStatus('idle');
+    setFileName('');
+  });
 
   const handler = (file: File) => {
     if (auth.currentUser === null) {
@@ -45,18 +52,13 @@ export const useQuoteUpload = ({
         auth.currentUser.uid
       );
     }
-    setUploading(true); // Move to the next step immediately without waiting for the upload to finish
-const name = file.name;
+    setUploading(true);
+    const name = file.name;
     const storage = getStorage(firebase);
-    const fileRef = storageRef(
-      storage,
-      `uploads/${name}`
-    );
+    const fileRef = storageRef(storage, `uploads/${name}`);
     const uploadTask = uploadBytesResumable(fileRef, file);
-    console.log(file)
-    setFileName(name); // Save the URL once the upload is complete
+    setFileName(name);
 
-    // Store the upload promise in the state or a ref
     uploadTask.on(
       'state_changed',
       (snapshot) => {
@@ -70,10 +72,12 @@ const name = file.name;
         console.log('Upload is ' + progress + '% done');
       },
       (error) => {
-        console.error('Error uploading video: ', error);
-        dispatchErrorMessage(
-          'Error uploading video. Please try again.'
-        );
+        const errorMessage = 'Error uploading video';
+        console.error(errorMessage, error);
+        const userErrorMessage =
+          'Error uploading video. Please try again.';
+        dispatchErrorMessage(userErrorMessage);
+        notifyError(userErrorMessage);
         setUploading(false);
       },
       async () => {
@@ -83,9 +87,14 @@ const name = file.name;
         );
         console.log('File available at', url);
         setUploadStatus('completed');
+        trigger();
+
         setVideoURL(url);
         setUploading(false);
-
+        dispatchUserData((prev) => ({
+          ...prev,
+          video: url,
+        }));
         // Update the userImage document with the video URL
         const docId = sessionStorage.getItem('userImageId');
         if (docId) {

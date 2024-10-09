@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
@@ -22,7 +22,6 @@ import {
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
-import { usePreferencesStateAddress } from '@/context/preferences/state/address';
 import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import { TPaintPreferences } from '@/types';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
@@ -65,14 +64,6 @@ export const usePreferencesState = () => {
     typeof window !== 'undefined' &&
     (searchParams.get('userImageId') ||
       sessionStorage.getItem('userImageId'));
-
-  const preferencesStateAddress =
-    usePreferencesStateAddress({
-      loadingState,
-      firestore,
-      userImageId,
-      currentUser: auth.currentUser,
-    });
 
   const preferencesStateColor = usePreferencesStateColor({
     dispatchPreferences: setPreferences,
@@ -322,7 +313,6 @@ export const usePreferencesState = () => {
     isShowCeilingFields,
     isShowTrimFields,
     ...defaultPreferences,
-    ...preferencesStateAddress,
     ...preferencesStateColor,
   };
 };

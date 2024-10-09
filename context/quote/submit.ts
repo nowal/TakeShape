@@ -18,20 +18,25 @@ import firebase from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
 import { notifyError } from '@/utils/notifications';
 import { TPaintPreferences } from '@/types';
-import { title } from 'process';
 import { useAuth } from '@/context/auth/provider';
+import { useDashboard } from '@/context/dashboard/provider';
+import { useTimeoutRef } from '@/hooks/timeout-ref';
 
 type TConfig = {
-  title: string;
+  quoteTitle: string;
   zipCode: string;
   paintPreferences: TPaintPreferences;
   dispatchErrorMessage: Dispatch<string>;
+  dispatchTitle: Dispatch<string>;
 };
 export const useQuoteSubmit = ({
+  quoteTitle,
   zipCode,
   paintPreferences,
+  dispatchTitle,
   dispatchErrorMessage,
 }: TConfig) => {
+  const { timeoutRef } = useTimeoutRef();
   const { isUserSignedIn } = useAuth();
   const [description, setDescription] = useState('');
   const [providingOwnPaint, setProvidingOwnPaint] =
@@ -40,8 +45,14 @@ export const useQuoteSubmit = ({
   const auth = getAuth();
   const router = useRouter();
   const firestore = getFirestore(firebase);
+  const {
+    dispatchUserImageList,
+    dispatchSelectedUserImage,
+    dispatchUserData,
+  } = useDashboard();
 
   const [, setDocumentId] = useAtom(documentIdAtom);
+
   const handler: FormEventHandler = async (event) => {
     event.preventDefault();
     console.log('Creating user image document');
@@ -55,13 +66,12 @@ export const useQuoteSubmit = ({
         paintPreferences,
         providingOwnPaint,
         prices: [],
-        video: '', // Initially empty video field
-        title, // Add title to userImage
+        title: quoteTitle, // Add title to userImage
         userId: auth.currentUser
           ? auth.currentUser.uid
           : '',
       };
-
+      dispatchUserData(userImageData);
       console.log('User Image Data: ', userImageData);
 
       // Add the new quote
@@ -92,6 +102,15 @@ export const useQuoteSubmit = ({
         router.push(
           `/defaultPreferences?userImageId=${docRef.id}`
         ); // Navigate to defaultPreferences with userImageId
+        const nextUserImage = {
+          id: docRef.id,
+          title: quoteTitle,
+        };
+        dispatchUserImageList((prev) => [
+          ...prev,
+          nextUserImage,
+        ]);
+        dispatchSelectedUserImage(nextUserImage.id);
       } else {
         // Handle non-logged-in user case
         sessionStorage.setItem(
@@ -110,7 +129,10 @@ export const useQuoteSubmit = ({
       );
       dispatchErrorMessage(errorMessage);
     } finally {
-      setSubmitting(false);
+      timeoutRef.current = setTimeout(() => {
+        dispatchTitle('');
+        setSubmitting(false);
+      }, 1000);
     }
   };
 

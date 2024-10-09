@@ -40,6 +40,8 @@ export const useDashboardState = () => {
   const [isUserDataLoading, setUserDataLoading] = useAtom(
     userTypeLoadingAtom
   );
+  const [isVideoLoading, setVideoLoading] = useState(false);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [painterId, setPainterId] = useState('');
   const [
@@ -91,6 +93,10 @@ export const useDashboardState = () => {
       setAcceptedQuote(acceptedQuoteFromPrices || null);
     }
   }, [userData?.prices]);
+
+  useEffect(() => {
+    setVideoLoading(true);
+  }, [userData?.video]);
 
   const fetchUserData = async () => {
     try {
@@ -352,6 +358,11 @@ export const useDashboardState = () => {
     selectedUserImage,
     selectedQuoteAmount,
     dispatchShowModal: setShowModal,
+    dispatchVideoLoading: setVideoLoading,
+    dispatchUserImageList: setUserImageList,
+    dispatchSelectedUserImage: setSelectedUserImage,
+    dispatchUserData: setUserData,
+    isVideoLoading,
     onQuoteChange: handleQuoteChange,
   };
 };

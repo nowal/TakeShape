@@ -7,28 +7,27 @@ import { FC } from 'react';
 import { useQuoteTitle } from '@/components/quote/title';
 import { IconsTick20 } from '@/components/icons/tick/20';
 import { IconsLoading } from '@/components/icons/loading';
+import { isString } from '@/utils/validation/is/string';
 
 type TProps = { fixedTitle?: string };
 export const ComponentsQuoteInput: FC<TProps> = ({
   fixedTitle,
 }) => {
   const {
-    isUploading: isInitUploading,
-    progress,
     uploadStatus,
     fileName,
-    title: _title,
+    quoteTitle: _quoteTitle,
     dispatchTitle,
     onFileUpload,
     onSubmit,
   } = useQuote();
-  const title = fixedTitle ?? _title;
+  const quoteTitle = fixedTitle ?? _quoteTitle;
 
-  const isValue = Boolean(title);
   const isUploading = uploadStatus === 'uploading';
   const isCompleted = uploadStatus === 'completed';
   const isError = uploadStatus === 'error';
   const fileTitle = useQuoteTitle();
+  const isReady = Boolean(quoteTitle) && isString(fileName);
 
   return (
     <div className="flex flex-col items-center gap-[26px]">
@@ -44,7 +43,8 @@ export const ComponentsQuoteInput: FC<TProps> = ({
           <div
             className={cx(
               'relative h-[7.25rem]',
-              isCompleted && 'text-green'
+              isCompleted && 'text-green',
+              isError && 'text-red'
             )}
           >
             <InputsFile
@@ -71,7 +71,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({
           </div>
         </div>
         <InputsText
-          value={title}
+          value={quoteTitle}
           onChange={(event) =>
             dispatchTitle(event.target.value)
           }
@@ -79,7 +79,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({
         />
         <ButtonsQuoteSubmit
           title="Submit Video"
-          isDisabled={!isValue}
+          isDisabled={!isReady}
         />
       </form>
     </div>

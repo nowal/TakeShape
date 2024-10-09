@@ -7,26 +7,33 @@ import { DashboardPreferences } from '@/components/dashboard/preferences';
 
 export const DashboardHomeownerQuote: FC = () => {
   const dashboard = useDashboard();
-  const { userData, acceptedQuote } = dashboard;
+  const { userData, acceptedQuote, isVideoLoading } =
+    dashboard;
   return (
     <DashboardCard>
       <DashboardHomeownerVideo />
       {userData?.reAgent && <div>{userData.reAgent}</div>}
-      {acceptedQuote ? (
+      {!isVideoLoading && (
         <>
-          {userData ? (
-            <DashboardPreferences
-              {...userData.paintPreferences}
-              specialRequests={userData.specialRequests}
-              moveFurniture={userData.moveFurniture}
-              laborAndMaterial={userData.laborAndMaterial}
-            >
-              Your Preferences
-            </DashboardPreferences>
-          ) : null}
+          {acceptedQuote ? (
+            <>
+              {userData ? (
+                <DashboardPreferences
+                  {...userData.paintPreferences}
+                  specialRequests={userData.specialRequests}
+                  moveFurniture={userData.moveFurniture}
+                  laborAndMaterial={
+                    userData.laborAndMaterial
+                  }
+                >
+                  Your Preferences
+                </DashboardPreferences>
+              ) : null}
+            </>
+          ) : (
+            <DashboardHomeownerQuoteButton />
+          )}
         </>
-      ) : (
-        <DashboardHomeownerQuoteButton />
       )}
     </DashboardCard>
   );

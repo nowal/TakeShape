@@ -11,7 +11,6 @@ export const ComponentsDashboard: FC = () => {
   const { signIn } = auth;
   const dashboard = useDashboard();
   const { isPainter, isUserDataLoading } = dashboard;
-
   const isReady =
     viewport.isDimensions &&
     !isUserDataLoading &&

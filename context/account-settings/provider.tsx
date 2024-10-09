@@ -1,4 +1,5 @@
 'use client';
+import { useAccountSettingsAddress } from '@/context/account-settings/address';
 import { useAccountSettingsMap } from '@/context/account-settings/map';
 import { useAccountSettingsState } from '@/context/account-settings/state';
 import {
@@ -6,7 +7,6 @@ import {
   TAccountSettingsContext,
   TAccountSettingsStateConfig,
 } from '@/context/account-settings/types';
-import { usePreferences } from '@/context/preferences/provider';
 import {
   createContext,
   FC,
@@ -32,11 +32,10 @@ export const AccountSettingsProvider: FC<
   );
   const mapRef = useRef<HTMLDivElement | null>(null);
 
-  const preferences = usePreferences();
-  const { address, dispatchAddress } = preferences;
+  const accountSettingsAddress =
+    useAccountSettingsAddress();
   const config: TAccountSettingsConfig = {
-    address,
-    dispatchAddress,
+    ...accountSettingsAddress,
     addressInputRef,
     mapRef,
   };
@@ -57,6 +56,7 @@ export const AccountSettingsProvider: FC<
         ...accountSettings,
         ...config,
         ...accountSettingsMap,
+        ...accountSettingsAddress,
       }}
     >
       {children}

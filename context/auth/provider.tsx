@@ -28,19 +28,22 @@ export const useAuth = (): TAuthContext => useContext(AUTH);
 export const AuthProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const router = useRouter()
+  const router = useRouter();
   const [isUserSignedIn, setUserSignedIn] = useState(false);
-  const handleNavigateScrollTopClick = async (path: string) => {
+  const handleNavigateScrollTopClick = async (
+    path: string
+  ) => {
     router.push(path, { scroll: true });
   };
   const config: TAuthConfig = {
     isUserSignedIn,
     dispatchUserSignedIn: setUserSignedIn,
-    onNavigateScrollTopClick:handleNavigateScrollTopClick
+    onNavigateScrollTopClick: handleNavigateScrollTopClick,
   };
   const signIn = useSignIn(config);
   const signUp = useSignUp(config);
   const menu = useAuthMenu(config);
+
   usePassiveSignOut(config);
 
   return (

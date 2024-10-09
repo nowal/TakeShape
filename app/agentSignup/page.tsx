@@ -33,7 +33,7 @@ const AgentSignup = () => {
     : 'Sign Up';
 
   return (
-    <ComponentsRegisterShell title="Painter Registration">
+    <ComponentsRegisterShell title="Agent Registration">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
       {errorMessage && (
         <NotificationsInlineHighlight>
@@ -44,25 +44,7 @@ const AgentSignup = () => {
         onSubmit={onSubmit}
         className="flex flex-col space-y-4"
       >
-        {/* <div>
-          <label
-            htmlFor="email"
-            className="block text-md font-medium text-gray-700"
-          >
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(event) =>
-              dispatchEmail(event.target.value)
-            }
-            placeholder="Enter your email"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div> */}
+    
         <div>
           <InputsText
             type="email"
@@ -74,25 +56,7 @@ const AgentSignup = () => {
             required
           />
         </div>
-        {/* <div>
-          <label
-            htmlFor="password"
-            className="block text-md font-medium text-gray-700"
-          >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(event) =>
-              dispatchPassword(event.target.value)
-            }
-            placeholder="Enter your password"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div> */}
+  
         <div>
           <InputsText
             type="password"

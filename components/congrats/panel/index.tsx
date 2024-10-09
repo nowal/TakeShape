@@ -14,7 +14,7 @@ export const ComponentsCongratsPanel: FC<TProps> = ({
     short ??
     'Contractor will reach out within two days to schedule your job. If you have any questions, please contact us or you call your contractor directly.';
   return (
-    <ComponentsPanel classValue="text-center">
+    <ComponentsPanel classValue="text-center w-full lg:w-[345px]">
       <ComponentsCongratsContent
         emoji="🎉"
         title="Congratulations on accepting with:"

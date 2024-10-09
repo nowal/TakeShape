@@ -6,15 +6,25 @@ import { NotificationsInlineHighlight } from '@/components/notifications/inline/
 
 export const DashboardHomeownerVideo: FC = () => {
   const dashboard = useDashboard();
-  const { userData, videoRef } = dashboard;
+  const {
+    userData,
+    videoRef,
+    uploadStatus,
+    dispatchVideoLoading,
+  } = dashboard;
   const viewport = useViewport();
   const isXs = viewport.isDimensions && viewport.isXs;
-  if (!userData?.video)
+  const handleLoadedData = () => {
+    dispatchVideoLoading(false);
+  };
+  if (!userData) return null;
+  if (!userData.video && uploadStatus !== 'uploading')
     return (
       <NotificationsInlineHighlight>
         No video uploaded
       </NotificationsInlineHighlight>
     );
+
   return (
     <div
       style={{
@@ -25,16 +35,16 @@ export const DashboardHomeownerVideo: FC = () => {
       <video
         controls
         playsInline
-        muted={true}
+        muted
         ref={videoRef}
         src={`${userData.video}#t=0.001`}
-        className="video"
         style={{ width: '100%', maxWidth: '100%' }}
         onLoadedMetadata={() => {
           if (videoRef.current) {
             videoRef.current.playbackRate = 1.0;
           }
         }}
+        onLoadedData={handleLoadedData}
       />
     </div>
   );
