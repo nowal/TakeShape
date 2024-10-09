@@ -29,6 +29,8 @@ export const errorAuth = (error: TError) => {
         'An unexpected error occurred. Please try again.';
       break;
   }
-  notifyError(errorMessage)
+  notifyError(errorCode);
+  notifyError(errorMessage);
+
   return errorMessage;
 };
