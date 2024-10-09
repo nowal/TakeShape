@@ -16,8 +16,8 @@ export const LandingBenefitsItem: FC<TProps> = ({
   return (
     <div
       className={cx(
-        'flex flex-col items-stretch gap-7',
-        'flex-col-reverse'
+        'flex items-stretch gap-7',
+        'flex-col-reverse xl:flex-col'
       )}
     >
       <div

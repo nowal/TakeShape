@@ -10,7 +10,7 @@ export const LandingBenefits: FC = () => {
     <div className="flex flex-col items-center w-full h-full overflow-hidden">
       <div className="h-20" />
       <h3 className="typography-landing-subtitle--responsive">
-        
+        Benefits
       </h3>
       <div className="h-9" />
       <ul
