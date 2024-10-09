@@ -9,6 +9,7 @@ import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
 import { cx } from 'class-variance-authority';
 import { DashboardPainterJobPreferencesRow } from '@/components/dashboard/preferences/row';
 import { TPropsWithChildren } from '@/types/dom/main';
+import { PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL } from '@/atom/constants';
 
 type TProps = TPropsWithChildren<
   TPaintPreferences & TJobUserData
@@ -18,14 +19,19 @@ export const DashboardPreferences: FC<TProps> = ({
   ...paintPreferences
 }) => {
   const isLaborAndMaterials =
-    paintPreferences?.laborAndMaterial;
+    paintPreferences?.[
+      PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL
+    ];
+
   return (
     <div className="flex flex-col items-stretch gap-3">
-      <div>
-        <TypographyFormSubtitle>
-          {children ?? 'Client Preferences'}
-        </TypographyFormSubtitle>
-      </div>
+      {children && (
+        <div>
+          <TypographyFormSubtitle>
+            {children}
+          </TypographyFormSubtitle>
+        </div>
+      )}
       <div
         className={cx(
           'flex flex-row items-center justify-between',
