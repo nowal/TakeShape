@@ -35,7 +35,6 @@ export const useAgentDashboardState = () => {
   const inputNameRef = useRef<HTMLInputElement | null>(
     null
   );
-  useAuthNavigateHome();
   const [preferredPainters, setPreferredPainters] =
     useState<TPainter[]>([]);
   const [loadingRecord, setLoadingRecord] =

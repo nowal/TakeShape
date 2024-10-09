@@ -5,14 +5,19 @@ import { InputsText } from '@/components/inputs/text';
 import { useQuote } from '@/context/quote/provider';
 import { FC } from 'react';
 
-type TProps = {fixedTitle?:string}
-export const ComponentsQuoteInput: FC<TProps> = ({fixedTitle}) => {
+type TProps = { fixedTitle?: string };
+export const ComponentsQuoteInput: FC<TProps> = ({
+  fixedTitle,
+}) => {
   const {
     isUploading,
-    title,
+    title: _title,
     dispatchTitle,
     onFileUpload,
   } = useQuote();
+  const title = fixedTitle ?? _title;
+  const isValue = Boolean(title);
+
   return (
     <div className="flex flex-col items-center gap-[26px]">
       <div
@@ -36,7 +41,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({fixedTitle}) => {
           </div>
         </div>
         <InputsText
-          value={fixedTitle ?? title}
+          value={title}
           onChange={(event) =>
             dispatchTitle(event.target.value)
           }
@@ -44,7 +49,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({fixedTitle}) => {
         />
         <ButtonsQuoteSubmit
           title="Submit Video"
-          isDisabled
+          isDisabled={!isValue}
         />
       </div>
     </div>

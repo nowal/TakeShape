@@ -16,8 +16,10 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth/provider';
 
 export const useAgentRegisterState = () => {
+  const { signIn, dispatchUserSignedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -88,7 +90,7 @@ export const useAgentRegisterState = () => {
         phoneNumber,
         profilePictureUrl,
       });
-
+      dispatchUserSignedIn(true);
       router.push('/agentDashboard');
     } catch (error) {
       console.error('Error signing up: ', error);

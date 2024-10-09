@@ -16,7 +16,7 @@ export const NotificationsInlineHighlight: FC<TProps> = ({
       className={cx(
         'typography-inline-notification text-center rounded-xl py-3 px-4 bg-white-pink-3',
         // 'whitespace-pre',
-        'w-full',
+        'w-full gap-1',
         classDisplay ?? 'flex',
         classValue
       )}
