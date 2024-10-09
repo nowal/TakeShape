@@ -38,7 +38,6 @@ export const DashboardHomeowner: FC = () => {
           <DashboardHomeownerHeader
             onValueChange={(_, value) => {
               if (isString(value)) {
-                console.log(value);
                 onQuoteChange(value);
               }
             }}
