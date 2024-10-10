@@ -17,7 +17,7 @@ export const useCongrats = () => {
   const dashboard = useDashboard();
   const { acceptedQuote, userData, userImageList } =
     dashboard;
-  console.log(userData, userImageList, acceptedQuote);
+  // console.log(userData, userImageList, acceptedQuote);
   const [painterUserId, setPainterUserId] = useState<
     string | null
   >(null);
@@ -51,7 +51,7 @@ export const useCongrats = () => {
           const userImageDoc = await getDoc(userImageRef);
 
           if (userImageDoc.exists()) {
-            console.log("Get's into this if");
+            // console.log("Get's into this if");
             const userImageData = userImageDoc.data();
             const updatedPrices = (
               userImageData.prices || []

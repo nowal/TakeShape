@@ -8,7 +8,7 @@ export const ComponentsCongrats: FC<TProps> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-col items-center bg-white py-12">
+    <div className="flex flex-col items-center py-12">
       <ComponentsCongratsPanel>
         {children}
       </ComponentsCongratsPanel>

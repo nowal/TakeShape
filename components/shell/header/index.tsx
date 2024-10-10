@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { cx } from 'class-variance-authority';
 import { ShellLogo } from '@/components/shell/logo';
 import { HeaderOptions } from '@/components/shell/header/options';
@@ -51,9 +50,7 @@ export const ShellHeader = () => {
               delay={0.2}
             >
               <ShellHeaderBackground />
-              <Link className="relative z-10" href="/">
                 <ShellLogo />
-              </Link>
               {signIn.isAuthLoading ||
               !viewport.isDimensions ? (
                 <Fragment />

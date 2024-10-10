@@ -10,12 +10,14 @@ import { TDivProps } from '@/types/dom';
 type TProps = Omit<TDivProps, 'title'> & {
   title?: string | JSX.Element;
   closeProps?: TComponentsPanelCloseProps;
+  classWidth?:string
 };
 export const ComponentsPanel: FC<TProps> = ({
   title,
   closeProps,
   children,
   classValue,
+  classWidth,
   ...props
 }) => {
   const Title = () => {
@@ -33,7 +35,8 @@ export const ComponentsPanel: FC<TProps> = ({
     <div
       className={cx(
         'fill-column-white-sm',
-        classValue ?? 'w-[320px] xs:w-[345px]'
+        classWidth ?? 'w-[320px] xs:w-[345px]',
+        classValue
       )}
       {...props}
     >
