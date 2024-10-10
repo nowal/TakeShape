@@ -93,7 +93,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           inputProps={{
             accept: 'image/png, image/jpeg',
           }}
-          classValue="px-4 gap-6"
+          classValue="px-6 gap-6"
           center={false}
           isValue={Boolean(logoSrc)}
           icon={{

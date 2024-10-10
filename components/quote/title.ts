@@ -20,5 +20,5 @@ export const useQuoteTitle = () => {
     }
   }
 
-  return 'Upload your video';
+  return 'Upload your video *';
 };
