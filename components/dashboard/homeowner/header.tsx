@@ -5,7 +5,7 @@ import {
   TInputsSelectProps,
 } from '@/components/inputs/select';
 import { TypographyFormTitle } from '@/components/typography/form/title';
-import { useAuth } from '@/context/auth/provider';
+import { useApp } from '@/context/app/provider';
 import type { FC } from 'react';
 
 type TProps = Partial<TInputsSelectProps> &
@@ -13,7 +13,7 @@ type TProps = Partial<TInputsSelectProps> &
 export const DashboardHomeownerHeader: FC<TProps> = (
   props
 ) => {
-  const { onNavigateScrollTopClick } = useAuth();
+  const { onNavigateScrollTopClick } = useApp();
   return (
     <DashboardHeader>
       <TypographyFormTitle>Your Quotes</TypographyFormTitle>

@@ -8,6 +8,7 @@ import { useQuoteTitle } from '@/components/quote/title';
 import { IconsTick20 } from '@/components/icons/tick/20';
 import { IconsLoading } from '@/components/icons/loading';
 import { isString } from '@/utils/validation/is/string';
+import { LOADING_ICON, SUCCESS_ICON } from '@/components/quote/constants';
 
 type TProps = { fixedTitle?: string };
 export const ComponentsQuoteInput: FC<TProps> = ({
@@ -23,10 +24,9 @@ export const ComponentsQuoteInput: FC<TProps> = ({
   } = useQuote();
   const quoteTitle = fixedTitle ?? _quoteTitle;
 
-  const isUploading = uploadStatus === 'uploading';
   const isCompleted = uploadStatus === 'completed';
   const isError = uploadStatus === 'error';
-  const fileTitle = useQuoteTitle();
+  const fileTitle = 'Upload your video *';
   const isReady = Boolean(quoteTitle) && isString(fileName);
 
   return (
@@ -51,14 +51,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({
               title={fileTitle}
               onFile={onFileUpload}
               {...(isCompleted
-                ? {
-                    icon: { Leading: IconsTick20 },
-                    intent: 'ghost-success',
-                  }
-                : isUploading
-                ? {
-                    icon: { Leading: IconsLoading },
-                  }
+                ? SUCCESS_ICON
                 : {})}
               inputProps={{}}
             >

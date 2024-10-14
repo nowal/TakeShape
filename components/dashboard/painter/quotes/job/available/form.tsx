@@ -7,9 +7,9 @@ import { useDashboardPainterJobAvailable } from '@/components/dashboard/painter/
 import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TJob;
-export const DDashboardPainterJobAvailableForm: FC<TProps> = (
-  job
-) => {
+export const DDashboardPainterJobAvailableForm: FC<
+  TProps
+> = (job) => {
   const dashboardPainter = useDashboardPainterJobAvailable(
     job.jobId
   );
@@ -50,14 +50,14 @@ export const DDashboardPainterJobAvailableForm: FC<TProps> = (
               key: 'invoice',
               input: (
                 <InputsFile
+                  titleClassValue="typography-file-sm"
                   title="Invoice (optional)"
                   onFile={onFileChange}
                   inputProps={{
                     accept: 'application/pdf',
                   }}
-                  classValue="typography-file-sm"
                   isValue={Boolean(selectedFile)}
-                  gap="xl"
+                  gap="lg"
                 >
                   {selectedFile && (
                     <span className="text-xs">

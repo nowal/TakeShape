@@ -23,18 +23,20 @@ import {
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
-import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import { TPaintPreferences } from '@/types';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
 import { notifyError } from '@/utils/notifications';
+import { useAuth } from '@/context/auth/provider';
+import { useApp } from '@/context/app/provider';
 
 export const usePreferencesState = () => {
+  const { onNavigateScrollTopClick } = useApp();
+  const { isUserSignedIn, dispatchUserSignedIn } =
+    useAuth();
   const firestore = getFirestore();
   const auth = getAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [authInitialized, setAuthInitialized] =
-    useState(false);
   const [defaultPreferences, setPreferences] = useAtom(
     defaultPreferencesAtom
   );
@@ -102,9 +104,9 @@ export const usePreferencesState = () => {
     );
   };
 
-  const preferencesStateColor = usePreferencesStateColor({
-    dispatchPreferences: setPreferences,
-  });
+  // const preferencesStateColor = usePreferencesStateColor({
+  //   dispatchPreferences: setPreferences,
+  // });
 
   useEffect(() => {
     setPreferences({
@@ -113,22 +115,22 @@ export const usePreferencesState = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setAuthInitialized(true);
-      } else {
-        setAuthInitialized(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [auth]);
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       setAuthInitialized(true);
+  //     } else {
+  //       setAuthInitialized(false);
+  //     }
+  //   });
+  //   return () => unsubscribe();
+  // }, [auth]);
 
   useEffect(() => {
-    if (authInitialized && auth.currentUser) {
+    if (isUserSignedIn && auth.currentUser) {
       fetchUserPreferences();
     }
-  }, [authInitialized, auth.currentUser, firestore]);
+  }, [isUserSignedIn, auth.currentUser, firestore]);
 
   const resolveUserImage = () =>
     typeof window !== 'undefined' &&
@@ -249,7 +251,7 @@ export const usePreferencesState = () => {
       });
 
       // Pass userImageId to the dashboard
-      router.push(
+      onNavigateScrollTopClick(
         `${navigateTo}?userImageId=${userImageId}`
       );
     } catch (error) {
@@ -348,6 +350,12 @@ export const usePreferencesState = () => {
     isSubmitting,
     isTrimAndDoorsPainted,
     isFetchingPreferences,
+    isMoveFurniture: Boolean(isMoveFurniture),
+    isResubmitting,
+    isLaborAndMaterials: isLaborAndMaterials === true,
+    isShowCeilingFields,
+    isShowTrimFields,
+    specialRequests,
     onResetPreferences: handleResetPreferences,
     onValueChange: handleValueChange,
     onLaborAndMaterialsChange:
@@ -357,20 +365,14 @@ export const usePreferencesState = () => {
     onChange: handleChange,
     onPreferenceSubmit: handlePreferenceSubmit,
     onFetchUserPreferences: fetchUserPreferences,
-    specialRequests,
     dispatchSpecialRequests: setSpecialRequests,
-    isMoveFurniture: Boolean(isMoveFurniture),
     dispatchShowCeilingFields: setShowCeilingFields,
     dispatchShowTrimFields: setShowTrimFields,
     dispatchMoveFurniture: setMoveFurniture,
     dispatchPreferences: setPreferences,
     dispatchSubmitting: setSubmitting,
-    isResubmitting,
     dispatchResubmitting: setResubmitting,
-    isLaborAndMaterials: isLaborAndMaterials === true,
-    isShowCeilingFields,
-    isShowTrimFields,
     ...defaultPreferences,
-    ...preferencesStateColor,
+    // ...preferencesStateColor,
   };
 };

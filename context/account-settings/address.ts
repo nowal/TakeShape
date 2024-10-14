@@ -9,13 +9,15 @@ import { getAuth } from 'firebase/auth';
 import { useSearchParams } from 'next/navigation';
 
 export const useAccountSettingsAddress = () => {
-  const searchParams = useSearchParams();
+  const [isAddressLoading, setAddressLoading] =
+    useState(false);
+  const [address, setAddress] = useState('');
 
+  const searchParams = useSearchParams();
   const userImageId =
     typeof window !== 'undefined' &&
     (searchParams.get('userImageId') ||
       sessionStorage.getItem('userImageId'));
-  const [address, setAddress] = useState('');
 
   const firestore = getFirestore();
   const auth = getAuth();
@@ -66,5 +68,10 @@ export const useAccountSettingsAddress = () => {
     updateUserImageDoc();
   }, [address]);
 
-  return { address, dispatchAddress: setAddress };
+  return {
+    isAddressLoading,
+    address,
+    dispatchAddressLoading: setAddressLoading,
+    dispatchAddress: setAddress,
+  };
 };

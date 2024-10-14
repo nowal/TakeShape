@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'react-toastify/ReactToastify.min.css';
 
 :root {
   --foreground-rgb: 0, 0, 0; /* Black for text */

@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDocs, query, collection, where, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';

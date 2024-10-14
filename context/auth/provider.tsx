@@ -3,7 +3,10 @@ import { useAuthMenu } from '@/context/auth/menu';
 import { useSignIn } from '@/context/auth/sign-in';
 import { usePassiveSignOut } from '@/context/auth/passive-sign-out';
 import { useSignUp } from '@/context/auth/sign-up';
-import { TAuthConfig } from '@/context/auth/types';
+import {
+  TAuthConfig,
+  TAuthSignOutConfig,
+} from '@/context/auth/types';
 import {
   createContext,
   FC,
@@ -11,7 +14,9 @@ import {
   useContext,
   useState,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAtom } from 'jotai';
+import { isProfilePicAtom } from '@/atom';
+import { useSignOut } from '@/context/auth/sign-out';
 
 type TAuthContext = TAuthConfig & {
   isUserSignedIn: boolean;
@@ -28,17 +33,23 @@ export const useAuth = (): TAuthContext => useContext(AUTH);
 export const AuthProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const router = useRouter();
+  const [profilePictureSrc, setProfilePictureUrl] = useAtom(
+    isProfilePicAtom
+  );
+  const [isAuthLoading, setAuthLoading] = useState(true);
   const [isUserSignedIn, setUserSignedIn] = useState(false);
-  const handleNavigateScrollTopClick = async (
-    path: string
-  ) => {
-    router.push(path, { scroll: true });
-  };
-  const config: TAuthConfig = {
+  const signOutConfig: TAuthSignOutConfig = {
+    profilePictureSrc,
     isUserSignedIn,
+    isAuthLoading,
+    dispatchAuthLoading: setAuthLoading,
     dispatchUserSignedIn: setUserSignedIn,
-    onNavigateScrollTopClick: handleNavigateScrollTopClick,
+    dispatchProfilePictureUrl: setProfilePictureUrl,
+  };
+  const handleSignOut = useSignOut(signOutConfig);
+  const config: TAuthConfig = {
+    onSignOut: handleSignOut,
+    ...signOutConfig,
   };
   const signIn = useSignIn(config);
   const signUp = useSignUp(config);

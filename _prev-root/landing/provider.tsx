@@ -1,5 +1,5 @@
 'use client';
-import { useLandingState } from '@/context/landing/state';
+import { useLandingState } from '@/_prev-root/landing/state';
 import {
   createContext,
   FC,

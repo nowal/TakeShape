@@ -24,19 +24,24 @@ import {
   isPainterAtom,
   isProfilePicAtom,
 } from '@/atom';
+import { useUploadLogoAndGetUrl } from '@/context/account-settings/upload-logo-and-get-url';
+import { notifyError } from '@/utils/notifications';
 import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
-import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
-import { useRouter } from 'next/navigation';
+import { useApp } from '@/context/app/provider';
 
 export const useAccountSettingsState = (
   config: TAccountSettingsStateConfig
 ) => {
+  const { onNavigateScrollTopClick } = useApp();
   const {
+    range,
     address,
+    dispatchRange,
     dispatchAddress,
-    onInitializeMap,
-    addressInputRef,
+    onGeocodeAddress,
   } = config;
+  const handleUploadLogoAndGetUrl =
+    useUploadLogoAndGetUrl();
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [isAgent, setAgent] = useAtom(isAgentAtom); // New state for isAgent
   const [name, setName] = useState('');
@@ -51,7 +56,6 @@ export const useAccountSettingsState = (
     setNewProfilePicturePreview,
   ] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState('');
-  const [range, setRange] = useState(10);
   const [isInsured, setInsured] = useState(false);
   const [logo, setLogo] = useState<File | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(
@@ -69,14 +73,6 @@ export const useAccountSettingsState = (
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
-  const router = useRouter();
-
-  const geocodeAddress = useAutoFillAddressGeocode({
-    dispatchAddress,
-    onInitializeMap,
-    addressInputRef,
-    range,
-  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -123,14 +119,14 @@ export const useAccountSettingsState = (
                   painterData.businessName || ''
                 );
                 dispatchAddress(painterData.address || '');
-                setRange(painterData.range || 10);
+                dispatchRange(painterData.range || 10);
                 setInsured(painterData.isInsured || false);
                 setPhoneNumber(
                   painterData.phoneNumber || ''
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                geocodeAddress(painterData.address);
+                onGeocodeAddress(painterData.address);
               } else {
                 // User is a homeowner
                 setPainter(false);
@@ -166,20 +162,21 @@ export const useAccountSettingsState = (
                     }
                   }
                   // Geocode address to set marker
-                  geocodeAddress(userData.address);
+                  onGeocodeAddress(userData.address);
                 } else {
                   setErrorMessage('User data not found.');
                 }
               }
             }
           } catch (error) {
+            const errorMessage =
+              'Failed to load user data. Please try again later.';
             console.error(
               'Error fetching user data:',
               error
             );
-            setErrorMessage(
-              'Failed to load user data. Please try again later.'
-            );
+            setErrorMessage(errorMessage);
+            notifyError(errorMessage);
           } finally {
             setDataLoading(false); // Stop loading
           }
@@ -214,11 +211,11 @@ export const useAccountSettingsState = (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-    setLoading(true); // Set loading state to true
 
     try {
+      setLoading(true); // Set loading state to true
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw Error('No user');
       if (isPainter) {
         // Painter specific update
         const painterQuery = query(
@@ -230,7 +227,7 @@ export const useAccountSettingsState = (
         if (!painterSnapshot.empty) {
           const painterDocRef = painterSnapshot.docs[0].ref;
           const updatedLogoUrl = logo
-            ? await uploadLogoAndGetUrl(logo)
+            ? await handleUploadLogoAndGetUrl(logo)
             : logoUrl; // Handle logo upload if provided
 
           const updatedPainterData = {
@@ -251,9 +248,7 @@ export const useAccountSettingsState = (
             updatedPainterData
           );
 
-          router.push('/dashboard');
-
-          window.location.reload(); // Reload the page after updating
+          onNavigateScrollTopClick('/dashboard');
         } else {
           setErrorMessage('Painter data not found.');
         }
@@ -335,7 +330,7 @@ export const useAccountSettingsState = (
                 setAgentError('Agent not found');
               }
             }
-            router.push('/dashboard');
+            onNavigateScrollTopClick('/dashboard');
           } else {
             setErrorMessage('User data not found.');
           }
@@ -348,37 +343,6 @@ export const useAccountSettingsState = (
       );
     } finally {
       setLoading(false); // Reset loading state
-    }
-  };
-
-  const uploadLogoAndGetUrl = async (
-    logoFile: File | null
-  ) => {
-    if (!logoFile) {
-      return ''; // Return an empty string if no logo file is provided
-    }
-
-    const logoRef = storageRef(
-      storage,
-      `logos/${logoFile.name}-${Date.now()}`
-    ); // Append timestamp to ensure unique file names
-
-    try {
-      const uploadResult = await uploadBytes(
-        logoRef,
-        logoFile
-      );
-      console.log('Upload result:', uploadResult);
-
-      const logoUrl = await getDownloadURL(
-        uploadResult.ref
-      );
-      console.log('Logo URL:', logoUrl);
-
-      return logoUrl;
-    } catch (error) {
-      console.error('Error uploading logo: ', error);
-      throw new Error('Error uploading logo.');
     }
   };
 
@@ -402,10 +366,9 @@ export const useAccountSettingsState = (
     newAgentName,
     agentError,
     agentName,
-    onGeocodeAddress: geocodeAddress,
-    dispatchRange: setRange,
     dispatchPhoneNumber: setPhoneNumber,
     dispatchName: setName,
+    dispatchPainter: setPainter,
     dispatchAgentError: setAgentError,
     dispatchAgentName: setAgentName,
     dispatchBusinessName: setBusinessName,
@@ -413,5 +376,6 @@ export const useAccountSettingsState = (
     onSubmit: handleSubmit,
     onLogoChange: handleLogoChange,
     onProfilePictureChange: handleProfilePictureChange,
+    onUploadLogoAndGetUrl: handleUploadLogoAndGetUrl,
   };
 };

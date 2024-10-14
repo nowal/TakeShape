@@ -48,7 +48,7 @@ export const PreferencesFooter: FC = () => {
         disabled={isLoading}
         title={submitTitle}
       >
-        <strong>{submitTitle}</strong>
+        <>{submitTitle}</>
       </ButtonsCvaButton>
     </footer>
   );

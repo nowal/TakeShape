@@ -1,5 +1,5 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { useLanding } from '@/context/landing/provider';
+import { useLanding } from '@/_prev-root/landing/provider';
 import type { FC } from 'react';
 
 export const LandingButtonsSubmit: FC = () => {

@@ -44,7 +44,6 @@ const AgentSignup = () => {
         onSubmit={onSubmit}
         className="flex flex-col space-y-4"
       >
-    
         <div>
           <InputsText
             type="email"
@@ -56,7 +55,6 @@ const AgentSignup = () => {
             required
           />
         </div>
-  
         <div>
           <InputsText
             type="password"
@@ -68,22 +66,6 @@ const AgentSignup = () => {
             required
           />
         </div>
-        {/* <div>
-          <label
-            htmlFor="name"
-            className="block text-md font-medium text-gray-700"
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => dispatchName(e.target.value)}
-            placeholder="Enter your name"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div> */}
         <div>
           <InputsText
             value={name}
@@ -94,18 +76,6 @@ const AgentSignup = () => {
             required
           />
         </div>
-        {/* <div>
-          <input
-            id="phoneNumber"
-            value={phoneNumber}
-            onChange={(event) =>
-              dipatchPhoneNumber(event.target.value)
-            }
-            placeholder="Enter your phone number"
-            required
-            className="p-2 border rounded w-full"
-          />
-        </div> */}
         <div>
           <InputsText
             type="tel"

@@ -44,8 +44,12 @@ const Landing = () => {
           />
         </AnimationFade>
 
-        {viewport.isDimensions && !viewport.isResizing ? (
-          <LandingHero {...viewport} />
+        {viewport.isDimensions ? (
+          <>
+            {viewport.isResizing ? null : (
+              <LandingHero {...viewport} />
+            )}
+          </>
         ) : (
           <LandingHeroText />
         )}

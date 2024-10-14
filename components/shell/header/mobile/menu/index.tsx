@@ -10,8 +10,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { MobileMenuModal } from '@/components/shell/header/mobile/menu/modal';
+import { useApp } from '@/context/app/provider';
 
 export const ShellHeaderMobileMenu = () => {
+  const {onNavigateScrollTopClick} = useApp()
   const { isUserSignedIn, menu } = useAuth();
   const {
     onDashboardClick,
@@ -35,12 +37,12 @@ export const ShellHeaderMobileMenu = () => {
     ['Dashboard', onDashboardClick],
     [
       'Manage Account',
-      () => router.push('/accountSettings'),
+      () => onNavigateScrollTopClick('/accountSettings'),
     ],
   ] satisfies TAccountMenuListItem[];
 
   const quoteItems = [
-    ['Quote', () => router.push('/quote')],
+    ['Quote', () => onNavigateScrollTopClick('/quote')],
   ] satisfies TAccountMenuListItem[];
 
   const items = [

@@ -14,13 +14,13 @@ import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
   const {
-    isLoading,
+    isSignUpSubmitting,
     errorMessage,
     isShowLoginInstead,
     name,
     email,
     password,
-    onSubmit,
+    onSignUpSubmit,
     dispatchEmail,
     dispatchName,
     dispatchPassword,
@@ -31,7 +31,7 @@ const SignupAccountForm = () => {
     signIn.onClose();
   }, []);
 
-  const submitButtonTitle = isLoading
+  const submitButtonTitle = isSignUpSubmitting
     ? 'Signing up...'
     : 'Sign Up';
 
@@ -58,7 +58,7 @@ const SignupAccountForm = () => {
           )}
           <div className="rounded-3xl px-4 py-6 w-full fill-column-white-sm">
             <form
-              onSubmit={onSubmit}
+              onSubmit={onSignUpSubmit}
               className="flex flex-col gap-4"
             >
               <InputsText
@@ -91,7 +91,7 @@ const SignupAccountForm = () => {
               />
               <ButtonsCvaButton
                 type="submit"
-                isDisabled={isLoading}
+                isDisabled={isSignUpSubmitting}
                 title={submitButtonTitle}
                 intent="primary"
                 size="md"
@@ -108,7 +108,7 @@ const SignupAccountForm = () => {
                   {ALREADY_HAVE_AN_ACCOUNT_TEXT}
                 </span>
                 <ButtonsCvaButton
-                  isDisabled={isLoading}
+                  isDisabled={isSignUpSubmitting}
                   title={submitButtonTitle}
                   onTap={() => {
                     signIn.onSignInButtonClick();

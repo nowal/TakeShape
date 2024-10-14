@@ -23,15 +23,18 @@ import { useAtom } from 'jotai';
 import { isPainterAtom } from '@/atom';
 import { TAuthConfig } from '@/context/auth/types';
 import { useAccountSettings } from '@/context/account-settings/provider';
+import { useApp } from '@/context/app/provider';
 
 type TConfig = TAuthConfig;
 export const useSignUp = (config: TConfig) => {
+  const { onNavigateScrollTopClick } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const {address,dispatchAddress}= useAccountSettings();
+  const { address, dispatchAddress } = useAccountSettings();
   const [addressComponents, setAddressComponents] =
     useState<any[]>([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isSignUpSubmitting, setSignUpSubmitting] =
+    useState(false);
   const [isPainter, setIsPainter] = useAtom(isPainterAtom);
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -57,7 +60,7 @@ export const useSignUp = (config: TConfig) => {
   };
 
   const validateAddress = () => {
-    return true;//need to work out how to set address components
+    return true; //need to work out how to set address components
     const requiredComponents = [
       'street_number',
       'route',
@@ -74,7 +77,7 @@ export const useSignUp = (config: TConfig) => {
     return foundComponents;
   };
 
-  const handleSubmit = async (
+  const handleSignUpSubmit = async (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
@@ -83,7 +86,7 @@ export const useSignUp = (config: TConfig) => {
       setErrorMessage('Please enter a valid address.');
       return;
     }
-    setLoading(true); // Set loading state to true
+    setSignUpSubmitting(true); // Set loading state to true
     try {
       const auth = getAuth();
       const firestore = getFirestore();
@@ -166,11 +169,11 @@ export const useSignUp = (config: TConfig) => {
       }
 
       if (userImageId) {
-        router.push(
+        onNavigateScrollTopClick(
           `/defaultPreferences?userImageId=${userImageId}`
         );
       } else {
-        router.push('/quote');
+        onNavigateScrollTopClick('/quote');
       }
     } catch (error) {
       const errorMessage = errorAuth(error);
@@ -181,7 +184,7 @@ export const useSignUp = (config: TConfig) => {
         error
       );
     } finally {
-      setLoading(false); // Reset loading state
+      setSignUpSubmitting(false); // Reset loading state
     }
   };
 
@@ -222,7 +225,7 @@ export const useSignUp = (config: TConfig) => {
 
   return {
     isShowLoginInstead,
-    isLoading,
+    isSignUpSubmitting,
     isPainter,
     isPainterAtom,
     name,
@@ -230,7 +233,7 @@ export const useSignUp = (config: TConfig) => {
     errorMessage,
     password,
     address,
-    onSubmit: handleSubmit,
+    onSignUpSubmit: handleSignUpSubmit,
     onAddressChange: handleAddressChange,
     dispatchName: setName,
     dispatchEmail: setEmail,

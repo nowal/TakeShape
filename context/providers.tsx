@@ -1,6 +1,7 @@
 import { AccountSettingsProvider } from '@/context/account-settings/provider';
 import { AgentDashboardProvider } from '@/context/agent/dashboard/provider';
 import { AgentRegisterProvider } from '@/context/agent/register/provider';
+import { AppProvider } from '@/context/app/provider';
 import { AuthProvider } from '@/context/auth/provider';
 import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
 import { DashboardProvider } from '@/context/dashboard/provider';
@@ -29,6 +30,7 @@ export const ContextProviders: FC<TProps> = ({
         PreferencesProvider,
         AuthProvider,
         AccountSettingsProvider,
+        AppProvider,
       ],
       _children,
       {}

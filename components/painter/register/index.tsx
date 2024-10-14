@@ -6,29 +6,26 @@ import { InputsFile } from '@/components/inputs/file';
 import { usePainterRegister } from '@/context/painter/register/provider';
 import { cx } from 'class-variance-authority';
 import { useAccountSettings } from '@/context/account-settings/provider';
-import { useAuth } from '@/context/auth/provider';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { ComponentsPainterRegisterCoords } from '@/components/painter/register/coords';
 import { InputsSelect } from '@/components/inputs/select';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
+import { ComponentsAccountSettingsPainterMap } from '@/components/account-settings/user/painter/map';
+import { useAutoFillAddress } from '@/hooks/auto-fill/address';
+import { IconsLoading } from '@/components/icons/loading';
 
 export const ComponentsPainterRegister: FC = () => {
   const {
-    address,
-    dispatchAddress,
-    addressInputRef,
     range,
+    businessName,
     dispatchRange,
+    dispatchBusinessName,
   } = useAccountSettings();
   const painterRegister = usePainterRegister();
   const {
-    isLoading,
-    lat,
-    lng,
+    isPainterRegisterSubmitting,
     email,
-    businessName,
     logoPreview,
     phoneNumber,
     password,
@@ -36,12 +33,13 @@ export const ComponentsPainterRegister: FC = () => {
     dispatchEmail,
     onLogoChange,
     onSubmit,
-    dispatchBusinessName,
     dipatchPhoneNumber,
   } = painterRegister;
 
-  const submitTitle = isLoading
-    ? 'Registering...'
+  useAutoFillAddress();
+
+  const submitTitle = isPainterRegisterSubmitting
+    ? 'Submitting...'
     : 'Register';
 
   return (
@@ -71,10 +69,7 @@ export const ComponentsPainterRegister: FC = () => {
           basicValues={[10, 20, 30, 40, 50]}
         />
       </div>
-
-      {lat !== 0 && lng !== 0 && (
-        <ComponentsPainterRegisterCoords />
-      )}
+      <ComponentsAccountSettingsPainterMap />
       <InputsText
         type="tel"
         value={phoneNumber}
@@ -134,10 +129,15 @@ export const ComponentsPainterRegister: FC = () => {
       <ButtonsCvaButton
         title={submitTitle}
         type="submit"
-        disabled={isLoading}
+        disabled={isPainterRegisterSubmitting}
         intent="primary"
         size="md"
         center
+        icon={{
+          Leading: isPainterRegisterSubmitting
+            ? IconsLoading
+            : null,
+        }}
       >
         {submitTitle}
       </ButtonsCvaButton>

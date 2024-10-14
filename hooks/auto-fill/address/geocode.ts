@@ -1,5 +1,5 @@
 import { TAccountSettingsMapReturn } from '@/context/account-settings/types';
-import { loadGoogleMapsScript } from '@/utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { loadGoogleMapsScript } from '@/utils/libs/load-google-maps-script'; // Adjust the import path as needed
 import { notifyError } from '@/utils/notifications';
 import {
   Dispatch,
@@ -7,7 +7,10 @@ import {
   useEffect,
 } from 'react';
 
-type TConfig = TAccountSettingsMapReturn & {
+type TConfig = Pick<
+  TAccountSettingsMapReturn,
+  'onUpdateMap'
+> & {
   addressInputRef: MutableRefObject<HTMLInputElement | null>;
   dispatchAddress: Dispatch<string>;
   range: number;
@@ -15,13 +18,15 @@ type TConfig = TAccountSettingsMapReturn & {
 export const useAutoFillAddressGeocode = ({
   addressInputRef,
   dispatchAddress,
-  onInitializeMap,
+  onUpdateMap,
   range,
 }: TConfig) => {
+
   const geocodeAddress = (
     address: string,
     nextRange = range
   ) => {
+    console.log("useAutoFillAddressGeocode.geocodeAddress")
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
       if (
@@ -30,9 +35,8 @@ export const useAutoFillAddressGeocode = ({
         results[0].geometry.location
       ) {
         const location = results[0].geometry.location;
-        onInitializeMap(
-          location.lat(),
-          location.lng(),
+        onUpdateMap(
+          { lat: location.lat(), lng: location.lng() },
           nextRange
         );
       } else {
@@ -43,6 +47,7 @@ export const useAutoFillAddressGeocode = ({
       }
     });
   };
+  
   useEffect(() => {
     const initAutocomplete = async () => {
       try {
@@ -53,14 +58,18 @@ export const useAutoFillAddressGeocode = ({
           window.google &&
           addressInputRef.current !== null
         ) {
-          const autocomplete =
-            new window.google.maps.places.Autocomplete(
-              addressInputRef.current,
-              {
-                types: ['address'],
-                componentRestrictions: { country: 'us' },
-              }
-            );
+          const { Autocomplete } =
+            (await google.maps.importLibrary(
+              'places'
+            )) as google.maps.PlacesLibrary;
+
+          const autocomplete = new Autocomplete(
+            addressInputRef.current,
+            {
+              types: ['address'],
+              componentRestrictions: { country: 'us' },
+            }
+          );
 
           autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
@@ -92,52 +101,3 @@ export const useAutoFillAddressGeocode = ({
 
   return geocodeAddress;
 };
-
-// useEffect(() => {
-//   const initAutocomplete = async () => {
-//     try {
-//       await loadGoogleMapsScript(
-//         'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
-//       ); // Replace with your actual API key
-//       if (window.google) {
-//         const autocomplete =
-//           new window.google.maps.places.Autocomplete(
-//             addressInputRef.current!,
-//             {
-//               types: ['address'],
-//               componentRestrictions: { country: 'us' },
-//             }
-//           );
-
-//         autocomplete.addListener('place_changed', () => {
-//           const place = autocomplete.getPlace();
-//           if (
-//             !place.geometry ||
-//             !place.geometry.location ||
-//             !place.address_components
-//           ) {
-//             console.error(
-//               'Error: place details are incomplete.'
-//             );
-//             return;
-//           }
-
-//           const formattedAddress =
-//             place.formatted_address;
-//           const location = place.geometry.location;
-
-//           dispatchAddress(formattedAddress || '');
-//           // setLat(location.lat());
-//           // setLng(location.lng());
-//         });
-//       }
-//     } catch (error) {
-//       console.error(
-//         'Error loading Google Maps script:',
-//         error
-//       );
-//     }
-//   };
-
-//   initAutocomplete();
-// }, [])

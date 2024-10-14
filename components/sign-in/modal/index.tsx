@@ -13,7 +13,7 @@ import { usePathname } from 'next/navigation';
 export const SignInModal: FC = () => {
   const { signIn } = useAuth();
   const {
-    isSigningIn,
+    isSignInSubmitting,
     isShowModal,
     email,
     password,
@@ -26,7 +26,7 @@ export const SignInModal: FC = () => {
   const [title] = useSignInButton();
   const pathname = usePathname();
 
-  const submitButtonTitle = isSigningIn
+  const submitButtonTitle = isSignInSubmitting
     ? 'Logging In...'
     : title;
 
@@ -39,7 +39,7 @@ export const SignInModal: FC = () => {
         title="Login"
         closeProps={{
           title: 'Close Login Modal',
-          disabled: isSigningIn,
+          disabled: isSignInSubmitting,
           onTap: onClose,
         }}
       >
@@ -76,7 +76,7 @@ export const SignInModal: FC = () => {
               classValue="w-full text-center font-bold"
               intent="primary"
               size="sm"
-              disabled={isSigningIn}
+              disabled={isSignInSubmitting}
             >
               {submitButtonTitle}
             </ButtonsCvaButton>

@@ -243,6 +243,9 @@ const AgentAccount = () => {
                         <Image
                           src={src}
                           alt="Profile Picture"
+                          className="mb-2 w-24 h-24 object-cover rounded-full"
+                          width="96"
+                          height="96"
                           // className="mb-2 w-24 h-24 object-cover rounded-full"
                         />
                       </PicOutline>

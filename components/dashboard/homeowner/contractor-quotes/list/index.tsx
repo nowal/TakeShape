@@ -8,14 +8,14 @@ export const DashboardHomeownerContractorQuotesList: FC<
   TProps
 > = ({ Icon }) => {
   return (
-    <div className="flex flex-col items-stretch">
-      <div className="h-2" />
+    <div className="flex flex-col items-stretch gap-4">
+      {/* <div className="h-2" />
       <TypographyFormTitle>
         Contractor Quotes
       </TypographyFormTitle>
-      <div className="h-5" />
+      <div className="h-5" /> */}
       <DashboardHomeownerContractorQuotesListItems />
-      <div className="h-4" />
+      {/* <div className="h-4" /> */}
       <Icon />
     </div>
   );

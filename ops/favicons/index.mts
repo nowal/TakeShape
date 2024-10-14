@@ -5,11 +5,11 @@ const source = "assets/logo-light.svg"; // Source image(s). `string`, `buffer` o
 
 const configuration = {
   path: "/", // Path for overriding default icons path. `string`
-  appName: "tampa bay boating adventures", // Your application's name. `string`
-  appShortName: "tampa bay boating", // Your application's short_name. `string`. Optional. If not set, appName will be used
-  appDescription: "ai art gallery", // Your application's description. `string`
-  developerName: "andrew", // Your (or your developer's) name. `string`
-  developerURL: "brysona.dev", // Your (or your developer's) URL. `string`
+  appName: "", // Your application's name. `string`
+  appShortName: "", // Your application's short_name. `string`. Optional. If not set, appName will be used
+  appDescription: "", // Your application's description. `string`
+  developerName: "", // Your (or your developer's) name. `string`
+  developerURL: "", // Your (or your developer's) URL. `string`
   cacheBustingQueryParam: null, // Query parameter added to all URLs that acts as a cache busting system. `string | null`
   dir: "auto", // Primary text direction for name, short_name, and description
   lang: "en-US", // Primary language for name and short_name

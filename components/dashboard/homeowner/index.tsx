@@ -26,47 +26,55 @@ export const DashboardHomeowner: FC = () => {
     selectedQuoteAmount > 0 && isShowModal;
 
   return (
-    <ComponentsDashboardLayout
-      key="ComponentsDashboardLayout"
-      first={
-        <div
-          className={cx(
-            'flex flex-col items-stretch w-full max-w-4xl',
-            'gap-3.5'
-          )}
-        >
-          <DashboardHomeownerHeader
-            onValueChange={(_, value) => {
-              if (isString(value)) {
-                onQuoteChange(value);
-              }
-            }}
-            value={selectedUserImage}
-            idValues={userImageList}
-          />
-          {uploadStatus === 'uploading' && (
-            <DashboardHomeownerUploading />
-          )}
-          <DashboardHomeownerQuote />
-        </div>
-      }
-      second={
-        <>
-          {acceptedQuote ? (
-            <ComponentsCongratsPanel>
-              <PainterCardBackground>
-                <PainterCardData
-                  painterId={acceptedQuote.painterId}
-                />
-              </PainterCardBackground>
-            </ComponentsCongratsPanel>
-          ) : (
-            <DashboardHomeownerContractorQuotes />
-          )}
-        </>
-      }
-    >
-      {isDepositScreen && <DashboardModalQuoteAccept />}
-    </ComponentsDashboardLayout>
+    <>
+      <ComponentsDashboardLayout
+        first={
+          <div className="pl-3.5 pb-3.5">
+            <DashboardHomeownerHeader
+              onValueChange={(_, value) => {
+                if (isString(value)) {
+                  onQuoteChange(value);
+                }
+              }}
+              value={selectedUserImage}
+              idValues={userImageList}
+            />
+          </div>
+        }
+      />
+      <ComponentsDashboardLayout
+        key="ComponentsDashboardLayout"
+        first={
+          <div
+            className={cx(
+              'flex flex-col items-stretch w-full max-w-4xl',
+              'gap-3.5'
+            )}
+          >
+            {uploadStatus === 'uploading' && (
+              <DashboardHomeownerUploading />
+            )}
+            <DashboardHomeownerQuote />
+          </div>
+        }
+        second={
+          <>
+            {acceptedQuote ? (
+              <ComponentsCongratsPanel>
+                <PainterCardBackground>
+                  <PainterCardData
+                    painterId={acceptedQuote.painterId}
+                  />
+                </PainterCardBackground>
+              </ComponentsCongratsPanel>
+            ) : (
+              <DashboardHomeownerContractorQuotes />
+            )}
+          </>
+        }
+      >
+        {isDepositScreen && <DashboardModalQuoteAccept />}
+      </ComponentsDashboardLayout>
+    </>
   );
 };

@@ -1,6 +1,6 @@
-'use client';;
+'use client';
 import { useState, useEffect } from 'react';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
   doc,
@@ -17,13 +17,20 @@ import {
 } from 'firebase/storage';
 import { useOutsideClick } from '@/hooks/outside-click';
 import { TAuthConfig } from '@/context/auth/types';
-import { isAgentAtom, isPainterAtom, isProfilePicAtom } from '@/atom';
+import {
+  isAgentAtom,
+  isPainterAtom,
+} from '@/atom';
 import { useAtom } from 'jotai';
+import { useApp } from '@/context/app/provider';
 
 export const useAuthMenu = (config: TAuthConfig) => {
-  const { onNavigateScrollTopClick, dispatchUserSignedIn } =
-    config;
-  const [profilePictureSrc, setProfilePictureUrl] = useAtom(isProfilePicAtom);
+  const { onNavigateScrollTopClick } = useApp();
+
+  const {
+    dispatchUserSignedIn,
+    dispatchProfilePictureUrl,
+  } = config;
   const [isLoading, setLoading] = useState(true);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
@@ -35,14 +42,14 @@ export const useAuthMenu = (config: TAuthConfig) => {
   const MAX_RETRIES = 5; // Maximum number of retries
 
   const fetchProfilePicture = async (retries = 0) => {
-    setLoading(true);
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      setLoading(true);
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.log('no corrent user');
+        return;
+      }
+
       // Check if the user is a painter
       const painterQuery = query(
         collection(firestore, 'painters'),
@@ -54,7 +61,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
         setPainter(true);
         const painterData = painterSnapshot.docs[0].data();
         if (painterData.logoUrl) {
-          setProfilePictureUrl(painterData.logoUrl);
+          dispatchProfilePictureUrl(painterData.logoUrl);
           setLoading(false);
           return;
         }
@@ -74,8 +81,9 @@ export const useAuthMenu = (config: TAuthConfig) => {
         setAgent(true);
         const agentData = agentDoc.data();
         if (agentData.profilePictureUrl) {
-          setProfilePictureUrl(agentData.profilePictureUrl);
-          setLoading(false);
+          dispatchProfilePictureUrl(
+            agentData.profilePictureUrl
+          );
           return;
         } else {
           const profilePictureRef = ref(
@@ -85,8 +93,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
           const url = await getDownloadURL(
             profilePictureRef
           );
-          setProfilePictureUrl(url);
-          setLoading(false);
+          dispatchProfilePictureUrl(url);
           return;
         }
       } else {
@@ -99,14 +106,13 @@ export const useAuthMenu = (config: TAuthConfig) => {
           () => fetchProfilePicture(retries + 1),
           RETRY_INTERVAL
         );
-      } else {
-        setLoading(false);
       }
     } catch (error) {
       console.error(
         'Error fetching profile picture:',
         error
       );
+    } finally {
       setLoading(false);
     }
   };
@@ -114,18 +120,6 @@ export const useAuthMenu = (config: TAuthConfig) => {
   useEffect(() => {
     fetchProfilePicture();
   }, [auth, firestore, storage]);
-
-  const handleSignOut = async () => {
-    console.log('SIGN OUT');
-    try {
-      await signOut(auth);
-      dispatchUserSignedIn(false);
-      onNavigateScrollTopClick('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-    sessionStorage.clear();
-  };
 
   const handleMenuOpenToggle = () => {
     setMenuOpen((prev) => !prev);
@@ -149,11 +143,9 @@ export const useAuthMenu = (config: TAuthConfig) => {
   return {
     isMenuOpen,
     isLoading,
-    profilePictureSrc,
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,
     onDashboardClick: handleDashboardClick,
-    onSignOut: handleSignOut,
     dispatchMenuOpen: setMenuOpen,
   };
 };

@@ -3,16 +3,21 @@ import { useAccountSettingsAddress } from '@/context/account-settings/address';
 import { useAccountSettingsMap } from '@/context/account-settings/map';
 import { useAccountSettingsState } from '@/context/account-settings/state';
 import {
+  TAccountSettingsAddressGeocodeConfig,
   TAccountSettingsConfig,
   TAccountSettingsContext,
   TAccountSettingsStateConfig,
+  TCoordsValue,
+  TGeocodeAddressContext,
 } from '@/context/account-settings/types';
+import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 import {
   createContext,
   FC,
   PropsWithChildren,
   useContext,
   useRef,
+  useState,
 } from 'react';
 
 export const ACCOUNT_SETTINGS =
@@ -27,28 +32,47 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
+  const [coords, setCoords] = useState<TCoordsValue>(null);
+
   const addressInputRef = useRef<HTMLInputElement | null>(
     null
   );
-  const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapElementRef = useRef<HTMLDivElement | null>(null);
 
   const accountSettingsAddress =
     useAccountSettingsAddress();
+
   const config: TAccountSettingsConfig = {
     ...accountSettingsAddress,
+     coords,
+     dispatchCoords:setCoords,
     addressInputRef,
-    mapRef,
+    mapElementRef,
   };
-
   const accountSettingsMap = useAccountSettingsMap(config);
-  const accountSettingsConfig: TAccountSettingsStateConfig =
+  const accountSettingsAddressGeocodeConfig: TAccountSettingsAddressGeocodeConfig =
     {
       ...accountSettingsMap,
       ...config,
     };
-  const accountSettings = useAccountSettingsState(
-    accountSettingsConfig
-  );
+
+  const handleGeocodeAddress = useAutoFillAddressGeocode({
+    ...accountSettingsAddressGeocodeConfig,
+  });
+
+  const geocodeAddressContext: TGeocodeAddressContext = {
+    onGeocodeAddress: handleGeocodeAddress,
+  };
+
+  const accountSettingsStateConfig: TAccountSettingsStateConfig &
+    TGeocodeAddressContext = {
+    ...accountSettingsAddressGeocodeConfig,
+    ...geocodeAddressContext,
+  };
+
+  const accountSettings = useAccountSettingsState({
+    ...accountSettingsStateConfig,
+  });
 
   return (
     <ACCOUNT_SETTINGS.Provider
@@ -57,6 +81,7 @@ export const AccountSettingsProvider: FC<
         ...config,
         ...accountSettingsMap,
         ...accountSettingsAddress,
+        ...geocodeAddressContext,
       }}
     >
       {children}

@@ -12,7 +12,7 @@ import { AnimationFadeUp } from '@/components/animation/fade-up';
 import { ShellHeaderBackground } from '@/components/shell/header/background';
 
 export const ShellHeader = () => {
-  const { signIn } = useAuth();
+  const { isAuthLoading } = useAuth();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const viewport = useViewport();
@@ -50,9 +50,8 @@ export const ShellHeader = () => {
               delay={0.2}
             >
               <ShellHeaderBackground />
-                <ShellLogo />
-              {signIn.isAuthLoading ||
-              !viewport.isDimensions ? (
+              <ShellLogo />
+              {isAuthLoading || !viewport.isDimensions ? (
                 <Fragment />
               ) : (
                 <>

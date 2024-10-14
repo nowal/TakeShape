@@ -1,21 +1,21 @@
-import {
-  Dispatch,
-  MutableRefObject,
-  useEffect,
-} from 'react';
-import { loadGoogleMapsScript } from '@/utils/loadGoogleMapsScript'; // Adjust the import path as needed
+import { useEffect } from 'react';
+import { loadGoogleMapsScript } from '@/utils/libs/load-google-maps-script'; // Adjust the import path as needed
 import { errorLoading } from '@/utils/error';
 import { notifyError } from '@/utils/notifications';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
-type TConfig = {
-  addressInputRef: MutableRefObject<HTMLInputElement | null>;
-  dispatchAddress: Dispatch<string>;
-};
-export const useAutoFillAddress = (config: TConfig) => {
-  const { addressInputRef } = config;
+export const useAutoFillAddress = () => {
+  const {
+    addressInputRef,
+    dispatchAddress,
+    dispatchAddressLoading,
+    dispatchCoords,
+  } = useAccountSettings();
+
   useEffect(() => {
     const initAutocomplete = async () => {
       try {
+        dispatchAddressLoading(true);
         await loadGoogleMapsScript(
           'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
         ); // Replace with your actual API key
@@ -49,9 +49,13 @@ export const useAutoFillAddress = (config: TConfig) => {
               place.formatted_address;
             const location = place.geometry.location;
 
-            config.dispatchAddress(formattedAddress || '');
-            // setLat(location.lat());
-            // setLng(location.lng());
+            dispatchAddress(formattedAddress || '');
+            const nextCoords = {
+              lat: location.lat(),
+              lng: location.lng(),
+            };
+            console.log('nextCoords ', nextCoords);
+            dispatchCoords(nextCoords);
           });
         }
       } catch (error) {
@@ -60,6 +64,8 @@ export const useAutoFillAddress = (config: TConfig) => {
         );
         notifyError(errorMessage);
         console.error(errorMessage, error);
+      } finally {
+        dispatchAddressLoading(false);
       }
     };
 

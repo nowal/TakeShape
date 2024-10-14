@@ -7,7 +7,7 @@ import { DashboardPreferences } from '@/components/dashboard/preferences';
 
 export const DashboardHomeownerQuote: FC = () => {
   const dashboard = useDashboard();
-  const { userData, acceptedQuote, isVideoLoading } =
+  const { userData, acceptedQuote } =
     dashboard;
   return (
     <DashboardCard>

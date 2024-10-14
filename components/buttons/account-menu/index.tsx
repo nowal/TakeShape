@@ -8,9 +8,11 @@ import {
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
+import { useApp } from '@/context/app/provider';
 
 export const AccountMenu = () => {
-  const { menu, onNavigateScrollTopClick } = useAuth();
+  const { onNavigateScrollTopClick } = useApp();
+  const { menu } = useAuth();
   const {
     isMenuOpen,
     outsideClickRef,

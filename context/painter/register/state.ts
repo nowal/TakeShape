@@ -1,13 +1,8 @@
 'use client';
 
+import { errorAuth } from '@/utils/error/auth';
 import { notifyError } from '@/utils/notifications';
-import {errorAuth} from "@/utils/error/auth"
-import {
-  useState,
-  useEffect,
-  useRef,
-  FormEvent,
-} from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   getFirestore,
@@ -27,19 +22,21 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
-import { painterInfoAtom, isPainterAtom } from '@/atom';
+import { painterInfoAtom } from '@/atom';
 import { useAutoFillAddress } from '@/hooks/auto-fill/address';
+import { useAccountSettings } from '@/context/account-settings/provider';
+import { useAuth } from '@/context/auth/provider';
+import { useApp } from '@/context/app/provider';
 
-type TConfig = any;
-export const usePainterRegisterState = (
-  config?: TConfig
-) => {
-  const [businessName, setBusinessName] = useState('');
-  const [address, setAddress] = useState('');
-  const [lat, setLat] = useState(0);
-  const [lng, setLng] = useState(0);
-  const [range, setRange] = useState(10); // Default range in miles
-  const [isInsured, setIsInsured] = useState(false);
+export const usePainterRegisterState = () => {
+  const {
+    address,
+    businessName,
+    dispatchPainter,
+    range,
+    coords,
+  } = useAccountSettings();
+  const { onNavigateScrollTopClick } = useApp();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<
@@ -47,119 +44,26 @@ export const usePainterRegisterState = (
   >(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string|null>(null);
-  const [isPainter, setPainter] = useAtom(isPainterAtom);
+  const [
+    isPainterRegisterSubmitting,
+    setPainterRegisterSubmitting,
+  ] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<
+    string | null
+  >(null);
   const [painterInfo, setPainterInfo] =
     useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
   const router = useRouter();
   const auth = getAuth(firebase);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(
-    null
-  );
-  const circleRef = useRef<google.maps.Circle | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
 
-  useAutoFillAddress({
-    dispatchAddress: setAddress,
-    addressInputRef,
-  });
-
-  useEffect(() => {
-    if (lat && lng) {
-      initializeMap(lat, lng, range);
-    }
-  }, [lat, lng, range]);
-
-  const initializeMap = (
-    lat: number,
-    lng: number,
-    range: number
-  ) => {
-    if (window.google && mapRef.current) {
-      const bounds = new window.google.maps.LatLngBounds();
-      const center = new window.google.maps.LatLng(
-        lat,
-        lng
-      );
-      bounds.extend(center);
-      bounds.extend(
-        new window.google.maps.LatLng(lat + range / 69, lng)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat - range / 69, lng)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat, lng + range / 69)
-      );
-      bounds.extend(
-        new window.google.maps.LatLng(lat, lng - range / 69)
-      );
-
-      if (!mapInstanceRef.current) {
-        mapInstanceRef.current = new window.google.maps.Map(
-          mapRef.current,
-          {
-            center: { lat, lng },
-            zoom: 10,
-          }
-        );
-      } else {
-        mapInstanceRef.current.fitBounds(bounds);
-      }
-
-      if (!circleRef.current) {
-        circleRef.current = new window.google.maps.Circle({
-          map: mapInstanceRef.current,
-          center: { lat, lng },
-          radius: range * 1609.34, // Convert miles to meters
-          fillColor: '#AA0000',
-          strokeColor: '#AA0000',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillOpacity: 0.35,
-        });
-      } else {
-        circleRef.current.setCenter({ lat, lng });
-        circleRef.current.setRadius(range * 1609.34);
-      }
-
-      if (!markerRef.current) {
-        markerRef.current = new window.google.maps.Marker({
-          position: { lat, lng },
-          map: mapInstanceRef.current,
-          draggable: true,
-        });
-
-        markerRef.current.addListener('dragend', () => {
-          const newLat = markerRef
-            .current!.getPosition()!
-            .lat();
-          const newLng = markerRef
-            .current!.getPosition()!
-            .lng();
-          setLat(newLat);
-          setLng(newLng);
-          initializeMap(newLat, newLng, range);
-        });
-      } else {
-        markerRef.current.setPosition({ lat, lng });
-      }
-
-      mapInstanceRef.current.fitBounds(
-        circleRef.current.getBounds()!
-      );
-    }
-  };
+  useAutoFillAddress();
 
   const handleSubmit = async (
-    e: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
-    setLoading(true); // Set loading state to true
+    event.preventDefault();
+    setPainterRegisterSubmitting(true); // Set loading state to true
     setErrorMessage(''); // Reset error message
 
     try {
@@ -178,10 +82,9 @@ export const usePainterRegisterState = (
       const painterData = {
         businessName,
         address,
-        lat,
-        lng,
+        ...(coords ? { coords } : {}),
         range,
-        isInsured,
+        isInsured: false,
         logoUrl,
         phoneNumber,
         userId: user.uid, // Link the painter data to the user ID
@@ -194,16 +97,15 @@ export const usePainterRegisterState = (
 
       await setDoc(painterDocRef, painterData);
       console.log('Painter info saved:', painterData);
-      setPainter(true); // Set the user as a painter
-
-      router.push('/dashboard');
+      dispatchPainter(true); // Set the user as a painter
+      onNavigateScrollTopClick('/dashboard');
     } catch (error) {
       console.error('Error registering painter: ', error);
       const errorMessage: null | string = errorAuth(error);
       notifyError(errorMessage);
       setErrorMessage(errorMessage);
     } finally {
-      setLoading(false); // Reset loading state
+      setPainterRegisterSubmitting(false); // Reset loading state
     }
   };
 
@@ -250,10 +152,7 @@ export const usePainterRegisterState = (
   };
 
   return {
-    isLoading,
-    lng,
-    lat,
-    businessName,
+    isPainterRegisterSubmitting,
     errorMessage,
     email,
     logoPreview,
@@ -263,7 +162,6 @@ export const usePainterRegisterState = (
     dispatchPassword: setPassword,
     dispatchEmail: setEmail,
     dipatchPhoneNumber: setPhoneNumber,
-    dispatchBusinessName: setBusinessName,
     onLogoChange: handleLogoChange,
     onSubmit: handleSubmit,
   };

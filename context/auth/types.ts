@@ -1,7 +1,15 @@
+import { useSignOut } from '@/context/auth/sign-out';
 import { Dispatch } from 'react';
 
-export type TAuthConfig = {
+export type TAuthSignOutConfig = {
+  profilePictureSrc: string | null;
   isUserSignedIn: boolean;
+  isAuthLoading: boolean;
+  dispatchAuthLoading: Dispatch<boolean>;
   dispatchUserSignedIn: Dispatch<boolean>;
-  onNavigateScrollTopClick(nextPath:string): void
+  dispatchProfilePictureUrl: Dispatch<string | null>;
+};
+
+export type TAuthConfig = TAuthSignOutConfig & {
+  onSignOut: ReturnType<typeof useSignOut>;
 };

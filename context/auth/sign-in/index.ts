@@ -8,7 +8,6 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut,
 } from 'firebase/auth';
 import firebase from '@/lib/firebase';
 import {
@@ -19,49 +18,42 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { TAuthConfig } from '@/context/auth/types';
-import { isProfilePicAtom } from '@/atom';
-import { useAtom } from 'jotai';
+import { useApp } from '@/context/app/provider';
 
 export const useSignIn = ({
   isUserSignedIn,
   dispatchUserSignedIn,
-  onNavigateScrollTopClick,
+  dispatchAuthLoading,
+  onSignOut,
 }: TAuthConfig) => {
+  const { onNavigateScrollTopClick } = useApp();
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isAuthLoading, setAuthLoading] = useState(true);
-  const [isSigningIn, setSigningIn] = useState(false); // Loading state for login button
+  const [isSignInSubmitting, setSignInSubmitting] =
+    useState(false); // Loading state for login button
   const [errorMessage, setErrorMessage] = useState<
     string | null
   >(null); // Error message state
   const auth = getAuth(firebase);
-  const [profilePictureSrc, setProfilePictureUrl] = useAtom(
-    isProfilePicAtom
-  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      dispatchUserSignedIn(Boolean(user));
-      setAuthLoading(false); // Authentication state is confirmed, loading is done
+      const isUser = Boolean(user);
+      dispatchUserSignedIn(isUser);
+      dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
     });
 
-    // const timeoutId = setTimeout(() => {
-    //   setAuthLoading(false); // Forcefully hide loading after a timeout (e.g., 5 seconds)
-    // }, 2000);
-
-    // Cleanup the listener and timeout on unmount
     return () => {
       unsubscribe();
-      // clearTimeout(timeoutId);
     };
   }, [auth]);
 
   const handleSignIn = async (
-    e: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
-    setSigningIn(true); // Set loading state to true
+    event.preventDefault();
+    setSignInSubmitting(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
     const firestore = getFirestore(firebase);
 
@@ -75,7 +67,10 @@ export const useSignIn = ({
 
       // Check if the signed-in user is in the reAgents collection
       const currentUser = auth.currentUser;
-      if (currentUser) {
+      const isUser = currentUser !== null;
+
+      if (isUser) {
+        dispatchUserSignedIn(isUser);
         const agentDocRef = doc(
           firestore,
           'reAgents',
@@ -96,14 +91,17 @@ export const useSignIn = ({
               collection(firestore, 'userImages'),
               {
                 ...quote,
-                userId: auth.currentUser.uid,
+                userId: currentUser.uid,
               }
             );
             sessionStorage.removeItem('quoteData'); // Clean up
           }
-
+          console.log(' NAV TO DASHBOARD ');
           onNavigateScrollTopClick('/dashboard');
+          dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
         }
+      } else {
+        console.error('Error current user is null');
       }
     } catch (error) {
       console.error('Error signing in:', error);
@@ -111,21 +109,21 @@ export const useSignIn = ({
         'Incorrect email or password. Please try again.'
       ); // Set error message
     } finally {
-      setSigningIn(false); // Reset loading state
+      setSignInSubmitting(false); // Reset loading state
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      onNavigateScrollTopClick('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    } finally {
-      setProfilePictureUrl(null);
-    }
-    sessionStorage.clear();
-  };
+  // const handleSignOut = async () => {
+  //   try {
+  //     await signOut(auth);
+  //     onNavigateScrollTopClick('/');
+  //   } catch (error) {
+  //     console.error('Error signing out:', error);
+  //   } finally {
+  //     setProfilePictureUrl(null);
+  //   }
+  //   sessionStorage.clear();
+  // };
 
   const handleEmailChange = (
     event: ChangeEvent<HTMLInputElement>
@@ -141,7 +139,7 @@ export const useSignIn = ({
 
   const handleClick = () => {
     if (isUserSignedIn) {
-      handleSignOut();
+      onSignOut();
       return;
     } else {
       setShowModal(true);
@@ -153,9 +151,8 @@ export const useSignIn = ({
   };
 
   return {
-    isSigningIn,
+    isSignInSubmitting,
     isShowModal,
-    isAuthLoading,
     email,
     password,
     errorMessage,
@@ -165,6 +162,5 @@ export const useSignIn = ({
     onSignInButtonClick: handleClick,
     onSignIn: handleSignIn,
     dispatchSignInModalOpen: setShowModal,
-    dispatchAuthLoading: setAuthLoading,
   };
 };

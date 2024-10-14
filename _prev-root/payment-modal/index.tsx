@@ -10,7 +10,7 @@ import {
   doc,
   updateDoc,
 } from 'firebase/firestore';
-import { PainterCardData } from '../painter/card/data';
+import { PainterCardData } from '../../components/painter/card/data';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '@/components/stripePayment';

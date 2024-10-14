@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
 import { ComponentsAccountSettingsUser } from '@/components/account-settings/user';
@@ -7,19 +7,38 @@ import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsLoading16 } from '@/components/icons/loading/16';
+import { useEffect } from 'react';
 
 const AccountSettingsPage = () => {
-  const { signIn } = useAuth();
-  const { isAuthLoading } = signIn;
+  const { isAuthLoading } = useAuth();
   const accountSettings = useAccountSettings();
   const {
+    isAddressLoading,
     isLoading,
     isPainter,
     isAgent,
     errorMessage,
+    coords,
+    range,
     onSubmit,
+    onUpdateMap,
   } = accountSettings;
   useAuthNavigateHome();
+  
+  useEffect(() => {
+    console.log(
+      'ACC    SETTINGS ',
+      coords,
+      ' ',
+      range,
+
+      '   isAddressLoading ',
+      isAddressLoading
+    );
+    if (coords && !isAddressLoading) {
+      onUpdateMap(coords, range);
+    }
+  }, [isAddressLoading, coords, range]);
 
   if (isAuthLoading) return null;
 

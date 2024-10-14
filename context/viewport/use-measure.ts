@@ -16,6 +16,7 @@ import {
 } from '@/constants/theme';
 import * as RDD from 'react-device-detect';
 
+const RESIZE_WARMUP = 100;
 const RESIZE_COOLDOWN = 400;
 
 export type TContainerState = {
@@ -51,6 +52,7 @@ export const useViewportMeasure = (
   const [viewport, setViewport] =
     useState<TViewport>(INIT_VIEWPORT);
   const { timeoutRef, endTimeout } = useTimeoutRef();
+  const { timeoutRef:initTimeoutRef, endTimeout:initEndTimeout } = useTimeoutRef();
 
   const handleSize = (next?: TViewport) => {
     let isResizing = false;
@@ -92,13 +94,16 @@ export const useViewportMeasure = (
   };
 
   const handleResize = () => {
-    if (RDD.isMobile) return;
-    handleSize({
-      ...INIT_VIEWPORT,
-      isResizing: true,
-    });
+    if (RDD.isMobile) return; // disable for mobile because Safari triggers resize when user scrolls and search bar disappears
+    initTimeoutRef.current = setTimeout(() => {
+      handleSize({
+        ...INIT_VIEWPORT,
+        isResizing: true,
+      });
+    }, RESIZE_WARMUP);
     endTimeout();
     timeoutRef.current = setTimeout(() => {
+      initEndTimeout()
       handleSize(INIT_VIEWPORT);
     }, RESIZE_COOLDOWN);
   };

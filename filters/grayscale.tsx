@@ -1,3 +1,4 @@
+import { AnimationFadeUp } from '@/components/animation/fade-up';
 import {
   motion,
   MotionValue,

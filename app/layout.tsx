@@ -10,20 +10,18 @@ import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
 import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ShellChildren } from '@/components/shell/children';
-import { Slide, ToastContainer } from 'react-toastify';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
+import { LibsToastify } from '@/components/libs/toastify';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
   description: 'Your home, your style, your terms',
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
+type TProps = Readonly<{
   children: ReactNode;
-}>) {
+}>;
+export default function RootLayout({ children }: TProps) {
   return (
     <html lang="en">
       <CssGlobal />
@@ -31,10 +29,6 @@ export default function RootLayout({
         <body className="font-montserrat">
           <div className="fixed inset-0 bg-white" />
           <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
-            <ToastContainer
-              transition={Slide}
-              hideProgressBar
-            />
             <MotionConfig transition={MOTION_CONFIG}>
               <ContextProviders>
                 <ShellHeader />
@@ -45,6 +39,7 @@ export default function RootLayout({
                 </Suspense>
               </ContextProviders>
             </MotionConfig>
+            <LibsToastify />
           </div>
           <Script
             id="facebook-pixel"

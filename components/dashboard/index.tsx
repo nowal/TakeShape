@@ -8,14 +8,14 @@ import type { FC } from 'react';
 export const ComponentsDashboard: FC = () => {
   const viewport = useViewport();
   const auth = useAuth();
-  const { signIn } = auth;
+  const { signIn, isAuthLoading } = auth;
   const dashboard = useDashboard();
   const { isPainter, isUserDataLoading } = dashboard;
   const isReady =
     viewport.isDimensions &&
     !isUserDataLoading &&
-    !signIn.isSigningIn &&
-    !signIn.isAuthLoading;
+    !signIn.isSignInSubmitting &&
+    !isAuthLoading;
 
   if (!isReady) return null;
 

@@ -135,9 +135,9 @@ export const useDashboardState = () => {
             );
             const title =
               userImageDoc.data()?.title || 'Untitled';
-            console.log(
-              `Fetched title for userImage ${id}: ${title}`
-            );
+            // console.log(
+            //   `Fetched title for userImage ${id}: ${title}`
+            // );
             return { id, title };
           })
         );
@@ -148,11 +148,11 @@ export const useDashboardState = () => {
         const initialUserImageId =
           userImageIdFromParams ||
           (userImageIds.length > 0 ? userImageIds[0] : '');
-        console.log('right after search params');
+        // console.log('right after search params');
 
         if (initialUserImageId) {
-          console.log('Initial');
-          console.log(initialUserImageId);
+          // console.log('Initial');
+          // console.log(initialUserImageId);
           setSelectedUserImage(initialUserImageId);
           handleSetParam('userImageId', initialUserImageId);
           fetchUserImageData(initialUserImageId);
@@ -176,10 +176,10 @@ export const useDashboardState = () => {
               preferredPainters:
                 agentData.preferredPainters || [],
             });
-            console.log(
-              'Agent info fetched successfully:',
-              agentData
-            );
+            // console.log(
+            //   'Agent info fetched successfully:',
+            //   agentData
+            // );
 
             if (
               agentData.preferredPainters &&
@@ -210,7 +210,7 @@ export const useDashboardState = () => {
         }
       } else {
         // Check if the user exists in the painters collection
-        console.log(auth.currentUser.uid);
+        // console.log(auth.currentUser.uid);
         const paintersQuery = query(
           collection(firestore, 'painters'),
           where('userId', '==', auth.currentUser.uid)
@@ -254,21 +254,21 @@ export const useDashboardState = () => {
       const prices = userImageData.prices;
       const video = userImageData.video;
       const title = userImageData.title || 'Untitled'; // Ensure title is fetched
-      console.log('Fetched prices:', prices);
-      console.log('Fetched video:', video);
-      console.log('Fetched title:', title);
+      // console.log('Fetched prices:', prices);
+      // console.log('Fetched video:', video);
+      // console.log('Fetched title:', title);
       setUserData({
         ...userImageData,
         prices,
         video,
         title,
       }); // Include title in user data
-      console.log('User data set:', {
-        ...userImageData,
-        prices,
-        video,
-        title,
-      });
+      // console.log('User data set:', {
+      //   ...userImageData,
+      //   prices,
+      //   video,
+      //   title,
+      // });
     } else {
       const errorMessage =
         'No user image document found for the current user image ID.';
@@ -284,11 +284,6 @@ export const useDashboardState = () => {
     }
   }, [auth.currentUser]);
 
-  // useEffect(() => {
-  //   if (uploadStatus === 'completed') {
-  //     window.location.reload();
-  //   }
-  // }, [uploadStatus]);
   const handleSelectedUserImage = (next: string) => {
     setSelectedUserImage(next);
     handleSetParam('userImageId', next);
@@ -308,11 +303,11 @@ export const useDashboardState = () => {
     setPainterId(painterId);
 
     try {
-      console.log(
-        'auth.currentUser selectedUserImage',
-        auth.currentUser,
-        selectedUserImage
-      );
+      // console.log(
+      //   'auth.currentUser selectedUserImage',
+      //   auth.currentUser,
+      //   selectedUserImage
+      // );
 
       if (auth.currentUser) {
         if (selectedUserImage) {

@@ -15,11 +15,12 @@ import {
   uploadBytes,
   getDownloadURL,
 } from 'firebase/storage';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth/provider';
+import { useApp } from '@/context/app/provider';
 
 export const useAgentRegisterState = () => {
-  const {   dispatchUserSignedIn } = useAuth();
+  const { onNavigateScrollTopClick } = useApp();
+  const { dispatchUserSignedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -32,7 +33,6 @@ export const useAgentRegisterState = () => {
   const [errorMessage, setErrorMessage] = useState<
     string | null
   >('');
-  const router = useRouter();
 
   const handleProfilePictureChange = (file: File) => {
     setProfilePicture(file);
@@ -91,7 +91,7 @@ export const useAgentRegisterState = () => {
         profilePictureUrl,
       });
       dispatchUserSignedIn(true);
-      router.push('/agentDashboard');
+      onNavigateScrollTopClick('/agentDashboard');
     } catch (error) {
       console.error('Error signing up: ', error);
       const errorMessage = errorAuth(error);

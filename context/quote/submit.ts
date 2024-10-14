@@ -22,6 +22,7 @@ import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
 import { usePreferences } from '@/context/preferences/provider';
+import { useApp } from '@/context/app/provider';
 
 type TConfig = {
   quoteTitle: string;
@@ -37,6 +38,7 @@ export const useQuoteSubmit = ({
   dispatchTitle,
   dispatchErrorMessage,
 }: TConfig) => {
+  const { onNavigateScrollTopClick } = useApp();
   const { timeoutRef } = useTimeoutRef();
   const { isUserSignedIn } = useAuth();
   const [description, setDescription] = useState('');
@@ -100,7 +102,7 @@ export const useQuoteSubmit = ({
           'Navigating to defaultPreferences with userImageId: ',
           docRef.id
         );
-        router.push(
+        onNavigateScrollTopClick(
           `/defaultPreferences?userImageId=${docRef.id}`
         ); // Navigate to defaultPreferences with userImageId
         const nextUserImage = {
@@ -112,14 +114,18 @@ export const useQuoteSubmit = ({
           nextUserImage,
         ]);
         onQuoteChange(nextUserImage.id);
-        router.push(`/defaultPreferences?userImageId=${docRef.id}`);
+        onNavigateScrollTopClick(
+          `/defaultPreferences?userImageId=${docRef.id}`
+        );
       } else {
         // Handle non-logged-in user case
         sessionStorage.setItem(
           'quoteData',
           JSON.stringify(userImageData)
         );
-        router.push(`/signup?userImageId=${docRef.id}`);
+        onNavigateScrollTopClick(
+          `/signup?userImageId=${docRef.id}`
+        );
       }
     } catch (error) {
       const errorMessage =

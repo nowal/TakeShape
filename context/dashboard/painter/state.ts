@@ -10,136 +10,29 @@ import {
 } from 'firebase/firestore';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import {
-  getStorage,
-  ref,
-  getDownloadURL,
-} from 'firebase/storage';
 import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correct
 import { TQuoteKey } from '@/components/dashboard/painter/types';
 import { notifyError } from '@/utils/notifications';
+import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
+import { getDistanceFromCoordsInKm } from '@/context/dashboard/painter/get-distance-from-coords-in-km';
+import { isDefined } from '@/utils/validation/is/defined';
+import { useApp } from '@/context/app/provider';
 
 export const useDashboardPainterState = () => {
+  const { onNavigateScrollTopClick } = useApp();
   const [jobList, setJobList] = useState<TJob[]>([]);
   const [selectedPage, setSelectedPage] =
     useState<TQuoteKey>('Available Quotes');
   const firestore = getFirestore();
-  const storage = getStorage(); // Initialize Firebase Storage
   const auth = getAuth();
-  const router = useRouter();
   const user = auth.currentUser;
 
-  const handleFetchPainterData = async () => {
-    try {
-      if (user) {
-        const painterQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', user.uid)
-        );
-        const painterSnapshot = await getDocs(painterQuery);
-        if (!painterSnapshot.empty) {
-          const painterData =
-            painterSnapshot.docs[0].data();
+  const handleGeocodeAddress = async (address: string) => {
+    console.log(
+      'useDashboardPainterState.handleGeocodeAddress, address:',
+      address
+    );
 
-          console.log('Painter Data:', painterData);
-
-          const userImagesQuery = collection(
-            firestore,
-            'userImages'
-          );
-          const userImagesSnapshot = await getDocs(
-            userImagesQuery
-          );
-          const jobs = await Promise.all(
-            userImagesSnapshot.docs.map(async (jobDoc) => {
-              const jobData = jobDoc.data() as TJob;
-
-              if (jobData.address) {
-                let { lat, lng } = jobData;
-
-                if (
-                  lat === undefined ||
-                  lng === undefined
-                ) {
-                  const geocodedLocation =
-                    await geocodeAddress(jobData.address);
-                  if (geocodedLocation) {
-                    lat = geocodedLocation.lat;
-                    lng = geocodedLocation.lng;
-                  }
-                }
-
-                if (
-                  lat !== undefined &&
-                  lng !== undefined
-                ) {
-                  const isWithinRange =
-                    await isJobWithinRange(
-                      painterData.address,
-                      painterData.range,
-                      { lat, lng }
-                    );
-                  if (isWithinRange) {
-                    if (jobData.paintPreferencesId) {
-                      const paintPrefDocRef = doc(
-                        firestore,
-                        'paintPreferences',
-                        jobData.paintPreferencesId
-                      );
-                      const paintPrefDocSnap = await getDoc(
-                        paintPrefDocRef
-                      );
-                      if (paintPrefDocSnap.exists()) {
-                        jobData.paintPreferences =
-                          paintPrefDocSnap.data() as TPaintPreferences;
-                      }
-                    }
-
-                    // Ensure the video URL is correct
-                    const videoUrl = await getVideoUrl(
-                      jobData.video
-                    );
-                    return {
-                      ...jobData,
-                      video: videoUrl,
-                      jobId: jobDoc.id,
-                    };
-                  }
-                } else {
-                  console.error(
-                    'Job address is missing latitude and/or longitude after geocoding:',
-                    jobData.address
-                  );
-                }
-              }
-              return null;
-            })
-          );
-          const filteredJobs = jobs.filter(
-            (job) => job !== null
-          ) as TJob[];
-          const unquotedJobs = filteredJobs.filter(
-            (job) =>
-              !job.prices.some(
-                (price) => price.painterId === user.uid
-              )
-          );
-          setJobList(unquotedJobs);
-        }
-      } else {
-        console.log(
-          'No user found, unable to fetch painter data.'
-        );
-      }
-    } catch (error) {
-      const errorMessage = 'Error fetching painter data';
-      notifyError(errorMessage);
-      console.error(error);
-    }
-  };
-
-  const geocodeAddress = async (address: string) => {
     const apiKey =
       'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA';
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
@@ -175,31 +68,30 @@ export const useDashboardPainterState = () => {
     range: number,
     jobAddress: { lat: number; lng: number }
   ): Promise<boolean> => {
-    const geocodedPainterAddress = await geocodeAddress(
-      painterAddress
-    );
+    const geocodedPainterAddress =
+      await handleGeocodeAddress(painterAddress);
 
     if (geocodedPainterAddress) {
       const { lat: painterLat, lng: painterLng } =
         geocodedPainterAddress;
       const { lat: jobLat, lng: jobLng } = jobAddress;
 
-      console.log(
-        `Painter Location: (${painterLat}, ${painterLng})`
-      );
-      console.log(`TJob Location: (${jobLat}, ${jobLng})`);
+      // console.log(
+      //   `Painter Location: (${painterLat}, ${painterLng})`
+      // );
+      // console.log(`TJob Location: (${jobLat}, ${jobLng})`);
 
-      const distance = getDistanceFromLatLonInKm(
+      const distance = getDistanceFromCoordsInKm(
         painterLat,
         painterLng,
         jobLat,
         jobLng
       );
-      console.log(
-        `Distance: ${distance} km, Range: ${
-          range * 1.60934
-        } km`
-      );
+      // console.log(
+      //   `Distance: ${distance} km, Range: ${
+      //     range * 1.60934
+      //   } km`
+      // );
 
       return distance <= range * 1.60934; // Convert miles to kilometers
     } else {
@@ -211,42 +103,112 @@ export const useDashboardPainterState = () => {
     }
   };
 
-  const getDistanceFromLatLonInKm = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) *
-        Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c =
-      2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
-  };
-
-  const deg2rad = (deg: number): number => {
-    return deg * (Math.PI / 180);
-  };
-
-  const getVideoUrl = async (
-    path: string
-  ): Promise<string> => {
-    const videoRef = ref(storage, path);
+  const handleFetchPainterData = async () => {
     try {
-      return await getDownloadURL(videoRef);
+      if (user) {
+        const painterQuery = query(
+          collection(firestore, 'painters'),
+          where('userId', '==', user.uid)
+        );
+        const painterSnapshot = await getDocs(painterQuery);
+        if (!painterSnapshot.empty) {
+          const painterData =
+            painterSnapshot.docs[0].data();
+
+          console.log('Painter Data:', painterData);
+
+          const userImagesQuery = collection(
+            firestore,
+            'userImages'
+          );
+          const userImagesSnapshot = await getDocs(
+            userImagesQuery
+          );
+          const jobs = await Promise.all(
+            userImagesSnapshot.docs.map(async (jobDoc) => {
+              const jobData = jobDoc.data() as TJob;
+
+              if (jobData.address) {
+                let { lat, lng } = jobData;
+
+                if (
+                  lat === undefined ||
+                  lng === undefined
+                ) {
+                  const geocodedLocation =
+                    await handleGeocodeAddress(
+                      jobData.address
+                    );
+                  if (geocodedLocation) {
+                    lat = geocodedLocation.lat;
+                    lng = geocodedLocation.lng;
+                  }
+                }
+
+                if (isDefined(lat) && isDefined(lng)) {
+                  const isWithinRange =
+                    await isJobWithinRange(
+                      painterData.address,
+                      painterData.range,
+                      { lat, lng }
+                    );
+                  if (isWithinRange) {
+                    if (jobData.paintPreferencesId) {
+                      const paintPrefDocRef = doc(
+                        firestore,
+                        'paintPreferences',
+                        jobData.paintPreferencesId
+                      );
+                      const paintPrefDocSnap = await getDoc(
+                        paintPrefDocRef
+                      );
+                      if (paintPrefDocSnap.exists()) {
+                        jobData.paintPreferences =
+                          paintPrefDocSnap.data() as TPaintPreferences;
+                      }
+                    }
+
+                    const video = await resolveVideoUrl(
+                      jobData.video
+                    );
+                    return {
+                      ...jobData,
+                      ...(video
+                        ? { video }
+                        : { video: '' }),
+                      jobId: jobDoc.id,
+                    };
+                  }
+                } else {
+                  console.error(
+                    'Job address is missing latitude and/or lnggitude after geocoding:',
+                    jobData.address
+                  );
+                }
+              }
+              return null;
+            })
+          );
+          const filteredJobs = jobs.filter(
+            (job) => job !== null
+          ) as TJob[];
+          const unquotedJobs = filteredJobs.filter(
+            (job) =>
+              !job.prices.some(
+                (price) => price.painterId === user.uid
+              )
+          );
+          setJobList(unquotedJobs);
+        }
+      } else {
+        console.log(
+          'No user found, unable to fetch painter data.'
+        );
+      }
     } catch (error) {
-      const errorMessage = 'Error getting video URL';
-      console.error(errorMessage, error);
+      const errorMessage = 'Error fetching painter data';
       notifyError(errorMessage);
-      return '';
+      console.error(error);
     }
   };
 
@@ -258,11 +220,11 @@ export const useDashboardPainterState = () => {
     setSelectedPage(selected);
     if (selected === 'Available Quotes') {
       handleFetchPainterData(); // Fetch available quotes
-      router.push('/dashboard');
+      onNavigateScrollTopClick('/dashboard');
     } else if (selected === 'Accepted Quotes') {
-      router.push('/acceptedQuotes');
+      onNavigateScrollTopClick('/acceptedQuotes');
     } else if (selected === 'Completed Quotes') {
-      router.push('/completedQuotes');
+      onNavigateScrollTopClick('/completedQuotes');
     }
   };
 
@@ -274,5 +236,6 @@ export const useDashboardPainterState = () => {
     dispatchJobList: setJobList,
     onFetchPainterData: handleFetchPainterData,
     onPageChange: handlePageChange,
+    onGeocodeAddress: handleGeocodeAddress,
   };
 };

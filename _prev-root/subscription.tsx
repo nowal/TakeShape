@@ -1,5 +1,5 @@
-import { LandingButtonsSubmit } from '@/components/landing/buttons/submit';
-import { useLanding } from '@/context/landing/provider';
+import { LandingButtonsSubmit } from '@/_prev-root/buttons/submit';
+import { useLanding } from '@/_prev-root/landing/provider';
 import type { FC } from 'react';
 
 export const LandingSubscription: FC = () => {

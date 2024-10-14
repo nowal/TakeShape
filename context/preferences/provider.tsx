@@ -10,8 +10,8 @@ import {
 
 type TPreferencesContext = ReturnType<
   typeof usePreferencesState
-> &
-  ReturnType<typeof usePreferencesStateColor> 
+> 
+// & ReturnType<typeof usePreferencesStateColor> 
 export const PREFERENCES =
   createContext<TPreferencesContext>(
     {} as TPreferencesContext
