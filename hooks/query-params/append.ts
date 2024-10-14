@@ -1,5 +1,8 @@
-import {usePathname, useSearchParams} from 'next/navigation';
-import {useRouter} from 'next/navigation';
+import {
+  usePathname,
+  useSearchParams,
+} from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { isNull } from '@/utils/validation/is/null';
 
 export const useQueryParamsAppend = () => {
@@ -11,8 +14,14 @@ export const useQueryParamsAppend = () => {
     if (!isNull(searchParams)) {
       const values = searchParams.getAll(key);
       if (!values.includes(value)) {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(
+          searchParams.toString()
+        );
         params.append(key, value);
+        console.log(
+          'useQueryParamsAppend.handler ',
+          pathname
+        );
         router.push(`${pathname}?${params}`);
       }
     }
