@@ -7,6 +7,7 @@ export const useAutoFillAddressGeocode = ({
   range,
   addressInputRef,
   dispatchAddress,
+  dispatchRange,
   onUpdateMap,
   dispatchCoords,
 }: TAccountSettingsAddressGeocodeConfig) => {
@@ -17,22 +18,17 @@ export const useAutoFillAddressGeocode = ({
     console.log('useAutoFillAddressGeocode.geocodeAddress');
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
-      if (
-        status === 'OK' &&
-        results &&
-        results[0].geometry.location
-      ) {
-        const location = results[0].geometry.location;
+      const location = results?.[0].geometry.location;
+
+      if (status === 'OK' && location) {
         const nextCoords = {
           lat: location.lat(),
           lng: location.lng(),
         };
         console.log('nextCoords ', nextCoords);
         dispatchCoords(nextCoords);
-        onUpdateMap(
-          { lat: location.lat(), lng: location.lng() },
-          nextRange
-        );
+        dispatchRange(nextRange);
+        onUpdateMap(nextCoords, nextRange);
       } else {
         console.error(
           'Geocode was not successful for the following reason: ' +
@@ -94,7 +90,6 @@ export const useAutoFillAddressGeocode = ({
             dispatchCoords(nextCoords);
 
             geocodeAddress(formattedAddress ?? '');
-
           });
         }
       } catch (error) {

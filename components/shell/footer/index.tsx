@@ -16,7 +16,7 @@ export const ShellFooter = () => {
         style={{
           marginTop: '-0.9375rem',
         }}
-        className="relative max-w-shell w-full mx-auto px-6 pb-10 z-10 lg:px-9"
+        className="relative max-w-shell w-full mx-auto px-4 pb-10 z-10 sm:px-9"
       >
         <div
           className={cx(

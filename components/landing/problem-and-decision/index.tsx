@@ -2,7 +2,6 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import takingVideo from '@/public/landing/problem-and-decision.png';
 import { LandingProblemAndDecisionText } from '@/components/landing/problem-and-decision/text';
-import { FallbacksBasic } from '@/components/fallbacks/loading/basic';
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 
 export const LandingProblemAndDecision: FC = () => {

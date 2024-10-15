@@ -33,7 +33,7 @@ export const ShellHeader = () => {
       <InView
         classValue={cx(
           'relative max-w-shell w-full',
-          'px-6 sm:px-9'
+          'px-4 sm:px-9'
         )}
         options={{ triggerOnce: true }}
       >

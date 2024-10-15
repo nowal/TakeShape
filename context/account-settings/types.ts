@@ -6,14 +6,18 @@ import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 
 export type TCoords = { lng: number; lat: number };
 export type TCoordsValue = null | TCoords;
+export type TMapElement = HTMLDivElement | null;
 
 export type TAccountSettingsConfig = {
+  range: number;
   coords: TCoordsValue;
   dispatchCoords: Dispatch<TCoordsValue>;
   address: string;
+  dispatchRange: Dispatch<number>;
   dispatchAddress: Dispatch<string>;
+  mapElement: TMapElement;
+  dispatchMapElement: Dispatch<TMapElement>;
   addressInputRef: MutableRefObject<HTMLInputElement | null>;
-  mapElementRef: MutableRefObject<HTMLDivElement | null>;
 };
 
 export type TAccountSettingsStateReturn = ReturnType<

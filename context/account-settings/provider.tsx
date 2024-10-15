@@ -32,12 +32,12 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
+  const [range, setRange] = useState(10);
   const [coords, setCoords] = useState<TCoordsValue>(null);
-
   const addressInputRef = useRef<HTMLInputElement | null>(
     null
   );
-  const mapElementRef = useRef<HTMLDivElement | null>(null);
+  const [mapElement, setMapElement] = useState<HTMLDivElement | null>(null);
 
   const accountSettingsAddress =
     useAccountSettingsAddress();
@@ -47,7 +47,10 @@ export const AccountSettingsProvider: FC<
     coords,
     dispatchCoords: setCoords,
     addressInputRef,
-    mapElementRef,
+    mapElement,
+    dispatchMapElement:setMapElement,
+    range,
+    dispatchRange:setRange
   };
   const accountSettingsMap = useAccountSettingsMap(config);
   const accountSettingsAddressGeocodeConfig: TAccountSettingsAddressGeocodeConfig =

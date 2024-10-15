@@ -31,8 +31,6 @@ const AccountSettingsPage = () => {
     console.log(
       'ACC    SETTINGS ',
       coords,
-      ' ',
-      range,
 
       '   isAddressLoading ',
       isAddressLoading
