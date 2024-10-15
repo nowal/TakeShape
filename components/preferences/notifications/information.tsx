@@ -6,8 +6,7 @@ export const PreferencesNotificationsInlineInformation: FC =
     return (
       <NotificationsInlineHighlight>
         None of your information will be shared with
-        painters until you accept a quote. Rest assured,
-        your privacy is our priority.
+        painters until you accept a quote.
       </NotificationsInlineHighlight>
     );
   };
