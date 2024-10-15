@@ -16,6 +16,7 @@ const SelectItem = forwardRef<HTMLDivElement, TProps>(
       <Select.Item
         className={cx(
           'relative flex flex-row items-center grow',
+          'w-full',
           'p-2',
           'px-3',
           'cursor-pointer outline-none select-none',

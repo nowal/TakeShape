@@ -60,7 +60,8 @@ export const InputsSelect = ({
           'px-4',
           'border border-gray-1 rounded-4xl',
           'text-sm',
-          'font-medium'
+          'font-medium',
+          'min-w-24'
         )}
         aria-label={placeholder}
       >
@@ -80,6 +81,8 @@ export const InputsSelect = ({
           position="popper"
           className={cx(
             'SelectContent',
+            'w-full',
+            'min-w-24',
             'column-stretch',
             'my-2',
             'rounded-xl',
