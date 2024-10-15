@@ -44,8 +44,8 @@ export const AccountSettingsProvider: FC<
 
   const config: TAccountSettingsConfig = {
     ...accountSettingsAddress,
-     coords,
-     dispatchCoords:setCoords,
+    coords,
+    dispatchCoords: setCoords,
     addressInputRef,
     mapElementRef,
   };

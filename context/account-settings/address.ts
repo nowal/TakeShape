@@ -39,10 +39,12 @@ export const useAccountSettingsAddress = () => {
       );
 
       const userImageDoc = await getDoc(userImageDocRef);
+
       if (userImageDoc.exists()) {
         const userId = userImageDoc.data().userId;
         const userDocRef = doc(firestore, 'users', userId);
         const userDoc = await getDoc(userDocRef);
+        
         if (userDoc.exists()) {
           setAddress(userDoc.data().address);
         }
@@ -60,9 +62,11 @@ export const useAccountSettingsAddress = () => {
         'userImages',
         userImageId
       );
+
       await updateDoc(userImageDocRef, {
         address,
       });
+
     };
 
     updateUserImageDoc();

@@ -64,7 +64,10 @@ export const useAccountSettingsState = (
   const [logoPreview, setLogoPreview] = useState<
     string | null
   >(null);
-  const [isAccountSettingsSubmitting, setAccountSettingsSubmitting] = useState(false);
+  const [
+    isAccountSettingsSubmitting,
+    setAccountSettingsSubmitting,
+  ] = useState(false);
   const [isDataLoading, setDataLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [agentName, setAgentName] = useState(''); // New state for agent's name
@@ -283,6 +286,8 @@ export const useAccountSettingsState = (
             phoneNumber,
             profilePictureUrl: profilePictureUrlToUpdate,
           });
+
+          onNavigateScrollTopClick('/agentDashboard');
         } else {
           // Homeowner update
           const userQuery = query(
