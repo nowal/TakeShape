@@ -25,7 +25,6 @@ export const useAutoFillAddressGeocode = ({
           lat: location.lat(),
           lng: location.lng(),
         };
-        console.log('nextCoords ', nextCoords);
         dispatchCoords(nextCoords);
         dispatchRange(nextRange);
         onUpdateMap(nextCoords, nextRange);
