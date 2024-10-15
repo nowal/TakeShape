@@ -42,13 +42,15 @@ export type TAccountSettingsContext =
   TAccountSettingsStateReturn &
     TAccountSettingsMapReturn &
     TAccountSettingsConfig &
-    TAccountSettingsddressReturn &
-    TGeocodeAddressContext;
+    TAccountSettingsddressReturn 
+    // &
+    // TGeocodeAddressContext;
 
 export type TAccountSettingsAddressGeocodeConfig =
   TAccountSettingsConfig & TAccountSettingsMapReturn;
 
 export type TAccountSettingsStateConfig =
   TAccountSettingsMapReturn &
-    TAccountSettingsAddressGeocodeConfig &
-    TGeocodeAddressContext;
+    TAccountSettingsAddressGeocodeConfig 
+    // &
+    // TGeocodeAddressContext;

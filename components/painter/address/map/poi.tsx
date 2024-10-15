@@ -1,24 +1,18 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-} from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
-  APIProvider,
-  Map,
   useMap,
   AdvancedMarker,
-  MapCameraChangedEvent,
   Pin,
 } from '@vis.gl/react-google-maps';
 
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import type { Marker } from '@googlemaps/markerclusterer';
 import { Circle } from './components/circle';
-import { TPoi } from '@/components/account-settings/user/painter/map/type';
+import { TPoi } from '@/components/painter/address/map/type';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
 export const PoiMarkers = (props: { pois: TPoi[] }) => {
+  const { dispatchCoords } = useAccountSettings();
   const map = useMap();
   const [markers, setMarkers] = useState<{
     [key: string]: Marker;
@@ -26,7 +20,7 @@ export const PoiMarkers = (props: { pois: TPoi[] }) => {
   const clusterer = useRef<MarkerClusterer | null>(null);
   const [circleCenter, setCircleCenter] =
     useState<null | google.maps.LatLng>(null);
-    
+
   const handleClick = (
     event: google.maps.MapMouseEvent
   ) => {
@@ -71,15 +65,30 @@ export const PoiMarkers = (props: { pois: TPoi[] }) => {
     });
   };
 
+  const handleDrag = (event: google.maps.MapMouseEvent) => {
+    if (!map) return;
+    const position = event.latLng;
+    if (!position) return;
+    console.log('marker clicked: ', position.toString());
+    map.panTo(position);
+    setCircleCenter(position);
+
+    const nextCoords = {
+      lat: position.lat(),
+      lng: position.lng(),
+    };
+    dispatchCoords(nextCoords);
+  };
+
   return (
     <>
       <Circle
         radius={800}
         center={circleCenter}
-        strokeColor={'#0c4cb3'}
+        strokeColor="#0c4cb3"
         strokeOpacity={1}
         strokeWeight={3}
-        fillColor={'#3b82f6'}
+        fillColor="#3b82f6"
         fillOpacity={0.3}
       />
       {props.pois.map((poi: TPoi) => (
@@ -89,11 +98,12 @@ export const PoiMarkers = (props: { pois: TPoi[] }) => {
           ref={(marker) => setMarkerRef(marker, poi.key)}
           clickable={true}
           onClick={handleClick}
+          onDrag={handleDrag}
         >
           <Pin
-            background={'#FBBC04'}
-            glyphColor={'#000'}
-            borderColor={'#000'}
+            background="#FBBC04"
+            glyphColor="#000"
+            borderColor="#000"
           />
         </AdvancedMarker>
       ))}

@@ -3,7 +3,6 @@
 import { errorAuth } from '@/utils/error/auth';
 import { notifyError } from '@/utils/notifications';
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   getFirestore,
   doc,
@@ -23,9 +22,7 @@ import {
 import firebase from '@/lib/firebase';
 import { useAtom } from 'jotai';
 import { painterInfoAtom } from '@/atom';
-import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 import { useAccountSettings } from '@/context/account-settings/provider';
-import { useAuth } from '@/context/auth/provider';
 import { useApp } from '@/context/app/provider';
 
 export const usePainterRegisterState = () => {
@@ -54,10 +51,7 @@ export const usePainterRegisterState = () => {
   const [painterInfo, setPainterInfo] =
     useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
-  const router = useRouter();
   const auth = getAuth(firebase);
-
-  useAutoFillAddress();
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>

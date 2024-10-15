@@ -8,9 +8,7 @@ import {
   TAccountSettingsContext,
   TAccountSettingsStateConfig,
   TCoordsValue,
-  TGeocodeAddressContext,
 } from '@/context/account-settings/types';
-import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 import {
   createContext,
   FC,
@@ -37,7 +35,8 @@ export const AccountSettingsProvider: FC<
   const addressInputRef = useRef<HTMLInputElement | null>(
     null
   );
-  const [mapElement, setMapElement] = useState<HTMLDivElement | null>(null);
+  const [mapElement, setMapElement] =
+    useState<HTMLDivElement | null>(null);
 
   const accountSettingsAddress =
     useAccountSettingsAddress();
@@ -48,9 +47,9 @@ export const AccountSettingsProvider: FC<
     dispatchCoords: setCoords,
     addressInputRef,
     mapElement,
-    dispatchMapElement:setMapElement,
+    dispatchMapElement: setMapElement,
     range,
-    dispatchRange:setRange
+    dispatchRange: setRange,
   };
   const accountSettingsMap = useAccountSettingsMap(config);
   const accountSettingsAddressGeocodeConfig: TAccountSettingsAddressGeocodeConfig =
@@ -59,19 +58,21 @@ export const AccountSettingsProvider: FC<
       ...config,
     };
 
-  const handleGeocodeAddress = useAutoFillAddressGeocode({
-    ...accountSettingsAddressGeocodeConfig,
-  });
+  // const handleGeocodeAddress = useAutoFillAddressGeocode({
+  //   ...accountSettingsAddressGeocodeConfig,
+  // });
 
-  const geocodeAddressContext: TGeocodeAddressContext = {
-    onGeocodeAddress: handleGeocodeAddress,
-  };
+  // const geocodeAddressContext: TGeocodeAddressContext = {
+  //   onGeocodeAddress: handleGeocodeAddress,
+  // };
 
-  const accountSettingsStateConfig: TAccountSettingsStateConfig &
-    TGeocodeAddressContext = {
-    ...accountSettingsAddressGeocodeConfig,
-    ...geocodeAddressContext,
-  };
+  const accountSettingsStateConfig: TAccountSettingsStateConfig =
+    //  &
+    //   TGeocodeAddressContext
+    {
+      ...accountSettingsAddressGeocodeConfig,
+      // ...geocodeAddressContext,
+    };
 
   const accountSettings = useAccountSettingsState({
     ...accountSettingsStateConfig,
@@ -84,7 +85,7 @@ export const AccountSettingsProvider: FC<
         ...config,
         ...accountSettingsMap,
         ...accountSettingsAddress,
-        ...geocodeAddressContext,
+        // ...geocodeAddressContext,
       }}
     >
       {children}

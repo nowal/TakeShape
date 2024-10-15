@@ -8,7 +8,7 @@ export const useAutoFillAddressGeocode = ({
   addressInputRef,
   dispatchAddress,
   dispatchRange,
-  onUpdateMap,
+  onMapUpdate,
   dispatchCoords,
 }: TAccountSettingsAddressGeocodeConfig) => {
   const geocodeAddress = (
@@ -27,7 +27,7 @@ export const useAutoFillAddressGeocode = ({
         };
         dispatchCoords(nextCoords);
         dispatchRange(nextRange);
-        onUpdateMap(nextCoords, nextRange);
+        onMapUpdate(nextCoords, nextRange);
       } else {
         console.error(
           'Geocode was not successful for the following reason: ' +

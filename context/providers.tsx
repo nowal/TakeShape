@@ -12,7 +12,8 @@ import { ViewportProvider } from '@/context/viewport';
 import { TChildrenProps } from '@/types/dom';
 import { arrToNest } from '@/utils/transform/arrToNest';
 import { FC, PropsWithChildren, useMemo } from 'react';
-import { APIProvider } from '@vis.gl/react-google-maps';
+import { MapsProvider } from '@/components/maps/provider';
+
 
 type TProps = TChildrenProps;
 export const ContextProviders: FC<TProps> = ({
@@ -21,6 +22,7 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
+        MapsProvider,
         AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,
@@ -38,9 +40,5 @@ export const ContextProviders: FC<TProps> = ({
     );
   }, []);
 
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };

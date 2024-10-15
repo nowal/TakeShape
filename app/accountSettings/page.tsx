@@ -22,7 +22,7 @@ const AccountSettingsPage = () => {
     coords,
     range,
     onSubmit,
-    onUpdateMap,
+    onMapUpdate,
   } = accountSettings;
 
   useAuthNavigateHome();
@@ -36,7 +36,7 @@ const AccountSettingsPage = () => {
       isAddressLoading
     );
     if (coords && !isAddressLoading) {
-      onUpdateMap(coords, range);
+      onMapUpdate(coords, range);
     }
   }, [isAddressLoading, coords, range]);
 

@@ -1,12 +1,8 @@
 'use client';
-import {
-  createContext,
-  FC,
-  PropsWithChildren,
-  useContext,
-} from 'react';
+import { createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { TAppConfig } from '@/context/app/types';
+import { TProviderFc } from '@/context/type';
 
 export const APP = createContext<TAppConfig>(
   {} as TAppConfig
@@ -14,9 +10,7 @@ export const APP = createContext<TAppConfig>(
 
 export const useApp = (): TAppConfig => useContext(APP);
 
-export const AppProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const AppProvider: TProviderFc = ({ children }) => {
   const router = useRouter();
   const handleNavigateScrollTopClick = async (
     path: string

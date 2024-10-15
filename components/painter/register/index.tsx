@@ -8,20 +8,12 @@ import { cx } from 'class-variance-authority';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { InputsSelect } from '@/components/inputs/select';
-import { TypographyFormTitle } from '@/components/typography/form/title';
-import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
-import { ComponentsAccountSettingsPainterMap } from '@/components/account-settings/user/painter/map';
-import { useAutoFillAddress } from '@/hooks/auto-fill/address';
 import { IconsLoading } from '@/components/icons/loading';
+import { PainterAddress } from '@/components/painter/address';
 
 export const ComponentsPainterRegister: FC = () => {
-  const {
-    range,
-    businessName,
-    dispatchRange,
-    dispatchBusinessName,
-  } = useAccountSettings();
+  const { businessName, dispatchBusinessName } =
+    useAccountSettings();
   const painterRegister = usePainterRegister();
   const {
     isPainterRegisterSubmitting,
@@ -35,8 +27,6 @@ export const ComponentsPainterRegister: FC = () => {
     onSubmit,
     dipatchPhoneNumber,
   } = painterRegister;
-
-  useAutoFillAddress();
 
   const submitTitle = isPainterRegisterSubmitting
     ? 'Submitting...'
@@ -57,21 +47,7 @@ export const ComponentsPainterRegister: FC = () => {
         placeholder="Business or Personal Name"
         required
       />
-      <ComponentsAccountSettingsUserInputsAddress />
-      <div className="flex flex-row items-center gap-2">
-        <TypographyFormTitle>Range</TypographyFormTitle>
-        <InputsSelect
-          name="range"
-          placeholder="Range (miles)"
-          value={range.toString()}
-          onValueChange={(_, value) =>
-            dispatchRange(Number(value))
-          }
-          required
-          basicValues={[10, 20, 30, 40, 50]}
-        />
-      </div>
-      <ComponentsAccountSettingsPainterMap />
+      <PainterAddress />
       <InputsText
         type="tel"
         value={phoneNumber}
@@ -138,7 +114,7 @@ export const ComponentsPainterRegister: FC = () => {
             ? IconsLoading
             : null,
         }}
-        gap='xl'
+        gap="xl"
       >
         {submitTitle}
       </ButtonsCvaButton>
