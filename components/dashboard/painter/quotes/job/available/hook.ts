@@ -12,8 +12,8 @@ import {
   uploadBytes,
   getDownloadURL,
 } from 'firebase/storage';
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { toast } from 'react-toastify';
+import { useDashboardPainter } from '@/hooks/pages/dashboard/painter';
 
 export const useDashboardPainterJobAvailable = (id: string) => {
   const { onFetchPainterData } = useDashboardPainter();

@@ -64,7 +64,7 @@ export const useAccountSettingsState = (
   const [logoPreview, setLogoPreview] = useState<
     string | null
   >(null);
-  const [isLoading, setLoading] = useState(false);
+  const [isAccountSettingsSubmitting, setAccountSettingsSubmitting] = useState(false);
   const [isDataLoading, setDataLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [agentName, setAgentName] = useState(''); // New state for agent's name
@@ -213,7 +213,7 @@ export const useAccountSettingsState = (
     event.preventDefault();
 
     try {
-      setLoading(true); // Set loading state to true
+      setAccountSettingsSubmitting(true); // Set loading state to true
       const currentUser = auth.currentUser;
       if (!currentUser) throw Error('No user');
       if (isPainter) {
@@ -342,7 +342,7 @@ export const useAccountSettingsState = (
         'An unexpected error occurred. Please try again.'
       );
     } finally {
-      setLoading(false); // Reset loading state
+      setAccountSettingsSubmitting(false); // Reset loading state
     }
   };
 
@@ -354,7 +354,7 @@ export const useAccountSettingsState = (
   return {
     isAgent,
     isPainter,
-    isLoading,
+    isAccountSettingsSubmitting,
     isDataLoading,
     profilePictureSrc,
     logoSrc,
@@ -373,6 +373,7 @@ export const useAccountSettingsState = (
     dispatchAgentName: setAgentName,
     dispatchBusinessName: setBusinessName,
     dispatchNewAgentName: setNewAgentName,
+    dispatchProfilePictureUrl: setProfilePictureUrl,
     onSubmit: handleSubmit,
     onLogoChange: handleLogoChange,
     onProfilePictureChange: handleProfilePictureChange,

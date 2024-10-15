@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from 'react';
 import {
   getFirestore,
@@ -8,35 +9,31 @@ import {
   getDocs,
   doc,
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
+import { usePainter } from '@/context/dashboard/painter/provider';
 import { useAuth } from '@/context/auth/provider';
 import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
-import { isDefined } from '@/utils/validation/is/defined';
 
-export const useDashboardPainterCompleted = () => {
-  const { isAuthLoading, dispatchAuthLoading } = useAuth();
-  const dashboardPainter = useDashboardPainter();
+export const useDashboardPainterAccepted = () => {
+  const dashboardPainter = usePainter();
+  const { dispatchNavigating } =
+    dashboardPainter;
   const [jobList, setJobList] = useState<TJob[]>([]);
+  const { isAuthLoading } = useAuth();
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
-    });
-
-    // Cleanup the listener on unmount
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (user) {
       fetchPainterData();
     }
   }, [user, firestore]);
+
+  useEffect(() => {
+    dispatchNavigating(false);
+  }, []);
 
   const fetchPainterData = async () => {
     if (user) {
@@ -49,39 +46,31 @@ export const useDashboardPainterCompleted = () => {
       if (!painterSnapshot.empty) {
         const painterData = painterSnapshot.docs[0].data();
 
-        const userImagesQuery = collection(
-          firestore,
-          'userImages'
-        );
-        const userImagesSnapshot = await getDocs(
-          userImagesQuery
-        );
-        const jobs = await Promise.all(
-          userImagesSnapshot.docs.map(async (jobDoc) => {
-            const jobData = jobDoc.data() as TJob;
-
-            if (jobData.address) {
-              let { lat, lng } = jobData;
-
-              if (!isDefined(lat) || !isDefined(lng)) {
-                const geocodedLocation =
-                  await dashboardPainter.onGeocodeAddress(
-                    jobData.address
+        if (
+          painterData.acceptedQuotes &&
+          painterData.acceptedQuotes.length > 0
+        ) {
+          const acceptedJobs = await Promise.all(
+            painterData.acceptedQuotes.map(
+              async (acceptedQuoteId: string) => {
+                if (!acceptedQuoteId) {
+                  console.error(
+                    'Invalid acceptedQuoteId:',
+                    acceptedQuoteId
                   );
-                if (geocodedLocation) {
-                  lat = geocodedLocation.lat;
-                  lng = geocodedLocation.lng;
+                  return null;
                 }
-              }
+                const jobRef = doc(
+                  firestore,
+                  'userImages',
+                  acceptedQuoteId
+                );
+                const jobSnapshot = await getDoc(jobRef);
+                if (jobSnapshot.exists()) {
+                  const jobData =
+                    jobSnapshot.data() as TJob;
 
-              if (isDefined(lat) && isDefined(lng)) {
-                const isWithinRange =
-                  await dashboardPainter.isJobWithinRange(
-                    painterData.address,
-                    painterData.range,
-                    { lat, lng }
-                  );
-                if (isWithinRange) {
+                  // Fetch paint preferences
                   if (jobData.paintPreferencesId) {
                     const paintPrefDocRef = doc(
                       firestore,
@@ -90,7 +79,7 @@ export const useDashboardPainterCompleted = () => {
                     );
                     const paintPrefDocSnap = await getDoc(
                       paintPrefDocRef
-                    );
+                    ); // Corrected variable usage
                     if (paintPrefDocSnap.exists()) {
                       jobData.paintPreferences =
                         paintPrefDocSnap.data() as TPaintPreferences;
@@ -117,37 +106,30 @@ export const useDashboardPainterCompleted = () => {
                         jobData.address || userData.address;
                     }
                   }
-
                   const video = await resolveVideoUrl(
                     jobData.video
                   );
                   return {
                     ...jobData,
                     ...(video ? { video } : { video: '' }),
-                    jobId: jobDoc.id,
+                    jobId: jobSnapshot.id,
                   };
                 }
-              } else {
-                console.error(
-                  'Job address is missing latitude and/or longitude after geocoding:',
-                  jobData.address
-                );
+                return null;
               }
-            }
-            return null;
-          })
-        );
-        const filteredJobs = jobs.filter(
-          (job) => job !== null
-        ) as TJob[];
-        setJobList(filteredJobs);
+            )
+          );
+          setJobList(
+            acceptedJobs.filter((job) => job !== null)
+          );
+        }
       }
     }
   };
 
   return {
     ...dashboardPainter,
-    isAuthLoading,
     jobs: jobList,
+    isAuthLoading,
   };
 };

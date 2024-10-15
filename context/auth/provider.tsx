@@ -17,6 +17,7 @@ import {
 import { useAtom } from 'jotai';
 import { isProfilePicAtom } from '@/atom';
 import { useSignOut } from '@/context/auth/sign-out';
+import { useAccountSettings } from '@/context/account-settings/provider';
 
 type TAuthContext = TAuthConfig & {
   isUserSignedIn: boolean;
@@ -33,9 +34,8 @@ export const useAuth = (): TAuthContext => useContext(AUTH);
 export const AuthProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [profilePictureSrc, setProfilePictureUrl] = useAtom(
-    isProfilePicAtom
-  );
+  const { profilePictureSrc, dispatchProfilePictureUrl } =
+    useAccountSettings();
   const [isAuthLoading, setAuthLoading] = useState(true);
   const [isUserSignedIn, setUserSignedIn] = useState(false);
   const signOutConfig: TAuthSignOutConfig = {
@@ -44,7 +44,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({
     isAuthLoading,
     dispatchAuthLoading: setAuthLoading,
     dispatchUserSignedIn: setUserSignedIn,
-    dispatchProfilePictureUrl: setProfilePictureUrl,
+    dispatchProfilePictureUrl,
   };
   const handleSignOut = useSignOut(signOutConfig);
   const config: TAuthConfig = {

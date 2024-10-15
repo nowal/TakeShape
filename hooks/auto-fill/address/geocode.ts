@@ -1,32 +1,20 @@
-import { TAccountSettingsMapReturn } from '@/context/account-settings/types';
+import { TAccountSettingsAddressGeocodeConfig } from '@/context/account-settings/types';
 import { loadGoogleMapsScript } from '@/utils/libs/load-google-maps-script'; // Adjust the import path as needed
 import { notifyError } from '@/utils/notifications';
-import {
-  Dispatch,
-  MutableRefObject,
-  useEffect,
-} from 'react';
+import { useEffect } from 'react';
 
-type TConfig = Pick<
-  TAccountSettingsMapReturn,
-  'onUpdateMap'
-> & {
-  addressInputRef: MutableRefObject<HTMLInputElement | null>;
-  dispatchAddress: Dispatch<string>;
-  range: number;
-};
 export const useAutoFillAddressGeocode = ({
+  range,
   addressInputRef,
   dispatchAddress,
   onUpdateMap,
-  range,
-}: TConfig) => {
-
+  dispatchCoords,
+}: TAccountSettingsAddressGeocodeConfig) => {
   const geocodeAddress = (
     address: string,
     nextRange = range
   ) => {
-    console.log("useAutoFillAddressGeocode.geocodeAddress")
+    console.log('useAutoFillAddressGeocode.geocodeAddress');
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
       if (
@@ -35,6 +23,12 @@ export const useAutoFillAddressGeocode = ({
         results[0].geometry.location
       ) {
         const location = results[0].geometry.location;
+        const nextCoords = {
+          lat: location.lat(),
+          lng: location.lng(),
+        };
+        console.log('nextCoords ', nextCoords);
+        dispatchCoords(nextCoords);
         onUpdateMap(
           { lat: location.lat(), lng: location.lng() },
           nextRange
@@ -47,9 +41,13 @@ export const useAutoFillAddressGeocode = ({
       }
     });
   };
-  
+
   useEffect(() => {
     const initAutocomplete = async () => {
+      console.log(
+        'useAutoFillAddressGeocode.initAutocomplete'
+      );
+
       try {
         await loadGoogleMapsScript(
           'AIzaSyCtM9oQWFui3v5wWI8A463_AN1QN0ITWAA'
@@ -84,8 +82,19 @@ export const useAutoFillAddressGeocode = ({
               return;
             }
 
-            dispatchAddress(place.formatted_address ?? ''); // Add a fallback value
-            geocodeAddress(place.formatted_address ?? '');
+            const formattedAddress =
+              place.formatted_address;
+            const location = place.geometry.location;
+            dispatchAddress(formattedAddress ?? ''); // Add a fallback value
+            const nextCoords = {
+              lat: location.lat(),
+              lng: location.lng(),
+            };
+            console.log('nextCoords ', nextCoords);
+            dispatchCoords(nextCoords);
+
+            geocodeAddress(formattedAddress ?? '');
+
           });
         }
       } catch (error) {

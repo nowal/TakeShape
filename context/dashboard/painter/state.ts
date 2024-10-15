@@ -1,31 +1,20 @@
-import { useState, useEffect } from 'react';
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-} from 'firebase/firestore';
+import { useState } from 'react';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
-import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correct
 import { TQuoteKey } from '@/components/dashboard/painter/types';
-import { notifyError } from '@/utils/notifications';
-import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
-import { getDistanceFromCoordsInKm } from '@/context/dashboard/painter/get-distance-from-coords-in-km';
-import { isDefined } from '@/utils/validation/is/defined';
 import { useApp } from '@/context/app/provider';
+import { notifyError } from '@/utils/notifications';
+import { getDistanceFromCoordsInKm } from '@/utils/maps/get-distance-from-coords-in-km';
 
-export const useDashboardPainterState = () => {
+export const usePainterState = () => {
   const { onNavigateScrollTopClick } = useApp();
-  const [jobList, setJobList] = useState<TJob[]>([]);
   const [selectedPage, setSelectedPage] =
     useState<TQuoteKey>('Available Quotes');
-  const firestore = getFirestore();
+  const [isNavigating, setNavigating] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
+
+  
 
   const handleGeocodeAddress = async (address: string) => {
     console.log(
@@ -63,7 +52,7 @@ export const useDashboardPainterState = () => {
     return null;
   };
 
-  const isJobWithinRange = async (
+  const handleJobWithinRangeCheck = async (
     painterAddress: string,
     range: number,
     jobAddress: { lat: number; lng: number }
@@ -103,123 +92,10 @@ export const useDashboardPainterState = () => {
     }
   };
 
-  const handleFetchPainterData = async () => {
-    try {
-      if (user) {
-        const painterQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', user.uid)
-        );
-        const painterSnapshot = await getDocs(painterQuery);
-        if (!painterSnapshot.empty) {
-          const painterData =
-            painterSnapshot.docs[0].data();
-
-          console.log('Painter Data:', painterData);
-
-          const userImagesQuery = collection(
-            firestore,
-            'userImages'
-          );
-          const userImagesSnapshot = await getDocs(
-            userImagesQuery
-          );
-          const jobs = await Promise.all(
-            userImagesSnapshot.docs.map(async (jobDoc) => {
-              const jobData = jobDoc.data() as TJob;
-
-              if (jobData.address) {
-                let { lat, lng } = jobData;
-
-                if (
-                  lat === undefined ||
-                  lng === undefined
-                ) {
-                  const geocodedLocation =
-                    await handleGeocodeAddress(
-                      jobData.address
-                    );
-                  if (geocodedLocation) {
-                    lat = geocodedLocation.lat;
-                    lng = geocodedLocation.lng;
-                  }
-                }
-
-                if (isDefined(lat) && isDefined(lng)) {
-                  const isWithinRange =
-                    await isJobWithinRange(
-                      painterData.address,
-                      painterData.range,
-                      { lat, lng }
-                    );
-                  if (isWithinRange) {
-                    if (jobData.paintPreferencesId) {
-                      const paintPrefDocRef = doc(
-                        firestore,
-                        'paintPreferences',
-                        jobData.paintPreferencesId
-                      );
-                      const paintPrefDocSnap = await getDoc(
-                        paintPrefDocRef
-                      );
-                      if (paintPrefDocSnap.exists()) {
-                        jobData.paintPreferences =
-                          paintPrefDocSnap.data() as TPaintPreferences;
-                      }
-                    }
-
-                    const video = await resolveVideoUrl(
-                      jobData.video
-                    );
-                    return {
-                      ...jobData,
-                      ...(video
-                        ? { video }
-                        : { video: '' }),
-                      jobId: jobDoc.id,
-                    };
-                  }
-                } else {
-                  console.error(
-                    'Job address is missing latitude and/or lnggitude after geocoding:',
-                    jobData.address
-                  );
-                }
-              }
-              return null;
-            })
-          );
-          const filteredJobs = jobs.filter(
-            (job) => job !== null
-          ) as TJob[];
-          const unquotedJobs = filteredJobs.filter(
-            (job) =>
-              !job.prices.some(
-                (price) => price.painterId === user.uid
-              )
-          );
-          setJobList(unquotedJobs);
-        }
-      } else {
-        console.log(
-          'No user found, unable to fetch painter data.'
-        );
-      }
-    } catch (error) {
-      const errorMessage = 'Error fetching painter data';
-      notifyError(errorMessage);
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    handleFetchPainterData();
-  }, [user, firestore]);
-
   const handlePageChange = (selected: TQuoteKey) => {
+    setNavigating(true);
     setSelectedPage(selected);
     if (selected === 'Available Quotes') {
-      handleFetchPainterData(); // Fetch available quotes
       onNavigateScrollTopClick('/dashboard');
     } else if (selected === 'Accepted Quotes') {
       onNavigateScrollTopClick('/acceptedQuotes');
@@ -229,12 +105,11 @@ export const useDashboardPainterState = () => {
   };
 
   return {
+    isNavigating,
     selectedPage,
-    jobs: jobList,
     user,
-    isJobWithinRange,
-    dispatchJobList: setJobList,
-    onFetchPainterData: handleFetchPainterData,
+    dispatchNavigating: setNavigating,
+    onJobWithinRangeCheck:handleJobWithinRangeCheck,
     onPageChange: handlePageChange,
     onGeocodeAddress: handleGeocodeAddress,
   };

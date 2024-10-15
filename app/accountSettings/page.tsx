@@ -6,15 +6,16 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { IconsLoading16 } from '@/components/icons/loading/16';
 import { useEffect } from 'react';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
+import { IconsError16White } from '@/components/icons/error/16/white';
 
 const AccountSettingsPage = () => {
   const { isAuthLoading } = useAuth();
   const accountSettings = useAccountSettings();
   const {
     isAddressLoading,
-    isLoading,
+    isAccountSettingsSubmitting,
     isPainter,
     isAgent,
     errorMessage,
@@ -23,8 +24,9 @@ const AccountSettingsPage = () => {
     onSubmit,
     onUpdateMap,
   } = accountSettings;
+
   useAuthNavigateHome();
-  
+
   useEffect(() => {
     console.log(
       'ACC    SETTINGS ',
@@ -42,7 +44,11 @@ const AccountSettingsPage = () => {
 
   if (isAuthLoading) return null;
 
-  const submitTitle = isLoading ? 'Updating' : 'Update';
+  const submitTitle = isAccountSettingsSubmitting
+    ? 'Updating'
+    : 'Update';
+
+  const isError = Boolean(errorMessage);
 
   return (
     <div className="relative flex flex-col gap-5 items-center">
@@ -51,8 +57,8 @@ const AccountSettingsPage = () => {
         Your Profile
       </h2>
       <div className="relative flex flex-col gap-5 items-center w-[320px] sm:w-[382px]">
-        <div className="fill-column-white-sm">
-          {errorMessage && (
+        <div className="fill-column-white-sm gap-4">
+          {isError && (
             <ComponentsAccountSettingsNotifications>
               {errorMessage}
             </ComponentsAccountSettingsNotifications>
@@ -67,11 +73,15 @@ const AccountSettingsPage = () => {
             />
             <ButtonsCvaButton
               title={submitTitle}
-              icon={
-                isLoading ? { Leading: IconsLoading16 } : {}
-              }
+              icon={{
+                Leading: isAccountSettingsSubmitting
+                  ? IconsLoading16White
+                  : isError
+                  ? IconsError16White
+                  : null,
+              }}
               type="submit"
-              isDisabled={isLoading}
+              isDisabled={isAccountSettingsSubmitting}
               intent="primary"
               size="sm"
               gap="xl"

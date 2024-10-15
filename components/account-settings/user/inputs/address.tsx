@@ -10,7 +10,8 @@ export const ComponentsAccountSettingsUserInputsAddress: FC<
 > = (props) => {
   const { address, dispatchAddress, addressInputRef } =
     useAccountSettings();
-    useAutoFillAddress();
+
+  useAutoFillAddress();
 
   return (
     <div>

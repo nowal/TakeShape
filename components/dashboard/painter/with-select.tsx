@@ -1,17 +1,18 @@
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { InputsSelect } from '@/components/inputs/select';
 import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
 import { DashboardHeader } from '@/components/dashboard/header';
+import { usePainter } from '@/context/dashboard/painter/provider';
+import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 type TProps = TPropsWithChildren;
 export const DashboardPainterWithSelect: FC<TProps> = (
   props
 ) => {
-  const { selectedPage, onPageChange } =
-    useDashboardPainter();
+  const { isNavigating, selectedPage, onPageChange } =
+    usePainter();
 
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
@@ -29,7 +30,11 @@ export const DashboardPainterWithSelect: FC<TProps> = (
         />
       </DashboardHeader>
       <div className="h-8" />
-      <div>{props.children}</div>
+      {isNavigating ? (
+        <FallbacksLoadingCircleCenter />
+      ) : (
+        <div>{props.children}</div>
+      )}
     </div>
   );
 };

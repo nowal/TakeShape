@@ -10,6 +10,8 @@ import { useAgentRegisterState } from '@/context/agent/register/state';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { ComponentsRegisterShell } from '@/components/register/shell';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
+import { IconsError16White } from '@/components/icons/error/16/white';
 
 const AgentSignup = () => {
   const {
@@ -28,9 +30,13 @@ const AgentSignup = () => {
     onProfilePictureChange,
   } = useAgentRegisterState();
 
+  const isError = Boolean(errorMessage);
+
   const submitTitle = isSubmitting
     ? 'Signing Up...'
     : 'Sign Up';
+
+  const isInputValue = Boolean(profilePicturePreview);
 
   return (
     <ComponentsRegisterShell title="Agent Registration">
@@ -95,10 +101,10 @@ const AgentSignup = () => {
               accept: 'image/*',
             }}
             classValue={cx(
-              'px-4',
-              profilePicturePreview ? 'gap-6' : 'gap-2'
+              isInputValue ? 'gap-6' : 'gap-2'
             )}
-            isValue={Boolean(profilePicturePreview)}
+            isValue={isInputValue}
+            center={!isInputValue}
             icon={{
               Leading: profilePicturePreview
                 ? () => (
@@ -106,9 +112,9 @@ const AgentSignup = () => {
                       <Image
                         src={profilePicturePreview}
                         alt="Profile Preview"
-                        className="mb-2 w-24 h-24 object-cover rounded-full"
-                        width="96"
-                        height="96"
+                        className="size-16 object-cover rounded-full"
+                        width="64"
+                        height="64"
                       />
                     </PicOutline>
                   )
@@ -120,8 +126,16 @@ const AgentSignup = () => {
           title={submitTitle}
           type="submit"
           disabled={isSubmitting}
+          icon={{
+            Leading: isError
+              ? IconsError16White
+              : isSubmitting
+              ? IconsLoading16White
+              : null,
+          }}
           intent="primary"
           size="md"
+          gap="xl"
           center
         >
           {submitTitle}

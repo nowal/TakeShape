@@ -9,6 +9,7 @@ import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { ComponentsPanel } from '@/components/panel';
 import { usePathname } from 'next/navigation';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 export const SignInModal: FC = () => {
   const { signIn } = useAuth();
@@ -75,8 +76,14 @@ export const SignInModal: FC = () => {
               center
               classValue="w-full text-center font-bold"
               intent="primary"
+              icon={{
+                Leading: isSignInSubmitting
+                  ? IconsLoading16White
+                  : null,
+              }}
               size="sm"
               disabled={isSignInSubmitting}
+              gap='xl'
             >
               {submitButtonTitle}
             </ButtonsCvaButton>

@@ -14,6 +14,8 @@ export const useAutoFillAddress = () => {
 
   useEffect(() => {
     const initAutocomplete = async () => {
+      console.log('useAutoFillAddress.initAutocomplete');
+
       try {
         dispatchAddressLoading(true);
         await loadGoogleMapsScript(
@@ -23,14 +25,18 @@ export const useAutoFillAddress = () => {
           window.google &&
           addressInputRef.current !== null
         ) {
-          const autocomplete =
-            new window.google.maps.places.Autocomplete(
-              addressInputRef.current,
-              {
-                types: ['address'],
-                componentRestrictions: { country: 'us' },
-              }
-            );
+          const { Autocomplete } =
+            (await google.maps.importLibrary(
+              'places'
+            )) as google.maps.PlacesLibrary;
+
+          const autocomplete = new Autocomplete(
+            addressInputRef.current,
+            {
+              types: ['address'],
+              componentRestrictions: { country: 'us' },
+            }
+          );
 
           autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();

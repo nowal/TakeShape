@@ -1,13 +1,13 @@
 'use client';
+import Image from 'next/image';
+import { cx } from 'class-variance-authority';
 import { LandingFaq } from '@/components/landing/faq';
 import { LandingProblemAndDecision } from '@/components/landing/problem-and-decision';
 import { LandingHero } from '@/components/landing/hero';
 import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
-import { cx } from 'class-variance-authority';
 import { QuoteButton } from '@/components/buttons/quote/quoteButton';
-import Image from 'next/image';
-import image from '@/public/landing/hero.png';
+import imageHero from '@/public/landing/hero.png';
 import { resolveUrlId } from '@/utils/css/format';
 import { FILTER_GRAYSCALE_ID } from '@/filters/grayscale';
 import { LandingHeroText } from '@/components/landing/hero/text';
@@ -35,7 +35,7 @@ const Landing = () => {
               objectPosition,
               objectFit: 'cover',
             }}
-            src={image.src}
+            src={imageHero.src}
             alt="Landing Hero, Happy Pic"
             quality="100"
             fill
@@ -43,7 +43,6 @@ const Landing = () => {
             loading="eager"
           />
         </AnimationFade>
-
         {viewport.isDimensions ? (
           <>
             {viewport.isResizing ? null : (

@@ -1,21 +1,17 @@
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { ButtonsCvaLink } from '@/components/cva/link';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsRedo } from '@/components/icons/redo';
 import { usePreferences } from '@/context/preferences/provider';
 import { useQuote } from '@/context/quote/provider';
+import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
 export const PreferencesFooter: FC = () => {
   const quote = useQuote();
-  const {
-   onResubmit
-  } = quote;
+  const { onResubmit } = quote;
   const preferences = usePreferences();
-  const {
-    isLoading,
-    onPreferenceSubmit,
-    isSubmitting,
-  } = preferences;
+  const { onPreferenceSubmit, isSubmitting } = preferences;
 
   const submitTitle = isSubmitting
     ? 'Submitting...'
@@ -24,12 +20,19 @@ export const PreferencesFooter: FC = () => {
   const resubmitTitle = 'Resubmit Video';
 
   return (
-    <footer className="flex flex-col items-center justify-between w-full sm:flex-row">
-      <div onClick={onResubmit} className="flex flex-col items-end gap-4 my-4 xs:flex-row">
+    <footer
+      className={cx(
+        'flex flex-col items-center justify-between w-full gap-4 sm:flex-row sm:gap-0'
+      )}
+    >
+      <div
+        onClick={onResubmit}
+        className="flex flex-col items-end gap-4 xs:flex-row"
+      >
         <ButtonsCvaLink
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}
-          
+          classValue="py-4"
           href="/quote"
           gap="lg"
         >
@@ -40,15 +43,18 @@ export const PreferencesFooter: FC = () => {
         onTap={() =>
           onPreferenceSubmit('/dashboard', false)
         }
-        className={`only-preferences-btn button-color hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300 ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
         intent="primary"
         size="sm"
-        disabled={isLoading}
+        isDisabled={isSubmitting}
+        icon={{
+          Leading: isSubmitting
+            ? IconsLoading16White
+            : null,
+        }}
         title={submitTitle}
+        gap="xl"
       >
-        <>{submitTitle}</>
+        {submitTitle}
       </ButtonsCvaButton>
     </footer>
   );

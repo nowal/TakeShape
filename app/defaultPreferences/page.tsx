@@ -82,7 +82,7 @@ const Preferences: FC = () => {
               <PreferencesMoveFurniture />
             </div>
             <PreferencesSpecialRequest />
-            <div className="h-5" />
+            <div className="h-10 sm:h-5" />
             <PreferencesFooter />
           </div>
         </div>

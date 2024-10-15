@@ -14,6 +14,7 @@ export const ButtonsQuoteSubmit: FC<
       size="sm"
       center
       classValue="font-bold"
+      gap="xl"
       {...props}
     >
       {title}

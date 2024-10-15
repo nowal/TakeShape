@@ -1,20 +1,24 @@
 import { cx } from 'class-variance-authority';
-import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
 import { useQuote } from '@/context/quote/provider';
 import { FC } from 'react';
-import { useQuoteTitle } from '@/components/quote/title';
-import { IconsTick20 } from '@/components/icons/tick/20';
-import { IconsLoading } from '@/components/icons/loading';
 import { isString } from '@/utils/validation/is/string';
-import { LOADING_ICON, SUCCESS_ICON } from '@/components/quote/constants';
+import {
+  LOADING_ICON,
+  SUCCESS_ICON,
+} from '@/components/quote/constants';
+import { useQuoteFakeHandler } from '@/components/quote/fake/handler';
+import { useQuoteTitleFake } from '@/components/quote/fake/title';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
+import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 
 type TProps = { fixedTitle?: string };
 export const ComponentsQuoteInput: FC<TProps> = ({
   fixedTitle,
 }) => {
   const {
+    isQuoteSubmitting,
     uploadStatus,
     fileName,
     quoteTitle: _quoteTitle,
@@ -24,10 +28,21 @@ export const ComponentsQuoteInput: FC<TProps> = ({
   } = useQuote();
   const quoteTitle = fixedTitle ?? _quoteTitle;
 
-  const isCompleted = uploadStatus === 'completed';
+  const { onInit, isInit, isCompleted } =
+    useQuoteFakeHandler();
+  const title = useQuoteTitleFake({ isCompleted, isInit });
+
   const isError = uploadStatus === 'error';
-  const fileTitle = 'Upload your video *';
   const isReady = Boolean(quoteTitle) && isString(fileName);
+
+  const handleUpload = (file: File) => {
+    onInit();
+    onFileUpload(file);
+  };
+
+  const submitTitle = isQuoteSubmitting
+    ? 'Submitting Video'
+    : 'Submit Video';
 
   return (
     <div className="flex flex-col items-center gap-[26px]">
@@ -43,15 +58,20 @@ export const ComponentsQuoteInput: FC<TProps> = ({
           <div
             className={cx(
               'relative h-[7.25rem]',
-              isCompleted && 'text-green',
-              isError && 'text-red'
+              isError
+                ? 'text-red'
+                : isCompleted
+                ? 'text-green'
+                : 'text-pink'
             )}
           >
             <InputsFile
-              title={fileTitle}
-              onFile={onFileUpload}
+              title={title}
+              onFile={handleUpload}
               {...(isCompleted
                 ? SUCCESS_ICON
+                : isInit
+                ? LOADING_ICON
                 : {})}
               inputProps={{}}
             >
@@ -71,8 +91,13 @@ export const ComponentsQuoteInput: FC<TProps> = ({
           placeholder="Enter Title (e.g. Bedroom Walls) *"
         />
         <ButtonsQuoteSubmit
-          title="Submit Video"
-          isDisabled={!isReady}
+          title={submitTitle}
+          icon={{
+            Leading: isQuoteSubmitting
+              ? IconsLoading16White
+              : null,
+          }}
+          isDisabled={!isReady || isQuoteSubmitting}
         />
       </form>
     </div>

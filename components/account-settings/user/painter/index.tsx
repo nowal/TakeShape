@@ -11,6 +11,7 @@ import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { RANGE_VALUES } from '@/constants/map';
 import { ComponentsAccountSettingsPainterMap } from '@/components/account-settings/user/painter/map';
+import { cx } from 'class-variance-authority';
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -23,6 +24,8 @@ export const ComponentsAccountSettingsPainter: FC = () => {
     dispatchBusinessName,
     dispatchRange,
   } = useAccountSettings();
+
+  const isInputValue = Boolean(logoSrc);
 
   return (
     <>
@@ -60,11 +63,11 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           title="Company Logo (optional)"
           onFile={onLogoChange}
           inputProps={{
-            accept: 'image/png, image/jpeg',
+            accept: 'image/*',
           }}
-          classValue="px-6 gap-6"
-          center={false}
-          isValue={Boolean(logoSrc)}
+          classValue={cx(isInputValue ? 'gap-6' : 'gap-2')}
+          isValue={isInputValue}
+          center={!isInputValue}
           icon={{
             Leading: logoSrc
               ? () => (
@@ -72,6 +75,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
                     <Image
                       src={logoSrc}
                       alt="Company Logo"
+                      className="size-16 object-cover rounded-full"
                       width="64"
                       height="64"
                     />

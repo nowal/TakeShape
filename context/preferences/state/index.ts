@@ -31,11 +31,9 @@ import { useApp } from '@/context/app/provider';
 
 export const usePreferencesState = () => {
   const { onNavigateScrollTopClick } = useApp();
-  const { isUserSignedIn, dispatchUserSignedIn } =
-    useAuth();
+  const { isUserSignedIn } = useAuth();
   const firestore = getFirestore();
   const auth = getAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [defaultPreferences, setPreferences] = useAtom(
     defaultPreferencesAtom
@@ -70,8 +68,6 @@ export const usePreferencesState = () => {
     );
   const [specialRequests, setSpecialRequests] =
     useState<string>('');
-  const loadingState = useState<boolean>(false);
-  const [isLoading, setLoading] = loadingState;
   const [isResubmitting, setResubmitting] = useState(false);
   const [isFetchingPreferences, setFetchingPreferences] =
     useState(false);
@@ -346,7 +342,6 @@ export const usePreferencesState = () => {
   return {
     isPopup,
     isCeilingsPainted,
-    isLoading,
     isSubmitting,
     isTrimAndDoorsPainted,
     isFetchingPreferences,

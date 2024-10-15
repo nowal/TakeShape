@@ -4,6 +4,5 @@ import type { FC } from 'react';
 
 export const DashboardHomeownerUploading: FC = () => {
   const dashboard = useDashboard();
-  const { uploadProgress } = dashboard;
-  return <p>{formatUploading(uploadProgress)}</p>;
+  return <p>{formatUploading(dashboard.uploadProgress)}</p>;
 };

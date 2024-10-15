@@ -21,7 +21,6 @@ import { TPaintPreferences } from '@/types';
 import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
-import { usePreferences } from '@/context/preferences/provider';
 import { useApp } from '@/context/app/provider';
 
 type TConfig = {
@@ -41,12 +40,10 @@ export const useQuoteSubmit = ({
   const { onNavigateScrollTopClick } = useApp();
   const { timeoutRef } = useTimeoutRef();
   const { isUserSignedIn } = useAuth();
-  const [description, setDescription] = useState('');
+  const [isQuoteSubmitting, setQuoteSubmitting] = useState(false);
   const [providingOwnPaint, setProvidingOwnPaint] =
     useState('');
-  const [isSubmitting, setSubmitting] = useState(false);
   const auth = getAuth();
-  const router = useRouter();
   const firestore = getFirestore(firebase);
   const {
     dispatchUserImageList,
@@ -59,13 +56,13 @@ export const useQuoteSubmit = ({
   const handler: FormEventHandler = async (event) => {
     event.preventDefault();
     console.log('Creating user image document');
-    setSubmitting(true);
     dispatchErrorMessage('');
 
     try {
+      setQuoteSubmitting(true)
       const userImageData = {
         zipCode,
-        description,
+        description: '',
         paintPreferences,
         providingOwnPaint,
         prices: [],
@@ -139,10 +136,10 @@ export const useQuoteSubmit = ({
     } finally {
       timeoutRef.current = setTimeout(() => {
         dispatchTitle('');
-        setSubmitting(false);
-      }, 1000);
+        setQuoteSubmitting(false);
+      }, 0);
     }
   };
 
-  return { onSubmit: handler, isSubmitting };
+  return { isQuoteSubmitting, onSubmit: handler };
 };

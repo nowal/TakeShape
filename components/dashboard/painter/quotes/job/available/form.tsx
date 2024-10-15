@@ -7,7 +7,7 @@ import { useDashboardPainterJobAvailable } from '@/components/dashboard/painter/
 import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TJob;
-export const DDashboardPainterJobAvailableForm: FC<
+export const DashboardPainterJobAvailableForm: FC<
   TProps
 > = (job) => {
   const dashboardPainter = useDashboardPainterJobAvailable(
@@ -82,10 +82,12 @@ export const DDashboardPainterJobAvailableForm: FC<
         type="submit"
         disabled={isSubmitting}
         size="sm"
-        // rounded="lg"
         intent="primary"
         center
-        icon={isSubmitting ? { Leading: IconsLoading } : {}}
+        icon={{
+          Leading: isSubmitting ? IconsLoading : null,
+        }}
+        gap="xl"
       >
         <span>{title}</span>
       </ButtonsCvaButton>

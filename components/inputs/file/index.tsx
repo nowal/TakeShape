@@ -30,20 +30,16 @@ export const InputsFile: FC<TInputsFileProps> = ({
   const handleChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    try {
-      const file = event.target.files?.[0];
-      if (file) {
-        onFile(file); // Pass the file to the parent component
-      }
-    } catch (error) {
-      console.error(error);
+    const file = event.target.files?.[0];
+    if (file) {
+      onFile(file); // Pass the file to the parent component
     }
   };
 
   return (
     <>
       <ButtonsCvaInput
-        classValue={cx('px-4', classValue)}
+        classValue={cx('px-6', classValue)}
         inputProps={{
           type: 'file',
           accept: 'video/*',

@@ -1,15 +1,16 @@
 import type { FC } from 'react';
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJob } from '@/types';
 import { cx } from 'class-variance-authority';
 import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
+import { getAuth } from 'firebase/auth';
 
 type TProps = TJob;
 export const DashboardPainterJobPrice: FC<TProps> = (
   job
 ) => {
-  const dashboardPainter = useDashboardPainter();
-  const { user } = dashboardPainter;
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
   const price = job.prices
     .find((value) => value.painterId === user?.uid)
     ?.amount.toFixed(2);

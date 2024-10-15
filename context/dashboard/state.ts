@@ -36,6 +36,11 @@ import { useQueryParamsSet } from '@/hooks/query-params/set';
 export const useDashboardState = () => {
   const [userData, setUserData] = useAtom(userDataAtom);
   const [isShowModal, setShowModal] = useState(false);
+  const [
+    isAcceptQuoteSubmitting,
+    setAcceptQuoteSubmitting,
+  ] = useState(false);
+
   const [selectedQuoteAmount, setSelectedQuoteAmount] =
     useState<number>(0);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
@@ -303,6 +308,7 @@ export const useDashboardState = () => {
     setPainterId(painterId);
 
     try {
+      setAcceptQuoteSubmitting(true);
       // console.log(
       //   'auth.currentUser selectedUserImage',
       //   auth.currentUser,
@@ -341,10 +347,13 @@ export const useDashboardState = () => {
       const errorMessage = 'Error accepting quote';
       console.error(errorMessage, error);
       notifyError(errorMessage);
+    } finally {
+      setAcceptQuoteSubmitting(false);
     }
   };
 
   return {
+    isAcceptQuoteSubmitting,
     isUserDataLoading,
     isShowModal,
     isPainter,

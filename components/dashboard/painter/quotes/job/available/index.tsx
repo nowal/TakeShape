@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { DDashboardPainterJobAvailableForm } from '@/components/dashboard/painter/quotes/job/available/form';
+import { DashboardPainterJobAvailableForm } from '@/components/dashboard/painter/quotes/job/available/form';
 import { TJob } from '@/types';
 import { DashboardPreferences } from '@/components/dashboard/preferences';
 
@@ -11,7 +11,7 @@ export const DashboardPainterJobAvailable: FC<TProps> = (
   return (
     <div className="flex flex-col items-stretch gap-4">
       <DashboardPreferences {...job} />
-      <DDashboardPainterJobAvailableForm {...job} />
+      <DashboardPainterJobAvailableForm {...job} />
     </div>
   );
 };

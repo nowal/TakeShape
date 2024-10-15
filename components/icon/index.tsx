@@ -16,6 +16,7 @@ export type TCommonIconProps = Omit<
     size?: number | string;
     fill?: string;
     d?: string;
+    classColor?: string;
   };
 export type TCommonIconFC<P extends object = object> = FC<
   TCommonIconProps & P
@@ -32,6 +33,7 @@ export const CommonIcon: TCommonIconFC = ({
   d,
   viewBox,
   defs,
+  classColor,
   children,
   ...props
 }) => {
@@ -40,7 +42,8 @@ export const CommonIcon: TCommonIconFC = ({
     <svg
       xmlns="http://www.w3.org/2000/svg"
       className={cx(
-        'shrink-0 stroke-pink',
+        'shrink-0',
+        classColor ?? 'stroke-pink',
         className,
         classValue
       )}

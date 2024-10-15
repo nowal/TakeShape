@@ -1,27 +1,24 @@
 'use client';
-import { useDashboardPainterState } from '@/context/dashboard/painter/state';
+import { usePainterState } from '@/context/dashboard/painter/state';
 import {
   createContext,
   FC,
-  MutableRefObject,
   PropsWithChildren,
   useContext,
 } from 'react';
 
-type TDashboardPainterContext = ReturnType<
-  typeof useDashboardPainterState
-> 
-export const DASHBOARD = createContext<TDashboardPainterContext>(
-  {} as TDashboardPainterContext
+type TPainterContext = ReturnType<typeof usePainterState>;
+export const DASHBOARD = createContext<TPainterContext>(
+  {} as TPainterContext
 );
 
-export const useDashboardPainter = (): TDashboardPainterContext =>
+export const usePainter = (): TPainterContext =>
   useContext(DASHBOARD);
 
-export const DashboardPainterProvider: FC<PropsWithChildren> = ({
+export const PainterProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const dashboard = useDashboardPainterState();
+  const dashboard = usePainterState();
   return (
     <DASHBOARD.Provider value={{ ...dashboard }}>
       {children}

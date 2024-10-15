@@ -17,21 +17,14 @@ import {
 } from 'firebase/storage';
 import { useOutsideClick } from '@/hooks/outside-click';
 import { TAuthConfig } from '@/context/auth/types';
-import {
-  isAgentAtom,
-  isPainterAtom,
-} from '@/atom';
+import { isAgentAtom, isPainterAtom } from '@/atom';
 import { useAtom } from 'jotai';
 import { useApp } from '@/context/app/provider';
 
 export const useAuthMenu = (config: TAuthConfig) => {
   const { onNavigateScrollTopClick } = useApp();
-
-  const {
-    dispatchUserSignedIn,
-    dispatchProfilePictureUrl,
-  } = config;
-  const [isLoading, setLoading] = useState(true);
+  const { dispatchProfilePictureUrl } = config;
+  const [isFetchingProfilePicture, setFetchingProfilePicture] = useState(true);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [isAgent, setAgent] = useAtom(isAgentAtom);
@@ -43,10 +36,10 @@ export const useAuthMenu = (config: TAuthConfig) => {
 
   const fetchProfilePicture = async (retries = 0) => {
     try {
-      setLoading(true);
+      setFetchingProfilePicture(true);
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        console.log('no corrent user');
+        console.log('no current user');
         return;
       }
 
@@ -62,7 +55,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
         const painterData = painterSnapshot.docs[0].data();
         if (painterData.logoUrl) {
           dispatchProfilePictureUrl(painterData.logoUrl);
-          setLoading(false);
+          setFetchingProfilePicture(false);
           return;
         }
       } else {
@@ -113,7 +106,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
         error
       );
     } finally {
-      setLoading(false);
+      setFetchingProfilePicture(false);
     }
   };
 
@@ -142,7 +135,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
 
   return {
     isMenuOpen,
-    isLoading,
+    isFetchingProfilePicture,
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,
     onDashboardClick: handleDashboardClick,

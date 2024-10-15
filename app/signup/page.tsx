@@ -10,6 +10,7 @@ import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
 import { PreferencesNotificationsInlineInformation } from '@/components/preferences/notifications/information';
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 const SignupAccountForm = () => {
   const { signUp, signIn } = useAuth();
@@ -26,9 +27,10 @@ const SignupAccountForm = () => {
     dispatchPassword,
     dispatchShowLoginInstead,
   } = signUp;
+  const { onClose, onSignInButtonClick } = signIn;
 
   useEffect(() => {
-    signIn.onClose();
+    onClose();
   }, []);
 
   const submitButtonTitle = isSignUpSubmitting
@@ -93,9 +95,15 @@ const SignupAccountForm = () => {
                 type="submit"
                 isDisabled={isSignUpSubmitting}
                 title={submitButtonTitle}
+                icon={{
+                  Leading: isSignUpSubmitting
+                    ? IconsLoading16White
+                    : null,
+                }}
                 intent="primary"
                 size="md"
                 center
+                gap="xl"
               >
                 <div className="text-base font-bold">
                   {submitButtonTitle}
@@ -110,10 +118,8 @@ const SignupAccountForm = () => {
                 <ButtonsCvaButton
                   isDisabled={isSignUpSubmitting}
                   title={submitButtonTitle}
-                  onTap={() => {
-                    signIn.onSignInButtonClick();
-                  }}
-                  className="text-blue-600 hover:underline"
+                  onTap={onSignInButtonClick}
+                  className="hover:underline"
                 >
                   <div className="text-pink text-base font-bold">
                     Login

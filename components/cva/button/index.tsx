@@ -12,7 +12,6 @@ const ButtonsCvaButton = forwardRef<
   TButtonsCvaButtonProps
 >(({ type, onTap, title, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
-
   const { Icon, className, ...cvaProps } = useButtonsCvaProps({
     isDisabled,
     ...props,

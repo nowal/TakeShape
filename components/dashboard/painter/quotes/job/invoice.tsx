@@ -1,15 +1,16 @@
 import type { FC } from 'react';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
 import { TJob } from '@/types';
-import { useDashboardPainter } from '@/context/dashboard/painter/provider';
+import { getAuth } from 'firebase/auth';
 
 type TProps = TJob;
 export const DashboardPainterJobInvoice: FC<TProps> = (
   job
 ) => {
   const title = 'Invoice';
-  const dashboardPainter = useDashboardPainter();
-  const { user } = dashboardPainter;
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const invoiceUrl = job.prices.find(
     (price) => price.painterId === user?.uid
   )?.invoiceUrl;

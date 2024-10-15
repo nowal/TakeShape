@@ -42,6 +42,8 @@ export const ComponentsPainterRegister: FC = () => {
     ? 'Submitting...'
     : 'Register';
 
+  const isInputValue = Boolean(logoPreview);
+
   return (
     <form
       onSubmit={onSubmit}
@@ -56,7 +58,7 @@ export const ComponentsPainterRegister: FC = () => {
         required
       />
       <ComponentsAccountSettingsUserInputsAddress />
-      <div className="flex flex-row us gap-2">
+      <div className="flex flex-row items-center gap-2">
         <TypographyFormTitle>Range</TypographyFormTitle>
         <InputsSelect
           name="range"
@@ -86,11 +88,9 @@ export const ComponentsPainterRegister: FC = () => {
           inputProps={{
             accept: 'image/*',
           }}
-          classValue={cx(
-            'px-4',
-            logoPreview ? 'gap-6' : 'gap-2'
-          )}
-          isValue={Boolean(logoPreview)}
+          classValue={cx(isInputValue ? 'gap-6' : 'gap-2')}
+          isValue={isInputValue}
+          center={!isInputValue}
           icon={{
             Leading: logoPreview
               ? () => (
@@ -98,9 +98,9 @@ export const ComponentsPainterRegister: FC = () => {
                     <Image
                       src={logoPreview}
                       alt="Company Logo Preview"
-                      className="mb-2 w-24 h-24 object-cover rounded-full"
-                      width="96"
-                      height="96"
+                      className="size-16 object-cover rounded-full"
+                      width="64"
+                      height="64"
                     />
                   </PicOutline>
                 )
@@ -138,6 +138,7 @@ export const ComponentsPainterRegister: FC = () => {
             ? IconsLoading
             : null,
         }}
+        gap='xl'
       >
         {submitTitle}
       </ButtonsCvaButton>

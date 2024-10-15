@@ -29,7 +29,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(45 12 12)"
       >
         <animate
@@ -46,7 +45,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(90 12 12)"
       >
         <animate
@@ -63,7 +61,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(135 12 12)"
       >
         <animate
@@ -80,7 +77,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(180 12 12)"
       >
         <animate
@@ -97,7 +93,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(225 12 12)"
       >
         <animate
@@ -114,7 +109,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(270 12 12)"
       >
         <animate
@@ -131,7 +125,6 @@ export const IconsLoading: FC<TProps> = ({ ...props }) => {
         cx="12"
         cy="2"
         r="0"
-       
         transform="rotate(315 12 12)"
       >
         <animate

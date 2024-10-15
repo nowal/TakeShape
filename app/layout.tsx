@@ -8,11 +8,11 @@ import { CssGlobal } from '@/css/global';
 import { ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { ShellChildren } from '@/components/shell/children';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
+import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: TProps) {
                 <ShellHeader />
                 <ShellChildren>{children}</ShellChildren>
                 <ShellFooter />
-                <Suspense fallback={<FallbacksLoading />}>
+                <Suspense fallback={<FallbacksLoadingCircleCenter />}>
                   <SignInModal />
                 </Suspense>
               </ContextProviders>

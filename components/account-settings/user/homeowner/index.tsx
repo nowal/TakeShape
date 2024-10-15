@@ -1,35 +1,21 @@
 import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
 import { ComponentsAccountSettingsUserInputsName } from '@/components/account-settings/user/inputs/name';
-import { InputsText } from '@/components/inputs/text';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
 
 export const ComponentsAccountSettingsHomeowner: FC =
   () => {
-    const {
-      agentError,
-      agentName,
-      newAgentName,
-      dispatchNewAgentName,
-    } = useAccountSettings();
+    const { agentError } = useAccountSettings();
 
     return (
       <>
         <ComponentsAccountSettingsUserInputsName />
         <ComponentsAccountSettingsUserInputsAddress />
         <div>
-          {/* <InputsText
-            placeholder="Real Estate Agent (optional)"
-            value={agentName ? agentName : newAgentName}
-            onChange={(event) =>
-              dispatchNewAgentName(event.target.value)
-            }
-          /> */}
-  
           {agentError && (
             <>
-            <div className='h-1'/>
+              <div className="h-1" />
               <NotificationsInlineHighlight>
                 {agentError}
               </NotificationsInlineHighlight>

@@ -1,11 +1,11 @@
 'use client';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
 import { FC, Suspense } from 'react';
 import { ComponentsCongrats } from '@/components/congrats';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { PainterCardBackground } from '@/components/painter/card/background';
 import { PainterCardData } from '@/components/painter/card/data';
 import { useCongrats } from '@/components/congrats/hook';
+import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 const CongratsWithSuspense: FC = () => {
   const congrats = useCongrats();
@@ -13,7 +13,7 @@ const CongratsWithSuspense: FC = () => {
   useAuthNavigateHome();
 
   return (
-    <Suspense fallback={<FallbacksLoading />}>
+    <Suspense fallback={<FallbacksLoadingCircleCenter />}>
       <ComponentsCongrats>
         {painterId && (
           <PainterCardBackground>
