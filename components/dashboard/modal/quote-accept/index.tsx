@@ -38,11 +38,11 @@ export const DashboardModalQuoteAccept: FC = () => {
           }}
         >
           <p className="text-center text-xs font-semibold text-gray-7 px-10">
-            We require a 10% deposit to safeguard the
-            painter&apos;s time and commitment. Rest
-            assured, this amount will be deducted from your
-            final quoted price once the job is completed to
-            your satisfaction.
+            To secure your quote and protect the painter&apos;s time,
+            we hold a 10% deposit.
+            Your deposit is held until the work is completed to your satisfaction 
+            at which point you will pay the painter the remainder 
+            of your quoted price.
           </p>
           <div className="flex flex-col items-center gap-1">
             <h5 className="text-gray-9 text-xs font-semibold">
@@ -84,12 +84,12 @@ export const DashboardModalQuoteAccept: FC = () => {
             depositAmount={depositAmount}
             remainingAmount={remainingAmount}
           />
-          <div className="flex flex-row justify-center gap-1.5">
+          {/*<div className="flex flex-row justify-center gap-1.5">
             <IconsSecure />
             <p className="text-gray-7 text-xs font-semibold">
               The payment method is verified.
             </p>
-          </div>
+          </div>*/}
         </ComponentsPanel>
       </ComponentsModal>
     </ComponentsPortalBody>

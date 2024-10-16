@@ -12,7 +12,7 @@ export const ComponentsCongratsPanel: FC<TProps> = ({
 }) => {
   const long =
     short ??
-    'Contractor will reach out within two days to schedule your job. If you have any questions, please contact us or you call your contractor directly.';
+    'Your painter will reach out as soon as possible to schedule your job. If you have any questions, please contact us or you call your contractor directly.';
   return (
     <ComponentsPanel classValue="text-center" classWidth='w-full xs:w-[385px] lg:w-[345px]'>
       <ComponentsCongratsContent

@@ -5,6 +5,7 @@ import { LinesHorizontal } from '@/components/lines/horizontal';
 import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';
 import { ShellFooterList } from '@/components/shell/footer/list';
 import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
+import { ShellFooterEmail } from '@/components/shell/footer/email';
 import { ShellLogo } from '@/components/shell/logo';
 import { cx } from 'class-variance-authority';
 
@@ -36,11 +37,12 @@ export const ShellFooter = () => {
               <div className="flex flex-col gap-[27px]">
                 <ShellLogo />
                 <div className="flex flex-col items-start typography-footer gap-[14px]">
-                  <div className="whitespace-pre">
-                    123 Main Street New York,{'\n'}
-                    NY 10001
-                  </div>
+                  <ShellFooterEmail />
                   <ShellFooterTelephone />
+                  {/*<div className="whitespace-pre">
+                    Murfreesboro,{'\n'}
+                    TN 37129
+                  </div>*/}
                 </div>
               </div>
               <div className="typography-footer-poppins">
@@ -52,18 +54,17 @@ export const ShellFooter = () => {
               {(
                 [
                   {
-                    title: 'For Clients',
+                    title: 'For Homeowners',
                     items: [
-                      { title: 'How to Hire' },
-                      { title: 'Talent Marketplace' },
-                      { title: 'Project Catalog' },
+                      { title: 'Hiring Tips' },
+                      { title: 'About Us' },
                     ],
                   },
                   {
-                    title: 'For Talent',
+                    title: 'For Painters',
                     items: [
-                      { title: 'How to Find Work' },
-                      { title: 'Help & Support' },
+                      { title: 'Partnership Requirements' },
+                      { title: 'FAQs and Support' },
                     ],
                   },
                 ] as const
@@ -91,7 +92,7 @@ export const ShellFooter = () => {
             <LinesHorizontal colorClass="border-gray-3" />
             <div className="h-9 sm:h-4.5" />
             <div className="flex flex-col items-center gap-8 sm:gap-4 sm:flex-row">
-              <QuoteButton />
+              <ShellFooterEmail />
               <ShellFooterTelephone />
             </div>
           </div>

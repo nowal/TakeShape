@@ -4,10 +4,12 @@ import type { FC } from 'react';
 
 type TProps = TElementProps & {
   leadingClassValue?: string;
+  isDisabled?:boolean
 };
 export const TypographyFormTitle: FC<TProps> = ({
   classValue,
   leadingClassValue,
+  isDisabled,
   children,
   ...props
 }) => {
@@ -15,6 +17,7 @@ export const TypographyFormTitle: FC<TProps> = ({
     <h3
       className={cx(
         'typography-form-title text-left',
+        isDisabled && 'text-gray',
         leadingClassValue ?? 'leading-normal',
         classValue
       )}

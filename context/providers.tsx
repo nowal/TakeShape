@@ -10,7 +10,7 @@ import { PreferencesProvider } from '@/context/preferences/provider';
 import { QuoteProvider } from '@/context/quote/provider';
 import { ViewportProvider } from '@/context/viewport';
 import { TChildrenProps } from '@/types/dom';
-import { arrToNest } from '@/utils/transform/arrToNest';
+import { arrToNest } from '@/utils/transform/arr-to-nest';
 import { FC, PropsWithChildren, useMemo } from 'react';
 import { MapsProvider } from '@/components/maps/provider';
 

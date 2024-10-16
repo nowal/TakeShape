@@ -3,7 +3,7 @@ import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect } from "react";
 
 type TConfig = any;
-export const useAutocomplete = (config?:TConfig) => {
+export const useAddressAutocomplete = (config?:TConfig) => {
   const {
     dispatchAddress,
     dispatchCoords,

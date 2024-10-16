@@ -1,32 +1,28 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import {
   Map,
-  useApiLoadingStatus,
   useMap,
   AdvancedMarker,
+  useMapsLibrary,
+  Pin,
 } from '@vis.gl/react-google-maps';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 import { cx } from 'class-variance-authority';
 import { Circle } from './components/circle';
-import { useAutocomplete } from '@/components/painter/address/map/autocomplete';
+import { TPainterAddressProps } from '@/components/painter/address/types';
+import { milesToMetres } from '@/utils/transform/miles-to-metres';
 
-export const PainterAddressMap: FC = () => {
+export const PainterAddressMap: FC<
+  TPainterAddressProps
+> = ({ isReady }) => {
   const map = useMap();
-  const [circleCenter, setCircleCenter] =
-    useState<null | google.maps.LatLng>(null);
-  const { coords, dispatchCoords } = useAccountSettings();
-
-  useAutocomplete();
-
-  const loadingStatus = useApiLoadingStatus();
-
-  const handleDrag = (event: google.maps.MapMouseEvent) => {
-    if (map === null) return;
-    const position = event.latLng;
-    if (position === null) return;
-    console.log('marker drag: ', position.toString());
-  };
+  const maps = useMapsLibrary('maps');
+  const {
+    range: rangeMiles,
+    coords,
+    dispatchCoords,
+  } = useAccountSettings();
 
   const handleDragEnd = (
     event: google.maps.MapMouseEvent
@@ -34,9 +30,7 @@ export const PainterAddressMap: FC = () => {
     if (map === null) return;
     const position = event.latLng;
     if (position === null) return;
-    console.log('marker clicked: ', position.toString());
     map.panTo(position);
-    setCircleCenter(position);
 
     const nextCoords = {
       lat: position.lat(),
@@ -45,34 +39,27 @@ export const PainterAddressMap: FC = () => {
     dispatchCoords(nextCoords);
   };
 
-  console.log(coords);
-  
+  const rangeMetres = useMemo(() => {
+    const value = milesToMetres(rangeMiles);
+    return value;
+  }, [rangeMiles]);
+
   return (
-    <div>
-      <TypographyFormSubtitle>
+    <div className="flex flex-col items-stretch gap-2">
+      <TypographyFormSubtitle isDisabled={!isReady}>
         Drag Marker to adjust service location
       </TypographyFormSubtitle>
-      {coords !== null && loadingStatus === 'LOADED' ? (
+      {isReady && coords ? (
         <Map
           className={cx('h-[400px]')}
           defaultZoom={10}
           defaultCenter={coords}
           center={coords}
-          // onCameraChanged={(
-          //   event: MapCameraChangedEvent
-          // ) => {
-          //   console.log(
-          //     'camera changed:',
-          //     event.detail.center,
-          //     'zoom:',
-          //     event.detail.zoom
-          //   );
-          // }}
           mapId="4d7092f4ba346ef1"
         >
           <Circle
-            radius={800}
-            center={circleCenter}
+            radius={rangeMetres}
+            center={coords}
             strokeColor="#0c4cb3"
             strokeOpacity={1}
             strokeWeight={3}
@@ -81,20 +68,18 @@ export const PainterAddressMap: FC = () => {
           />
           <AdvancedMarker
             position={coords}
-            clickable
             draggable
-            onDrag={handleDrag}
             onDragEnd={handleDragEnd}
           >
-            {/* <Pin
+            <Pin
               background="#FBBC04"
               glyphColor="#000"
               borderColor="#000"
-            /> */}
+            />
           </AdvancedMarker>
         </Map>
       ) : (
-        <div className="h-[400px]" />
+        <div className="h-[400px] rounded-lg bg-white-1" />
       )}
     </div>
   );

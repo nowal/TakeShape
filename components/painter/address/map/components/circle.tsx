@@ -28,7 +28,7 @@ import {
   latLngEquals,
 } from '@vis.gl/react-google-maps';
 
-type CircleEventProps = {
+type TCircleEventProps = {
   onClick?: (e: google.maps.MapMouseEvent) => void;
   onDrag?: (e: google.maps.MapMouseEvent) => void;
   onDragStart?: (e: google.maps.MapMouseEvent) => void;
@@ -43,12 +43,12 @@ type CircleEventProps = {
   ) => void;
 };
 
-export type CircleProps = google.maps.CircleOptions &
-  CircleEventProps;
+export type TCircleProps = google.maps.CircleOptions &
+  TCircleEventProps;
 
-export type CircleRef = Ref<google.maps.Circle | null>;
+export type TCircleRef = Ref<google.maps.Circle | null>;
 
-function useCircle(props: CircleProps) {
+function useCircle(props: TCircleProps) {
   const {
     onClick,
     onDrag,
@@ -64,8 +64,9 @@ function useCircle(props: CircleProps) {
   } = props;
   // This is here to avoid triggering the useEffect below when the callbacks change (which happen if the user didn't memoize them)
   const callbacks = useRef<
-    Record<string, (e: unknown) => void>
+    Record<string, (event: unknown) => void>
   >({});
+
   Object.assign(callbacks.current, {
     onClick,
     onDrag,
@@ -121,20 +122,22 @@ function useCircle(props: CircleProps) {
 
     // Add event listeners
     const gme = google.maps.event;
-    [
-      ['click', 'onClick'],
-      ['drag', 'onDrag'],
-      ['dragstart', 'onDragStart'],
-      ['dragend', 'onDragEnd'],
-      ['mouseover', 'onMouseOver'],
-      ['mouseout', 'onMouseOut'],
-    ].forEach(([eventName, eventCallback]) => {
+    (
+      [
+        ['click', 'onClick'],
+        ['drag', 'onDrag'],
+        ['dragstart', 'onDragStart'],
+        ['dragend', 'onDragEnd'],
+        ['mouseover', 'onMouseOver'],
+        ['mouseout', 'onMouseOut'],
+      ] as const
+    ).forEach(([eventName, eventCallback]) => {
       gme.addListener(
         circle,
         eventName,
-        (e: google.maps.MapMouseEvent) => {
+        (event: google.maps.MapMouseEvent) => {
           const callback = callbacks.current[eventCallback];
-          if (callback) callback(e);
+          if (callback) callback(event);
         }
       );
     });
@@ -159,11 +162,10 @@ function useCircle(props: CircleProps) {
  * Component to render a Google Maps Circle on a map
  */
 const Circle = forwardRef(
-  (props: CircleProps, ref: CircleRef) => {
+  (props: TCircleProps, ref: TCircleRef) => {
     const circle = useCircle(props);
 
     useImperativeHandle(ref, () => circle);
-
     return null;
   }
 );
