@@ -1,6 +1,5 @@
-import Image from 'next/image';
 import type { FC } from 'react';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { InputsFilePic } from '@/components/inputs/file/pic';
 import { IconsUpload } from '@/components/icons/upload';
 import { InputsFile } from '@/components/inputs/file';
 import { usePainterRegister } from '@/context/painter/register/provider';
@@ -70,15 +69,10 @@ export const ComponentsPainterRegister: FC = () => {
           icon={{
             Leading: logoPreview
               ? () => (
-                  <PicOutline>
-                    <Image
-                      src={logoPreview}
-                      alt="Company Logo Preview"
-                      className="size-16 object-cover rounded-full"
-                      width="64"
-                      height="64"
-                    />
-                  </PicOutline>
+                  <InputsFilePic
+                    src={logoPreview}
+                    alt="Company Logo Preview"
+                  />
                 )
               : IconsUpload,
           }}

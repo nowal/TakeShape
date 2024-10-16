@@ -8,15 +8,16 @@ import {
   getDocs,
   doc,
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
 import { usePainter } from '@/context/dashboard/painter/provider';
 import { useAuth } from '@/context/auth/provider';
 import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
 import { isDefined } from '@/utils/validation/is/defined';
+import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export const useDashboardPainterCompleted = () => {
-  const { isAuthLoading, dispatchAuthLoading } = useAuth();
+  const { isAuthLoading } = useAuth();
   const dashboardPainter = usePainter();
   const { dispatchNavigating, onJobWithinRangeCheck } =
     dashboardPainter;
@@ -25,14 +26,7 @@ export const useDashboardPainterCompleted = () => {
   const auth = getAuth();
   const user = auth.currentUser;
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     dispatchAuthLoading(false);
-  //   });
-
-  //   // Cleanup the listener on unmount
-  //   return () => unsubscribe();
-  // }, []);
+  const handleAddressGeocode = useAddressGeocodeHandler();
 
   useEffect(() => {
     if (user) {
@@ -71,7 +65,7 @@ export const useDashboardPainterCompleted = () => {
 
               if (!isDefined(lat) || !isDefined(lng)) {
                 const geocodedLocation =
-                  await dashboardPainter.onGeocodeAddress(
+                  await handleAddressGeocode(
                     jobData.address
                   );
                 if (geocodedLocation) {

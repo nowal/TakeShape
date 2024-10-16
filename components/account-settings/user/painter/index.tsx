@@ -1,12 +1,10 @@
-import Image from 'next/image';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
-import { ComponentsAccountSettingsUserInputsPhoneNumber } from '@/components/account-settings/user/inputs/phone-number';
 import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { IconsUpload } from '@/components/icons/upload';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { cx } from 'class-variance-authority';
+import { InputsFilePic } from '@/components/inputs/file/pic';
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -30,25 +28,6 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           required
         />
       </div>
-      {/* <ComponentsAccountSettingsUserInputsAddress />
-      <div className="flex flex-row items-center gap-3">
-        <TypographyFormTitle>
-          Range (miles)
-        </TypographyFormTitle>
-        <InputsSelect
-          name="painter-range"
-          value={range.toString()}
-          onValueChange={(_, value) => {
-            dispatchRange(Number(value));
-            onGeocodeAddress(address, Number(value));
-          }}
-          basicValues={RANGE_VALUES}
-          placeholder="Select Range"
-          required
-        />
-      </div>
-      <ComponentsAccountSettingsPainterMap /> */}
-      <ComponentsAccountSettingsUserInputsPhoneNumber />
       <div className="relative h-[96px]">
         <InputsFile
           title="Company Logo (optional)"
@@ -62,15 +41,10 @@ export const ComponentsAccountSettingsPainter: FC = () => {
           icon={{
             Leading: logoSrc
               ? () => (
-                  <PicOutline>
-                    <Image
-                      src={logoSrc}
-                      alt="Company Logo"
-                      className="size-16 object-cover rounded-full"
-                      width="64"
-                      height="64"
-                    />
-                  </PicOutline>
+                  <InputsFilePic
+                    src={logoSrc}
+                    alt="Company Logo"
+                  />
                 )
               : IconsUpload,
           }}

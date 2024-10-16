@@ -58,20 +58,9 @@ export const AccountSettingsProvider: FC<
       ...config,
     };
 
-  // const handleGeocodeAddress = useAutoFillAddressGeocode({
-  //   ...accountSettingsAddressGeocodeConfig,
-  // });
-
-  // const geocodeAddressContext: TGeocodeAddressContext = {
-  //   onGeocodeAddress: handleGeocodeAddress,
-  // };
-
   const accountSettingsStateConfig: TAccountSettingsStateConfig =
-    //  &
-    //   TGeocodeAddressContext
     {
       ...accountSettingsAddressGeocodeConfig,
-      // ...geocodeAddressContext,
     };
 
   const accountSettings = useAccountSettingsState({
@@ -85,7 +74,6 @@ export const AccountSettingsProvider: FC<
         ...config,
         ...accountSettingsMap,
         ...accountSettingsAddress,
-        // ...geocodeAddressContext,
       }}
     >
       {children}

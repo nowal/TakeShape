@@ -2,7 +2,7 @@ import { Dispatch, MutableRefObject } from 'react';
 import { useAccountSettingsState } from '@/context/account-settings/state';
 import { useAccountSettingsMap } from '@/context/account-settings/map';
 import { useAccountSettingsAddress } from '@/context/account-settings/address';
-import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
+import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export type TCoords = { lng: number; lat: number };
 export type TCoordsValue = null | TCoords;
@@ -30,27 +30,19 @@ export type TAccountSettingsMapReturn = ReturnType<
 export type TAccountSettingsddressReturn = ReturnType<
   typeof useAccountSettingsAddress
 >;
-export type TAutoFillAddressGeocode = ReturnType<
-  typeof useAutoFillAddressGeocode
+export type TAddressGeocodeHandler = ReturnType<
+  typeof useAddressGeocodeHandler
 >;
-
-export type TGeocodeAddressContext = {
-  onGeocodeAddress: TAutoFillAddressGeocode;
-};
 
 export type TAccountSettingsContext =
   TAccountSettingsStateReturn &
     TAccountSettingsMapReturn &
     TAccountSettingsConfig &
-    TAccountSettingsddressReturn 
-    // &
-    // TGeocodeAddressContext;
+    TAccountSettingsddressReturn;
 
 export type TAccountSettingsAddressGeocodeConfig =
   TAccountSettingsConfig & TAccountSettingsMapReturn;
 
 export type TAccountSettingsStateConfig =
   TAccountSettingsMapReturn &
-    TAccountSettingsAddressGeocodeConfig 
-    // &
-    // TGeocodeAddressContext;
+    TAccountSettingsAddressGeocodeConfig;

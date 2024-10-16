@@ -14,10 +14,11 @@ import { notifyError } from '@/utils/notifications';
 import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
 import { isDefined } from '@/utils/validation/is/defined';
 import { usePainter } from '@/context/dashboard/painter/provider';
+import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export const useDashboardPainter = () => {
-  const { onGeocodeAddress, onJobWithinRangeCheck } =
-    usePainter();
+  const { onJobWithinRangeCheck } = usePainter();
+  const handleGeocodeAddress = useAddressGeocodeHandler();
   const [jobList, setJobList] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
@@ -53,7 +54,9 @@ export const useDashboardPainter = () => {
 
                 if (!isDefined(lat) || !isDefined(lng)) {
                   const geocodedLocation =
-                    await onGeocodeAddress(jobData.address);
+                    await handleGeocodeAddress(
+                      jobData.address
+                    );
                   if (geocodedLocation) {
                     lat = geocodedLocation.lat;
                     lng = geocodedLocation.lng;

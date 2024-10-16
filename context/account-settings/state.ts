@@ -28,6 +28,7 @@ import { useUploadLogoAndGetUrl } from '@/context/account-settings/upload-logo-a
 import { notifyError } from '@/utils/notifications';
 import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
+import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export const useAccountSettingsState = (
   config: TAccountSettingsStateConfig
@@ -38,7 +39,7 @@ export const useAccountSettingsState = (
     address,
     dispatchRange,
     dispatchAddress,
-    // onGeocodeAddress,
+    dispatchCoords,
   } = config;
   const handleUploadLogoAndGetUrl =
     useUploadLogoAndGetUrl();
@@ -76,6 +77,7 @@ export const useAccountSettingsState = (
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
+  const handleAddressGeocode = useAddressGeocodeHandler();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -130,6 +132,13 @@ export const useAccountSettingsState = (
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
                 // onGeocodeAddress(painterData.address);
+                const coords = await handleAddressGeocode(
+                  painterData.address
+                );
+                if (coords) {
+                  dispatchCoords(coords);
+                }
+                console.log('painterData: ', painterData);
               } else {
                 // User is a homeowner
                 setPainter(false);
@@ -166,6 +175,13 @@ export const useAccountSettingsState = (
                   }
                   // Geocode address to set marker
                   // onGeocodeAddress(userData.address);
+                  console.log('userData: ', userData);
+                  const coords = await handleAddressGeocode(
+                    userData.address
+                  );
+                  if (coords) {
+                    dispatchCoords(coords);
+                  }
                 } else {
                   setErrorMessage('User data not found.');
                 }
