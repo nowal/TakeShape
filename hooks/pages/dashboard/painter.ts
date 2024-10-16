@@ -13,12 +13,13 @@ import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correc
 import { notifyError } from '@/utils/notifications';
 import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
 import { isDefined } from '@/utils/validation/is/defined';
-import { usePainter } from '@/context/dashboard/painter/provider';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
+import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
 
 export const useDashboardPainter = () => {
-  const { onJobWithinRangeCheck } = usePainter();
   const handleGeocodeAddress = useAddressGeocodeHandler();
+  const handleWithinRangeCheck =
+    useWithinRangeCheckHandler();
   const [jobList, setJobList] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
@@ -64,38 +65,51 @@ export const useDashboardPainter = () => {
                 }
 
                 if (isDefined(lat) && isDefined(lng)) {
-                  const isWithinRange =
-                    await onJobWithinRangeCheck(
-                      painterData.address,
-                      painterData.range,
-                      { lat, lng }
+                  const painterCoords =
+                    await handleGeocodeAddress(
+                      painterData.address
                     );
-                  if (isWithinRange) {
-                    if (jobData.paintPreferencesId) {
-                      const paintPrefDocRef = doc(
-                        firestore,
-                        'paintPreferences',
-                        jobData.paintPreferencesId
+                  if (painterCoords === null) {
+                    console.error(
+                      'useDashboardPainter.handleFetchPainterData Job address is missing latitude and/or lnggitude after geocoding:',
+                      jobData.address,
+                      ', jobData ',
+                      jobData
+                    );
+                    return null;
+                  } else {
+                    const isWithinRange =
+                      await handleWithinRangeCheck(
+                        painterCoords,
+                        { lat, lng },
+                        painterData.range
                       );
-                      const paintPrefDocSnap = await getDoc(
-                        paintPrefDocRef
-                      );
-                      if (paintPrefDocSnap.exists()) {
-                        jobData.paintPreferences =
-                          paintPrefDocSnap.data() as TPaintPreferences;
+                    if (isWithinRange) {
+                      if (jobData.paintPreferencesId) {
+                        const paintPrefDocRef = doc(
+                          firestore,
+                          'paintPreferences',
+                          jobData.paintPreferencesId
+                        );
+                        const paintPrefDocSnap =
+                          await getDoc(paintPrefDocRef);
+                        if (paintPrefDocSnap.exists()) {
+                          jobData.paintPreferences =
+                            paintPrefDocSnap.data() as TPaintPreferences;
+                        }
                       }
-                    }
 
-                    const video = await resolveVideoUrl(
-                      jobData.video
-                    );
-                    return {
-                      ...jobData,
-                      ...(video
-                        ? { video }
-                        : { video: '' }),
-                      jobId: jobDoc.id,
-                    };
+                      const video = await resolveVideoUrl(
+                        jobData.video
+                      );
+                      return {
+                        ...jobData,
+                        ...(video
+                          ? { video }
+                          : { video: '' }),
+                        jobId: jobDoc.id,
+                      };
+                    }
                   }
                 } else {
                   console.error(

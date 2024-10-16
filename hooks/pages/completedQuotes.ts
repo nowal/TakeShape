@@ -15,18 +15,20 @@ import { useAuth } from '@/context/auth/provider';
 import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
 import { isDefined } from '@/utils/validation/is/defined';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
+import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
 
 export const useDashboardPainterCompleted = () => {
   const { isAuthLoading } = useAuth();
   const dashboardPainter = usePainter();
-  const { dispatchNavigating, onJobWithinRangeCheck } =
-    dashboardPainter;
+  const { dispatchNavigating } = dashboardPainter;
   const [jobList, setJobList] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
 
   const handleAddressGeocode = useAddressGeocodeHandler();
+  const handleWithinRangeCheck =
+    useWithinRangeCheckHandler();
 
   useEffect(() => {
     if (user) {
@@ -76,10 +78,10 @@ export const useDashboardPainterCompleted = () => {
 
               if (isDefined(lat) && isDefined(lng)) {
                 const isWithinRange =
-                  await onJobWithinRangeCheck(
+                  await handleWithinRangeCheck(
                     painterData.address,
-                    painterData.range,
-                    { lat, lng }
+                    { lat, lng },
+                    painterData.range
                   );
                 if (isWithinRange) {
                   if (jobData.paintPreferencesId) {

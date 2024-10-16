@@ -5,12 +5,8 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useApiLoadingStatus } from '@vis.gl/react-google-maps';
 
 export const PainterAddress = () => {
-  const {
-    address,
-    addressFormatted,
-    coords,
-    prevCoordsRef,
-  } = useAccountSettings();
+  const { address, addressFormatted, coords } =
+    useAccountSettings();
   const loadingStatus = useApiLoadingStatus();
 
   const addressValue = addressFormatted ?? address;
@@ -19,7 +15,6 @@ export const PainterAddress = () => {
     Boolean(addressValue) &&
     coords !== null &&
     loadingStatus === 'LOADED';
-  console.log(prevCoordsRef);
 
   return (
     <>

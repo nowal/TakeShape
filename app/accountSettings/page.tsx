@@ -18,7 +18,6 @@ const AccountSettingsPage = () => {
     isAgent,
     errorMessage,
     addressFormatted,
-    onUpdate,
     onSubmit,
   } = accountSettings;
 
@@ -46,7 +45,7 @@ const AccountSettingsPage = () => {
             </ComponentsAccountSettingsNotifications>
           )}
           <form
-            {...(isPainter ? {} : { onSubmit })}
+            onSubmit={onSubmit}
             className="flex flex-col gap-4"
           >
             <ComponentsAccountSettingsUser
@@ -62,15 +61,15 @@ const AccountSettingsPage = () => {
                   ? IconsError16White
                   : null,
               }}
-              type="submit"
               isDisabled={isAccountSettingsSubmitting}
               intent="primary"
+              type="submit"
               size="sm"
               gap="xl"
               center
               {...(isPainter
                 ? addressFormatted
-                  ? { onTap: onUpdate }
+                  ? {}
                   : { isDisabled: true }
                 : {})}
             >

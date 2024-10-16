@@ -139,9 +139,10 @@ export const useAccountSettingsState = (
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
                 // onGeocodeAddress(painterData.address);
-                const nextCoords = await handleAddressGeocode(
-                  painterData.address
-                );
+                const nextCoords =
+                  await handleAddressGeocode(
+                    painterData.address
+                  );
                 if (nextCoords) {
                   prevCoordsRef.current = nextCoords;
                   dispatchCoords(nextCoords);
@@ -184,6 +185,7 @@ export const useAccountSettingsState = (
                   // Geocode address to set marker
                   // onGeocodeAddress(userData.address);
                   console.log('userData: ', userData);
+
                   const nextCoords =
                     await handleAddressGeocode(
                       userData.address
@@ -238,160 +240,152 @@ export const useAccountSettingsState = (
     reader.readAsDataURL(file);
   };
 
-  const handleUpdate = async () =>
-    // event: FormEvent<HTMLFormElement>
-    {
-      // event.preventDefault();
+  const handleUpdate = async () => {
+    try {
+      setAccountSettingsSubmitting(true); // Set loading state to true
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw Error('No user');
+      if (isPainter) {
+        // Painter specific update
+        const painterQuery = query(
+          collection(firestore, 'painters'),
+          where('userId', '==', currentUser.uid)
+        );
+        const painterSnapshot = await getDocs(painterQuery);
+        const isPainter = !painterSnapshot.empty;
 
-      try {
-        setAccountSettingsSubmitting(true); // Set loading state to true
-        const currentUser = auth.currentUser;
-        if (!currentUser) throw Error('No user');
         if (isPainter) {
-          // Painter specific update
-          const painterQuery = query(
-            collection(firestore, 'painters'),
-            where('userId', '==', currentUser.uid)
-          );
-          const painterSnapshot = await getDocs(
-            painterQuery
-          );
-          const isPainter = !painterSnapshot.empty;
-
-          if (isPainter) {
-            if (!addressFormatted) {
-              setErrorMessage('Invalid address.');
-              return;
-              // throw Error('Invalid address');
-            }
-            const painterDocRef =
-              painterSnapshot.docs[0].ref;
-            const updatedLogoUrl = logo
-              ? await handleUploadLogoAndGetUrl(logo)
-              : logoUrl; // Handle logo upload if provided
-
-            const updatedPainterData = {
-              businessName,
-              address: addressFormatted,
-              range,
-              isInsured,
-              logoUrl: updatedLogoUrl,
-              phoneNumber,
-            };
-
-            await updateDoc(
-              painterDocRef,
-              updatedPainterData
-            );
-            console.log(
-              'Painter info updated:',
-              updatedPainterData
-            );
-
-            onNavigateScrollTopClick('/dashboard');
-          } else {
-            setErrorMessage('Painter data not found.');
+          if (!addressFormatted) {
+            setErrorMessage('Invalid address.');
             return;
           }
+          const painterDocRef = painterSnapshot.docs[0].ref;
+          const updatedLogoUrl = logo
+            ? await handleUploadLogoAndGetUrl(logo)
+            : logoUrl; // Handle logo upload if provided
+
+          const updatedPainterData = {
+            businessName,
+            address: addressFormatted,
+            range,
+            isInsured,
+            logoUrl: updatedLogoUrl,
+            phoneNumber,
+          };
+
+          await updateDoc(
+            painterDocRef,
+            updatedPainterData
+          );
+          console.log(
+            'Painter info updated:',
+            updatedPainterData
+          );
+          console.log('DONE - redirect');
+
+          onNavigateScrollTopClick('/dashboard');
         } else {
-          // Agent or Homeowner specific update
-          let profilePictureUrlToUpdate = profilePictureUrl;
+          setErrorMessage('Painter data not found.');
+          return;
+        }
+      } else {
+        // Agent or Homeowner specific update
+        let profilePictureUrlToUpdate = profilePictureUrl;
 
-          // Upload new profile picture if provided
-          if (newProfilePicture) {
-            const profilePictureRef = storageRef(
-              storage,
-              `profilePictures/${currentUser.uid}`
-            );
-            await uploadBytes(
-              profilePictureRef,
-              newProfilePicture
-            );
-            profilePictureUrlToUpdate =
-              await getDownloadURL(profilePictureRef);
-          }
+        // Upload new profile picture if provided
+        if (newProfilePicture) {
+          const profilePictureRef = storageRef(
+            storage,
+            `profilePictures/${currentUser.uid}`
+          );
+          await uploadBytes(
+            profilePictureRef,
+            newProfilePicture
+          );
+          profilePictureUrlToUpdate = await getDownloadURL(
+            profilePictureRef
+          );
+        }
 
-          if (isAgent) {
-            // Update user document in "reAgents" collection
-            const userDocRef = doc(
-              firestore,
-              'reAgents',
-              currentUser.uid
-            );
+        if (isAgent) {
+          // Update user document in "reAgents" collection
+          const userDocRef = doc(
+            firestore,
+            'reAgents',
+            currentUser.uid
+          );
+          await updateDoc(userDocRef, {
+            name,
+            phoneNumber,
+            profilePictureUrl: profilePictureUrlToUpdate,
+          });
+
+          onNavigateScrollTopClick('/agentDashboard');
+        } else {
+          // Homeowner update
+          const userQuery = query(
+            collection(firestore, 'users'),
+            where('email', '==', currentUser.email)
+          );
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userDocRef = userSnapshot.docs[0].ref;
             await updateDoc(userDocRef, {
               name,
               phoneNumber,
-              profilePictureUrl: profilePictureUrlToUpdate,
+              address,
             });
 
-            onNavigateScrollTopClick('/agentDashboard');
-          } else {
-            // Homeowner update
-            const userQuery = query(
-              collection(firestore, 'users'),
-              where('email', '==', currentUser.email)
-            );
-            const userSnapshot = await getDocs(userQuery);
+            // Handle Real Estate Agent update
+            if (newAgentName) {
+              console.log(newAgentName);
+              const agentQueryAll = query(
+                collection(firestore, 'reAgents')
+                // where('name', '==', newAgentName)
+              );
+              const agentQuery = query(
+                collection(firestore, 'reAgents'),
+                where('name', '==', newAgentName)
+              );
+              console.log(agentQueryAll, agentQuery);
+              const agentSnapshotAll = await getDocs(
+                agentQueryAll
+              );
+              const agentSnapshot = await getDocs(
+                agentQuery
+              );
+              console.log(agentSnapshotAll, agentSnapshot);
 
-            if (!userSnapshot.empty) {
-              const userDocRef = userSnapshot.docs[0].ref;
-              await updateDoc(userDocRef, {
-                name,
-                phoneNumber,
-                address,
-              });
-
-              // Handle Real Estate Agent update
-              if (newAgentName) {
-                console.log(newAgentName);
-                const agentQueryAll = query(
-                  collection(firestore, 'reAgents')
-                  // where('name', '==', newAgentName)
-                );
-                const agentQuery = query(
-                  collection(firestore, 'reAgents'),
-                  where('name', '==', newAgentName)
-                );
-                console.log(agentQueryAll, agentQuery);
-                const agentSnapshotAll = await getDocs(
-                  agentQueryAll
-                );
-                const agentSnapshot = await getDocs(
-                  agentQuery
-                );
-                console.log(
-                  agentSnapshotAll,
-                  agentSnapshot
-                );
-
-                if (!agentSnapshot.empty) {
-                  const agentDoc = agentSnapshot.docs[0];
-                  await updateDoc(userDocRef, {
-                    reAgent: agentDoc.id,
-                  });
-                  setAgentName(agentDoc.data().name || '');
-                  setAgentError('');
-                } else {
-                  setAgentError('Agent not found');
-                }
+              if (!agentSnapshot.empty) {
+                const agentDoc = agentSnapshot.docs[0];
+                await updateDoc(userDocRef, {
+                  reAgent: agentDoc.id,
+                });
+                setAgentName(agentDoc.data().name || '');
+                setAgentError('');
+              } else {
+                setAgentError('Agent not found');
               }
-              onNavigateScrollTopClick('/dashboard');
-            } else {
-              setErrorMessage('User data not found.');
-              return;
             }
+            onNavigateScrollTopClick('/dashboard');
+          } else {
+            setErrorMessage('User data not found.');
+            return;
           }
         }
-        setErrorMessage('');
-      } catch (error) {
-        console.error('Error updating user info: ', error);
-        setErrorMessage(
-          'An unexpected error occurred. Please try again.'
-        );
-      } finally {
-        setAccountSettingsSubmitting(false); // Reset loading state
       }
-    };
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Error updating user info: ', error);
+      setErrorMessage(
+        'An unexpected error occurred. Please try again.'
+      );
+    } finally {
+      console.log('DONE');
+      setAccountSettingsSubmitting(false); // Reset loading state
+    }
+  };
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>

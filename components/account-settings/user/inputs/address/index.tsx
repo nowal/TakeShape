@@ -7,6 +7,7 @@ import { useAddressAutocomplete } from '@/components/account-settings/user/input
 type TProps = TInputProps;
 export const InputsAddress: FC<TProps> = (props) => {
   const {
+    isPainter,
     address,
     addressFormatted,
     dispatchAddressFormatted,
@@ -24,6 +25,11 @@ export const InputsAddress: FC<TProps> = (props) => {
         placeholder="Address"
         ref={addressInputRef}
         value={addressValue}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+          }
+        }}
         onChange={async (event) => {
           dispatchAddressFormatted(null);
           const nextAddressValue = event.target.value;
