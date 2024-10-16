@@ -49,8 +49,6 @@ export const useAutocomplete = (config?:TConfig) => {
     });
   };
 
-  
-
   useEffect(() => {
 
     if (!places) return;

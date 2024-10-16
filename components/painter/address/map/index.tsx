@@ -1,12 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import {
   Map,
-  MapCameraChangedEvent,
   useApiLoadingStatus,
   useMap,
-  useMapsLibrary,
   AdvancedMarker,
-  Pin,
 } from '@vis.gl/react-google-maps';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
@@ -28,15 +25,7 @@ export const PainterAddressMap: FC = () => {
     if (map === null) return;
     const position = event.latLng;
     if (position === null) return;
-    console.log('marker clicked: ', position.toString());
-    map.panTo(position);
-    // setCircleCenter(position);
-
-    const nextCoords = {
-      lat: position.lat(),
-      lng: position.lng(),
-    };
-    // dispatchCoords(nextCoords);
+    console.log('marker drag: ', position.toString());
   };
 
   const handleDragEnd = (
@@ -55,7 +44,9 @@ export const PainterAddressMap: FC = () => {
     };
     dispatchCoords(nextCoords);
   };
+
   console.log(coords);
+  
   return (
     <div>
       <TypographyFormSubtitle>
