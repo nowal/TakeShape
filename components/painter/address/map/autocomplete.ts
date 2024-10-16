@@ -44,7 +44,7 @@ export const useAutocomplete = (config?:TConfig) => {
         lat: location.lat(),
         lng: location.lng(),
       };
-      console.log('nextCoords ', nextCoords);
+      console.log('autocomplete place_changed updated nextCoords ', nextCoords);
       dispatchCoords(nextCoords);
     });
   };
@@ -52,7 +52,7 @@ export const useAutocomplete = (config?:TConfig) => {
   
 
   useEffect(() => {
-    
+
     if (!places) return;
     init(places);
   }, [places]);

@@ -55,9 +55,7 @@ export const PainterAddressMap: FC = () => {
     };
     dispatchCoords(nextCoords);
   };
-
-  console.log(coords, loadingStatus);
-
+  console.log(coords);
   return (
     <div>
       <TypographyFormSubtitle>
@@ -68,17 +66,17 @@ export const PainterAddressMap: FC = () => {
           className={cx('h-[400px]')}
           defaultZoom={10}
           defaultCenter={coords}
-          onCameraChanged={(
-            event: MapCameraChangedEvent
-          ) => {
-            // const position = event.detail.center;
-            console.log(
-              'camera changed:',
-              event.detail.center,
-              'zoom:',
-              event.detail.zoom
-            );
-          }}
+          center={coords}
+          // onCameraChanged={(
+          //   event: MapCameraChangedEvent
+          // ) => {
+          //   console.log(
+          //     'camera changed:',
+          //     event.detail.center,
+          //     'zoom:',
+          //     event.detail.zoom
+          //   );
+          // }}
           mapId="4d7092f4ba346ef1"
         >
           <Circle
@@ -97,11 +95,11 @@ export const PainterAddressMap: FC = () => {
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
           >
-            <Pin
+            {/* <Pin
               background="#FBBC04"
               glyphColor="#000"
               borderColor="#000"
-            />
+            /> */}
           </AdvancedMarker>
         </Map>
       ) : (
