@@ -5,7 +5,7 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useApiLoadingStatus } from '@vis.gl/react-google-maps';
 
 export const PainterAddress = () => {
-  const { address, coords, dispatchCoords } =
+  const { address, coords } =
     useAccountSettings();
 
   const loadingStatus = useApiLoadingStatus();

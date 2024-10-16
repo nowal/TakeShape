@@ -1,9 +1,8 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useMemo } from 'react';
 import {
   Map,
   useMap,
   AdvancedMarker,
-  useMapsLibrary,
   Pin,
 } from '@vis.gl/react-google-maps';
 import { useAccountSettings } from '@/context/account-settings/provider';
@@ -12,17 +11,19 @@ import { cx } from 'class-variance-authority';
 import { Circle } from './components/circle';
 import { TPainterAddressProps } from '@/components/painter/address/types';
 import { milesToMetres } from '@/utils/transform/miles-to-metres';
+import { useBoundsUpdate } from '@/hooks/maps/bounds';
 
 export const PainterAddressMap: FC<
   TPainterAddressProps
 > = ({ isReady }) => {
   const map = useMap();
-  const maps = useMapsLibrary('maps');
   const {
     range: rangeMiles,
     coords,
     dispatchCoords,
   } = useAccountSettings();
+
+  const handleBounds = useBoundsUpdate();
 
   const handleDragEnd = (
     event: google.maps.MapMouseEvent
@@ -37,6 +38,7 @@ export const PainterAddressMap: FC<
       lng: position.lng(),
     };
     dispatchCoords(nextCoords);
+    handleBounds(nextCoords, rangeMiles);
   };
 
   const rangeMetres = useMemo(() => {
@@ -60,11 +62,11 @@ export const PainterAddressMap: FC<
           <Circle
             radius={rangeMetres}
             center={coords}
-            strokeColor="#0c4cb3"
-            strokeOpacity={1}
-            strokeWeight={3}
-            fillColor="#3b82f6"
-            fillOpacity={0.3}
+            fillColor="#ff385c"
+            strokeColor="#ff385c"
+            strokeOpacity={0.8}
+            strokeWeight={2}
+            fillOpacity={0.1}
           />
           <AdvancedMarker
             position={coords}
@@ -72,7 +74,7 @@ export const PainterAddressMap: FC<
             onDragEnd={handleDragEnd}
           >
             <Pin
-              background="#FBBC04"
+              background="#ff385c"
               glyphColor="#000"
               borderColor="#000"
             />
