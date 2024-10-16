@@ -1,12 +1,9 @@
 'use client';
 import { useAccountSettingsAddress } from '@/context/account-settings/address';
-import { useAccountSettingsMap } from '@/context/account-settings/map';
 import { useAccountSettingsState } from '@/context/account-settings/state';
 import {
-  TAccountSettingsAddressGeocodeConfig,
   TAccountSettingsConfig,
   TAccountSettingsContext,
-  TAccountSettingsStateConfig,
   TCoordsValue,
 } from '@/context/account-settings/types';
 import {
@@ -35,9 +32,6 @@ export const AccountSettingsProvider: FC<
   const addressInputRef = useRef<HTMLInputElement | null>(
     null
   );
-  const [mapElement, setMapElement] =
-    useState<HTMLDivElement | null>(null);
-
   const accountSettingsAddress =
     useAccountSettingsAddress();
 
@@ -46,33 +40,16 @@ export const AccountSettingsProvider: FC<
     coords,
     dispatchCoords: setCoords,
     addressInputRef,
-    mapElement,
-    dispatchMapElement: setMapElement,
     range,
     dispatchRange: setRange,
   };
-  const accountSettingsMap = useAccountSettingsMap(config);
-  const accountSettingsAddressGeocodeConfig: TAccountSettingsAddressGeocodeConfig =
-    {
-      ...accountSettingsMap,
-      ...config,
-    };
-
-  const accountSettingsStateConfig: TAccountSettingsStateConfig =
-    {
-      ...accountSettingsAddressGeocodeConfig,
-    };
-
-  const accountSettings = useAccountSettingsState({
-    ...accountSettingsStateConfig,
-  });
+  const accountSettings = useAccountSettingsState(config);
 
   return (
     <ACCOUNT_SETTINGS.Provider
       value={{
         ...accountSettings,
         ...config,
-        ...accountSettingsMap,
         ...accountSettingsAddress,
       }}
     >

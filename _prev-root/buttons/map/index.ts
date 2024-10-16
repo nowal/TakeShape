@@ -7,13 +7,13 @@ import { useEffect, useRef } from 'react';
 type TConfig = TAccountSettingsConfig;
 export const useAccountSettingsMap = (config: TConfig) => {
   const { coords, range } = config;
-  const mapInstanceRef = useRef<google.maps.Map | null>(
-    null
-  );
-  const markerRef =
-    useRef<google.maps.marker.AdvancedMarkerElement | null>(
-      null
-    );
+  // const mapInstanceRef = useRef<google.maps.Map | null>(
+  //   null
+  // );
+  // const markerRef =
+  //   useRef<google.maps.marker.AdvancedMarkerElement | null>(
+  //     null
+  //   );
 
   const current = {
     coords,
@@ -22,10 +22,10 @@ export const useAccountSettingsMap = (config: TConfig) => {
   const currentRef = useRef(current);
   currentRef.current = current;
 
-  const { onDragEnd, onMapUpdate } = useMapDrag(
-    config,
-    markerRef
-  );
+  // const { onDragEnd, onMapUpdate } = useMapDrag(
+  //   config,
+  //   markerRef
+  // );
 
   // useEffect(() => {
   //   if (coords) {
@@ -38,7 +38,7 @@ export const useAccountSettingsMap = (config: TConfig) => {
   //   }
   // }, [coords]);
 
-  useEventListener('dragend', onDragEnd, markerRef);
+  // useEventListener('dragend', onDragEnd, markerRef);
 
-  return { onMapUpdate };
+  // return { onMapUpdate };
 };

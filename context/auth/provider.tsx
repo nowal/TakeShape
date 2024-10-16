@@ -46,9 +46,9 @@ export const AuthProvider: FC<PropsWithChildren> = ({
     dispatchUserSignedIn: setUserSignedIn,
     dispatchProfilePictureUrl,
   };
-  const handleSignOut = useSignOut(signOutConfig);
+  const signOut = useSignOut(signOutConfig);
   const config: TAuthConfig = {
-    onSignOut: handleSignOut,
+    ...signOut,
     ...signOutConfig,
   };
   const signIn = useSignIn(config);

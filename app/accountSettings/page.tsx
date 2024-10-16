@@ -6,7 +6,6 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { useEffect } from 'react';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
 
@@ -14,31 +13,16 @@ const AccountSettingsPage = () => {
   const { isAuthLoading } = useAuth();
   const accountSettings = useAccountSettings();
   const {
-    isAddressLoading,
     isAccountSettingsSubmitting,
     isPainter,
     isAgent,
     errorMessage,
-    coords,
-    range,
+    addressFormatted,
+    onUpdate,
     onSubmit,
-    onMapUpdate,
   } = accountSettings;
 
   useAuthNavigateHome();
-
-  useEffect(() => {
-    console.log(
-      'ACC    SETTINGS ',
-      coords,
-
-      '   isAddressLoading ',
-      isAddressLoading
-    );
-    if (coords && !isAddressLoading) {
-      onMapUpdate(coords, range);
-    }
-  }, [isAddressLoading, coords, range]);
 
   if (isAuthLoading) return null;
 
@@ -62,7 +46,7 @@ const AccountSettingsPage = () => {
             </ComponentsAccountSettingsNotifications>
           )}
           <form
-            onSubmit={onSubmit}
+            {...(isPainter ? {} : { onSubmit })}
             className="flex flex-col gap-4"
           >
             <ComponentsAccountSettingsUser
@@ -84,6 +68,11 @@ const AccountSettingsPage = () => {
               size="sm"
               gap="xl"
               center
+              {...(isPainter
+                ? addressFormatted
+                  ? { onTap: onUpdate }
+                  : { isDisabled: true }
+                : {})}
             >
               {submitTitle}
             </ButtonsCvaButton>

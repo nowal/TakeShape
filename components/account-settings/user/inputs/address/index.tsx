@@ -6,20 +6,29 @@ import { useAddressAutocomplete } from '@/components/account-settings/user/input
 
 type TProps = TInputProps;
 export const InputsAddress: FC<TProps> = (props) => {
-  const { address, dispatchAddress, addressInputRef } =
-    useAccountSettings();
+  const {
+    address,
+    addressFormatted,
+    dispatchAddressFormatted,
+    dispatchAddress,
+    addressInputRef,
+  } = useAccountSettings();
 
   useAddressAutocomplete();
+
+  const addressValue = addressFormatted ?? address;
 
   return (
     <div>
       <InputsText
         placeholder="Address"
         ref={addressInputRef}
-        value={address}
-        onChange={(event) =>
-          dispatchAddress(event.target.value)
-        }
+        value={addressValue}
+        onChange={async (event) => {
+          dispatchAddressFormatted(null);
+          const nextAddressValue = event.target.value;
+          dispatchAddress(nextAddressValue);
+        }}
         required
         {...props}
       />

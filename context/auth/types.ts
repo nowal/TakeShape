@@ -10,6 +10,5 @@ export type TAuthSignOutConfig = {
   dispatchProfilePictureUrl: Dispatch<string | null>;
 };
 
-export type TAuthConfig = TAuthSignOutConfig & {
-  onSignOut: ReturnType<typeof useSignOut>;
-};
+export type TAuthConfig = TAuthSignOutConfig &
+  ReturnType<typeof useSignOut>;

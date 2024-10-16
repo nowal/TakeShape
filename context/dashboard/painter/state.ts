@@ -27,22 +27,12 @@ export const usePainterState = () => {
         geocodedPainterAddress;
       const { lat: jobLat, lng: jobLng } = jobAddress;
 
-      // console.log(
-      //   `Painter Location: (${painterLat}, ${painterLng})`
-      // );
-      // console.log(`TJob Location: (${jobLat}, ${jobLng})`);
-
       const distance = getDistanceFromCoordsInKm(
         painterLat,
         painterLng,
         jobLat,
         jobLng
       );
-      // console.log(
-      //   `Distance: ${distance} km, Range: ${
-      //     range * 1.60934
-      //   } km`
-      // );
 
       return distance <= range * 1.60934; // Convert miles to kilometers
     } else {

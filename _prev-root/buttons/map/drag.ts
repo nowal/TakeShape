@@ -9,7 +9,6 @@ export const useMapDrag = (
 ) => {
   const {
     coords,
-    mapElement,
     dispatchAddress,
     range,
     dispatchCoords,
@@ -86,7 +85,6 @@ export const useMapDrag = (
     }
   };
   const handleDragEnd = () => {
-    console.log(' HANDLE DRAG END ');
     const position = markerRef.current?.position;
     if (!position) return;
     let newLat = position.lat;

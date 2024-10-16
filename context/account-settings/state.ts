@@ -26,19 +26,22 @@ import {
 } from '@/atom';
 import { useUploadLogoAndGetUrl } from '@/context/account-settings/upload-logo-and-get-url';
 import { notifyError } from '@/utils/notifications';
-import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
+import { TAccountSettingsConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export const useAccountSettingsState = (
-  config: TAccountSettingsStateConfig
+  config: TAccountSettingsConfig
 ) => {
   const { onNavigateScrollTopClick } = useApp();
   const {
     range,
     address,
+    addressFormatted,
+    prevCoordsRef,
     dispatchRange,
     dispatchAddress,
+    dispatchAddressFormatted,
     dispatchCoords,
   } = config;
   const handleUploadLogoAndGetUrl =
@@ -92,8 +95,9 @@ export const useAccountSettingsState = (
               user.uid
             );
             const agentDoc = await getDoc(agentDocRef);
-            if (agentDoc.exists()) {
-              setAgent(true);
+            const isAgent = agentDoc.exists();
+            setAgent(isAgent);
+            if (isAgent) {
               setPainter(false);
               const agentData = agentDoc.data();
               console.log(agentData);
@@ -111,19 +115,22 @@ export const useAccountSettingsState = (
               const painterSnapshot = await getDocs(
                 painterQuery
               );
-              if (!painterSnapshot.empty) {
-                setPainter(true);
+              const isPainter = !painterSnapshot.empty;
+              setPainter(isPainter);
+
+              if (isPainter) {
                 setAgent(false);
                 const painterData =
                   painterSnapshot.docs[0].data();
-                console.log(painterData);
                 setProfilePictureUrl(
                   painterData.profilePictureUrl || null
                 );
                 setBusinessName(
                   painterData.businessName || ''
                 );
-                dispatchAddress(painterData.address || '');
+                dispatchAddressFormatted(
+                  painterData.address || ''
+                );
                 dispatchRange(painterData.range || 10);
                 setInsured(painterData.isInsured || false);
                 setPhoneNumber(
@@ -132,11 +139,12 @@ export const useAccountSettingsState = (
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
                 // onGeocodeAddress(painterData.address);
-                const coords = await handleAddressGeocode(
+                const nextCoords = await handleAddressGeocode(
                   painterData.address
                 );
-                if (coords) {
-                  dispatchCoords(coords);
+                if (nextCoords) {
+                  prevCoordsRef.current = nextCoords;
+                  dispatchCoords(nextCoords);
                 }
                 console.log('painterData: ', painterData);
               } else {
@@ -176,17 +184,21 @@ export const useAccountSettingsState = (
                   // Geocode address to set marker
                   // onGeocodeAddress(userData.address);
                   console.log('userData: ', userData);
-                  const coords = await handleAddressGeocode(
-                    userData.address
-                  );
-                  if (coords) {
-                    dispatchCoords(coords);
+                  const nextCoords =
+                    await handleAddressGeocode(
+                      userData.address
+                    );
+                  if (nextCoords) {
+                    prevCoordsRef.current = nextCoords;
+                    dispatchCoords(nextCoords);
                   }
                 } else {
                   setErrorMessage('User data not found.');
+                  return;
                 }
               }
             }
+            setErrorMessage('');
           } catch (error) {
             const errorMessage =
               'Failed to load user data. Please try again later.';
@@ -226,145 +238,166 @@ export const useAccountSettingsState = (
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
+  const handleUpdate = async () =>
+    // event: FormEvent<HTMLFormElement>
+    {
+      // event.preventDefault();
 
-    try {
-      setAccountSettingsSubmitting(true); // Set loading state to true
-      const currentUser = auth.currentUser;
-      if (!currentUser) throw Error('No user');
-      if (isPainter) {
-        // Painter specific update
-        const painterQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', currentUser.uid)
-        );
-        const painterSnapshot = await getDocs(painterQuery);
-
-        if (!painterSnapshot.empty) {
-          const painterDocRef = painterSnapshot.docs[0].ref;
-          const updatedLogoUrl = logo
-            ? await handleUploadLogoAndGetUrl(logo)
-            : logoUrl; // Handle logo upload if provided
-
-          const updatedPainterData = {
-            businessName,
-            address,
-            range,
-            isInsured,
-            logoUrl: updatedLogoUrl,
-            phoneNumber,
-          };
-
-          await updateDoc(
-            painterDocRef,
-            updatedPainterData
+      try {
+        setAccountSettingsSubmitting(true); // Set loading state to true
+        const currentUser = auth.currentUser;
+        if (!currentUser) throw Error('No user');
+        if (isPainter) {
+          // Painter specific update
+          const painterQuery = query(
+            collection(firestore, 'painters'),
+            where('userId', '==', currentUser.uid)
           );
-          console.log(
-            'Painter info updated:',
-            updatedPainterData
+          const painterSnapshot = await getDocs(
+            painterQuery
           );
+          const isPainter = !painterSnapshot.empty;
 
-          onNavigateScrollTopClick('/dashboard');
+          if (isPainter) {
+            if (!addressFormatted) {
+              setErrorMessage('Invalid address.');
+              return;
+              // throw Error('Invalid address');
+            }
+            const painterDocRef =
+              painterSnapshot.docs[0].ref;
+            const updatedLogoUrl = logo
+              ? await handleUploadLogoAndGetUrl(logo)
+              : logoUrl; // Handle logo upload if provided
+
+            const updatedPainterData = {
+              businessName,
+              address: addressFormatted,
+              range,
+              isInsured,
+              logoUrl: updatedLogoUrl,
+              phoneNumber,
+            };
+
+            await updateDoc(
+              painterDocRef,
+              updatedPainterData
+            );
+            console.log(
+              'Painter info updated:',
+              updatedPainterData
+            );
+
+            onNavigateScrollTopClick('/dashboard');
+          } else {
+            setErrorMessage('Painter data not found.');
+            return;
+          }
         } else {
-          setErrorMessage('Painter data not found.');
-        }
-      } else {
-        // Agent or Homeowner specific update
-        let profilePictureUrlToUpdate = profilePictureUrl;
+          // Agent or Homeowner specific update
+          let profilePictureUrlToUpdate = profilePictureUrl;
 
-        // Upload new profile picture if provided
-        if (newProfilePicture) {
-          const profilePictureRef = storageRef(
-            storage,
-            `profilePictures/${currentUser.uid}`
-          );
-          await uploadBytes(
-            profilePictureRef,
-            newProfilePicture
-          );
-          profilePictureUrlToUpdate = await getDownloadURL(
-            profilePictureRef
-          );
-        }
+          // Upload new profile picture if provided
+          if (newProfilePicture) {
+            const profilePictureRef = storageRef(
+              storage,
+              `profilePictures/${currentUser.uid}`
+            );
+            await uploadBytes(
+              profilePictureRef,
+              newProfilePicture
+            );
+            profilePictureUrlToUpdate =
+              await getDownloadURL(profilePictureRef);
+          }
 
-        if (isAgent) {
-          // Update user document in "reAgents" collection
-          const userDocRef = doc(
-            firestore,
-            'reAgents',
-            currentUser.uid
-          );
-          await updateDoc(userDocRef, {
-            name,
-            phoneNumber,
-            profilePictureUrl: profilePictureUrlToUpdate,
-          });
-
-          onNavigateScrollTopClick('/agentDashboard');
-        } else {
-          // Homeowner update
-          const userQuery = query(
-            collection(firestore, 'users'),
-            where('email', '==', currentUser.email)
-          );
-          const userSnapshot = await getDocs(userQuery);
-
-          if (!userSnapshot.empty) {
-            const userDocRef = userSnapshot.docs[0].ref;
+          if (isAgent) {
+            // Update user document in "reAgents" collection
+            const userDocRef = doc(
+              firestore,
+              'reAgents',
+              currentUser.uid
+            );
             await updateDoc(userDocRef, {
               name,
               phoneNumber,
-              address,
+              profilePictureUrl: profilePictureUrlToUpdate,
             });
 
-            // Handle Real Estate Agent update
-            if (newAgentName) {
-              console.log(newAgentName);
-              const agentQueryAll = query(
-                collection(firestore, 'reAgents')
-                // where('name', '==', newAgentName)
-              );
-              const agentQuery = query(
-                collection(firestore, 'reAgents'),
-                where('name', '==', newAgentName)
-              );
-              console.log(agentQueryAll, agentQuery);
-              const agentSnapshotAll = await getDocs(
-                agentQueryAll
-              );
-              const agentSnapshot = await getDocs(
-                agentQuery
-              );
-              console.log(agentSnapshotAll, agentSnapshot);
-
-              if (!agentSnapshot.empty) {
-                const agentDoc = agentSnapshot.docs[0];
-                await updateDoc(userDocRef, {
-                  reAgent: agentDoc.id,
-                });
-                setAgentName(agentDoc.data().name || '');
-                setAgentError('');
-              } else {
-                setAgentError('Agent not found');
-              }
-            }
-            onNavigateScrollTopClick('/dashboard');
+            onNavigateScrollTopClick('/agentDashboard');
           } else {
-            setErrorMessage('User data not found.');
+            // Homeowner update
+            const userQuery = query(
+              collection(firestore, 'users'),
+              where('email', '==', currentUser.email)
+            );
+            const userSnapshot = await getDocs(userQuery);
+
+            if (!userSnapshot.empty) {
+              const userDocRef = userSnapshot.docs[0].ref;
+              await updateDoc(userDocRef, {
+                name,
+                phoneNumber,
+                address,
+              });
+
+              // Handle Real Estate Agent update
+              if (newAgentName) {
+                console.log(newAgentName);
+                const agentQueryAll = query(
+                  collection(firestore, 'reAgents')
+                  // where('name', '==', newAgentName)
+                );
+                const agentQuery = query(
+                  collection(firestore, 'reAgents'),
+                  where('name', '==', newAgentName)
+                );
+                console.log(agentQueryAll, agentQuery);
+                const agentSnapshotAll = await getDocs(
+                  agentQueryAll
+                );
+                const agentSnapshot = await getDocs(
+                  agentQuery
+                );
+                console.log(
+                  agentSnapshotAll,
+                  agentSnapshot
+                );
+
+                if (!agentSnapshot.empty) {
+                  const agentDoc = agentSnapshot.docs[0];
+                  await updateDoc(userDocRef, {
+                    reAgent: agentDoc.id,
+                  });
+                  setAgentName(agentDoc.data().name || '');
+                  setAgentError('');
+                } else {
+                  setAgentError('Agent not found');
+                }
+              }
+              onNavigateScrollTopClick('/dashboard');
+            } else {
+              setErrorMessage('User data not found.');
+              return;
+            }
           }
         }
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Error updating user info: ', error);
+        setErrorMessage(
+          'An unexpected error occurred. Please try again.'
+        );
+      } finally {
+        setAccountSettingsSubmitting(false); // Reset loading state
       }
-    } catch (error) {
-      console.error('Error updating user info: ', error);
-      setErrorMessage(
-        'An unexpected error occurred. Please try again.'
-      );
-    } finally {
-      setAccountSettingsSubmitting(false); // Reset loading state
-    }
+    };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    handleUpdate();
+    event.preventDefault();
   };
 
   const profilePictureSrc =
@@ -396,6 +429,7 @@ export const useAccountSettingsState = (
     dispatchNewAgentName: setNewAgentName,
     dispatchProfilePictureUrl: setProfilePictureUrl,
     onSubmit: handleSubmit,
+    onUpdate: handleUpdate,
     onLogoChange: handleLogoChange,
     onProfilePictureChange: handleProfilePictureChange,
     onUploadLogoAndGetUrl: handleUploadLogoAndGetUrl,

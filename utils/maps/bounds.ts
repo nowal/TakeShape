@@ -1,11 +1,12 @@
-import { TCoords } from '@/context/account-settings/types';
+import { TCoordsValue } from '@/context/account-settings/types';
 
 export const resolveBounds = (
   maps: typeof google.maps | null,
-  coords: TCoords,
+  coords: TCoordsValue,
   range: number
 ) => {
   if (!maps) return;
+  if (!coords) return;
 
   const { lat, lng } = coords;
   const bounds = new maps.LatLngBounds();

@@ -55,7 +55,6 @@ export const useSignUp = (config: TConfig) => {
   ) => {
     const next = event.target.value;
     dispatchAddress(next);
-    console.log(next);
     setErrorMessage(''); // Clear the error message when the user starts typing
   };
 

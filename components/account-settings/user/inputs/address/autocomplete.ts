@@ -1,17 +1,25 @@
-import { useAccountSettings } from "@/context/account-settings/provider";
-import { useMapsLibrary } from "@vis.gl/react-google-maps";
-import { useEffect } from "react";
+import { useEffect } from 'react';
+import { useAccountSettings } from '@/context/account-settings/provider';
+import { useBoundsUpdate } from '@/hooks/maps/bounds';
+import {
+  useMap,
+  useMapsLibrary,
+} from '@vis.gl/react-google-maps';
 
-type TConfig = any;
-export const useAddressAutocomplete = (config?:TConfig) => {
+export const useAddressAutocomplete = () => {
+  const map = useMap();
   const {
-    dispatchAddress,
+    range,
+    dispatchAddressFormatted,
+    prevCoordsRef,
     dispatchCoords,
     addressInputRef,
   } = useAccountSettings();
   const places = useMapsLibrary('places');
+  const handleBoundsUpdate = useBoundsUpdate();
 
   const init = async (
+    map: google.maps.Map,
     places: google.maps.PlacesLibrary
   ) => {
     const { Autocomplete } = places;
@@ -39,20 +47,25 @@ export const useAddressAutocomplete = (config?:TConfig) => {
       const formattedAddress = place.formatted_address;
       const location = place.geometry.location;
 
-      dispatchAddress(formattedAddress || '');
+      dispatchAddressFormatted(formattedAddress || '');
+
       const nextCoords = {
         lat: location.lat(),
         lng: location.lng(),
       };
-      console.log('autocomplete place_changed updated nextCoords ', nextCoords);
+      console.log(
+        'autocomplete place_changed updated nextCoords ',
+        nextCoords
+      );
+      prevCoordsRef.current = nextCoords;
       dispatchCoords(nextCoords);
+      handleBoundsUpdate(map, nextCoords, range);
     });
   };
 
   useEffect(() => {
-
-    if (!places) return;
-    init(places);
-  }, [places]);
-
-}
+    if (places === null) return;
+    if (map === null) return;
+    init(map, places);
+  }, [map, places]);
+};

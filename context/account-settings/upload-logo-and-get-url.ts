@@ -7,10 +7,7 @@ import {
 } from 'firebase/storage';
 import firebase from '@/lib/firebase';
 
-type TConfig = any;
-export const useUploadLogoAndGetUrl = (
-  config?: TConfig
-) => {
+export const useUploadLogoAndGetUrl = () => {
   const handler = async (logoFile: File | null) => {
     if (!logoFile) {
       return ''; // Return an empty string if no logo file is provided

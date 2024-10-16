@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   doc,
   getDoc,
@@ -7,11 +7,16 @@ import {
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { useSearchParams } from 'next/navigation';
+import { TCoordsValue } from '@/context/account-settings/types';
 
 export const useAccountSettingsAddress = () => {
   const [isAddressLoading, setAddressLoading] =
     useState(false);
   const [address, setAddress] = useState('');
+  const prevCoordsRef = useRef<TCoordsValue>(null);
+  const [addressFormatted, setAddressFormatted] = useState<
+    string | null
+  >(null);
 
   const searchParams = useSearchParams();
   const userImageId =
@@ -44,7 +49,7 @@ export const useAccountSettingsAddress = () => {
         const userId = userImageDoc.data().userId;
         const userDocRef = doc(firestore, 'users', userId);
         const userDoc = await getDoc(userDocRef);
-        
+
         if (userDoc.exists()) {
           setAddress(userDoc.data().address);
         }
@@ -66,7 +71,6 @@ export const useAccountSettingsAddress = () => {
       await updateDoc(userImageDocRef, {
         address,
       });
-
     };
 
     updateUserImageDoc();
@@ -75,7 +79,10 @@ export const useAccountSettingsAddress = () => {
   return {
     isAddressLoading,
     address,
+    addressFormatted,
+    prevCoordsRef,
     dispatchAddressLoading: setAddressLoading,
     dispatchAddress: setAddress,
+    dispatchAddressFormatted: setAddressFormatted,
   };
 };

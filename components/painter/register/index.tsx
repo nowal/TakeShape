@@ -7,8 +7,8 @@ import { cx } from 'class-variance-authority';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { IconsLoading } from '@/components/icons/loading';
 import { PainterAddress } from '@/components/painter/address';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 export const ComponentsPainterRegister: FC = () => {
   const { businessName, dispatchBusinessName } =
@@ -105,7 +105,7 @@ export const ComponentsPainterRegister: FC = () => {
         center
         icon={{
           Leading: isPainterRegisterSubmitting
-            ? IconsLoading
+            ? IconsLoading16White
             : null,
         }}
         gap="xl"
