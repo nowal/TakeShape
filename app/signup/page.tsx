@@ -9,7 +9,7 @@ import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
 import { PreferencesNotificationsInlineInformation } from '@/components/preferences/notifications/information';
-import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
+import { InputsAddress } from '@/components/account-settings/user/inputs/address';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 const SignupAccountForm = () => {
@@ -81,7 +81,7 @@ const SignupAccountForm = () => {
                 placeholder="Name"
                 required
               />
-              <ComponentsAccountSettingsUserInputsAddress />
+              <InputsAddress />
               <InputsText
                 type="password"
                 value={password}

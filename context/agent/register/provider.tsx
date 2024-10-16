@@ -1,11 +1,7 @@
 'use client';
 import { useAgentRegisterState } from '@/context/agent/register/state';
-import {
-  createContext,
-  FC,
-  PropsWithChildren,
-  useContext,
-} from 'react';
+import { TProviderFc } from '@/context/type';
+import { createContext, useContext } from 'react';
 
 type TAgentRegisterContext = ReturnType<
   typeof useAgentRegisterState
@@ -18,9 +14,9 @@ export const AGENT_REGISTER =
 export const useAgentRegister = (): TAgentRegisterContext =>
   useContext(AGENT_REGISTER);
 
-export const AgentRegisterProvider: FC<
-  PropsWithChildren
-> = ({ children }) => {
+export const AgentRegisterProvider: TProviderFc = ({
+  children,
+}) => {
   const value = useAgentRegisterState();
   return (
     <AGENT_REGISTER.Provider value={value}>

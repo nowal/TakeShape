@@ -1,10 +1,9 @@
 import { ComponentsAccountSettingsUserInputsName } from '@/components/account-settings/user/inputs/name';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import type { FC } from 'react';
-import Image from 'next/image';
 import { InputsFile } from '@/components/inputs/file';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
+import { InputsFilePic } from '@/components/inputs/file/pic';
 
 export const ComponentsAccountSettingsAgent: FC = () => {
   const { profilePictureSrc, onProfilePictureChange } =
@@ -27,15 +26,10 @@ export const ComponentsAccountSettingsAgent: FC = () => {
           icon={{
             Leading: profilePictureSrc
               ? () => (
-                  <PicOutline>
-                    <Image
-                      src={profilePictureSrc}
-                      alt="Profile Picture"
-                      className="size-16 object-cover rounded-full"
-                      width="64"
-                      height="64"
-                    />
-                  </PicOutline>
+                  <InputsFilePic
+                    src={profilePictureSrc}
+                    alt="Profile Picture"
+                  />
                 )
               : IconsUpload,
           }}

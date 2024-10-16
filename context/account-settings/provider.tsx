@@ -1,16 +1,11 @@
 'use client';
 import { useAccountSettingsAddress } from '@/context/account-settings/address';
-import { useAccountSettingsMap } from '@/context/account-settings/map';
 import { useAccountSettingsState } from '@/context/account-settings/state';
 import {
-  TAccountSettingsAddressGeocodeConfig,
   TAccountSettingsConfig,
   TAccountSettingsContext,
-  TAccountSettingsStateConfig,
   TCoordsValue,
-  TGeocodeAddressContext,
 } from '@/context/account-settings/types';
-import { useAutoFillAddressGeocode } from '@/hooks/auto-fill/address/geocode';
 import {
   createContext,
   FC,
@@ -37,8 +32,6 @@ export const AccountSettingsProvider: FC<
   const addressInputRef = useRef<HTMLInputElement | null>(
     null
   );
-  const [mapElement, setMapElement] = useState<HTMLDivElement | null>(null);
-
   const accountSettingsAddress =
     useAccountSettingsAddress();
 
@@ -47,44 +40,17 @@ export const AccountSettingsProvider: FC<
     coords,
     dispatchCoords: setCoords,
     addressInputRef,
-    mapElement,
-    dispatchMapElement:setMapElement,
     range,
-    dispatchRange:setRange
+    dispatchRange: setRange,
   };
-  const accountSettingsMap = useAccountSettingsMap(config);
-  const accountSettingsAddressGeocodeConfig: TAccountSettingsAddressGeocodeConfig =
-    {
-      ...accountSettingsMap,
-      ...config,
-    };
-
-  const handleGeocodeAddress = useAutoFillAddressGeocode({
-    ...accountSettingsAddressGeocodeConfig,
-  });
-
-  const geocodeAddressContext: TGeocodeAddressContext = {
-    onGeocodeAddress: handleGeocodeAddress,
-  };
-
-  const accountSettingsStateConfig: TAccountSettingsStateConfig &
-    TGeocodeAddressContext = {
-    ...accountSettingsAddressGeocodeConfig,
-    ...geocodeAddressContext,
-  };
-
-  const accountSettings = useAccountSettingsState({
-    ...accountSettingsStateConfig,
-  });
+  const accountSettings = useAccountSettingsState(config);
 
   return (
     <ACCOUNT_SETTINGS.Provider
       value={{
         ...accountSettings,
         ...config,
-        ...accountSettingsMap,
         ...accountSettingsAddress,
-        ...geocodeAddressContext,
       }}
     >
       {children}

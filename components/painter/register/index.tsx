@@ -1,6 +1,5 @@
-import Image from 'next/image';
 import type { FC } from 'react';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
+import { InputsFilePic } from '@/components/inputs/file/pic';
 import { IconsUpload } from '@/components/icons/upload';
 import { InputsFile } from '@/components/inputs/file';
 import { usePainterRegister } from '@/context/painter/register/provider';
@@ -8,20 +7,12 @@ import { cx } from 'class-variance-authority';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { InputsSelect } from '@/components/inputs/select';
-import { TypographyFormTitle } from '@/components/typography/form/title';
-import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
-import { ComponentsAccountSettingsPainterMap } from '@/components/account-settings/user/painter/map';
-import { useAutoFillAddress } from '@/hooks/auto-fill/address';
-import { IconsLoading } from '@/components/icons/loading';
+import { PainterAddress } from '@/components/painter/address';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 export const ComponentsPainterRegister: FC = () => {
-  const {
-    range,
-    businessName,
-    dispatchRange,
-    dispatchBusinessName,
-  } = useAccountSettings();
+  const { businessName, dispatchBusinessName } =
+    useAccountSettings();
   const painterRegister = usePainterRegister();
   const {
     isPainterRegisterSubmitting,
@@ -35,8 +26,6 @@ export const ComponentsPainterRegister: FC = () => {
     onSubmit,
     dipatchPhoneNumber,
   } = painterRegister;
-
-  useAutoFillAddress();
 
   const submitTitle = isPainterRegisterSubmitting
     ? 'Submitting...'
@@ -57,21 +46,7 @@ export const ComponentsPainterRegister: FC = () => {
         placeholder="Business or Personal Name"
         required
       />
-      <ComponentsAccountSettingsUserInputsAddress />
-      <div className="flex flex-row items-center gap-2">
-        <TypographyFormTitle>Range</TypographyFormTitle>
-        <InputsSelect
-          name="range"
-          placeholder="Range (miles)"
-          value={range.toString()}
-          onValueChange={(_, value) =>
-            dispatchRange(Number(value))
-          }
-          required
-          basicValues={[10, 20, 30, 40, 50]}
-        />
-      </div>
-      <ComponentsAccountSettingsPainterMap />
+      <PainterAddress />
       <InputsText
         type="tel"
         value={phoneNumber}
@@ -94,15 +69,10 @@ export const ComponentsPainterRegister: FC = () => {
           icon={{
             Leading: logoPreview
               ? () => (
-                  <PicOutline>
-                    <Image
-                      src={logoPreview}
-                      alt="Company Logo Preview"
-                      className="size-16 object-cover rounded-full"
-                      width="64"
-                      height="64"
-                    />
-                  </PicOutline>
+                  <InputsFilePic
+                    src={logoPreview}
+                    alt="Company Logo Preview"
+                  />
                 )
               : IconsUpload,
           }}
@@ -135,10 +105,10 @@ export const ComponentsPainterRegister: FC = () => {
         center
         icon={{
           Leading: isPainterRegisterSubmitting
-            ? IconsLoading
+            ? IconsLoading16White
             : null,
         }}
-        gap='xl'
+        gap="xl"
       >
         {submitTitle}
       </ButtonsCvaButton>

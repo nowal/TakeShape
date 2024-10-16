@@ -1,8 +1,6 @@
-'use client';
-import Image from 'next/image';
+'use client';;
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsFile } from '@/components/inputs/file';
-import { PicOutline } from '@/components/account-settings/user/pic-outline';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
 import { InputsText } from '@/components/inputs/text';
@@ -12,6 +10,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { ComponentsRegisterShell } from '@/components/register/shell';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
+import { InputsFilePic } from '@/components/inputs/file/pic';
 
 const AgentSignup = () => {
   const {
@@ -108,15 +107,10 @@ const AgentSignup = () => {
             icon={{
               Leading: profilePicturePreview
                 ? () => (
-                    <PicOutline>
-                      <Image
-                        src={profilePicturePreview}
-                        alt="Profile Preview"
-                        className="size-16 object-cover rounded-full"
-                        width="64"
-                        height="64"
-                      />
-                    </PicOutline>
+                    <InputsFilePic
+                      src={profilePicturePreview}
+                      alt="Profile Preview"
+                    />
                   )
                 : IconsUpload,
             }}

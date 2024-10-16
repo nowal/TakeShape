@@ -6,7 +6,6 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { useEffect } from 'react';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
 
@@ -14,31 +13,15 @@ const AccountSettingsPage = () => {
   const { isAuthLoading } = useAuth();
   const accountSettings = useAccountSettings();
   const {
-    isAddressLoading,
     isAccountSettingsSubmitting,
     isPainter,
     isAgent,
     errorMessage,
-    coords,
-    range,
+    addressFormatted,
     onSubmit,
-    onUpdateMap,
   } = accountSettings;
 
   useAuthNavigateHome();
-
-  useEffect(() => {
-    console.log(
-      'ACC    SETTINGS ',
-      coords,
-
-      '   isAddressLoading ',
-      isAddressLoading
-    );
-    if (coords && !isAddressLoading) {
-      onUpdateMap(coords, range);
-    }
-  }, [isAddressLoading, coords, range]);
 
   if (isAuthLoading) return null;
 
@@ -78,12 +61,17 @@ const AccountSettingsPage = () => {
                   ? IconsError16White
                   : null,
               }}
-              type="submit"
               isDisabled={isAccountSettingsSubmitting}
               intent="primary"
+              type="submit"
               size="sm"
               gap="xl"
               center
+              {...(isPainter
+                ? addressFormatted
+                  ? {}
+                  : { isDisabled: true }
+                : {})}
             >
               {submitTitle}
             </ButtonsCvaButton>

@@ -4,7 +4,7 @@ import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
 import { useDashboardPainterJobAvailable } from '@/components/dashboard/painter/quotes/job/available/hook';
-import { IconsLoading } from '@/components/icons/loading';
+import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
 type TProps = TJob;
 export const DashboardPainterJobAvailableForm: FC<
@@ -85,7 +85,9 @@ export const DashboardPainterJobAvailableForm: FC<
         intent="primary"
         center
         icon={{
-          Leading: isSubmitting ? IconsLoading : null,
+          Leading: isSubmitting
+            ? IconsLoading16White
+            : null,
         }}
         gap="xl"
       >

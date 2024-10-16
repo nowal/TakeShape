@@ -15,9 +15,7 @@ export const IconsSelectChevronDown: FC<TCommonIconProps> = (
       height="8"
       viewBox="0 0 12 8"
       fill="none"
-      stroke="var(--pink)"
       d={CHEVRON_DOWN}
-      
       pathProps={{
         strokeWidth: '2.86006',
         strokeLinecap: 'round',

@@ -1,4 +1,4 @@
-import { ComponentsAccountSettingsUserInputsAddress } from '@/components/account-settings/user/inputs/address';
+import { InputsAddress } from '@/components/account-settings/user/inputs/address';
 import { ComponentsAccountSettingsUserInputsName } from '@/components/account-settings/user/inputs/name';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useAccountSettings } from '@/context/account-settings/provider';
@@ -11,7 +11,7 @@ export const ComponentsAccountSettingsHomeowner: FC =
     return (
       <>
         <ComponentsAccountSettingsUserInputsName />
-        <ComponentsAccountSettingsUserInputsAddress />
+        <InputsAddress />
         <div>
           {agentError && (
             <>

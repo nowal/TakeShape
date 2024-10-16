@@ -26,19 +26,23 @@ import {
 } from '@/atom';
 import { useUploadLogoAndGetUrl } from '@/context/account-settings/upload-logo-and-get-url';
 import { notifyError } from '@/utils/notifications';
-import { TAccountSettingsStateConfig } from '@/context/account-settings/types';
+import { TAccountSettingsConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
+import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 
 export const useAccountSettingsState = (
-  config: TAccountSettingsStateConfig
+  config: TAccountSettingsConfig
 ) => {
   const { onNavigateScrollTopClick } = useApp();
   const {
     range,
     address,
+    addressFormatted,
+    prevCoordsRef,
     dispatchRange,
     dispatchAddress,
-    onGeocodeAddress,
+    dispatchAddressFormatted,
+    dispatchCoords,
   } = config;
   const handleUploadLogoAndGetUrl =
     useUploadLogoAndGetUrl();
@@ -76,6 +80,7 @@ export const useAccountSettingsState = (
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
+  const handleAddressGeocode = useAddressGeocodeHandler();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -90,8 +95,9 @@ export const useAccountSettingsState = (
               user.uid
             );
             const agentDoc = await getDoc(agentDocRef);
-            if (agentDoc.exists()) {
-              setAgent(true);
+            const isAgent = agentDoc.exists();
+            setAgent(isAgent);
+            if (isAgent) {
               setPainter(false);
               const agentData = agentDoc.data();
               console.log(agentData);
@@ -109,19 +115,22 @@ export const useAccountSettingsState = (
               const painterSnapshot = await getDocs(
                 painterQuery
               );
-              if (!painterSnapshot.empty) {
-                setPainter(true);
+              const isPainter = !painterSnapshot.empty;
+              setPainter(isPainter);
+
+              if (isPainter) {
                 setAgent(false);
                 const painterData =
                   painterSnapshot.docs[0].data();
-                console.log(painterData);
                 setProfilePictureUrl(
                   painterData.profilePictureUrl || null
                 );
                 setBusinessName(
                   painterData.businessName || ''
                 );
-                dispatchAddress(painterData.address || '');
+                dispatchAddressFormatted(
+                  painterData.address || ''
+                );
                 dispatchRange(painterData.range || 10);
                 setInsured(painterData.isInsured || false);
                 setPhoneNumber(
@@ -129,7 +138,16 @@ export const useAccountSettingsState = (
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                onGeocodeAddress(painterData.address);
+                // onGeocodeAddress(painterData.address);
+                const nextCoords =
+                  await handleAddressGeocode(
+                    painterData.address
+                  );
+                if (nextCoords) {
+                  prevCoordsRef.current = nextCoords;
+                  dispatchCoords(nextCoords);
+                }
+                console.log('painterData: ', painterData);
               } else {
                 // User is a homeowner
                 setPainter(false);
@@ -165,12 +183,24 @@ export const useAccountSettingsState = (
                     }
                   }
                   // Geocode address to set marker
-                  onGeocodeAddress(userData.address);
+                  // onGeocodeAddress(userData.address);
+                  console.log('userData: ', userData);
+
+                  const nextCoords =
+                    await handleAddressGeocode(
+                      userData.address
+                    );
+                  if (nextCoords) {
+                    prevCoordsRef.current = nextCoords;
+                    dispatchCoords(nextCoords);
+                  }
                 } else {
                   setErrorMessage('User data not found.');
+                  return;
                 }
               }
             }
+            setErrorMessage('');
           } catch (error) {
             const errorMessage =
               'Failed to load user data. Please try again later.';
@@ -210,11 +240,7 @@ export const useAccountSettingsState = (
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
+  const handleUpdate = async () => {
     try {
       setAccountSettingsSubmitting(true); // Set loading state to true
       const currentUser = auth.currentUser;
@@ -226,8 +252,13 @@ export const useAccountSettingsState = (
           where('userId', '==', currentUser.uid)
         );
         const painterSnapshot = await getDocs(painterQuery);
+        const isPainter = !painterSnapshot.empty;
 
-        if (!painterSnapshot.empty) {
+        if (isPainter) {
+          if (!addressFormatted) {
+            setErrorMessage('Invalid address.');
+            return;
+          }
           const painterDocRef = painterSnapshot.docs[0].ref;
           const updatedLogoUrl = logo
             ? await handleUploadLogoAndGetUrl(logo)
@@ -235,7 +266,7 @@ export const useAccountSettingsState = (
 
           const updatedPainterData = {
             businessName,
-            address,
+            address: addressFormatted,
             range,
             isInsured,
             logoUrl: updatedLogoUrl,
@@ -250,10 +281,12 @@ export const useAccountSettingsState = (
             'Painter info updated:',
             updatedPainterData
           );
+          console.log('DONE - redirect');
 
           onNavigateScrollTopClick('/dashboard');
         } else {
           setErrorMessage('Painter data not found.');
+          return;
         }
       } else {
         // Agent or Homeowner specific update
@@ -338,17 +371,27 @@ export const useAccountSettingsState = (
             onNavigateScrollTopClick('/dashboard');
           } else {
             setErrorMessage('User data not found.');
+            return;
           }
         }
       }
+      setErrorMessage('');
     } catch (error) {
       console.error('Error updating user info: ', error);
       setErrorMessage(
         'An unexpected error occurred. Please try again.'
       );
     } finally {
+      console.log('DONE');
       setAccountSettingsSubmitting(false); // Reset loading state
     }
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    handleUpdate();
+    event.preventDefault();
   };
 
   const profilePictureSrc =
@@ -380,6 +423,7 @@ export const useAccountSettingsState = (
     dispatchNewAgentName: setNewAgentName,
     dispatchProfilePictureUrl: setProfilePictureUrl,
     onSubmit: handleSubmit,
+    onUpdate: handleUpdate,
     onLogoChange: handleLogoChange,
     onProfilePictureChange: handleProfilePictureChange,
     onUploadLogoAndGetUrl: handleUploadLogoAndGetUrl,

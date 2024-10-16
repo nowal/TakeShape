@@ -24,6 +24,7 @@ export type TBaseInputsSelectProps = Omit<
 >;
 export type TInputsSelectProps = TBaseInputsSelectProps &
   TResolveValuesConfig & {
+    isDisabled?: boolean;
     title?: string | JSX.Element;
     name: string;
     placeholder: string;
@@ -39,6 +40,7 @@ export const InputsSelect = ({
   title,
   placeholder,
   onValueChange,
+  isDisabled,
   ...props
 }: TInputsSelectProps) => {
   const values = resolveValues({ idValues, basicValues });
@@ -48,6 +50,7 @@ export const InputsSelect = ({
       onValueChange={(value: string) =>
         onValueChange(name, value)
       }
+      disabled={isDisabled}
       {...props}
     >
       <Select.Trigger
@@ -61,17 +64,25 @@ export const InputsSelect = ({
           'border border-gray-1 rounded-4xl',
           'text-sm',
           'font-medium',
-          'min-w-24'
+          'min-w-24',
+          'disabled:text-gray disabled:cursor-not-allowed'
         )}
         aria-label={placeholder}
       >
         {title && <h4>{title}</h4>}
-        <div className={cx('flex flex-row gap-2 w-full')}>
+        <div
+          className={cx(
+            'flex flex-row gap-2 w-full',
+            'disabled:text-gray disabled:opacity-70'
+          )}
+        >
           <div className="truncate w-full">
             <Select.Value placeholder={placeholder} />
           </div>
           <Select.Icon className="flex items-center justify-center">
-            <IconsSelectChevronDown />
+            <IconsSelectChevronDown
+              stroke={isDisabled ? "var(--gray)" : "var(--pink)"}
+            />
           </Select.Icon>
         </div>
       </Select.Trigger>

@@ -10,8 +10,10 @@ import { PreferencesProvider } from '@/context/preferences/provider';
 import { QuoteProvider } from '@/context/quote/provider';
 import { ViewportProvider } from '@/context/viewport';
 import { TChildrenProps } from '@/types/dom';
-import { arrToNest } from '@/utils/transform/arrToNest';
+import { arrToNest } from '@/utils/transform/arr-to-nest';
 import { FC, PropsWithChildren, useMemo } from 'react';
+import { MapsProvider } from '@/components/maps/provider';
+
 
 type TProps = TChildrenProps;
 export const ContextProviders: FC<TProps> = ({
@@ -20,6 +22,7 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
+        MapsProvider,
         AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,
