@@ -27,16 +27,16 @@ export const useAccountSettingsMap = (config: TConfig) => {
     markerRef
   );
 
-  useEffect(() => {
-    if (coords) {
-      markerRef.current =
-        new google.maps.marker.AdvancedMarkerElement({
-          position: coords,
-          map: mapInstanceRef.current,
-          gmpDraggable: true,
-        });
-    }
-  }, [coords]);
+  // useEffect(() => {
+  //   if (coords) {
+  //     markerRef.current =
+  //       new google.maps.marker.AdvancedMarkerElement({
+  //         position: coords,
+  //         map: mapInstanceRef.current,
+  //         gmpDraggable: true,
+  //       });
+  //   }
+  // }, [coords]);
 
   useEventListener('dragend', onDragEnd, markerRef);
 

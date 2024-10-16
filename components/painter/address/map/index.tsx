@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   APIProvider,
   Map,
@@ -9,16 +9,22 @@ import {
   useMarkerRef,
   useApiIsLoaded,
   useMapsLibrary,
+  AdvancedMarker,
+  Pin,
 } from '@vis.gl/react-google-maps';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 import { PoiMarkers } from '@/components/painter/address/map/poi';
 import { cx } from 'class-variance-authority';
+import { Circle } from './components/circle';
 
 export const PainterAddressMap: FC = () => {
   const map = useMap();
+  const [circleCenter, setCircleCenter] =
+    useState<null | google.maps.LatLng>(null);
+  // const map = useMap();
   const places = useMapsLibrary('places');
-  const marker = useMapsLibrary('marker');
+  // const marker = useMapsLibrary('marker');
   // const autofill = useRef<AutoFill | null>(null);
   const {
     address,
@@ -27,8 +33,21 @@ export const PainterAddressMap: FC = () => {
     dispatchCoords,
     addressInputRef,
   } = useAccountSettings();
-  console.log(address, ' ', coords);
+  // console.log(address, ' ', coords);
   const loadingStatus = useApiLoadingStatus();
+
+  const handleClick = (
+    event: google.maps.MapMouseEvent
+  ) => {
+    if (!map) return;
+    if (!event.latLng) return;
+    console.log(
+      'marker clicked: ',
+      event.latLng.toString()
+    );
+    map.panTo(event.latLng);
+    setCircleCenter(event.latLng);
+  };
 
   const init = async (
     places: google.maps.PlacesLibrary
@@ -68,6 +87,21 @@ export const PainterAddressMap: FC = () => {
     });
   };
 
+  const handleDrag = (event: google.maps.MapMouseEvent) => {
+    if (!map) return;
+    const position = event.latLng;
+    if (!position) return;
+    console.log('marker clicked: ', position.toString());
+    map.panTo(position);
+    setCircleCenter(position);
+
+    const nextCoords = {
+      lat: position.lat(),
+      lng: position.lng(),
+    };
+    dispatchCoords(nextCoords);
+  };
+
   useEffect(() => {
     if (!places) return;
 
@@ -82,33 +116,44 @@ export const PainterAddressMap: FC = () => {
       {coords !== null && loadingStatus === 'LOADED' ? (
         <Map
           className={cx('h-[400px]')}
-          zoom={10}
+          defaultZoom={10}
           defaultCenter={coords}
           onCameraChanged={(
             event: MapCameraChangedEvent
           ) => {
-            const position = event.detail.center;
-
+            // const position = event.detail.center;
             console.log(
               'camera changed:',
               event.detail.center,
               'zoom:',
               event.detail.zoom
             );
-
-            // dispatchAddress(
-            //   `${position.lat}, ${position.lng}`
-            // );
           }}
           mapId="4d7092f4ba346ef1"
         >
-          <PoiMarkers
-            pois={
-              coords
-                ? [{ key: 'address', location: coords }]
-                : []
-            }
+          <Circle
+            radius={800}
+            center={circleCenter}
+            strokeColor="#0c4cb3"
+            strokeOpacity={1}
+            strokeWeight={3}
+            fillColor="#3b82f6"
+            fillOpacity={0.3}
           />
+          <AdvancedMarker
+            position={coords}
+            clickable
+            draggable
+            onClick={handleClick}
+            onDrag={handleDrag}
+            // ref={(marker) => setMarkerRef(marker, poi.key)}
+          >
+            <Pin
+              background="#FBBC04"
+              glyphColor="#000"
+              borderColor="#000"
+            />
+          </AdvancedMarker>
         </Map>
       ) : (
         <div className="h-[400px]" />

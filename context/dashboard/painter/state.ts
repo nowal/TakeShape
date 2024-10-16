@@ -14,8 +14,6 @@ export const usePainterState = () => {
   const auth = getAuth();
   const user = auth.currentUser;
 
-  
-
   const handleGeocodeAddress = async (address: string) => {
     console.log(
       'useDashboardPainterState.handleGeocodeAddress, address:',

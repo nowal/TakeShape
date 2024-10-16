@@ -38,7 +38,7 @@ export const useAccountSettingsState = (
     address,
     dispatchRange,
     dispatchAddress,
-    onGeocodeAddress,
+    // onGeocodeAddress,
   } = config;
   const handleUploadLogoAndGetUrl =
     useUploadLogoAndGetUrl();
@@ -129,7 +129,7 @@ export const useAccountSettingsState = (
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                onGeocodeAddress(painterData.address);
+                // onGeocodeAddress(painterData.address);
               } else {
                 // User is a homeowner
                 setPainter(false);
@@ -165,7 +165,7 @@ export const useAccountSettingsState = (
                     }
                   }
                   // Geocode address to set marker
-                  onGeocodeAddress(userData.address);
+                  // onGeocodeAddress(userData.address);
                 } else {
                   setErrorMessage('User data not found.');
                 }

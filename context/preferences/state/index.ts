@@ -28,6 +28,7 @@ import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
 import { notifyError } from '@/utils/notifications';
 import { useAuth } from '@/context/auth/provider';
 import { useApp } from '@/context/app/provider';
+import { usePreferencesStateColor } from '@/context/preferences/state/color';
 
 export const usePreferencesState = () => {
   const { onNavigateScrollTopClick } = useApp();
@@ -100,9 +101,9 @@ export const usePreferencesState = () => {
     );
   };
 
-  // const preferencesStateColor = usePreferencesStateColor({
-  //   dispatchPreferences: setPreferences,
-  // });
+  const preferencesStateColor = usePreferencesStateColor({
+    dispatchPreferences: setPreferences,
+  });
 
   useEffect(() => {
     setPreferences({
@@ -110,17 +111,6 @@ export const usePreferencesState = () => {
       ...defaultPreferences,
     });
   }, []);
-
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       setAuthInitialized(true);
-  //     } else {
-  //       setAuthInitialized(false);
-  //     }
-  //   });
-  //   return () => unsubscribe();
-  // }, [auth]);
 
   useEffect(() => {
     if (isUserSignedIn && auth.currentUser) {
@@ -368,6 +358,6 @@ export const usePreferencesState = () => {
     dispatchSubmitting: setSubmitting,
     dispatchResubmitting: setResubmitting,
     ...defaultPreferences,
-    // ...preferencesStateColor,
+    ...preferencesStateColor,
   };
 };
