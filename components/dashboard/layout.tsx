@@ -53,6 +53,7 @@ export const ComponentsDashboardLayout: FC<TProps> = ({
     isFullWidth,
     secondSideWidth
   );
+
   return (
     <div
       className={cx(

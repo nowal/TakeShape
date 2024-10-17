@@ -22,6 +22,7 @@ export const PainterCard: FC<TProps> = ({
           className="size-12 rounded-full"
           width="48"
           height="48"
+          style={{objectFit: 'cover'}}
         />
       )}
       <div className="flex flex-col gap-1.5">

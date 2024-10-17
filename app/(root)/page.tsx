@@ -65,7 +65,12 @@ const Landing = () => {
       <div className="flex justify-center py-12 xl:py-0 xl:hidden">
         <QuoteButton />
       </div>
-      <section className={cx('relative lg:h-[645]')}>
+      <section
+        className={cx(
+          'relative',
+          // 'lg:h-[645px]'
+        )}
+      >
         {/* 572px + 73px */}
         <LandingProblemAndDecision />
       </section>

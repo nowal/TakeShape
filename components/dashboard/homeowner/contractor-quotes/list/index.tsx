@@ -1,21 +1,21 @@
 import type { FC } from 'react';
-import { DashboardHomeownerContractorQuotesListItems } from '@/components/dashboard/homeowner/contractor-quotes/list/items';
-import { TypographyFormTitle } from '@/components/typography/form/title';
+import {
+  DashboardHomeownerContractorQuotesListItems,
+  TDashboardHomeownerContractorQuotesListItemsProps,
+} from '@/components/dashboard/homeowner/contractor-quotes/list/items';
 import { TCommonIconFC } from '@/components/icon';
 
-type TProps = { Icon: TCommonIconFC };
+type TProps = {
+  Icon: TCommonIconFC;
+} & TDashboardHomeownerContractorQuotesListItemsProps;
 export const DashboardHomeownerContractorQuotesList: FC<
   TProps
-> = ({ Icon }) => {
+> = ({ Icon, ...props }) => {
   return (
     <div className="flex flex-col items-stretch gap-4">
-      {/* <div className="h-2" />
-      <TypographyFormTitle>
-        Contractor Quotes
-      </TypographyFormTitle>
-      <div className="h-5" /> */}
-      <DashboardHomeownerContractorQuotesListItems />
-      {/* <div className="h-4" /> */}
+      <DashboardHomeownerContractorQuotesListItems
+        {...props}
+      />
       <Icon />
     </div>
   );

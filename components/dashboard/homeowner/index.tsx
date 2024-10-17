@@ -11,6 +11,7 @@ import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { ComponentsCongratsPanel } from '@/components/congrats/panel';
 import { PainterCardData } from '@/components/painter/card/data';
 import { PainterCardBackground } from '@/components/painter/card/background';
+import { DashboardHomeownerVideo } from '@/components/dashboard/homeowner/video';
 
 export const DashboardHomeowner: FC = () => {
   const dashboard = useDashboard();
@@ -54,7 +55,9 @@ export const DashboardHomeowner: FC = () => {
             {uploadStatus === 'uploading' && (
               <DashboardHomeownerUploading />
             )}
-            <DashboardHomeownerQuote />
+            <DashboardHomeownerQuote>
+              <DashboardHomeownerVideo />
+            </DashboardHomeownerQuote>
           </div>
         }
         second={
