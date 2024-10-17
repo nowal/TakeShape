@@ -4,8 +4,8 @@ import type { FC } from 'react';
 export const IconsLogo: FC = () => {
   return (
     <CommonIcon
-      width="48"
-      height="32"
+      width="67"
+      height="67"
       viewBox="0 0 251 251"
       fill="none"
       classColor=""
