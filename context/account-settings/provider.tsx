@@ -6,7 +6,6 @@ import {
   TAccountSettingsContext,
   TCoordsValue,
 } from '@/context/account-settings/types';
-import { useMap } from '@vis.gl/react-google-maps';
 import {
   createContext,
   FC,
@@ -27,7 +26,6 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
-  const map = useMap();
   const [range, setRange] = useState(10);
   const [coords, setCoords] = useState<TCoordsValue>(null);
 
