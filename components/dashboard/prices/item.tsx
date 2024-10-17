@@ -10,7 +10,7 @@ import { PainterCard } from '@/components/painter/card';
 import { MOCKS_PAINTER_DATA_ITEMS } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 
 export type TDashboardPricesItemProps = {
-  index: number; // max length of MOCKS_PAINTER_DATA_ITEMS
+  index: number;
   price: TPrice;
   PainterCardFc?: typeof PainterCard;
 } & TElementProps;

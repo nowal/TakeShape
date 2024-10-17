@@ -1,6 +1,5 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
-// import { SCREEN_XS, SCREEN_XXS } from '@/constants/theme';
 
 export const SCREEN_XS = 450;
 export const SCREEN_XXS = 375;
@@ -135,7 +134,7 @@ const config: Config = {
         9.5: '2.375rem',
         12.5: '3.125rem',
         15: '3.75rem',
-        34: '8.5rem'
+        34: '8.5rem',
       },
       screens: {
         ...defaultTheme.screens,
@@ -143,7 +142,10 @@ const config: Config = {
         xxs: `${SCREEN_XXS}px`,
       },
       scale: {
+        '25': '0.25',
+        '40': '0.4',
         '60': '0.6',
+        '65': '0.65',
         '70': '0.7',
         '80': '0.8',
         '90': '0.9',

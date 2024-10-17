@@ -9,9 +9,10 @@ export const InputsFilePic: FC<TProps> = ({
 }) => (
   <InputsFilePicOutline>
     <Image
-      className="size-16 object-cover rounded-full"
+      className="size-16 rounded-full"
       width="64"
       height="64"
+      style={{ objectFit: 'cover' }}
       alt={alt}
       {...props}
     />
