@@ -5,11 +5,10 @@ import {
   MAP_ID,
 } from '@/components/painter/address/map/constants';
 import { TProviderFc } from '@/context/type';
-import { MapsLoaded } from '@/components/maps/loaded/loaded';
 
-export const MapsLoadedEmpty: TProviderFc = ({ children }) => {
+export const MapsEmpty: TProviderFc = ({ children }) => {
   return (
-    <MapsLoaded>
+    <>
       <Map
         center={
           new google.maps.LatLng(DEFAULT_LNG, DEFAULT_LAT)
@@ -18,6 +17,6 @@ export const MapsLoadedEmpty: TProviderFc = ({ children }) => {
         mapId={MAP_ID}
       />
       {children}
-    </MapsLoaded>
+    </>
   );
 };

@@ -23,8 +23,7 @@ export const useQueryParamsSet = () => {
       );
       params.set(key, value);
       router.push(
-        `${currentRef.current.pathname}?${params}`,
-        { scroll: true }
+        `${currentRef.current.pathname}?${params}`
       );
     }
   };

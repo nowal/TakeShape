@@ -1,5 +1,5 @@
 import { InputsAddress } from '@/components/account-settings/user/inputs/address';
-import { MapsLoaded } from '@/components/maps/loaded/loaded';
+import { MapsLoaded } from '@/components/maps/loaded';
 import { PainterAddressMap } from '@/components/painter/address/map';
 import { PainterRange } from '@/components/painter/address/range';
 import { useAccountSettings } from '@/context/account-settings/provider';
