@@ -23,6 +23,7 @@ export const MapReady: FC = () => {
     coords,
     onCoordsUpdate,
     dispatchAddress,
+    dispatchAddressFormatted
   } = useAccountSettings();
 
   const rangeMetres = useMemo(() => {
@@ -30,12 +31,15 @@ export const MapReady: FC = () => {
     return value;
   }, [rangeMiles]);
 
-  const handleBounds = useBoundsUpdate();
+  const handleBoundsUpdate = useBoundsUpdate();
 
   const handleDragEnd = (
     event: google.maps.MapMouseEvent
   ) => {
+    console.log('handleDragEnd', event, map, rangeMiles);
+
     if (map === null) return;
+
     const position = event.latLng;
     if (position === null) return;
     map.panTo(position);
@@ -47,16 +51,21 @@ export const MapReady: FC = () => {
       lat: nextLat,
       lng: nextLng,
     };
+    console.log(nextCoords, rangeMiles);
+
     onCoordsUpdate(nextCoords);
-    handleBounds(map, nextCoords, rangeMiles);
-    dispatchAddress(`${nextLat}, ${nextLng}`);
+  
+    handleBoundsUpdate(map, nextCoords, rangeMiles);
+
+    const nextAddress = `${nextLat}, ${nextLng}`;
+    dispatchAddressFormatted(nextAddress);
   };
 
   const isReady = map !== null && coords !== null;
 
   useEffect(() => {
     if (isReady) {
-      handleBounds(map, coords, rangeMiles);
+      handleBoundsUpdate(map, coords, rangeMiles);
     }
   }, [isReady]);
 

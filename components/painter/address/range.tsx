@@ -15,7 +15,7 @@ export const PainterRange: FC<TPainterAddressProps> = ({
   const { coords, range, dispatchRange } =
     useAccountSettings();
   const disabledProps = { isDisabled: !isReady };
-  const handleBounds = useBoundsUpdate();
+  const handleBoundsUpdate = useBoundsUpdate();
 
   return (
     <div className="flex flex-row items-center gap-2">
@@ -29,7 +29,7 @@ export const PainterRange: FC<TPainterAddressProps> = ({
         onValueChange={(_, value) => {
           if (map === null) return;
           const miles = Number(value);
-          handleBounds(map, coords, miles);
+          handleBoundsUpdate(map, coords, miles);
           dispatchRange(miles);
         }}
         required

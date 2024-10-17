@@ -28,7 +28,6 @@ export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
   const map = useMap();
-  console.log(map)
   const [range, setRange] = useState(10);
   const [coords, setCoords] = useState<TCoordsValue>(null);
 
