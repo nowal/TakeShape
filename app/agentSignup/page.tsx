@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsFile } from '@/components/inputs/file';
 import { IconsUpload } from '@/components/icons/upload';

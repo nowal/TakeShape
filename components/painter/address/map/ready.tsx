@@ -8,8 +8,13 @@ import {
   useMap,
   Map,
 } from '@vis.gl/react-google-maps';
-import { Circle } from '@/components/painter/address/map/components/circle';
+import { AddressCircle } from '@/components/painter/address/map/components/circle';
 import { cx } from 'class-variance-authority';
+import {
+  DEFAULT_LNG,
+  DEFAULT_LAT,
+  MAP_ID,
+} from '@/components/painter/address/map/constants';
 
 export const MapReady: FC = () => {
   const map = useMap();
@@ -61,10 +66,12 @@ export const MapReady: FC = () => {
     <Map
       className={cx('h-[400px]')}
       defaultZoom={10}
-      center={coords}
-      mapId="4d7092f4ba346ef1"
+      center={
+        new google.maps.LatLng(DEFAULT_LNG, DEFAULT_LAT)
+      }
+      mapId={MAP_ID}
     >
-      <Circle
+      <AddressCircle
         radius={rangeMetres}
         center={coords}
         fillColor="#ff385c"

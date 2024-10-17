@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { MutableRefObject, useEffect } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useBoundsUpdate } from '@/hooks/maps/bounds';
 import {
@@ -6,22 +6,32 @@ import {
   useMapsLibrary,
 } from '@vis.gl/react-google-maps';
 
-export const useAddressAutocomplete = () => {
+export type TAddressAutocompleteRef =
+  MutableRefObject<HTMLInputElement | null>;
+
+export const useAddressAutocomplete = (
+  addressInputRef: TAddressAutocompleteRef
+) => {
   const map = useMap();
+  const places = useMapsLibrary('places');
   const {
     range,
     dispatchAddressFormatted,
     prevCoordsRef,
     dispatchCoords,
-    addressInputRef,
   } = useAccountSettings();
-  const places = useMapsLibrary('places');
   const handleBoundsUpdate = useBoundsUpdate();
 
   const init = async (
     map: google.maps.Map,
     places: google.maps.PlacesLibrary
   ) => {
+    console.log(
+      'INIT ',
+      addressInputRef.current,
+      map,
+      places
+    );
     const { Autocomplete } = places;
     if (!addressInputRef.current) return null;
     const autocomplete = new Autocomplete(

@@ -19,7 +19,6 @@ export type TAccountSettingsConfig =
     coords: TCoordsValue;
     dispatchCoords: Dispatch<TCoordsValue>;
     dispatchRange: Dispatch<number>;
-    addressInputRef: MutableRefObject<HTMLInputElement | null>;
   };
 
 export type TAccountSettingsStateReturn = ReturnType<

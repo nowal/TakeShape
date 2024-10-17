@@ -29,9 +29,7 @@ export const AccountSettingsProvider: FC<
 > = ({ children }) => {
   const [range, setRange] = useState(10);
   const [coords, setCoords] = useState<TCoordsValue>(null);
-  const addressInputRef = useRef<HTMLInputElement | null>(
-    null
-  );
+
   const accountSettingsAddress =
     useAccountSettingsAddress();
 
@@ -39,7 +37,6 @@ export const AccountSettingsProvider: FC<
     ...accountSettingsAddress,
     coords,
     dispatchCoords: setCoords,
-    addressInputRef,
     range,
     dispatchRange: setRange,
   };
