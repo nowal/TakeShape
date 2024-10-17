@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect } from 'react';
+import { MutableRefObject, useEffect, useRef } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useBoundsUpdate } from '@/hooks/maps/bounds';
 import {
@@ -14,23 +14,23 @@ export const useAddressAutocomplete = (
 ) => {
   const map = useMap();
   const places = useMapsLibrary('places');
+  const accountSettings = useAccountSettings();
   const {
     range,
     dispatchAddressFormatted,
     onCoordsUpdate,
-  } = useAccountSettings();
+  } = accountSettings;
+  const current = {
+    range,
+  };
+  const currentRef = useRef(current);
+  currentRef.current = current;
   const handleBoundsUpdate = useBoundsUpdate();
 
   const init = async (
     map: google.maps.Map,
     places: google.maps.PlacesLibrary
   ) => {
-    console.log(
-      'INIT ',
-      addressInputRef.current,
-      map,
-      places
-    );
     const { Autocomplete } = places;
     if (!addressInputRef.current) return null;
     const autocomplete = new Autocomplete(
@@ -62,12 +62,13 @@ export const useAddressAutocomplete = (
         lat: location.lat(),
         lng: location.lng(),
       };
-      console.log(
-        'autocomplete place_changed updated nextCoords ',
-        nextCoords
+
+      handleBoundsUpdate(
+        map,
+        nextCoords,
+        currentRef.current.range
       );
       onCoordsUpdate(nextCoords);
-      handleBoundsUpdate(map, nextCoords, range);
     });
   };
 

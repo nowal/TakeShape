@@ -11,7 +11,7 @@ import { FC } from 'react';
 export const PainterRange: FC<TPainterAddressProps> = ({
   isReady,
 }) => {
-  const map = useMap(MAP_ID);
+  const map = useMap();
   const { coords, range, dispatchRange } =
     useAccountSettings();
   const disabledProps = { isDisabled: !isReady };

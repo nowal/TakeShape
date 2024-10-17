@@ -38,7 +38,6 @@ export const useAccountSettingsState = (
     range,
     address,
     addressFormatted,
-    prevCoordsRef,
     dispatchRange,
     dispatchAddress,
     dispatchAddressFormatted,

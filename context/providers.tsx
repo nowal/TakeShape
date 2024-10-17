@@ -22,7 +22,6 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
-        MapsProvider,
         AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,
@@ -34,6 +33,8 @@ export const ContextProviders: FC<TProps> = ({
         AuthProvider,
         AccountSettingsProvider,
         AppProvider,
+        MapsProvider,
+
       ],
       _children,
       {}
