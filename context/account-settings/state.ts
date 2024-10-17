@@ -42,7 +42,7 @@ export const useAccountSettingsState = (
     dispatchRange,
     dispatchAddress,
     dispatchAddressFormatted,
-    dispatchCoords,
+    onCoordsUpdate,
   } = config;
   const handleUploadLogoAndGetUrl =
     useUploadLogoAndGetUrl();
@@ -144,8 +144,7 @@ export const useAccountSettingsState = (
                     painterData.address
                   );
                 if (nextCoords) {
-                  prevCoordsRef.current = nextCoords;
-                  dispatchCoords(nextCoords);
+                  onCoordsUpdate(nextCoords);
                 }
                 console.log('painterData: ', painterData);
               } else {
@@ -191,8 +190,7 @@ export const useAccountSettingsState = (
                       userData.address
                     );
                   if (nextCoords) {
-                    prevCoordsRef.current = nextCoords;
-                    dispatchCoords(nextCoords);
+                    onCoordsUpdate(nextCoords);
                   }
                 } else {
                   setErrorMessage('User data not found.');

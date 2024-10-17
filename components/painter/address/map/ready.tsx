@@ -22,7 +22,7 @@ export const MapReady: FC = () => {
     range: rangeMiles,
     coords,
     prevCoordsRef,
-    dispatchCoords,
+    onCoordsUpdate,
     dispatchAddress,
   } = useAccountSettings();
 
@@ -48,8 +48,7 @@ export const MapReady: FC = () => {
       lat: nextLat,
       lng: nextLng,
     };
-    prevCoordsRef.current = nextCoords;
-    dispatchCoords(nextCoords);
+    onCoordsUpdate(nextCoords);
     handleBounds(map, nextCoords, rangeMiles);
     dispatchAddress(`${nextLat}, ${nextLng}`);
   };
@@ -66,9 +65,10 @@ export const MapReady: FC = () => {
     <Map
       className={cx('h-[400px]')}
       defaultZoom={10}
-      center={
-        new google.maps.LatLng(DEFAULT_LNG, DEFAULT_LAT)
-      }
+      defaultCenter={{
+        lat: DEFAULT_LAT,
+        lng: DEFAULT_LNG,
+      }}
       mapId={MAP_ID}
     >
       <AddressCircle

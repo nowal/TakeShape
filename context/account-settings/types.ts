@@ -17,7 +17,7 @@ export type TAccountSettingsConfig =
   TAccountSettingsddressReturn & {
     range: number;
     coords: TCoordsValue;
-    dispatchCoords: Dispatch<TCoordsValue>;
+    onCoordsUpdate(coords: TCoordsValue): void;
     dispatchRange: Dispatch<number>;
   };
 

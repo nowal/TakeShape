@@ -17,8 +17,7 @@ export const useAddressAutocomplete = (
   const {
     range,
     dispatchAddressFormatted,
-    prevCoordsRef,
-    dispatchCoords,
+    onCoordsUpdate,
   } = useAccountSettings();
   const handleBoundsUpdate = useBoundsUpdate();
 
@@ -67,8 +66,7 @@ export const useAddressAutocomplete = (
         'autocomplete place_changed updated nextCoords ',
         nextCoords
       );
-      prevCoordsRef.current = nextCoords;
-      dispatchCoords(nextCoords);
+      onCoordsUpdate(nextCoords);
       handleBoundsUpdate(map, nextCoords, range);
     });
   };

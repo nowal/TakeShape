@@ -6,7 +6,13 @@ import {
   TAccountSettingsContext,
   TCoordsValue,
 } from '@/context/account-settings/types';
-import { createContext, FC, PropsWithChildren, useContext, useState } from 'react';
+import {
+  createContext,
+  FC,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from 'react';
 
 export const ACCOUNT_SETTINGS =
   createContext<TAccountSettingsContext>(
@@ -26,10 +32,16 @@ export const AccountSettingsProvider: FC<
   const accountSettingsAddress =
     useAccountSettingsAddress();
 
+  const handleCoordsUpdate = (nextCoords: TCoordsValue) => {
+    accountSettingsAddress.prevCoordsRef.current =
+      nextCoords;
+    setCoords(nextCoords);
+  };
+
   const config: TAccountSettingsConfig = {
     ...accountSettingsAddress,
     coords,
-    dispatchCoords: setCoords,
+    onCoordsUpdate: handleCoordsUpdate,
     range,
     dispatchRange: setRange,
   };
