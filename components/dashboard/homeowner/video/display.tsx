@@ -1,7 +1,7 @@
 import { forwardRef, VideoHTMLAttributes } from 'react';
 
 type TProps = VideoHTMLAttributes<HTMLVideoElement>;
-export const DashboardHomeownerVideoDisplay = forwardRef<
+const DashboardHomeownerVideoDisplay = forwardRef<
   HTMLVideoElement,
   TProps
 >((props, ref) => {
@@ -15,3 +15,6 @@ export const DashboardHomeownerVideoDisplay = forwardRef<
     />
   );
 });
+DashboardHomeownerVideoDisplay.displayName =
+  'DashboardHomeownerVideoDisplay';
+export { DashboardHomeownerVideoDisplay };
