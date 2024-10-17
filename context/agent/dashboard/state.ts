@@ -12,11 +12,10 @@ import {
   updateDoc,
   setDoc,
 } from 'firebase/firestore';
-import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { TPainter } from '@/context/agent/dashboard/types';
 import { toast } from 'react-toastify';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
-import { TAgentInfo, TPainterInviteData } from '@/types';
+import { TPainterInviteData } from '@/types';
 
 const INIT_LOADING_RECORD = {
   invite: null,

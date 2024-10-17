@@ -13,6 +13,7 @@ import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
 import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
+import 'react-toastify/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
