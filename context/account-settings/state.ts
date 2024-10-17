@@ -382,7 +382,6 @@ export const useAccountSettingsState = (
         'An unexpected error occurred. Please try again.'
       );
     } finally {
-      console.log('DONE');
       setAccountSettingsSubmitting(false); // Reset loading state
     }
   };

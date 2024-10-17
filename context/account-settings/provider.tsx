@@ -6,14 +6,7 @@ import {
   TAccountSettingsContext,
   TCoordsValue,
 } from '@/context/account-settings/types';
-import {
-  createContext,
-  FC,
-  PropsWithChildren,
-  useContext,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, FC, PropsWithChildren, useContext, useState } from 'react';
 
 export const ACCOUNT_SETTINGS =
   createContext<TAccountSettingsContext>(

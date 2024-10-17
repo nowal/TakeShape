@@ -1,4 +1,4 @@
-'use client';
+'use client';;
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { ComponentsAccountSettingsNotifications } from '@/components/account-settings/notifications';
 import { ComponentsAccountSettingsUser } from '@/components/account-settings/user';
@@ -8,7 +8,6 @@ import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
-import { MapsProvider } from '@/components/maps/provider';
 import { MapsLoadedEmpty } from '@/components/maps/loaded/empty';
 
 const AccountSettingsPage = () => {
