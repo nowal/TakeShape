@@ -10,6 +10,7 @@ import { ShellLogo } from '@/components/shell/logo';
 import { cx } from 'class-variance-authority';
 
 export const ShellFooter = () => {
+  const footerBackgroundColor = '#f8f8f8'
 
   return (
     <div className='flex flex-col items-stretch'>
@@ -26,7 +27,7 @@ export const ShellFooter = () => {
           )}
         >
           <div className="flex flex-col items-stretch lg:hidden">
-            <ShellLogo />
+            <ShellLogo backgroundColor={footerBackgroundColor} /> 
             <div className="h-9" />
             <LinesHorizontal colorClass="border-gray-3" />
             <div className="h-4.5" />
@@ -35,7 +36,7 @@ export const ShellFooter = () => {
           <div className="flex flex-row w-full w-10/12 xl:w-7/12">
             <div className="hidden flex-col gap-[69px] w-6/12 lg:flex">
               <div className="flex flex-col gap-[27px]">
-                <ShellLogo />
+                <ShellLogo backgroundColor={footerBackgroundColor} /> 
                 <div className="flex flex-col items-start typography-footer gap-[14px]">
                   <ShellFooterEmail />
                   <ShellFooterTelephone />

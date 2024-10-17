@@ -17,6 +17,7 @@ export const ShellHeader = () => {
   const isHome = pathname === '/';
   const viewport = useViewport();
   const height = viewport.headerHeight;
+  const headerBackgroundColor = '#FFFFFF'
 
   return (
     <header
@@ -50,7 +51,7 @@ export const ShellHeader = () => {
               delay={0.2}
             >
               <ShellHeaderBackground />
-              <ShellLogo />
+              <ShellLogo backgroundColor={headerBackgroundColor} />
               {isAuthLoading || !viewport.isDimensions ? (
                 <Fragment />
               ) : (
