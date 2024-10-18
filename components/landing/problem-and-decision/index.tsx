@@ -4,6 +4,7 @@ import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 import { DashboardHomeownerPlaceholder } from '@/components/dashboard/homeowner/placeholder';
 import { MOCKS_PRICES } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
 import { cx } from 'class-variance-authority';
+import { ReplacersFill } from '@/components/replacers/fill';
 
 export const LandingProblemAndDecision: FC = () => {
   const dimensions = {
@@ -38,6 +39,12 @@ export const LandingProblemAndDecision: FC = () => {
             )}
             style={dimensions}
           >
+            <ReplacersFill>
+              <div
+                className="absolute -inset-24 bg-pink opacity-20 xl:opacity-10"
+                style={{ filter: 'blur(4.8rem)' }}
+              />
+            </ReplacersFill>
             <DashboardHomeownerPlaceholder
               prices={MOCKS_PRICES}
             />
