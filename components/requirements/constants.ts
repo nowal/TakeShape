@@ -1,4 +1,4 @@
-export const HIRING_COPY_ROWS = [
+export const REQUIREMENTS_COPY_ROWS = [
   {
     question:
       '1. Make your video and preferences as clear as possible',

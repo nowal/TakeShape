@@ -1,10 +1,10 @@
-import { LandingFaq } from '@/components/landing/faq';
+import { HiringFaq } from '@/components/hiring';
 
 const Hiring = () => {
 
     return (
       <>
-        <LandingFaq />
+        <HiringFaq />
       </>
     );
   };
