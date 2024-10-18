@@ -48,15 +48,15 @@ export const RequirementsFaqList: FC = () => {
                   </div>
                 </InViewReplacersFadeUp>
 
-                <div>
+                {/*<div>
                   {activeIndex === index ? (
                     <IconsChevronsUp />
                   ) : (
                     <IconsChevronsDown />
                   )}
-                </div>
+                </div>*/}
               </button>
-              <div
+              {/*<div
                 className={cx(
                   'typography-landing-text',
                   paddingClassAnswer,
@@ -64,7 +64,7 @@ export const RequirementsFaqList: FC = () => {
                 )}
               >
                 {faq.answer}
-              </div>
+              </div>*/}
             </li>
           );
         })}
