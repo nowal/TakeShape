@@ -1,5 +1,5 @@
-export const JOB_TYPES = {
-  'available': 'available',
-  'completed': 'completed',
-  'accepted': 'accepted',
+export const JOB_TYPE_TO_PAGE_ROUTE = {
+  'available': '/dashboard',
+  'completed': '/acceptedQuotes',
+  'accepted': '/completedQuotes',
 } as const;

@@ -1,7 +1,5 @@
-import { JOB_TYPES } from '@/components/dashboard/painter/constants';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 
-export type TJobType = keyof typeof JOB_TYPES;
+export type TJobType = keyof typeof JOB_TYPE_TO_PAGE_ROUTE;
 
 export type TJobTypeProps = { typeKey: TJobType };
-
-export type TJobTypeDisplay = `${TJobType} ${number}`;

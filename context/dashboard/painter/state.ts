@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { TJobType } from '@/components/dashboard/painter/types';
 import { useApp } from '@/context/app/provider';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 
 export const usePainterState = () => {
   const { onNavigateScrollTopClick } = useApp();
@@ -11,16 +12,12 @@ export const usePainterState = () => {
   const auth = getAuth();
   const user = auth.currentUser;
 
-  const handlePageChange = (selected: TJobType) => {
+  const handlePageChange = (jobType: TJobType) => {
     setNavigating(true);
-    setSelectedPage(selected);
-    if (selected === 'available') {
-      onNavigateScrollTopClick('/dashboard');
-    } else if (selected === 'accepted') {
-      onNavigateScrollTopClick('/acceptedQuotes');
-    } else if (selected === 'completed') {
-      onNavigateScrollTopClick('/completedQuotes');
-    }
+    setSelectedPage(jobType);
+    onNavigateScrollTopClick(
+      JOB_TYPE_TO_PAGE_ROUTE[jobType]
+    );
   };
 
   const handleNavigatingDone = () => setNavigating(false);

@@ -1,5 +1,5 @@
 import { InputsSelect } from '@/components/inputs/select';
-import { JOB_TYPES } from '@/components/dashboard/painter/constants';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
@@ -10,25 +10,23 @@ import {
   TJobType,
   TJobTypeProps,
 } from '@/components/dashboard/painter/types';
-import { mapJobTypeDisplay } from '@/utils/css/job-type';
 import { resolveObjectKeys } from '@/utils/object';
-import { TDisplayResolver } from '@/components/inputs/select/list/id-title';
 import { TSelectIdNameItem } from '@/types';
 import { capitalize } from '@/utils/css/format';
 
 type TProps = TPropsWithChildren & TJobTypeProps;
 export const DashboardPainterWithSelect: FC<TProps> = ({
   children,
+  typeKey,
 }) => {
   const dashboardPainter = useDashboardPainter();
-  const { isNavigating, selectedPage, onPageChange } =
-    dashboardPainter;
+  const { isNavigating, onPageChange } = dashboardPainter;
 
   const mapJobTypeCount = (jobTypeKey: TJobType) =>
     dashboardPainter[jobTypeKey].jobs.length;
 
   const idValues: TSelectIdNameItem[] = resolveObjectKeys(
-    JOB_TYPES
+    JOB_TYPE_TO_PAGE_ROUTE
   ).map((id) => ({
     id,
     name: capitalize(id),
@@ -42,7 +40,7 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
           name="painter-quote"
           idValues={idValues}
           placeholder="Select Quote"
-          value={selectedPage}
+          value={typeKey}
           onValueChange={(_, value) => {
             if (isQuoteType(value)) {
               onPageChange(value);
