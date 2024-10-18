@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { DashboardPainterJobPrice } from '@/components/dashboard/painter/jobs/job/price';
 import { cx } from 'class-variance-authority';

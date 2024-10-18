@@ -1,21 +1,18 @@
 import { FC } from 'react';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
-import {
-  TPainterJobAvailableConfig,
-  usePainterJobAvailable,
-} from '@/components/dashboard/painter/jobs/job/available/hook';
+import { usePainterJobAvailable } from '@/components/dashboard/painter/jobs/job/available/hook';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
-type TProps = TJob & TPainterJobAvailableConfig;
+type TProps = TJob;
 export const DashboardPainterJobAvailableForm: FC<
   TProps
-> = ({ onFetch, ...job }) => {
+> = (job) => {
+
   const dashboardPainter = usePainterJobAvailable({
     id: job.jobId,
-    onFetch,
   });
   const {
     isSubmitting,

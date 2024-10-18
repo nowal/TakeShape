@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJobUserData, TPaintPreferences } from '@/types';
+import { TJobUserData } from '@/types';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 import { TypographyDetailsTitle } from '@/components/typography/details/title';
 import { DashboardPainterJobPanel } from '@/components/dashboard/painter/jobs/job/panel';
@@ -10,6 +10,7 @@ import { cx } from 'class-variance-authority';
 import { DashboardPainterJobPreferencesRow } from '@/components/dashboard/preferences/row';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL } from '@/atom/constants';
+import { TPaintPreferences } from '@/types/preferences';
 
 type TProps = TPropsWithChildren<
   TPaintPreferences & TJobUserData

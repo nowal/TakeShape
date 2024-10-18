@@ -13,15 +13,15 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { toast } from 'react-toastify';
+import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 
 export type TPainterJobAvailableConfig = {
   id: string;
-  onFetch: () => void;
 };
 export const usePainterJobAvailable = ({
   id,
-  onFetch,
 }: TPainterJobAvailableConfig) => {
+  const dashboardPainter = useDashboardPainter();
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
   const [price, setPrice] = useState('');
@@ -107,7 +107,7 @@ export const usePainterJobAvailable = ({
       setSelectedFile(null);
       setPrice(''); // Reset price state, consider setting to initial
       // Reset price state, consider setting to initial value
-      onFetch(); // Refresh data
+      dashboardPainter.available.onFetch(); // Refresh data
     } catch (updateError) {
       console.error('Error updating price: ', updateError);
     } finally {

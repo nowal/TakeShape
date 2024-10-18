@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { DashboardPainterJobAcceptedContact } from '@/components/dashboard/painter/jobs/job/accepted/contact';
 import { DashboardPreferences } from '@/components/dashboard/preferences';

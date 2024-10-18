@@ -1,6 +1,6 @@
-import { TPreferencesNameBooleansKey } from '@/atom/types';
+import { TJob } from '@/types/jobs';
+import { TPaintPreferences } from '@/types/preferences';
 
-// types.ts
 export type TPrice = {
   painterId: string;
   amount: number;
@@ -18,9 +18,7 @@ export type TUserImageRecord = {
 
 export type TJobUserData = Pick<
   TJob,
-  | 'moveFurniture'
-  | 'specialRequests'
-  | 'laborAndMaterial'
+  'moveFurniture' | 'specialRequests' | 'laborAndMaterial'
 >;
 export type TUserData = TJobUserData & {
   email?: string;
@@ -33,20 +31,7 @@ export type TUserData = TJobUserData & {
   prices?: TPrice[];
   title?: string;
 };
-export type TPaintPreferencesFlags = Record<
-  TPreferencesNameBooleansKey,
-  boolean
->;
-export type TPaintPreferences =
-  Partial<TPaintPreferencesFlags> & {
-    color?: string;
-    finish?: string;
-    ceilingColor?: string;
-    ceilingFinish?: string;
-    trimColor?: string;
-    trimFinish?: string;
-    paintQuality?: string;
-  };
+
 export type TAgentInfo = {
   name: string;
   profilePictureUrl: string;
@@ -58,6 +43,7 @@ export type TPainterInviteData = {
   phoneNumber: string;
   agentId: string;
 };
+
 export type TTimestampPair = {
   startTime: number;
   endTime?: number;
@@ -69,33 +55,6 @@ export type TTimestampPair = {
   paintCeilings?: boolean;
   paintTrimAndDoors?: boolean;
   dontPaintAtAll?: boolean;
-};
-type TJobPrice = {
-  painterId: string;
-  amount: number;
-  invoiceUrl?: string;
-  timestamp: number;
-};
-type TAcceptedQuote = {
-  acceptedQuoteId: string;
-};
-export type TJob = {
-  jobId: string;
-  video: string;
-  phoneNumber?: string;
-  specialRequests?: string;
-  paintPreferencesId?: string;
-  paintPreferences?: TPaintPreferences;
-  providingOwnPaint?: string;
-  moveFurniture?: boolean;
-  customerName?: string;
-  userId?: string;
-  address: string;
-  lat?: number;
-  lng?: number;
-  prices: TJobPrice[];
-  laborAndMaterial?: boolean;
-  acceptedQuotes?: TAcceptedQuote[];
 };
 
 export type TSelectIdTitleItem = {

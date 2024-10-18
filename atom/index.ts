@@ -1,11 +1,8 @@
 import { atom } from 'jotai';
-import {
-  TUserData,
-  TTimestampPair,
-  TPaintPreferences,
-} from '../types';
+import { TUserData, TTimestampPair } from '@/types';
 import { PAINT_PREFERENCES_DEFAULTS } from '@/atom/constants';
 import { TUploadStatusKey } from '@/atom/types';
+import { TPaintPreferences } from '@/types/preferences';
 
 export const userDataAtom = atom<TUserData | null>(null);
 export const isPainterAtom = atom<boolean>(false);

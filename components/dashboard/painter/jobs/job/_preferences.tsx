@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 
 type TProps = TJob;
 export const _DashboardPainterJobPreferences: FC<TProps> = (job) => {

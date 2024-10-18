@@ -23,7 +23,7 @@ import {
   PREFERENCES_NAME_BOOLEAN_TRIM,
 } from '@/atom/constants';
 import { RADIO_VALUE_YES } from '@/components/inputs/radio/yes-no/row';
-import { TPaintPreferences } from '@/types';
+import { TPaintPreferences } from '@/types/preferences';
 import { resolvePreferencesCurrent } from '@/context/preferences/state/current';
 import { notifyError } from '@/utils/notifications';
 import { useAuth } from '@/context/auth/provider';

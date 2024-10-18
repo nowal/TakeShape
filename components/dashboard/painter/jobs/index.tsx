@@ -1,12 +1,11 @@
 import type { FC } from 'react';
 import { DashboardPainterJob } from '@/components/dashboard/painter/jobs/job';
-import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
-import { TJob } from '@/types';
 import { useDashboardPainterNavigatingDone } from '@/context/dashboard/painter/navigating-done';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { TJobTypeProps } from '@/components/dashboard/painter/types';
 import { DashboardPainterJobsEmpty } from '@/components/dashboard/painter/jobs/empty';
+import { TJob } from '@/types/jobs';
 
 type TProps = TJobTypeProps & {
   JobInfoFc: FC<TJob>;
@@ -17,7 +16,6 @@ export const DashboardPainterJobs: FC<TProps> = ({
 }) => {
   const dashboardPainter = useDashboardPainter();
   useDashboardPainterNavigatingDone();
-  console.log(dashboardPainter, jobTypeProps);
   const jobs = dashboardPainter[jobTypeProps.typeKey].jobs;
 
   return (

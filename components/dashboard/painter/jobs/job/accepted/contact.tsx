@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 
 type TProps = TJob;

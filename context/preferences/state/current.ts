@@ -8,7 +8,7 @@ import {
   PREFERENCES_NAME_STRING_TRIM_FINISH,
 } from '@/atom/constants';
 import { TPreferencesNameBooleansKey } from '@/atom/types';
-import { TPaintPreferences } from '@/types';
+import { TPaintPreferences } from '@/types/preferences';
 
 type TConfig = { defaultPreferences: TPaintPreferences } & {
   preferencesFlags: Pick<

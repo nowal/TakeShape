@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { ButtonsCvaAnchor } from '@/components/cva/anchor';
-import { TJob } from '@/types';
+import { TJob } from '@/types/jobs';
 import { getAuth } from 'firebase/auth';
 
 type TProps = TJob;
