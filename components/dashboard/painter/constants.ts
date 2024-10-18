@@ -1,5 +1,5 @@
-export const QUOTE_KEYS = {
-  'Available Quotes': 'Available Quotes',
-  'Completed Quotes': 'Completed Quotes',
-  'Accepted Quotes': 'Accepted Quotes',
+export const JOB_TYPES = {
+  'available': 'available',
+  'completed': 'completed',
+  'accepted': 'accepted',
 } as const;

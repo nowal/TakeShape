@@ -1,25 +1,46 @@
 import { InputsSelect } from '@/components/inputs/select';
-import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
+import { JOB_TYPES } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { FC } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
 import { DashboardHeader } from '@/components/dashboard/header';
-import { usePainter } from '@/context/dashboard/painter/provider';
+import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
+import {
+  TJobType,
+  TJobTypeProps,
+} from '@/components/dashboard/painter/types';
+import { mapJobTypeDisplay } from '@/utils/css/job-type';
+import { resolveObjectKeys } from '@/utils/object';
+import { TDisplayResolver } from '@/components/inputs/select/list/id-title';
+import { TSelectIdNameItem } from '@/types';
+import { capitalize } from '@/utils/css/format';
 
-type TProps = TPropsWithChildren;
-export const DashboardPainterWithSelect: FC<TProps> = (
-  props
-) => {
+type TProps = TPropsWithChildren & TJobTypeProps;
+export const DashboardPainterWithSelect: FC<TProps> = ({
+  children,
+}) => {
+  const dashboardPainter = useDashboardPainter();
   const { isNavigating, selectedPage, onPageChange } =
-    usePainter();
+    dashboardPainter;
+
+  const mapJobTypeCount = (jobTypeKey: TJobType) =>
+    dashboardPainter[jobTypeKey].jobs.length;
+
+  const idValues: TSelectIdNameItem[] = resolveObjectKeys(
+    JOB_TYPES
+  ).map((id) => ({
+    id,
+    name: capitalize(id),
+    count: mapJobTypeCount(id),
+  }));
 
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
       <DashboardHeader>
         <InputsSelect
           name="painter-quote"
-          basicValues={Object.keys(QUOTE_KEYS)}
+          idValues={idValues}
           placeholder="Select Quote"
           value={selectedPage}
           onValueChange={(_, value) => {
@@ -33,7 +54,7 @@ export const DashboardPainterWithSelect: FC<TProps> = (
       {isNavigating ? (
         <FallbacksLoadingCircleCenter />
       ) : (
-        <div>{props.children}</div>
+        <div>{children}</div>
       )}
     </div>
   );

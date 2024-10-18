@@ -135,11 +135,9 @@ export const useAccountSettingsState = (
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                // onGeocodeAddress(painterData.address);
+                const address = painterData.address;
                 const nextCoords =
-                  await handleAddressGeocode(
-                    painterData.address
-                  );
+                  await handleAddressGeocode(address);
                 if (nextCoords) {
                   onCoordsUpdate(nextCoords);
                 }
@@ -250,7 +248,9 @@ export const useAccountSettingsState = (
         const isPainter = !painterSnapshot.empty;
 
         if (isPainter) {
-          if (!addressFormatted) {
+          const addressValue = addressFormatted ?? address;
+
+          if (!addressValue) {
             setErrorMessage('Invalid address.');
             return;
           }
@@ -261,7 +261,7 @@ export const useAccountSettingsState = (
 
           const updatedPainterData = {
             businessName,
-            address: addressFormatted,
+            address: addressValue,
             range,
             isInsured,
             logoUrl: updatedLogoUrl,

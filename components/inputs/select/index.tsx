@@ -4,6 +4,7 @@ import * as Select from '@radix-ui/react-select';
 import { TValueChangeHandler } from '@/components/inputs/types';
 import {
   InputsSelectValues,
+  TInputsSelectValuesDisplayResolverProps,
   TInputsSelectValuesProps,
 } from '@/components/inputs/select/list/id-title';
 import { TInputsSelectListBasicProps } from '@/components/inputs/select/list/basic';
@@ -23,7 +24,8 @@ export type TBaseInputsSelectProps = Omit<
   'onValueChange'
 >;
 export type TInputsSelectProps = TBaseInputsSelectProps &
-  TResolveValuesConfig & {
+  TResolveValuesConfig &
+  TInputsSelectValuesDisplayResolverProps & {
     isDisabled?: boolean;
     title?: string | JSX.Element;
     name: string;
@@ -34,6 +36,7 @@ export type TInputsSelectProps = TBaseInputsSelectProps &
     >;
   };
 export const InputsSelect = ({
+  resolveDisplay,
   name,
   basicValues,
   idValues,
@@ -81,7 +84,9 @@ export const InputsSelect = ({
           </div>
           <Select.Icon className="flex items-center justify-center">
             <IconsSelectChevronDown
-              stroke={isDisabled ? "var(--gray)" : "var(--pink)"}
+              stroke={
+                isDisabled ? 'var(--gray)' : 'var(--pink)'
+              }
             />
           </Select.Icon>
         </div>
@@ -107,7 +112,10 @@ export const InputsSelect = ({
           side="bottom"
         >
           <Select.Viewport>
-            <InputsSelectValues values={values} />
+            <InputsSelectValues
+              values={values}
+              resolveDisplay={resolveDisplay}
+            />
           </Select.Viewport>
         </Select.Content>
       </Select.Portal>

@@ -22,7 +22,6 @@ export const MapReady: FC = () => {
     range: rangeMiles,
     coords,
     onCoordsUpdate,
-    dispatchAddress,
     dispatchAddressFormatted
   } = useAccountSettings();
 

@@ -14,7 +14,7 @@ export const DASHBOARD = createContext<TPainterContext>(
   {} as TPainterContext
 );
 
-export const usePainterDashboard = (): TPainterContext =>
+export const useDashboardPainter = (): TPainterContext =>
   useContext(DASHBOARD);
 
 export const DashboardPainterProvider: FC<

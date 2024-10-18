@@ -13,3 +13,6 @@ export const usePainterJobs = () => {
     completed,
   };
 };
+export type TPainterJobsReturn = ReturnType<
+  typeof usePainterJobs
+>;
