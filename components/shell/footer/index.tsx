@@ -52,33 +52,28 @@ export const ShellFooter = () => {
             </div>
 
             <ul className="flex flex-col gap-12 justify-between w-full pl-0 md:gap-0 md:flex-row xl:pl-8 2xl:pl-0">
-              {(
-                [
-                  {
-                    title: 'For Homeowners',
-                    items: [
-                      { title: 'Hiring Tips' },
-                      { title: 'About Us' },
-                    ],
-                  },
-                  {
-                    title: 'For Painters',
-                    items: [
-                      { title: 'Partnership Requirements' },
-                      { title: 'FAQs and Support' },
-                    ],
-                  },
-                ] as const
-              ).map((listListProps) => (
-                <li
-                  key={listListProps.title}
-                  className="px-0 w-1/2"
-                >
-                  <ShellFooterList {...listListProps} />
+              {[
+                {
+                  title: 'For Homeowners',
+                  items: [
+                    { title: 'Hiring Tips', href: '/hiringTips' }, // Add href to each item
+                    { title: 'About Us', href: '/aboutUs' },
+                  ],
+                },
+                {
+                  title: 'For Painters',
+                  items: [
+                    { title: 'Partnership Requirements', href: '/painterRequirements' },
+                    { title: 'Request to Join', href: '/painterRegister' },
+                  ],
+                },
+              ].map((listListProps) => (
+                <li key={listListProps.title} className="px-0 w-1/2">
+                  <ShellFooterList {...listListProps} /> 
                 </li>
               ))}
             </ul>
-          </div>
+            </div>
 
           <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
             {FOOTER_RIGHT_MENU_LINKS.map((item) => (
