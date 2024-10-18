@@ -6,7 +6,7 @@ import {
 import { TCommonIconFC } from '@/components/icon';
 
 type TProps = {
-  Icon: TCommonIconFC;
+  Icon?: TCommonIconFC;
 } & TDashboardHomeownerContractorQuotesListItemsProps;
 export const DashboardHomeownerContractorQuotesList: FC<
   TProps
@@ -16,7 +16,7 @@ export const DashboardHomeownerContractorQuotesList: FC<
       <DashboardHomeownerContractorQuotesListItems
         {...props}
       />
-      <Icon />
+      {Icon && <Icon />}
     </div>
   );
 };

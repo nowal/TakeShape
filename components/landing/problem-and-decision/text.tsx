@@ -24,7 +24,7 @@ export const LandingProblemAndDecisionText: FC = () => {
           'bg-white sm:bg-white-pink-4'
         )}
       >
-        Problem & Decision
+        Still Waiting?
       </span>
       <div className="h-3" />
       <h2

@@ -6,9 +6,7 @@ import { isString } from '@/utils/validation/is/string';
 import { DashboardHomeownerQuote } from '@/components/dashboard/homeowner/quote';
 import { ComponentsDashboardLayout } from '@/components/dashboard/layout';
 import { DashboardHomeownerContractorQuotesList } from '@/components/dashboard/homeowner/contractor-quotes/list';
-import { DashboardHomeownerContractorQuotesAccept } from '@/components/dashboard/homeowner/contractor-quotes/accept';
 import { TDashboardHomeownerContractorQuotesListItemsProps } from '@/components/dashboard/homeowner/contractor-quotes/list/items';
-import { DashboardHomeownerVideo } from '@/components/dashboard/homeowner/video';
 import { DashboardHomeownerVideoContainer } from '@/components/dashboard/homeowner/video/container';
 import { DashboardHomeownerVideoDisplay } from '@/components/dashboard/homeowner/video/display';
 
@@ -56,7 +54,6 @@ export const DashboardHomeownerPlaceholder: FC<TProps> = (
         }
         second={
           <DashboardHomeownerContractorQuotesList
-            Icon={DashboardHomeownerContractorQuotesAccept}
             {...dashboardHomeownerContractorQuotesListProps}
           />
         }

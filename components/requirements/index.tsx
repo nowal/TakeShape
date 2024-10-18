@@ -1,11 +1,11 @@
 'use client';
-import { HiringFaqTitle } from '@/components/hiring/title';
-import { HiringFaqList } from '@/components/hiring/list';
-import { HiringFaqImage } from '@/components/hiring/image';
+import { RequirementsFaqTitle } from '@/components/requirements/title';
+import { RequirementsFaqList } from '@/components/requirements/list';
+import { RequirementsFaqImage } from '@/components/requirements/image';
 import { cx } from 'class-variance-authority';
 import { ReplacersFill } from '@/components/replacers/fill';
 
-export const HiringFaq = () => {
+export const RequirementsFaq = () => {
   return (
     <div className="spacing-landing py-0 h-full lg:pb-12 lg:pt-0">
       <div
@@ -14,12 +14,12 @@ export const HiringFaq = () => {
           'lg:flex-row lg:pb-20'
         )}
       >
-        <HiringFaqImage />
-        <HiringFaqTitle />
-        <HiringFaqList />
+        <RequirementsFaqImage />
+        <RequirementsFaqTitle />
+        <RequirementsFaqList />
       </div>
     </div>
   );
 };
 
-export default HiringFaq;
+export default RequirementsFaq;
