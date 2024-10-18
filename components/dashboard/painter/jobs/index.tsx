@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { DashboardPainterJob } from '@/components/dashboard/painter/quotes/job';
+import { DashboardPainterJob } from '@/components/dashboard/painter/jobs/job';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { TJob } from '@/types';
 
@@ -8,7 +8,7 @@ type TProps = {
   jobs: TJob[];
   JobInfoFc: FC<TJob>;
 };
-export const DashboardPainterQuotes: FC<TProps> = ({
+export const DashboardPainterJobs: FC<TProps> = ({
   type,
   jobs,
   JobInfoFc,

@@ -1,14 +1,15 @@
-import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJobAvailable } from '@/components/dashboard/painter/quotes/job/available';
+import { DashboardPainterJobs } from '@/components/dashboard/painter/jobs';
+import { DashboardPainterJobAvailable } from '@/components/dashboard/painter/jobs/job/available';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
-import { useDashboardPainter } from '@/hooks/pages/dashboard/painter';
+import { usePainterJobsAvailable } from '@/context/dashboard/painter/jobs/available';
 
 export const DashboardPainter = () => {
-  const { jobs } = useDashboardPainter();
+  const painterJobsAvailable = usePainterJobsAvailable();
+  const { jobs } = painterJobsAvailable;
 
   return (
     <DashboardPainterWithSelect>
-      <DashboardPainterQuotes
+      <DashboardPainterJobs
         type="Available"
         jobs={jobs}
         JobInfoFc={DashboardPainterJobAvailable}

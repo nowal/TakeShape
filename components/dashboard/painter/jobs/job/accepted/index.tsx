@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
 import { TypographyFormTitle } from '@/components/typography/form/title';
-import { DashboardPainterJobAcceptedContact } from '@/components/dashboard/painter/quotes/job/accepted/contact';
+import { DashboardPainterJobAcceptedContact } from '@/components/dashboard/painter/jobs/job/accepted/contact';
 import { DashboardPreferences } from '@/components/dashboard/preferences';
-import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
+import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/jobs/job/invoice';
 
 type TProps = TJob;
 export const DashboardPainterJobAccepted: FC<TProps> = (

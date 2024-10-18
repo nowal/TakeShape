@@ -1,4 +1,4 @@
-import { DashboardPainterJobPanel } from '@/components/dashboard/painter/quotes/job/panel';
+import { DashboardPainterJobPanel } from '@/components/dashboard/painter/jobs/job/panel';
 import { TypographyDetailsSubtitle } from '@/components/typography/details/subtitle';
 import { TypographyDetailsTitle } from '@/components/typography/details/title';
 import type { FC } from 'react';

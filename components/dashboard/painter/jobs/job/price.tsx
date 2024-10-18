@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { TJob } from '@/types';
 import { cx } from 'class-variance-authority';
-import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/quotes/job/invoice';
+import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/jobs/job/invoice';
 import { getAuth } from 'firebase/auth';
 
 type TProps = TJob;

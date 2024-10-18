@@ -11,21 +11,21 @@ import {
 import { getAuth } from 'firebase/auth';
 import { TJob, TPaintPreferences } from '@/types'; // Ensure this path is correct
 import { notifyError } from '@/utils/notifications';
-import { resolveVideoUrl } from '@/context/dashboard/painter/video-url';
+import { resolveVideoUrl } from '@/utils/video/url';
 import { isDefined } from '@/utils/validation/is/defined';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
 
-export const useDashboardPainter = () => {
+export const usePainterJobsAvailable = () => {
   const handleGeocodeAddress = useAddressGeocodeHandler();
   const handleWithinRangeCheck =
     useWithinRangeCheckHandler();
-  const [jobList, setJobList] = useState<TJob[]>([]);
+  const [jobs, setJobList] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
 
-  const handleFetchPainterData = async () => {
+  const handler = async () => {
     try {
       if (user) {
         const painterQuery = query(
@@ -71,7 +71,7 @@ export const useDashboardPainter = () => {
                     );
                   if (painterCoords === null) {
                     console.error(
-                      'useDashboardPainter.handleFetchPainterData Job address is missing latitude and/or lnggitude after geocoding:',
+                      'usePainter.handleFetchPainterData Job address is missing latitude and/or lnggitude after geocoding:',
                       jobData.address,
                       ', jobData ',
                       jobData
@@ -113,7 +113,7 @@ export const useDashboardPainter = () => {
                   }
                 } else {
                   console.error(
-                    'useDashboardPainter.handleFetchPainterData Job address is missing latitude and/or lnggitude after geocoding:',
+                    'usePainter.handleFetchPainterData Job address is missing latitude and/or lnggitude after geocoding:',
                     jobData.address,
                     ', jobData ',
                     jobData
@@ -147,12 +147,12 @@ export const useDashboardPainter = () => {
   };
 
   useEffect(() => {
-    handleFetchPainterData();
+    handler();
   }, [user, firestore]);
 
   return {
-    jobs: jobList,
+    jobs,
     dispatchJobList: setJobList,
-    onFetchPainterData: handleFetchPainterData,
+    onFetch: handler,
   };
 };

@@ -1,20 +1,19 @@
 'use client';
-import { useDashboardPainterAccepted } from '@/hooks/pages/acceptedQuotes';
+import { usePainterJobsAccepted } from '@/context/dashboard/painter/jobs/accepted';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
-import { DashboardPainterQuotes } from '@/components/dashboard/painter/quotes';
-import { DashboardPainterJobAccepted } from '@/components/dashboard/painter/quotes/job/accepted';
+import { DashboardPainterJobs } from '@/components/dashboard/painter/jobs';
+import { DashboardPainterJobAccepted } from '@/components/dashboard/painter/jobs/job/accepted';
 import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 const AcceptedQuotes = () => {
-  const dashboardPainterAccepted =
-    useDashboardPainterAccepted();
+  const dashboardPainterAccepted = usePainterJobsAccepted();
   const { isAuthLoading, jobs } = dashboardPainterAccepted;
   if (isAuthLoading)
     return <FallbacksLoadingCircleCenter />;
 
   return (
     <DashboardPainterWithSelect>
-      <DashboardPainterQuotes
+      <DashboardPainterJobs
         type="Accepted"
         jobs={jobs}
         JobInfoFc={DashboardPainterJobAccepted}

@@ -3,16 +3,20 @@ import { TJob } from '@/types';
 import { ButtonsCvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
-import { useDashboardPainterJobAvailable } from '@/components/dashboard/painter/quotes/job/available/hook';
+import {
+  TPainterJobAvailableConfig,
+  usePainterJobAvailable,
+} from '@/components/dashboard/painter/jobs/job/available/hook';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
-type TProps = TJob;
+type TProps = TJob & TPainterJobAvailableConfig;
 export const DashboardPainterJobAvailableForm: FC<
   TProps
-> = (job) => {
-  const dashboardPainter = useDashboardPainterJobAvailable(
-    job.jobId
-  );
+> = ({ onFetch, ...job }) => {
+  const dashboardPainter = usePainterJobAvailable({
+    id: job.jobId,
+    onFetch,
+  });
   const {
     isSubmitting,
     price,

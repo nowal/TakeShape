@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { TJobUserData, TPaintPreferences } from '@/types';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 import { TypographyDetailsTitle } from '@/components/typography/details/title';
-import { DashboardPainterJobPanel } from '@/components/dashboard/painter/quotes/job/panel';
+import { DashboardPainterJobPanel } from '@/components/dashboard/painter/jobs/job/panel';
 import { TypographyDetailsPink } from '@/components/typography/details/pink';
 import { IconsLabor25 } from '@/components/icons/labor/25';
 import { IconsLaborAndMaterials } from '@/components/icons/labor-and-materials';
