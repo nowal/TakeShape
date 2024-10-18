@@ -1,0 +1,55 @@
+import type { FC } from 'react';
+import { AboutText } from '@/components/about/text';
+import { DashboardHomeownerPlaceholder } from '@/components/dashboard/homeowner/placeholder';
+import { MOCKS_PRICES } from '@/components/dashboard/homeowner/contractor-quotes/mocks';
+import { cx } from 'class-variance-authority';
+import { ReplacersFill } from '@/components/replacers/fill';
+
+export const About: FC = () => {
+  const dimensions = {
+    width: 707,
+    height: 572,
+  };
+  return (
+    <div className="spacing-landing pb-20 h-full mt-8">
+      <div className="relative flex flex-col items-center justify-between h-full w-full">
+
+        <AboutText />
+
+        {/*<div
+          className={cx(
+            'w-full',
+            'bg-white-1 rounded-lg object-top overflow-hidden',
+            'pointer-events-none'
+          )}
+        >
+          <div
+            className={cx(
+              'relative',
+              'left-1/2 -translate-x-1/2',
+              'top-0 -translate-y-1/4 ',
+              'md:top-1/4 md:translate-y-0',
+              'lg:top-1/4 lg:translate-y-0',
+              'scale-25',
+              'xs:scale-40',
+              'md:scale-80',
+              'lg:scale-80',
+              'xl:scale-65'
+            )}
+            style={dimensions}
+          >
+            <ReplacersFill>
+              <div
+                className="absolute inset-24 bg-pink opacity-20 xl:opacity-10"
+                style={{ filter: 'blur(4.8rem)' }}
+              />
+            </ReplacersFill>
+            <DashboardHomeownerPlaceholder
+              prices={MOCKS_PRICES}
+            />
+          </div>
+        </div>*/}
+      </div>
+    </div>
+  );
+};
