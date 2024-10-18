@@ -1,7 +1,6 @@
 import type { FC } from 'react';
 import { cx } from 'class-variance-authority';
 import { TButtonsCvaLinkProps } from '@/components/cva/link';
-import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';
 import { ButtonsCvaLink } from '@/components/cva/link';
 import { ShellFooterList } from '@/components/shell/footer/list';
 import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
