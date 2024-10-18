@@ -17,9 +17,9 @@ export const DASHBOARD = createContext<TPainterContext>(
 export const usePainterDashboard = (): TPainterContext =>
   useContext(DASHBOARD);
 
-export const PainterProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const DashboardPainterProvider: FC<
+  PropsWithChildren
+> = ({ children }) => {
   const dashboard = usePainterState();
   const jobs = usePainterJobs();
 

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   getFirestore,
   collection,
@@ -11,12 +11,10 @@ import {
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { TJob, TPaintPreferences } from '@/types'; // Adjust the import path as needed
-import { useAuth } from '@/context/auth/provider';
 import { resolveVideoUrl } from '@/utils/video/url';
 
 export const usePainterJobsAccepted = () => {
-  const [jobs, setJobList] = useState<TJob[]>([]);
-  const { isAuthLoading } = useAuth();
+  const [jobs, setJobs] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
@@ -105,7 +103,7 @@ export const usePainterJobsAccepted = () => {
               }
             )
           );
-          setJobList(
+          setJobs(
             acceptedJobs.filter((job) => job !== null)
           );
         }
@@ -113,15 +111,8 @@ export const usePainterJobsAccepted = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (user) {
-  //     fetchPainterData();
-  //   }
-  // }, [user, firestore]);
-
   return {
     jobs,
-    isAuthLoading,
     onFetch: handler,
   };
 };

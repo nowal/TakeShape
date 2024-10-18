@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { useSearchParams } from 'next/navigation';
@@ -357,13 +356,13 @@ export const useDashboardState = () => {
     isUserDataLoading,
     isShowModal,
     isPainter,
+    isVideoLoading,
     painterId,
     userImageList,
     uploadStatus,
     userData,
     uploadProgress,
     acceptedQuote,
-    onAcceptQuote: handleAcceptQuote,
     preferredPainterUserIds,
     agentInfo,
     selectedUserImage,
@@ -371,9 +370,9 @@ export const useDashboardState = () => {
     dispatchShowModal: setShowModal,
     dispatchVideoLoading: setVideoLoading,
     dispatchUserImageList: setUserImageList,
-    onSelectedUserImage: handleSelectedUserImage,
     dispatchUserData: setUserData,
-    isVideoLoading,
+    onAcceptQuote: handleAcceptQuote,
+    onSelectedUserImage: handleSelectedUserImage,
     onQuoteChange: handleQuoteChange,
   };
 };

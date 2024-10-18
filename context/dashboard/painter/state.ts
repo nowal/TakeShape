@@ -27,7 +27,6 @@ export const usePainterState = () => {
     isNavigating,
     selectedPage,
     user,
-    dispatchNavigating: setNavigating,
     onPageChange: handlePageChange,
   };
 };

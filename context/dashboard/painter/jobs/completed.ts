@@ -17,8 +17,7 @@ import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
 
 export const usePainterJobsCompleted = () => {
-  const { isAuthLoading } = useAuth();
-  const [jobs, setJobList] = useState<TJob[]>([]);
+  const [jobs, setJobs] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
@@ -131,13 +130,12 @@ export const usePainterJobsCompleted = () => {
         const filteredJobs = jobs.filter(
           (job) => job !== null
         ) as TJob[];
-        setJobList(filteredJobs);
+        setJobs(filteredJobs);
       }
     }
   };
 
   return {
-    isAuthLoading,
     jobs,
     onFetch: handler,
   };

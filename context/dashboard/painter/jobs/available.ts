@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   getFirestore,
   collection,
@@ -20,7 +20,7 @@ export const usePainterJobsAvailable = () => {
   const handleGeocodeAddress = useAddressGeocodeHandler();
   const handleWithinRangeCheck =
     useWithinRangeCheckHandler();
-  const [jobs, setJobList] = useState<TJob[]>([]);
+  const [jobs, setJobs] = useState<TJob[]>([]);
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
@@ -132,7 +132,7 @@ export const usePainterJobsAvailable = () => {
                 (price) => price.painterId === user.uid
               )
           );
-          setJobList(unquotedJobs);
+          setJobs(unquotedJobs);
         }
       } else {
         console.log(
@@ -146,13 +146,8 @@ export const usePainterJobsAvailable = () => {
     }
   };
 
-  useEffect(() => {
-    handler();
-  }, [user, firestore]);
-
   return {
     jobs,
-    dispatchJobList: setJobList,
     onFetch: handler,
   };
 };
