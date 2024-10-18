@@ -11,3 +11,5 @@ export const FOOTER_RIGHT_MENU_LINKS = [
     title: '',
   },
 ] satisfies TButtonsCvaLinkProps[];
+
+export const FOOTER_BACKGROUND_COLOR = '#f8f8f8';
