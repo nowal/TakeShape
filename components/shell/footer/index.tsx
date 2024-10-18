@@ -1,5 +1,5 @@
 'use client';
-import {QuoteButton} from '@/components/buttons/quote/quoteButton';
+import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import { ButtonsCvaLink } from '@/components/cva/link';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { FOOTER_RIGHT_MENU_LINKS } from '@/components/shell/footer/constants';
@@ -10,10 +10,10 @@ import { ShellLogo } from '@/components/shell/logo';
 import { cx } from 'class-variance-authority';
 
 export const ShellFooter = () => {
-  const footerBackgroundColor = '#f8f8f8'
+  const footerBackgroundColor = '#f8f8f8';
 
   return (
-    <div className='flex flex-col items-stretch'>
+    <div className="flex flex-col items-stretch">
       <footer
         style={{
           marginTop: '-0.9375rem',
@@ -27,16 +27,20 @@ export const ShellFooter = () => {
           )}
         >
           <div className="flex flex-col items-stretch lg:hidden">
-            <ShellLogo backgroundColor={footerBackgroundColor} /> 
+            <ShellLogo
+              backgroundColor={footerBackgroundColor}
+            />
             <div className="h-9" />
             <LinesHorizontal colorClass="border-gray-3" />
             <div className="h-4.5" />
           </div>
 
-          <div className="flex flex-row w-full w-10/12 xl:w-7/12">
+          <div className="flex flex-row w-full w-10/12 xl:w-full">
             <div className="hidden flex-col gap-[69px] w-6/12 lg:flex">
               <div className="flex flex-col gap-[27px]">
-                <ShellLogo backgroundColor={footerBackgroundColor} /> 
+                <ShellLogo
+                  backgroundColor={footerBackgroundColor}
+                />
                 <div className="flex flex-col items-start typography-footer gap-[14px]">
                   <ShellFooterEmail />
                   <ShellFooterTelephone />
@@ -56,32 +60,44 @@ export const ShellFooter = () => {
                 {
                   title: 'For Homeowners',
                   items: [
-                    { title: 'Hiring Tips', href: '/hiringTips' }, // Add href to each item
+                    {
+                      title: 'Hiring Tips',
+                      href: '/hiringTips',
+                    }, // Add href to each item
                     { title: 'About Us', href: '/aboutUs' },
                   ],
                 },
                 {
                   title: 'For Painters',
                   items: [
-                    { title: 'Partnership Requirements', href: '/painterRequirements' },
-                    { title: 'Request to Join', href: '/painterRegister' },
+                    {
+                      title: 'Partnership Requirements',
+                      href: '/painterRequirements',
+                    },
+                    {
+                      title: 'Request to Join',
+                      href: '/painterRegister',
+                    },
                   ],
                 },
               ].map((listListProps) => (
-                <li key={listListProps.title} className="px-0 w-1/2">
-                  <ShellFooterList {...listListProps} /> 
+                <li
+                  key={listListProps.title}
+                  className="px-0 w-1/2"
+                >
+                  <ShellFooterList {...listListProps} />
                 </li>
               ))}
             </ul>
-            </div>
+          </div>
 
-          <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
+          {/* <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
             {FOOTER_RIGHT_MENU_LINKS.map((item) => (
               <li key={item.title} className="self-end">
                 <ButtonsCvaLink {...item} />
               </li>
             ))}
-          </ul>
+          </ul> */}
 
           <div className="flex flex-col items-stretch lg:hidden">
             <div className="h-18 sm:h-9" />
