@@ -41,7 +41,7 @@ export const LandingProblemAndDecision: FC = () => {
           >
             <ReplacersFill>
               <div
-                className="absolute -inset-24 bg-pink opacity-20 xl:opacity-10"
+                className="absolute inset-24 bg-pink opacity-20 xl:opacity-10"
                 style={{ filter: 'blur(4.8rem)' }}
               />
             </ReplacersFill>
