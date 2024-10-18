@@ -2,12 +2,12 @@ import { TButtonsCvaLinkProps } from '@/components/cva/link';
 
 export const FOOTER_RIGHT_MENU_LINKS = [
   {
-    title: 'Cookie Settings',
+    title: '',
   },
   {
-    title: 'Terms of Service',
+    title: '',
   },
   {
-    title: 'Privacy Policy',
+    title: '',
   },
 ] satisfies TButtonsCvaLinkProps[];
