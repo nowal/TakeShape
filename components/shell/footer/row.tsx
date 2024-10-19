@@ -15,7 +15,6 @@ export const ShellFooterRow: FC<TProps> = ({
 }) => {
   const isNoRightMenuLinks =
     footerRightMenuLinks.length === 0;
-  console.log('isNoRightMenuLinks ', isNoRightMenuLinks);
   return (
     <>
       <div
@@ -30,17 +29,12 @@ export const ShellFooterRow: FC<TProps> = ({
             <div className="flex flex-col items-start typography-footer gap-[14px]">
               <ShellFooterEmail />
               <ShellFooterTelephone />
-              {/*<div className="whitespace-pre">
-                    Murfreesboro,{'\n'}
-                    TN 37129
-                  </div>*/}
             </div>
           </div>
           <div className="typography-footer-poppins">
             ©2024 Takeshape®
           </div>
         </div>
-
         <ul className="flex flex-col gap-12 justify-between w-full pl-0 md:gap-0 md:flex-row xl:pl-8 2xl:pl-0">
           {[
             {
@@ -76,7 +70,6 @@ export const ShellFooterRow: FC<TProps> = ({
           ))}
         </ul>
       </div>
-
       {!isNoRightMenuLinks && (
         <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
           {footerRightMenuLinks.map((item) => (

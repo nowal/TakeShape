@@ -3,7 +3,6 @@ import {
   FormEventHandler,
   useState,
 } from 'react';
-import { useRouter } from 'next/navigation';
 import { documentIdAtom } from '@/atom';
 import { useAtom } from 'jotai';
 import {
@@ -17,11 +16,11 @@ import {
 import firebase from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
 import { notifyError } from '@/utils/notifications';
-import { TPaintPreferences } from '@/types';
 import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
 import { useApp } from '@/context/app/provider';
+import { TPaintPreferences } from '@/types/preferences';
 
 type TConfig = {
   quoteTitle: string;
@@ -40,7 +39,8 @@ export const useQuoteSubmit = ({
   const { onNavigateScrollTopClick } = useApp();
   const { timeoutRef } = useTimeoutRef();
   const { isUserSignedIn } = useAuth();
-  const [isQuoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [isQuoteSubmitting, setQuoteSubmitting] =
+    useState(false);
   const [providingOwnPaint, setProvidingOwnPaint] =
     useState('');
   const auth = getAuth();
@@ -59,7 +59,7 @@ export const useQuoteSubmit = ({
     dispatchErrorMessage('');
 
     try {
-      setQuoteSubmitting(true)
+      setQuoteSubmitting(true);
       const userImageData = {
         zipCode,
         description: '',

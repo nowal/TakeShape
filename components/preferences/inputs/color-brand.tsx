@@ -31,6 +31,8 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
 
   const colors = selectedBrandMatchesRecord[name];
 
+  // console.log(props.value, colors)
+
   return (
     <div className="flex flex-row justify-end grow gap-1">
       <InputsSelect

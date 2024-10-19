@@ -22,8 +22,7 @@ export const MapReady: FC = () => {
     range: rangeMiles,
     coords,
     onCoordsUpdate,
-    dispatchAddress,
-    dispatchAddressFormatted
+    dispatchAddressFormatted,
   } = useAccountSettings();
 
   const rangeMetres = useMemo(() => {
@@ -36,8 +35,6 @@ export const MapReady: FC = () => {
   const handleDragEnd = (
     event: google.maps.MapMouseEvent
   ) => {
-    console.log('handleDragEnd', event, map, rangeMiles);
-
     if (map === null) return;
 
     const position = event.latLng;
@@ -51,10 +48,9 @@ export const MapReady: FC = () => {
       lat: nextLat,
       lng: nextLng,
     };
-    console.log(nextCoords, rangeMiles);
 
     onCoordsUpdate(nextCoords);
-  
+
     handleBoundsUpdate(map, nextCoords, rangeMiles);
 
     const nextAddress = `${nextLat}, ${nextLng}`;
@@ -72,10 +68,10 @@ export const MapReady: FC = () => {
   return (
     <Map
       className={cx('h-[400px]')}
-      defaultZoom={10}
+      defaultZoom={8}
       defaultCenter={{
-        lat: DEFAULT_LAT,
-        lng: DEFAULT_LNG,
+        lat: coords?.lat ?? DEFAULT_LAT,
+        lng: coords?.lng ?? DEFAULT_LNG,
       }}
       mapId={MAP_ID}
     >

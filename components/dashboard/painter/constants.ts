@@ -1,5 +1,5 @@
-export const QUOTE_KEYS = {
-  'Available Quotes': 'Available Quotes',
-  'Completed Quotes': 'Completed Quotes',
-  'Accepted Quotes': 'Accepted Quotes',
+export const JOB_TYPE_TO_PAGE_ROUTE = {
+  available: '/dashboard',
+  completed: '/completedQuotes',
+  accepted: '/acceptedQuotes',
 } as const;

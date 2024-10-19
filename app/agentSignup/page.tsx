@@ -94,7 +94,7 @@ const AgentSignup = () => {
         </div>
         <div className="relative h-[96px]">
           <InputsFile
-            title="Profile Picture (optional)"
+            title="Profile Picture"
             onFile={onProfilePictureChange}
             inputProps={{
               accept: 'image/*',

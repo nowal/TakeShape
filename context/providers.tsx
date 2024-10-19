@@ -3,7 +3,7 @@ import { AgentDashboardProvider } from '@/context/agent/dashboard/provider';
 import { AgentRegisterProvider } from '@/context/agent/register/provider';
 import { AppProvider } from '@/context/app/provider';
 import { AuthProvider } from '@/context/auth/provider';
-import { PainterProvider } from '@/context/dashboard/painter/provider';
+import { DashboardPainterProvider } from '@/context/dashboard/painter/provider';
 import { DashboardProvider } from '@/context/dashboard/provider';
 import { PainterRegisterProvider } from '@/context/painter/register/provider';
 import { PreferencesProvider } from '@/context/preferences/provider';
@@ -25,7 +25,7 @@ export const ContextProviders: FC<TProps> = ({
         AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,
-        PainterProvider,
+        DashboardPainterProvider,
         ViewportProvider,
         QuoteProvider,
         DashboardProvider,

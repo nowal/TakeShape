@@ -7,7 +7,7 @@ export const useBoundsUpdate = () => {
   ) => {
     const [map, ...args] = argsInit;
     if (map === null) return;
-    const googleMaps = window.google.maps;
+    const googleMaps = google.maps;
     const bounds = resolveBounds(googleMaps, ...args);
     if (bounds) {
       map.fitBounds(bounds);

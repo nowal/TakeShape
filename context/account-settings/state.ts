@@ -24,7 +24,7 @@ import {
   isPainterAtom,
   isProfilePicAtom,
 } from '@/atom';
-import { useUploadLogoAndGetUrl } from '@/context/account-settings/upload-logo-and-get-url';
+import { resolveLogosUpload } from '@/utils/logos/upload';
 import { notifyError } from '@/utils/notifications';
 import { TAccountSettingsConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
@@ -43,8 +43,6 @@ export const useAccountSettingsState = (
     dispatchAddressFormatted,
     onCoordsUpdate,
   } = config;
-  const handleUploadLogoAndGetUrl =
-    useUploadLogoAndGetUrl();
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [isAgent, setAgent] = useAtom(isAgentAtom); // New state for isAgent
   const [name, setName] = useState('');
@@ -137,11 +135,9 @@ export const useAccountSettingsState = (
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                // onGeocodeAddress(painterData.address);
+                const address = painterData.address;
                 const nextCoords =
-                  await handleAddressGeocode(
-                    painterData.address
-                  );
+                  await handleAddressGeocode(address);
                 if (nextCoords) {
                   onCoordsUpdate(nextCoords);
                 }
@@ -252,18 +248,20 @@ export const useAccountSettingsState = (
         const isPainter = !painterSnapshot.empty;
 
         if (isPainter) {
-          if (!addressFormatted) {
+          const addressValue = addressFormatted ?? address;
+
+          if (!addressValue) {
             setErrorMessage('Invalid address.');
             return;
           }
           const painterDocRef = painterSnapshot.docs[0].ref;
           const updatedLogoUrl = logo
-            ? await handleUploadLogoAndGetUrl(logo)
+            ? await resolveLogosUpload(logo)
             : logoUrl; // Handle logo upload if provided
 
           const updatedPainterData = {
             businessName,
-            address: addressFormatted,
+            address: addressValue,
             range,
             isInsured,
             logoUrl: updatedLogoUrl,
@@ -422,6 +420,5 @@ export const useAccountSettingsState = (
     onUpdate: handleUpdate,
     onLogoChange: handleLogoChange,
     onProfilePictureChange: handleProfilePictureChange,
-    onUploadLogoAndGetUrl: handleUploadLogoAndGetUrl,
   };
 };

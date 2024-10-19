@@ -1,40 +1,74 @@
 import { InputsSelect } from '@/components/inputs/select';
-import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
 import { DashboardHeader } from '@/components/dashboard/header';
-import { usePainter } from '@/context/dashboard/painter/provider';
-import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
+import { useDashboardPainter } from '@/context/dashboard/painter/provider';
+import {
+  TJobType,
+  TJobTypeProps,
+} from '@/components/dashboard/painter/types';
+import { resolveObjectKeys } from '@/utils/object';
+import { TSelectIdNameItem } from '@/types';
+import { capitalize } from '@/utils/css/format';
 
-type TProps = TPropsWithChildren;
-export const DashboardPainterWithSelect: FC<TProps> = (
-  props
-) => {
-  const { isNavigating, selectedPage, onPageChange } =
-    usePainter();
+type TProps = TPropsWithChildren & TJobTypeProps;
+export const DashboardPainterWithSelect: FC<TProps> = ({
+  children,
+  typeKey,
+}) => {
+  const dashboardPainter = useDashboardPainter();
+  const currState = dashboardPainter[typeKey];
+
+  const handleInit = () => {
+    currState.isInitRef.current = true;
+    currState.onFetch();
+  };
+
+  useEffect(() => {
+    console.log(currState.isInitRef.current)
+    if (
+      !currState.isFetching &&
+      !currState.isInitRef.current
+    ) {
+      handleInit();
+    }
+  }, [currState.isFetching]);
+
+  const mapJobTypeCount = (jobTypeKey: TJobType) =>
+    dashboardPainter[jobTypeKey].jobs.length;
+
+  const idValues: TSelectIdNameItem[] = resolveObjectKeys(
+    JOB_TYPE_TO_PAGE_ROUTE
+  ).map((id) => ({
+    id,
+    name: capitalize(id),
+    count: mapJobTypeCount(id),
+  }));
 
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
       <DashboardHeader>
+        <h4 className="font-semibold">Quotes</h4>
         <InputsSelect
           name="painter-quote"
-          basicValues={Object.keys(QUOTE_KEYS)}
+          idValues={idValues}
           placeholder="Select Quote"
-          value={selectedPage}
+          value={typeKey}
           onValueChange={(_, value) => {
             if (isQuoteType(value)) {
-              onPageChange(value);
+              const state = dashboardPainter[value];
+              if (!state.isFetching) {
+                handleInit();
+              }
+              dashboardPainter.onPageChange(value);
             }
           }}
         />
       </DashboardHeader>
       <div className="h-8" />
-      {isNavigating ? (
-        <FallbacksLoadingCircleCenter />
-      ) : (
-        <div>{props.children}</div>
-      )}
+      <div>{children}</div>
     </div>
   );
 };

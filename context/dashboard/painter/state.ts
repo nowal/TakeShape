@@ -1,33 +1,22 @@
 import { useState } from 'react';
-import { getAuth } from 'firebase/auth';
-import { TQuoteKey } from '@/components/dashboard/painter/types';
+import { TJobType } from '@/components/dashboard/painter/types';
 import { useApp } from '@/context/app/provider';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 
 export const usePainterState = () => {
   const { onNavigateScrollTopClick } = useApp();
-  const [selectedPage, setSelectedPage] =
-    useState<TQuoteKey>('Available Quotes');
   const [isNavigating, setNavigating] = useState(false);
-  const auth = getAuth();
-  const user = auth.currentUser;
 
-  const handlePageChange = (selected: TQuoteKey) => {
-    setNavigating(true);
-    setSelectedPage(selected);
-    if (selected === 'Available Quotes') {
-      onNavigateScrollTopClick('/dashboard');
-    } else if (selected === 'Accepted Quotes') {
-      onNavigateScrollTopClick('/acceptedQuotes');
-    } else if (selected === 'Completed Quotes') {
-      onNavigateScrollTopClick('/completedQuotes');
-    }
+  const handlePageChange = (jobType: TJobType) => {
+    const path = JOB_TYPE_TO_PAGE_ROUTE[jobType];
+    onNavigateScrollTopClick(path);
   };
+
+  const handleNavigatingDone = () => setNavigating(false);
 
   return {
     isNavigating,
-    selectedPage,
-    user,
-    dispatchNavigating: setNavigating,
+    onNavigatingDone: handleNavigatingDone,
     onPageChange: handlePageChange,
   };
 };

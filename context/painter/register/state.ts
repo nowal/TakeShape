@@ -28,6 +28,7 @@ import { useApp } from '@/context/app/provider';
 export const usePainterRegisterState = () => {
   const {
     address,
+    addressFormatted,
     businessName,
     dispatchPainter,
     range,
@@ -72,10 +73,11 @@ export const usePainterRegisterState = () => {
       const logoUrl = logo
         ? await uploadLogoAndGetUrl(logo)
         : ''; // Handle logo upload if provided
+      const addressValue = addressFormatted ?? address;
 
       const painterData = {
         businessName,
-        address,
+        address: addressValue,
         ...(coords ? { coords } : {}),
         range,
         isInsured: false,

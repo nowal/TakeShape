@@ -32,7 +32,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
       <PainterAddress />
       <div className="relative h-[96px]">
         <InputsFile
-          title="Company Logo (optional)"
+          title="Company Logo"
           onFile={onLogoChange}
           inputProps={{
             accept: 'image/*',

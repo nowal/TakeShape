@@ -125,6 +125,9 @@ input {
   .typography-file-sm {
     @apply typography-file-base text-sm;
   }
+  .typography-file-xs {
+    @apply typography-file-base text-xs;
+  }
   .typography-page-title-preferences {
     @apply text-center text-black-6 text-2xl font-bold font-montserrat tracking-tight-06;
   }

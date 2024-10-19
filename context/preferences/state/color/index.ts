@@ -10,7 +10,7 @@ import {
   TPaintBrand,
   TColor,
 } from '@/context/preferences/state/color/types';
-import { TPaintPreferences } from '@/types';
+import { TPaintPreferences } from '@/types/preferences';
 import {
   Dispatch,
   SetStateAction,
@@ -223,7 +223,6 @@ export const usePreferencesStateColor = ({
     hexCode,
     selectedBrandRecord,
     selectedBrandMatchesRecord,
-
     onSelectBrandValueChange: handleSelectBrandValueChange,
     dispatchSelectedBrand: setSelectedBrandRecord,
   };

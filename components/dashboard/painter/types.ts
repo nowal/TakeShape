@@ -1,3 +1,5 @@
-import { QUOTE_KEYS } from '@/components/dashboard/painter/constants';
+import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 
-export type TQuoteKey = keyof typeof QUOTE_KEYS;
+export type TJobType = keyof typeof JOB_TYPE_TO_PAGE_ROUTE;
+
+export type TJobTypeProps = { typeKey: TJobType };
