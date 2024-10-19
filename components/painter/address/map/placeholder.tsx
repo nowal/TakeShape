@@ -24,8 +24,8 @@ export const MapPlaceholder: FC = () => {
           : {
               zoom: 4,
               center: new google.maps.LatLng(
-                DEFAULT_LNG,
-                DEFAULT_LAT
+                DEFAULT_LAT,
+                DEFAULT_LNG
               ),
             })}
         mapTypeId={google.maps.MapTypeId.ROADMAP}
