@@ -1,6 +1,5 @@
 import type { FC } from 'react';
 import { DashboardPainterJob } from '@/components/dashboard/painter/jobs/job';
-import { useDashboardPainterNavigatingDone } from '@/context/dashboard/painter/navigating-done';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-select';
 import { TJobTypeProps } from '@/components/dashboard/painter/types';
@@ -15,9 +14,7 @@ export const DashboardPainterJobs: FC<TProps> = ({
   ...jobTypeProps
 }) => {
   const dashboardPainter = useDashboardPainter();
-  useDashboardPainterNavigatingDone();
   const jobs = dashboardPainter[jobTypeProps.typeKey].jobs;
-
   return (
     <DashboardPainterWithSelect {...jobTypeProps}>
       {jobs.length > 0 ? (

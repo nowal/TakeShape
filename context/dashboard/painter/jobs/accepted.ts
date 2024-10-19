@@ -1,27 +1,22 @@
-import { useState } from 'react';
-import {
-  getFirestore,
-  getDoc,
-  doc,
-  DocumentData,
-  QueryDocumentSnapshot,
-} from 'firebase/firestore';
-import { resolveVideoUrl } from '@/utils/video/url';
-import { resolvePainterData } from '@/context/dashboard/painter/jobs/utils/painter-data';
+import { getDoc, doc } from 'firebase/firestore';
+import { fetchPainter } from '@/context/dashboard/painter/jobs/utils/painter-data';
 import { isTruthy } from '@/utils/validation/is/truthy';
 import { TJob } from '@/types/jobs';
-import { TPaintPreferences } from '@/types/preferences';
+import { usePainterJobsState } from '@/context/dashboard/painter/jobs/state';
+import { fetchUser } from '@/context/dashboard/painter/jobs/utils/user';
+import { resolveFirestoreAttribute } from '@/utils/firestore/attribute';
+import { TFirestoreDocumentSnapshot } from '@/types/firestore/snapshot';
+import { transformVideo } from '@/context/dashboard/painter/jobs/utils/video';
 
 export const usePainterJobsAccepted = () => {
-  const [isFetching, setFetching] =
-    useState<boolean>(false);
-  const [jobs, setJobs] = useState<TJob[]>([]);
-  const firestore = getFirestore();
+  const painterJobsState = usePainterJobsState();
+  const { firestore, dispatchFetching, dispatchJobs } =
+    painterJobsState;
 
   const handler = async () => {
     try {
-      setFetching(true);
-      const painterDataResult = await resolvePainterData();
+      dispatchFetching(true);
+      const painterDataResult = await fetchPainter();
       if (!painterDataResult) return;
       const { data: painterData } = painterDataResult;
       if (
@@ -38,10 +33,10 @@ export const usePainterJobsAccepted = () => {
       ) => {
         if (!acceptedQuoteId) {
           console.error(
-            'Invalid acceptedQuoteId:',
+            'Invalid acceptedQuoteId: ',
             acceptedQuoteId
           );
-          return null;
+          return;
         }
         const jobRef = doc(
           firestore,
@@ -53,28 +48,15 @@ export const usePainterJobsAccepted = () => {
           let jobData = {} as TJob;
 
           const fetchPaintPreferences = async (
-            jobSnapshot: QueryDocumentSnapshot<
-              DocumentData,
-              DocumentData
-            >
+            jobSnapshot: TFirestoreDocumentSnapshot
           ) => {
-            const jobData = jobSnapshot.data() as TJob;
+            let jobData = jobSnapshot.data() as TJob;
 
-            if (jobData.paintPreferencesId) {
-              const paintPrefDocRef = doc(
-                firestore,
-                'paintPreferences',
-                jobData.paintPreferencesId
-              );
-              const paintPrefDocSnap = await getDoc(
-                paintPrefDocRef
-              ); // Corrected variable usage
-
-              if (paintPrefDocSnap.exists()) {
-                jobData.paintPreferences =
-                  paintPrefDocSnap.data() as TPaintPreferences;
-              }
-            }
+            jobData = await resolveFirestoreAttribute<TJob>(
+              jobData,
+              'paintPreferences',
+              jobData.paintPreferencesId
+            );
 
             return jobData;
           };
@@ -86,37 +68,14 @@ export const usePainterJobsAccepted = () => {
             ...(fetchPaintPreferencesResult ?? {}),
           };
 
-          const fetchUserInfo = async () => {
-            if (jobData.userId) {
-              const userDocRef = doc(
-                firestore,
-                'users',
-                jobData.userId
-              );
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                jobData.customerName = userData.name;
-                jobData.phoneNumber =
-                  jobData.phoneNumber ||
-                  userData.phoneNumber;
-                jobData.address =
-                  jobData.address || userData.address;
-              }
-
-              return jobData;
-            }
-          };
-
-          const fetchUserInfoResult = await fetchUserInfo();
+          const fetchUserResult = await fetchUser(jobData);
 
           jobData = {
-            ...(fetchUserInfoResult ?? {}),
+            ...(fetchUserResult ?? {}),
             ...jobData,
           };
 
-          jobData.video =
-            (await resolveVideoUrl(jobData.video)) ?? '';
+          jobData = await transformVideo(jobData);
 
           return {
             ...jobData,
@@ -125,25 +84,22 @@ export const usePainterJobsAccepted = () => {
         }
         return;
       };
-
-      const acceptedJobs = await Promise.all(
-        painterData.acceptedQuotes.map(resolveJob)
-      );
-
-      const nextJobs = acceptedJobs.filter(isTruthy);
-      console.log(nextJobs);
-
-      setJobs(nextJobs);
+      const jobs: Promise<TJob | undefined>[] =
+        painterData.acceptedQuotes.map(resolveJob);
+      for await (const job of jobs) {
+        if (isTruthy(job)) {
+          dispatchJobs((prev) => [...prev, job]);
+        }
+      }
     } catch (error) {
       console.error(error);
     } finally {
-      setFetching(false);
+      dispatchFetching(false);
     }
   };
 
   return {
-    isFetching,
-    jobs,
     onFetch: handler,
+    ...painterJobsState,
   };
 };

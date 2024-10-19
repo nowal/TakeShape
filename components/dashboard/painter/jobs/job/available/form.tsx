@@ -10,7 +10,6 @@ type TProps = TJob;
 export const DashboardPainterJobAvailableForm: FC<
   TProps
 > = (job) => {
-
   const dashboardPainter = usePainterJobAvailable({
     id: job.jobId,
   });
@@ -52,7 +51,7 @@ export const DashboardPainterJobAvailableForm: FC<
               input: (
                 <InputsFile
                   titleClassValue="typography-file-sm"
-                  title="Invoice (optional)"
+                  title="Invoice"
                   onFile={onFileChange}
                   inputProps={{
                     accept: 'application/pdf',
@@ -60,11 +59,11 @@ export const DashboardPainterJobAvailableForm: FC<
                   isValue={Boolean(selectedFile)}
                   gap="lg"
                 >
-                  {selectedFile && (
+                  {selectedFile ? (
                     <span className="text-xs">
                       {selectedFile?.name}
                     </span>
-                  )}
+                  ) : null}
                 </InputsFile>
               ),
             },

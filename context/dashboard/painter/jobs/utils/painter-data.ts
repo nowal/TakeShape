@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-export const resolvePainterData = async () => {
+export const fetchPainter = async () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;

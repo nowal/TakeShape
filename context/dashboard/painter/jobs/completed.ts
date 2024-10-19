@@ -1,139 +1,107 @@
-import { useState } from 'react';
-import {
-  getFirestore,
-  collection,
-  getDoc,
-  getDocs,
-  doc,
-} from 'firebase/firestore';
-import { resolveVideoUrl } from '@/utils/video/url';
-import { isDefined } from '@/utils/validation/is/defined';
+import { collection, getDocs } from 'firebase/firestore';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
-import { resolvePainterData } from '@/context/dashboard/painter/jobs/utils/painter-data';
-import { isTruthy } from '@/utils/validation/is/truthy';
+import { fetchPainter } from '@/context/dashboard/painter/jobs/utils/painter-data';
 import { TJob } from '@/types/jobs';
-import { TPaintPreferences } from '@/types/preferences';
+import { usePainterJobsState } from '@/context/dashboard/painter/jobs/state';
+import { resolveFirestoreAttribute } from '@/utils/firestore/attribute';
+import { fetchUser } from '@/context/dashboard/painter/jobs/utils/user';
+import { useJobCoords } from '@/context/dashboard/painter/jobs/hooks/job-coords';
+import { resolveJobFromDoc } from '@/context/dashboard/painter/jobs/utils/job-from-doc';
+import { transformVideo } from '@/context/dashboard/painter/jobs/utils/video';
+import { isTruthy } from '@/utils/validation/is/truthy';
 
 export const usePainterJobsCompleted = () => {
-  const [isFetching, setFetching] =
-    useState<boolean>(false);
-  const [jobs, setJobs] = useState<TJob[]>([]);
-  const firestore = getFirestore();
+  const painterJobsState = usePainterJobsState();
+  const { firestore, dispatchFetching, dispatchJobs } =
+    painterJobsState;
 
   const handleAddressGeocode = useAddressGeocodeHandler();
   const handleWithinRangeCheck =
     useWithinRangeCheckHandler();
+  const handleJobCoords = useJobCoords();
 
   const handler = async () => {
     try {
-      setFetching(true);
-      const painterDataResult = await resolvePainterData();
+      dispatchFetching(true);
+      const painterDataResult = await fetchPainter();
       if (!painterDataResult) return;
+
       const { data: painterData } = painterDataResult;
       const userImagesQuery = collection(
         firestore,
         'userImages'
       );
+
       const userImagesSnapshot = await getDocs(
         userImagesQuery
       );
-      const resolveJob = userImagesSnapshot.docs.map(
-        async (jobDoc) => {
-          const jobData = jobDoc.data() as TJob;
 
-          if (jobData.address) {
-            let { lat, lng } = jobData;
+      const resolveJob = async (jobData: TJob) => {
+        if (!jobData.address) return;
 
-            if (!isDefined(lat) || !isDefined(lng)) {
-              const geocodedLocation =
-                await handleAddressGeocode(jobData.address);
-              if (geocodedLocation) {
-                lat = geocodedLocation.lat;
-                lng = geocodedLocation.lng;
-              }
-            }
+        const jobCoords = await handleJobCoords(jobData);
 
-            if (isDefined(lat) && isDefined(lng)) {
-              const isWithinRange =
-                await handleWithinRangeCheck(
-                  painterData.address,
-                  { lat, lng },
-                  painterData.range
-                );
-              if (isWithinRange) {
-                if (jobData.paintPreferencesId) {
-                  const paintPrefDocRef = doc(
-                    firestore,
-                    'paintPreferences',
-                    jobData.paintPreferencesId
-                  );
-                  const paintPrefDocSnap = await getDoc(
-                    paintPrefDocRef
-                  );
-                  if (paintPrefDocSnap.exists()) {
-                    jobData.paintPreferences =
-                      paintPrefDocSnap.data() as TPaintPreferences;
-                  }
-                }
-
-                // Fetch user information if userId is defined
-                if (jobData.userId) {
-                  const userDocRef = doc(
-                    firestore,
-                    'users',
-                    jobData.userId
-                  );
-                  const userDocSnap = await getDoc(
-                    userDocRef
-                  );
-                  if (userDocSnap.exists()) {
-                    const userData = userDocSnap.data();
-                    jobData.customerName = userData.name;
-                    jobData.phoneNumber =
-                      jobData.phoneNumber ||
-                      userData.phoneNumber;
-                    jobData.address =
-                      jobData.address || userData.address;
-                  }
-                }
-
-                const video = await resolveVideoUrl(
-                  jobData.video
-                );
-                return {
-                  ...jobData,
-                  ...(video ? { video } : { video: '' }),
-                  jobId: jobDoc.id,
-                };
-              }
-            } else {
-              console.error(
-                'Job address is missing latitude and/or lnggitude after geocoding:',
-                jobData.address,
-                ', jobData ',
-                jobData
-              );
-            }
-          }
+        if (jobCoords === null) {
+          console.error('No job coords');
           return;
         }
+
+        const painterCoords = await handleAddressGeocode(
+          jobData.address
+        );
+
+        if (painterCoords === null) {
+          console.error('No painter coords');
+          return;
+        }
+
+        const isWithinRange = await handleWithinRangeCheck(
+          painterCoords,
+          jobCoords,
+          painterData.range
+        );
+
+        if (!isWithinRange) {
+          console.error('Job out of range', jobData);
+          return;
+        }
+
+        jobData = await resolveFirestoreAttribute<TJob>(
+          jobData,
+          'paintPreferences',
+          jobData.paintPreferencesId
+        );
+
+        const fetchUserResult = await fetchUser(jobData);
+
+        jobData = {
+          ...(fetchUserResult ?? {}),
+          ...jobData,
+        };
+
+        jobData = await transformVideo(jobData);
+
+        return jobData;
+      };
+
+      const jobs = userImagesSnapshot.docs.map((jobDoc) =>
+        resolveJobFromDoc(jobDoc, resolveJob)
       );
-      const jobs: (TJob | undefined)[] = await Promise.all(
-        resolveJob
-      );
-      const filteredJobs = jobs.filter(isTruthy) as TJob[];
-      setJobs(filteredJobs);
+      for await (const job of jobs) {
+        if (isTruthy(job)) {
+          dispatchJobs((prev) => [...prev, job]);
+        }
+      }
     } catch (error) {
       console.error(error);
     } finally {
-      setFetching(false);
+      dispatchFetching(false);
     }
   };
 
   return {
-    isFetching,
-    jobs,
     onFetch: handler,
+    ...painterJobsState,
   };
 };

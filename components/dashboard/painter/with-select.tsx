@@ -5,7 +5,6 @@ import { FC } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
-import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 import {
   TJobType,
   TJobTypeProps,
@@ -20,7 +19,7 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
   typeKey,
 }) => {
   const dashboardPainter = useDashboardPainter();
-  const { isNavigating, onPageChange } = dashboardPainter;
+  const { onPageChange } = dashboardPainter;
 
   const mapJobTypeCount = (jobTypeKey: TJobType) =>
     dashboardPainter[jobTypeKey].jobs.length;
@@ -36,6 +35,7 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
   return (
     <div className="flex flex-col items-center px-4 md:px-8">
       <DashboardHeader>
+        <h4 className="font-semibold">Quotes</h4>
         <InputsSelect
           name="painter-quote"
           idValues={idValues}
@@ -43,17 +43,18 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
           value={typeKey}
           onValueChange={(_, value) => {
             if (isQuoteType(value)) {
+              const state = dashboardPainter[value];
+              if (!state.isFetching) {
+                state.onFetch();
+              }
               onPageChange(value);
             }
           }}
         />
       </DashboardHeader>
       <div className="h-8" />
-      {isNavigating ? (
-        <FallbacksLoadingCircleCenter />
-      ) : (
-        <div>{children}</div>
-      )}
+
+      <div>{children}</div>
     </div>
   );
 };

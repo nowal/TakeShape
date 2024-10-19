@@ -6,14 +6,17 @@ import {
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
-import { ClassValue } from 'class-variance-authority/dist/types';
 
 export type TInputsFileProps =
   Partial<TButtonsCvaInputProps> & {
     title: string;
     onFile(file: File): void;
     isValue?: boolean;
-    titleClassValue?: ClassValue;
+    titleClassValue?: `typography-file-${
+      | 'md'
+      | 'sm'
+      | 'xs'}`;
+    isRequired?: boolean;
   };
 
 export const InputsFile: FC<TInputsFileProps> = ({
@@ -23,6 +26,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
   inputProps,
   title,
   isValue,
+  isRequired,
   children,
   ...props
 }) => {
@@ -81,15 +85,19 @@ export const InputsFile: FC<TInputsFileProps> = ({
         rounded="lg"
         icon={{ Leading: IconsUpload }}
         center
+        aria-required={isRequired}
         {...props}
       >
         <div
           className={cx(
-            'relative',
+            'relative text-left',
             titleClassValue ?? 'typography-file-md'
           )}
         >
           {title}
+          {!isRequired && (
+            <div className="text-xs text-gray">(optional)</div>
+          )}
         </div>
         <>{children}</>
       </ButtonsCvaInput>

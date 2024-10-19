@@ -8,7 +8,7 @@ export const resolveVideoUrl = async (
   url?: string | null
 ) => {
   if (!url) {
-    return null;
+    return '';
   }
 
   const storage = getStorage();
