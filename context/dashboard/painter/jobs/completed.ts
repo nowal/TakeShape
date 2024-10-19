@@ -1,4 +1,8 @@
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  getFirestore,
+} from 'firebase/firestore';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
 import { useWithinRangeCheckHandler } from '@/context/dashboard/painter/within-range-check';
 import { fetchPainter } from '@/context/dashboard/painter/jobs/utils/painter-data';
@@ -10,10 +14,11 @@ import { useJobCoords } from '@/context/dashboard/painter/jobs/hooks/job-coords'
 import { resolveJobFromDoc } from '@/context/dashboard/painter/jobs/utils/job-from-doc';
 import { transformVideo } from '@/context/dashboard/painter/jobs/utils/video';
 import { isTruthy } from '@/utils/validation/is/truthy';
+import { updateJobs } from '@/context/dashboard/painter/jobs/utils/update-jobs';
 
 export const usePainterJobsCompleted = () => {
   const painterJobsState = usePainterJobsState();
-  const { firestore, dispatchFetching, dispatchJobs } =
+  const { dispatchFetching, dispatchJobs } =
     painterJobsState;
 
   const handleAddressGeocode = useAddressGeocodeHandler();
@@ -28,6 +33,9 @@ export const usePainterJobsCompleted = () => {
       if (!painterDataResult) return;
 
       const { data: painterData } = painterDataResult;
+
+      const firestore = getFirestore();
+
       const userImagesQuery = collection(
         firestore,
         'userImages'
@@ -90,7 +98,7 @@ export const usePainterJobsCompleted = () => {
       );
       for await (const job of jobs) {
         if (isTruthy(job)) {
-          dispatchJobs((prev) => [...prev, job]);
+          dispatchJobs(updateJobs(job));
         }
       }
     } catch (error) {

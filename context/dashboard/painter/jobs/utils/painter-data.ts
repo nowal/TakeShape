@@ -12,6 +12,7 @@ export const fetchPainter = async () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
+  console.log(user);
   if (!user) {
     console.error(
       'No user found, unable to fetch painter data.'

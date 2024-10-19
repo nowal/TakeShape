@@ -1,7 +1,7 @@
 import { InputsSelect } from '@/components/inputs/select';
 import { JOB_TYPE_TO_PAGE_ROUTE } from '@/components/dashboard/painter/constants';
 import { TPropsWithChildren } from '@/types/dom/main';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { isQuoteType } from '@/components/dashboard/painter/validation';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
@@ -19,7 +19,22 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
   typeKey,
 }) => {
   const dashboardPainter = useDashboardPainter();
-  const { onPageChange } = dashboardPainter;
+  const currState = dashboardPainter[typeKey];
+
+  const handleInit = () => {
+    currState.isInitRef.current = true;
+    currState.onFetch();
+  };
+
+  useEffect(() => {
+    console.log(currState.isInitRef.current)
+    if (
+      !currState.isFetching &&
+      !currState.isInitRef.current
+    ) {
+      handleInit();
+    }
+  }, [currState.isFetching]);
 
   const mapJobTypeCount = (jobTypeKey: TJobType) =>
     dashboardPainter[jobTypeKey].jobs.length;
@@ -45,15 +60,14 @@ export const DashboardPainterWithSelect: FC<TProps> = ({
             if (isQuoteType(value)) {
               const state = dashboardPainter[value];
               if (!state.isFetching) {
-                state.onFetch();
+                handleInit();
               }
-              onPageChange(value);
+              dashboardPainter.onPageChange(value);
             }
           }}
         />
       </DashboardHeader>
       <div className="h-8" />
-
       <div>{children}</div>
     </div>
   );

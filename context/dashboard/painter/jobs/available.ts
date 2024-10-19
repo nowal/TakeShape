@@ -12,6 +12,7 @@ import { isUnquoted } from '@/context/dashboard/painter/jobs/utils/unquoted';
 import { transformVideo } from '@/context/dashboard/painter/jobs/utils/video';
 import { resolveJobFromDoc } from '@/context/dashboard/painter/jobs/utils/job-from-doc';
 import { isTruthy } from '@/utils/validation/is/truthy';
+import { updateJobs } from '@/context/dashboard/painter/jobs/utils/update-jobs';
 
 export const usePainterJobsAvailable = () => {
   const handleAddressGeocode = useAddressGeocodeHandler();
@@ -83,7 +84,7 @@ export const usePainterJobsAvailable = () => {
       for await (const job of jobs) {
         if (isTruthy(job)) {
           if (isUnquoted(user.uid, job.prices)) {
-            dispatchJobs((prev) => [...prev, job]);
+            dispatchJobs(updateJobs(job));
           }
         }
       }

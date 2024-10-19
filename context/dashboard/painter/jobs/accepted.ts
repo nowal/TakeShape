@@ -1,4 +1,4 @@
-import { getDoc, doc } from 'firebase/firestore';
+import { getDoc, doc, getFirestore } from 'firebase/firestore';
 import { fetchPainter } from '@/context/dashboard/painter/jobs/utils/painter-data';
 import { isTruthy } from '@/utils/validation/is/truthy';
 import { TJob } from '@/types/jobs';
@@ -7,10 +7,11 @@ import { fetchUser } from '@/context/dashboard/painter/jobs/utils/user';
 import { resolveFirestoreAttribute } from '@/utils/firestore/attribute';
 import { TFirestoreDocumentSnapshot } from '@/types/firestore/snapshot';
 import { transformVideo } from '@/context/dashboard/painter/jobs/utils/video';
+import { updateJobs } from '@/context/dashboard/painter/jobs/utils/update-jobs';
 
 export const usePainterJobsAccepted = () => {
   const painterJobsState = usePainterJobsState();
-  const { firestore, dispatchFetching, dispatchJobs } =
+  const { dispatchFetching, dispatchJobs } =
     painterJobsState;
 
   const handler = async () => {
@@ -38,6 +39,8 @@ export const usePainterJobsAccepted = () => {
           );
           return;
         }
+        const firestore = getFirestore();
+
         const jobRef = doc(
           firestore,
           'userImages',
@@ -88,7 +91,7 @@ export const usePainterJobsAccepted = () => {
         painterData.acceptedQuotes.map(resolveJob);
       for await (const job of jobs) {
         if (isTruthy(job)) {
-          dispatchJobs((prev) => [...prev, job]);
+          dispatchJobs(updateJobs(job));
         }
       }
     } catch (error) {

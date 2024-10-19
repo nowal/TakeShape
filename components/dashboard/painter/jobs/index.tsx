@@ -5,6 +5,7 @@ import { DashboardPainterWithSelect } from '@/components/dashboard/painter/with-
 import { TJobTypeProps } from '@/components/dashboard/painter/types';
 import { DashboardPainterJobsEmpty } from '@/components/dashboard/painter/jobs/empty';
 import { TJob } from '@/types/jobs';
+import { DashboardPainterJobsShowMore } from '@/components/dashboard/painter/jobs/show-more';
 
 type TProps = TJobTypeProps & {
   JobInfoFc: FC<TJob>;
@@ -14,7 +15,9 @@ export const DashboardPainterJobs: FC<TProps> = ({
   ...jobTypeProps
 }) => {
   const dashboardPainter = useDashboardPainter();
-  const jobs = dashboardPainter[jobTypeProps.typeKey].jobs;
+  const { jobs, count, isFetching, isInitRef } =
+    dashboardPainter[jobTypeProps.typeKey];
+
   return (
     <DashboardPainterWithSelect {...jobTypeProps}>
       {jobs.length > 0 ? (
@@ -22,16 +25,21 @@ export const DashboardPainterJobs: FC<TProps> = ({
           className="flex flex-col items-stretch gap-3"
           {...jobTypeProps}
         >
-          {jobs.map((job) => (
+          {jobs.slice(0, count).map((job: TJob) => (
             <DashboardPainterJob
               key={job.jobId}
               job={job}
               JobInfoFc={JobInfoFc}
             />
           ))}
+          <DashboardPainterJobsShowMore {...jobTypeProps} />
         </div>
       ) : (
-        <DashboardPainterJobsEmpty {...jobTypeProps} />
+        <>
+          {isFetching || !isInitRef.current ? null : (
+            <DashboardPainterJobsEmpty {...jobTypeProps} />
+          )}
+        </>
       )}
     </DashboardPainterWithSelect>
   );
