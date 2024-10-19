@@ -223,7 +223,6 @@ export const usePreferencesStateColor = ({
     hexCode,
     selectedBrandRecord,
     selectedBrandMatchesRecord,
-
     onSelectBrandValueChange: handleSelectBrandValueChange,
     dispatchSelectedBrand: setSelectedBrandRecord,
   };
