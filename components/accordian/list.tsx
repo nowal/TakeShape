@@ -1,26 +1,31 @@
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { IconsChevronsUp } from '@/components/icons/chevrons/up';
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
-import { REQUIREMENTS_COPY_ROWS } from '@/components/requirements/constants';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { cx } from 'class-variance-authority';
 import { FC, useState } from 'react';
+import { TComponentsAccordianListProps } from '@/components/accordian/types';
+import { resolveAccordianItems } from '@/components/accordian/utils';
 
-export const RequirementsFaqList: FC = () => {
+export const ComponentsAccordianList: FC<
+  TComponentsAccordianListProps
+> = ({ items }) => {
   const [activeIndex, setActiveIndex] = useState<
     number | null
   >(null);
   const paddingClass = 'p-6 lg:px-16 lg:py-9';
   const paddingClassAnswer =
     'px-6 pt-0 pb-6 lg:px-16 lg:pb-9';
-
   const handleToggle = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
+
   return (
     <div className="relative w-full text-left py-20 lg:mt-0">
       <ul className="flex flex-col shadow-08 bg-white rounded-2xl">
-        {REQUIREMENTS_COPY_ROWS.map((faq, index) => {
+        {items.map((item, index) => {
+          const { title, text } =
+            resolveAccordianItems(item);
           const isFirst = index === 0;
           return (
             <li key={index} className="">
@@ -40,31 +45,29 @@ export const RequirementsFaqList: FC = () => {
               >
                 <InViewReplacersFadeUp
                   fadeUpProps={{
-                    delay: index * 0.1+0.1,
+                    delay: index * 0.1 + 0.1,
                   }}
                 >
-                  <div className="text-left">
-                    {faq.question}
-                  </div>
+                  <div className="text-left">{title}</div>
                 </InViewReplacersFadeUp>
 
-                {/*<div>
+                <div>
                   {activeIndex === index ? (
                     <IconsChevronsUp />
                   ) : (
                     <IconsChevronsDown />
                   )}
-                </div>*/}
+                </div>
               </button>
-              {/*<div
+              <div
                 className={cx(
                   'typography-landing-text',
                   paddingClassAnswer,
                   activeIndex === index ? 'flex' : 'hidden'
                 )}
               >
-                {faq.answer}
-              </div>*/}
+                {text}
+              </div>
             </li>
           );
         })}

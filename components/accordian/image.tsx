@@ -5,9 +5,9 @@ import imageLg from '@/public/landing/faq/lg.png';
 import { useViewport } from '@/context/viewport';
 import { cx } from 'class-variance-authority';
 
-const alt = 'FAQ Pic, Paint roller';
+const alt = 'Paint roller';
 
-export const RequirementsFaqImage: FC = () => {
+export const ComponentsAccordianImage: FC = () => {
   const viewport = useViewport();
   if (!viewport.isDimensions) return null;
   return (

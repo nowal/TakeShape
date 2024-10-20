@@ -1,5 +1,4 @@
 import { InputsSelect } from '@/components/inputs/select';
-import { MAP_ID } from '@/components/painter/address/map/constants';
 import { TPainterAddressProps } from '@/components/painter/address/types';
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { RANGE_VALUES } from '@/constants/map';

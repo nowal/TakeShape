@@ -1,23 +1,13 @@
 'use client';
-import { RequirementsFaqTitle } from '@/components/requirements/title';
-import { RequirementsFaqList } from '@/components/requirements/list';
-import { RequirementsFaqImage } from '@/components/requirements/image';
-import { cx } from 'class-variance-authority';
+import { ComponentsAccordian } from '@/components/accordian';
+import { REQUIREMENTS_COPY_ROWS } from '@/components/requirements/constants';
 
 export const ComponentsRequirements = () => {
   return (
-    <div className="spacing-landing py-0 h-full lg:pb-12 lg:pt-0">
-      <div
-        className={cx(
-          'flex flex-col w-full bg-white rounded-4xl h-full pb-0',
-          'lg:flex-row lg:pb-20'
-        )}
-      >
-        <RequirementsFaqImage />
-        <RequirementsFaqTitle />
-        <RequirementsFaqList />
-      </div>
-    </div>
+    <ComponentsAccordian
+      title="Painter Requirements"
+      items={REQUIREMENTS_COPY_ROWS}
+    />
   );
 };
 
