@@ -3,9 +3,8 @@ import { RequirementsFaqTitle } from '@/components/requirements/title';
 import { RequirementsFaqList } from '@/components/requirements/list';
 import { RequirementsFaqImage } from '@/components/requirements/image';
 import { cx } from 'class-variance-authority';
-import { ReplacersFill } from '@/components/replacers/fill';
 
-export const RequirementsFaq = () => {
+export const ComponentsRequirements = () => {
   return (
     <div className="spacing-landing py-0 h-full lg:pb-12 lg:pt-0">
       <div
@@ -22,4 +21,4 @@ export const RequirementsFaq = () => {
   );
 };
 
-export default RequirementsFaq;
+export default ComponentsRequirements;

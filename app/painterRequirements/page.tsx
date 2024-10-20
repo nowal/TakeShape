@@ -1,11 +1,6 @@
-import { RequirementsFaq } from '@/components/requirements';
+import { ComponentsRequirements } from '@/components/requirements';
 
-const Requirements = () => {
-
-    return (
-      <>
-        <RequirementsFaq />
-      </>
-    );
-  };
-  export default Requirements;
+const PainterRequirements = () => {
+  return <ComponentsRequirements />;
+};
+export default PainterRequirements;

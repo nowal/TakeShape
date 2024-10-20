@@ -1,11 +1,6 @@
-import { HiringFaq } from '@/components/hiring';
+import { ComponentsHiringTips } from '@/components/hiring-tips';
 
-const Hiring = () => {
-
-    return (
-      <>
-        <HiringFaq />
-      </>
-    );
-  };
-  export default Hiring;
+const HiringTips = () => {
+  return <ComponentsHiringTips />;
+};
+export default HiringTips;

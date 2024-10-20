@@ -238,6 +238,9 @@ export const useAccountSettingsState = (
       setAccountSettingsSubmitting(true); // Set loading state to true
       const currentUser = auth.currentUser;
       if (!currentUser) throw Error('No user');
+
+      const addressValue = addressFormatted ?? address;
+
       if (isPainter) {
         // Painter specific update
         const painterQuery = query(
@@ -247,13 +250,12 @@ export const useAccountSettingsState = (
         const painterSnapshot = await getDocs(painterQuery);
         const isPainter = !painterSnapshot.empty;
 
-        if (isPainter) {
-          const addressValue = addressFormatted ?? address;
+        if (!addressValue) {
+          setErrorMessage('Invalid address.');
+          return;
+        }
 
-          if (!addressValue) {
-            setErrorMessage('Invalid address.');
-            return;
-          }
+        if (isPainter) {
           const painterDocRef = painterSnapshot.docs[0].ref;
           const updatedLogoUrl = logo
             ? await resolveLogosUpload(logo)
@@ -329,7 +331,7 @@ export const useAccountSettingsState = (
             await updateDoc(userDocRef, {
               name,
               phoneNumber,
-              address,
+              address: addressValue,
             });
 
             // Handle Real Estate Agent update

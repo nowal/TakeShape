@@ -1,7 +1,7 @@
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 import type { FC } from 'react';
 
-export const HiringFaqTitle: FC = () => {
+export const HiringTipsTitle: FC = () => {
   return (
     <div className="relative w-full">
       <div className="flex flex-col items-center pb-24 pt-0 w-full lg:py-14">

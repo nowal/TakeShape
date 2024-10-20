@@ -2,8 +2,7 @@
 
 import { GENERIC_ERROR_MESSAGE } from '@/constants/errors';
 import { notifyError } from '@/utils/notifications';
-// Assuming this is a React component in your Next.js application
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 
 const Luma3DModelPage = () => {
   const apiKey =

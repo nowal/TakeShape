@@ -15,7 +15,7 @@ import { PreferencesMoveFurniture } from '@/components/preferences/move-furnitur
 import { TypographyFormTitle } from '@/components/typography/form/title';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
 
-const Preferences: FC = () => {
+const DefaultPreferences: FC = () => {
   const preferences = usePreferences();
   const {
     isPopup,
@@ -25,7 +25,7 @@ const Preferences: FC = () => {
   } = preferences;
 
   if (isFetchingPreferences) return <FallbacksLoading />;
-  
+
   return (
     <div className="flex flex-col justify-start items-center">
       <GoogleAnalytics gaId="G-47EYLN83WE" />
@@ -91,10 +91,10 @@ const Preferences: FC = () => {
   );
 };
 
-const PreferencesWithSuspense: FC = () => (
+const DefaultPreferencesWithSuspense: FC = () => (
   <Suspense fallback={<FallbacksLoading />}>
-    <Preferences />
+    <DefaultPreferences />
   </Suspense>
 );
 
-export default PreferencesWithSuspense;
+export default DefaultPreferencesWithSuspense;

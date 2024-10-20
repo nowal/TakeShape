@@ -65,30 +65,19 @@ const Landing = () => {
       <div className="flex justify-center py-12 xl:py-0 xl:hidden">
         <QuoteButton />
       </div>
-      <section
-        className={cx(
-          'relative',
-          // 'lg:h-[645px]'
-        )}
-      >
-        {/* 572px + 73px */}
+      <section className={cx('relative')}>
         <LandingProblemAndDecision />
       </section>
       <section
-        className={cx(
-          'relative',
-          'overflow-hidden'
-          //  'h-[636px]'
-        )}
+        className={cx('relative', 'overflow-hidden')}
       >
-        {/* 560px + 76px */}
         <LandingFaq />
       </section>
       <section className="relative h-[748px] lg:h-[717px]">
-        {/* 221px + 527px */}
         <LandingDreamRoom />
       </section>
     </>
   );
 };
+
 export default Landing;

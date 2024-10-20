@@ -71,11 +71,9 @@ const AccountSettingsPage = () => {
                   size="sm"
                   gap="xl"
                   center
-                  {...(isPainter
-                    ? addressFormatted
-                      ? {}
-                      : { isDisabled: true }
-                    : {})}
+                  {...(addressFormatted
+                    ? {}
+                    : { isDisabled: true })}
                 >
                   {submitTitle}
                 </ButtonsCvaButton>

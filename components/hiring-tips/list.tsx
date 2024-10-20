@@ -1,12 +1,12 @@
 import { IconsChevronsDown } from '@/components/icons/chevrons/down';
 import { IconsChevronsUp } from '@/components/icons/chevrons/up';
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
-import { HIRING_COPY_ROWS } from '@/components/hiring/constants';
+import { HIRING_COPY_ROWS } from '@/components/hiring-tips/constants';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { cx } from 'class-variance-authority';
 import { FC, useState } from 'react';
 
-export const HiringFaqList: FC = () => {
+export const HiringTipsList: FC = () => {
   const [activeIndex, setActiveIndex] = useState<
     number | null
   >(null);

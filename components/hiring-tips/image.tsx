@@ -7,7 +7,7 @@ import { cx } from 'class-variance-authority';
 
 const alt = 'FAQ Pic, Paint roller';
 
-export const HiringFaqImage: FC = () => {
+export const HiringTipsImage: FC = () => {
   const viewport = useViewport();
   if (!viewport.isDimensions) return null;
   return (
