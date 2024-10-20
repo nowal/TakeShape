@@ -14,7 +14,8 @@ export const ShellChildren: FC<TProps> = ({ children }) => {
     <div
       className={cx(
         'relative min-h-[400px]',
-        isHome ? 'my-0' : 'mt-8 mb-12'
+        isHome ? 'my-0' : 'mt-8 mb-12',
+        isHome ? 'min-h-screen' : 'min-h-[400px]'
       )}
     >
       <Suspense fallback={<FallbacksLoading />}>
