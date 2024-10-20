@@ -1,10 +1,10 @@
 'use client';
-import { About } from '@/components/about';
+import { ComponentsAboutUs } from '@/components/about-us';
 
 const AboutUs = () => {
   return (
     <>
-      <About />
+      <ComponentsAboutUs />
     </>
   );
 };

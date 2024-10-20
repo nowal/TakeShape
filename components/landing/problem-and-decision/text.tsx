@@ -1,52 +1,32 @@
 import type { FC } from 'react';
 import { QuoteButton } from '@/components/buttons/quote/quoteButton';
+import { TextLayout } from '@/components/text/layout';
 import { cx } from 'class-variance-authority';
 
 export const LandingProblemAndDecisionText: FC = () => {
   return (
     <div
       className={cx(
-        'flex flex-col items-center w-full pt-9',
+        'flex flex-col items-center w-full',
         'rounded-t-4xl bg-white-8',
-        'px-7',
         'text-center',
+        'pt-9 sm:pt-0',
+        'px-7 sm:px-0 sm:pr-4',
         'xl:items-start xl:text-left',
-        'sm:px-0 sm:pt-0 sm:pr-4',
         'sm:rounded-t-0 sm:bg-transparent',
         'sm:w-[538px] '
       )}
     >
-      <span
-        className={cx(
-          'leading-none',
-          'py-2.5 px-4 rounded-xl',
-          'text-pink font-bold',
-          'bg-white sm:bg-white-pink-4'
-        )}
-      >
-        Still Waiting?
-      </span>
-      <div className="h-3" />
-      <h2
-        className={cx(
-          'typography-landing-subtitle--responsive',
-          'px-0 xs:px-7 md:px-0'
-        )}
-      >
-        Getting painting quotes used to be a nightmare
-      </h2>
-      <div className="h-4" />
-      <div className="text-pink font-bold text-xl	">
-        Your painting quote is only clicks away
-      </div>
-      <div className="h-1" />
-      <p className="text-gray-7">
-        Stop the awkward phone calls and in-home estimates
+      <TextLayout
+        pretitle="Still Waiting?"
+        title="Getting painting quotes used to be a nightmare"
+        subtitle="Your painting quote is only clicks away"
+        text="Stop the awkward phone calls and in-home estimates
         with strangers. Get guaranteed painting quotes
-        instantly with one video. We&apos;ve done the hard
+        instantly with one video. We've done the hard
         work of finding the painters, now just show us what
-        you want done.
-      </p>
+        you want done."
+      />
       <div className="h-8" />
       <div className="hidden xl:flex">
         <QuoteButton />
