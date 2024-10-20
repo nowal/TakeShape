@@ -7,6 +7,7 @@ export const IconsLogo: FC<{ backgroundColor?: string }> = ({ backgroundColor })
       width="67"
       height="67"
       viewBox="0 0 251 251"
+      classValue='size-10 sm:size-12'
       fill="none"
       classColor=""
     >
