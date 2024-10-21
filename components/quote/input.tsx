@@ -74,6 +74,7 @@ export const ComponentsQuoteInput: FC<TProps> = ({
                 ? LOADING_ICON
                 : {})}
               inputProps={{}}
+              isRequired
             >
               {fileName && (
                 <div className="absolute right-0 bottom-0 w-full truncate font-open-sans text-xs p-2 text-gray text-left">

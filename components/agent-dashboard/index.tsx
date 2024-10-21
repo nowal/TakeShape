@@ -1,7 +1,5 @@
 import type { FC } from 'react';
 import { ComponentsPanel } from '@/components/panel';
-import { ComponentsCongratsContent } from '@/components/congrats/content';
-import { AgentDashboardButtonsBack } from '@/components/agent-dashboard/buttons/back';
 import { AgentDashboardAdd } from '@/components/agent-dashboard/add';
 import { AgentDashboardButtons } from '@/components/agent-dashboard/buttons';
 import { AgentDashboardList } from '@/components/agent-dashboard/list/list';
