@@ -7,7 +7,7 @@ import { ComponentsQuoteInput } from '@/components/quote/input';
 export const ComponentsQuote: FC = () => {
   return (
     <div className="flex flex-col items-center gap-6 lg:gap-4 xl:gap-0">
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center px-4 lg:px-0 gap-1 text-center">
         <h2 className="typography-page-title">
           Get an Instant Painting Quote Today
         </h2>

@@ -35,7 +35,7 @@ export const QuoteInstructions: FC = () => {
         colorClass="border-white-pink-2"
         classValue="mt-5"
       />
-      <ButtonsCvaButton
+      {/*<ButtonsCvaButton
         title={SEE_VIDEO_TITLE}
         icon={{ Trailing: IconsVideo }}
         size="none"
@@ -45,7 +45,7 @@ export const QuoteInstructions: FC = () => {
         <span className="typography-pink-xs">
           {SEE_VIDEO_TITLE}
         </span>
-      </ButtonsCvaButton>
+      </ButtonsCvaButton>*/}
     </div>
   );
 };
