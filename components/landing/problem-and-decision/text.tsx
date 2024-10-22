@@ -21,11 +21,16 @@ export const LandingProblemAndDecisionText: FC = () => {
         pretitle="Still Waiting?"
         title="Getting painting quotes used to be a nightmare"
         subtitle="Your painting quote is only clicks away"
-        text="Stop the awkward phone calls and in-home estimates
-        with strangers. Get guaranteed painting quotes
-        instantly with one video. We've done the hard
-        work of finding the painters, now just show us what
-        you want done."
+        text={
+          <p>
+            &quot;Stop the awkward phone calls and in-home
+            estimates with strangers. Get guaranteed
+            painting quotes instantly with one video.
+            We&apos;ve done the hard work of finding the
+            painters, now just show us what you want
+            done.&quot;
+          </p>
+        }
       />
       <div className="h-8" />
       <div className="hidden xl:flex">

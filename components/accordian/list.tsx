@@ -1,11 +1,12 @@
-import { IconsChevronsDown } from '@/components/icons/chevrons/down';
-import { IconsChevronsUp } from '@/components/icons/chevrons/up';
-import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 import { LinesHorizontal } from '@/components/lines/horizontal';
 import { cx } from 'class-variance-authority';
 import { FC, useState } from 'react';
 import { TComponentsAccordianListProps } from '@/components/accordian/types';
 import { resolveAccordianItems } from '@/components/accordian/utils';
+import { isDefined } from '@/utils/validation/is/defined';
+import { ComponentsAccordianItemExpandable } from '@/components/accordian/item/expandable';
+import { ComponentsAccordianItem } from '@/components/accordian/item';
+import { ComponentsAccordianItemTitle } from '@/components/accordian/item/title';
 
 export const ComponentsAccordianList: FC<
   TComponentsAccordianListProps
@@ -14,7 +15,7 @@ export const ComponentsAccordianList: FC<
     number | null
   >(null);
   const paddingClass = 'p-6 lg:px-16 lg:py-9';
-  const paddingClassAnswer =
+  const paddingClassText =
     'px-6 pt-0 pb-6 lg:px-16 lg:pb-9';
   const handleToggle = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
@@ -24,9 +25,26 @@ export const ComponentsAccordianList: FC<
     <div className="relative w-full text-left py-20 lg:mt-0">
       <ul className="flex flex-col shadow-08 bg-white rounded-2xl">
         {items.map((item, index) => {
-          const { title, text } =
-            resolveAccordianItems(item);
+          const accordianItem = resolveAccordianItems(item);
+          const isExpandable = isDefined(
+            accordianItem.text
+          );
           const isFirst = index === 0;
+          const sharedProps = {
+            className: cx(
+              'flex flex-row items-center justify-between w-full typography-landing-text',
+              'gap-6 lg:gap-2',
+              paddingClass
+            ),
+            ...accordianItem,
+          };
+
+          const renderTitle = (
+            <ComponentsAccordianItemTitle
+              title={accordianItem.title}
+              index={index}
+            />
+          );
           return (
             <li key={index} className="">
               {!isFirst && (
@@ -35,39 +53,20 @@ export const ComponentsAccordianList: FC<
                   classValue="mx-6 lg:mx-16"
                 />
               )}
-              <button
-                onClick={() => handleToggle(index)}
-                className={cx(
-                  'flex flex-row items-center justify-between w-full typography-landing-text',
-                  'gap-6 lg:gap-2',
-                  paddingClass
-                )}
-              >
-                <InViewReplacersFadeUp
-                  fadeUpProps={{
-                    delay: index * 0.1 + 0.1,
-                  }}
+              {isExpandable ? (
+                <ComponentsAccordianItemExpandable
+                  onClick={() => handleToggle(index)}
+                  isExpanded={index === activeIndex}
+                  paddingClassText={paddingClassText}
+                  {...sharedProps}
                 >
-                  <div className="text-left">{title}</div>
-                </InViewReplacersFadeUp>
-
-                <div>
-                  {activeIndex === index ? (
-                    <IconsChevronsUp />
-                  ) : (
-                    <IconsChevronsDown />
-                  )}
-                </div>
-              </button>
-              <div
-                className={cx(
-                  'typography-landing-text',
-                  paddingClassAnswer,
-                  activeIndex === index ? 'flex' : 'hidden'
-                )}
-              >
-                {text}
-              </div>
+                  {renderTitle}
+                </ComponentsAccordianItemExpandable>
+              ) : (
+                <ComponentsAccordianItem {...sharedProps}>
+                  {renderTitle}
+                </ComponentsAccordianItem>
+              )}
             </li>
           );
         })}

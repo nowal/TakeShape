@@ -20,19 +20,24 @@ export const AboutUsText: FC = () => {
         title="We Know the Headache of In-Home Estimates"
         subtitle="So We Built a Better Way"
         text={
-          <p className="pt-8">
-            We&apos;re Noah and Nicole. We were tired of not
-            starting our home improvement projects because
-            of the headache of finding people to help us. We
-            started TakeShape in order to bridge the gap
-            between homeowners and painters, helping both
-            save time and money. As residents of
-            Murfreesboro, we founded TakeShape with Middle
-            Tennesseans in mind. We&apos;ve partnered with
-            an extensive network of painters in the
-            community, and are exicted to offer you the best
-            experience for your painting needs.
-          </p>
+          <>
+            <p className="pt-8 text-left">
+              We&apos;re Noah and Nicole. We were tired of
+              not starting our home improvement projects
+              because of the headache of finding people to
+              help us. We started TakeShape in order to
+              bridge the gap between homeowners and
+              painters, helping both save time and money.
+            </p>
+            <p className="pt-4 text-left">
+              As residents of Murfreesboro, we founded
+              TakeShape with Middle Tennesseans in mind.
+              We&apos;ve partnered with an extensive network
+              of painters in the community, and are exicted
+              to offer you the best experience for your
+              painting needs.
+            </p>
+          </>
         }
       />
     </div>

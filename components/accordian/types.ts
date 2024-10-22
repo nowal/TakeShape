@@ -4,11 +4,12 @@ export type TAccordianFaqItem = {
 };
 export type TAccordianItem = {
   title: string;
-  text: string;
+  text?: string;
 };
 export type TComponentsAccordianListPropsItems =
   | readonly TAccordianFaqItem[]
-  | readonly TAccordianItem[];
+  | readonly TAccordianItem[]
+  | readonly string[];
 export type TComponentsAccordianListPropsItem =
   TComponentsAccordianListPropsItems[number];
 export type TComponentsAccordianListProps = {

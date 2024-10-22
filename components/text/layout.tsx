@@ -39,7 +39,7 @@ export const TextLayout: FC<TTextLayout> = ({
         {subtitle}
       </div>
       <div className="h-1" />
-      <p className="text-gray-7">{text}</p>
+      <div className="text-gray-7">{text}</div>
     </>
   );
 };
