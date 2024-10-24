@@ -15,7 +15,6 @@ import {
   UploadTask,
 } from 'firebase/storage';
 import { useDashboard } from '@/context/dashboard/provider';
-import { useTimebomb } from '@/hooks/time-bomb';
 import { usePreferences } from '@/context/preferences/provider';
 
 type TConfig = {
