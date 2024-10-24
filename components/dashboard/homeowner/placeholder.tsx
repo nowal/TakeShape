@@ -9,6 +9,7 @@ import { DashboardHomeownerContractorQuotesList } from '@/components/dashboard/h
 import { TDashboardHomeownerContractorQuotesListItemsProps } from '@/components/dashboard/homeowner/contractor-quotes/list/items';
 import { DashboardHomeownerVideoContainer } from '@/components/dashboard/homeowner/video/container';
 import { DashboardHomeownerVideoDisplay } from '@/components/dashboard/homeowner/video/display';
+import { ReplacersBasic } from '@/components/replacers/basic';
 
 type TProps =
   TDashboardHomeownerContractorQuotesListItemsProps;
@@ -47,7 +48,9 @@ export const DashboardHomeownerPlaceholder: FC<TProps> = (
           >
             <DashboardHomeownerQuote>
               <DashboardHomeownerVideoContainer>
-                <DashboardHomeownerVideoDisplay src="/landing/problem-and-decision/mock.mp4" />
+                <ReplacersBasic>
+                  <DashboardHomeownerVideoDisplay src="/landing/problem-and-decision/mock.mp4" />
+                </ReplacersBasic>
               </DashboardHomeownerVideoContainer>
             </DashboardHomeownerQuote>
           </div>
