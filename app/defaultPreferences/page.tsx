@@ -1,7 +1,7 @@
 'use client';
 import { FC, Suspense } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { cx } from 'class-variance-authority';
 import { PreferencesLaborAndMaterials } from '@/components/preferences/labor-and-materials';
 import { PreferencesCeilingFields } from '@/components/preferences/ceiling-fields';
@@ -24,7 +24,7 @@ const DefaultPreferences: FC = () => {
     onLaborAndMaterialsChange,
   } = preferences;
 
-  if (isFetchingPreferences) return <FallbacksLoading />;
+  if (isFetchingPreferences) return <FallbacksLoadingFill />;
 
   return (
     <div className="flex flex-col justify-start items-center">
@@ -92,7 +92,7 @@ const DefaultPreferences: FC = () => {
 };
 
 const DefaultPreferencesWithSuspense: FC = () => (
-  <Suspense fallback={<FallbacksLoading />}>
+  <Suspense fallback={<FallbacksLoadingFill />}>
     <DefaultPreferences />
   </Suspense>
 );

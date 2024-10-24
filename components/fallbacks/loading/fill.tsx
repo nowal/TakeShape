@@ -4,7 +4,7 @@ import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
 type TProps = TDivProps
-export const FallbacksFill: FC<TProps> = ({
+export const FallbacksLoadingFill: FC<TProps> = ({
   children,
   classValue,
   ...props

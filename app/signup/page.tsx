@@ -3,7 +3,7 @@ import { Suspense, useEffect } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsText } from '@/components/inputs/text';
 import { ButtonsCvaButton } from '@/components/cva/button';
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
 import { SignUpNotificationsError } from '@/components/sign-up/notifications/error';
@@ -145,7 +145,7 @@ const SignupAccountForm = () => {
 
 export default function SignupAccountPage() {
   return (
-    <Suspense fallback={<FallbacksLoading />}>
+    <Suspense fallback={<FallbacksLoadingFill />}>
       <SignupAccountForm />
     </Suspense>
   );

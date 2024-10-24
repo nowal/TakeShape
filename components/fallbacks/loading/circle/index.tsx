@@ -1,4 +1,4 @@
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { IconsLoading } from '@/components/icons/loading';
 import { TDivProps } from '@/types/dom';
 import type { FC } from 'react';
@@ -9,8 +9,8 @@ export const FallbacksLoadingCircle: FC<TProps> = ({
   ...props
 }) => {
   return (
-    <FallbacksLoading IconFc={IconsLoading} {...props}>
+    <FallbacksLoadingFill IconFc={IconsLoading} {...props}>
       {children}
-    </FallbacksLoading>
+    </FallbacksLoadingFill>
   );
 };

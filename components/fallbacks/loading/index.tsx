@@ -5,7 +5,7 @@ import type { FC } from 'react';
 
 type TProps = TDivProps &
   Partial<{ IconFc: TCommonIconFC }>;
-export const FallbacksLoading: FC<TProps> = ({
+export const FallbacksLoadingFill: FC<TProps> = ({
   children,
   classValue,
   IconFc,

@@ -1,9 +1,9 @@
-import { FallbacksLoading } from '@/components/fallbacks/loading';
+import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { FC, Suspense } from 'react';
 
 const AppTestWithSuspense: FC = () => {
   return (
-    <Suspense fallback={<FallbacksLoading />}>
+    <Suspense fallback={<FallbacksLoadingFill />}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="251"

@@ -41,6 +41,7 @@ const Landing = () => {
             fill
             priority
             loading="eager"
+            sizes="(max-width: 1250px) 100vw, 1250px"
           />
         </AnimationFade>
         {viewport.isDimensions ? (
