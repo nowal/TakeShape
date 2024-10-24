@@ -1,6 +1,5 @@
 'use client';
 import { usePreferencesState } from '@/context/preferences/state';
-import { usePreferencesStateColor } from '@/context/preferences/state/color';
 import {
   createContext,
   FC,
@@ -11,7 +10,6 @@ import {
 type TPreferencesContext = ReturnType<
   typeof usePreferencesState
 > 
-// & ReturnType<typeof usePreferencesStateColor> 
 export const PREFERENCES =
   createContext<TPreferencesContext>(
     {} as TPreferencesContext

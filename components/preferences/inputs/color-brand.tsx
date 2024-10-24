@@ -6,6 +6,7 @@ import { TInputProps } from '@/types/dom/element';
 import { NONE_NAME } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
 import { INPUTS_NAME_DELIMITER } from '@/constants/inputs';
+import { usePreferencesStateColor } from '@/hooks/color';
 
 const PREFERENCES_INPUTS_COLOR_BRAND_NAME = 'color-brand';
 
@@ -18,14 +19,14 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
   ...props
 }) => {
   const preferences = usePreferences();
+  const { onColorValueChange, onColorChange } = preferences;
+
   const {
     selectedBrandRecord,
     onSelectBrandValueChange,
     paintBrands,
-    onColorValueChange,
     selectedBrandMatchesRecord,
-    onColorChange,
-  } = preferences;
+  } = usePreferencesStateColor();
 
   const value = selectedBrandRecord[name];
 

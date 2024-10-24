@@ -1,4 +1,4 @@
-import { TPaintBrand } from '@/context/preferences/state/color/types';
+import { TPaintBrand } from '@/hooks/color/types';
 
 export const PREFERENCES_NAME_BOOLEAN_CEILINGS = 'ceilings';
 export const PREFERENCES_NAME_BOOLEAN_TRIM = 'trim';

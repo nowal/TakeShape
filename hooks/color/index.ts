@@ -6,17 +6,10 @@ import {
 import { TPreferencesColorKey } from '@/atom/types';
 import { isPreferencesColorKey } from '@/atom/validation';
 import { INPUTS_NAME_DELIMITER } from '@/constants/inputs';
-import {
-  TPaintBrand,
-  TColor,
-} from '@/context/preferences/state/color/types';
+import { usePreferences } from '@/context/preferences/provider';
+import { TPaintBrand, TColor } from '@/hooks/color/types';
 import { TPaintPreferences } from '@/types/preferences';
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 const API_KEY =
   's4DVRG5JuBZ9SMbTUTqWpQ12R3iF7UXGGrzvNWQSDxQJiMtYKuXFEwTVTCK4vsDjsror9pSXbZt538ePykASuijcaJaynz';
@@ -28,14 +21,8 @@ const COLOR_API_ROOT =
 const COLOR_PAINTS_API_ROOT =
   `${COLOR_API_ROOT}/paints` as const;
 
-type TConfig = {
-  dispatchPreferences: Dispatch<
-    SetStateAction<TPaintPreferences>
-  >;
-};
-export const usePreferencesStateColor = ({
-  dispatchPreferences,
-}: TConfig) => {
+export const usePreferencesStateColor = () => {
+  const { dispatchPreferences } = usePreferences();
   const [paintBrands, setPaintBrands] = useState<
     TPaintBrand[]
   >([]);
@@ -82,7 +69,7 @@ export const usePreferencesStateColor = ({
 
   const handleColorSearch = async (
     name: TPreferencesColorKey,
-    selectedBrand: string = selectedBrandRecord[name],
+    selectedBrand: string = selectedBrandRecord[name]
   ) => {
     const preferencesColorKey: TPreferencesColorKey = name;
 

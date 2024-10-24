@@ -14,7 +14,6 @@ import { arrToNest } from '@/utils/transform/arr-to-nest';
 import { FC, PropsWithChildren, useMemo } from 'react';
 import { MapsProvider } from '@/components/maps/provider';
 
-
 type TProps = TChildrenProps;
 export const ContextProviders: FC<TProps> = ({
   children: _children,
@@ -34,7 +33,6 @@ export const ContextProviders: FC<TProps> = ({
         AccountSettingsProvider,
         AppProvider,
         MapsProvider,
-
       ],
       _children,
       {}
