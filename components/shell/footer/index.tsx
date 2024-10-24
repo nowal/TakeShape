@@ -17,7 +17,7 @@ export const ShellFooter = () => {
       >
         <div
           className={cx(
-            'flex flex-col items-stretch gap-6 w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-footer',
+            'flex flex-col items-stretch gap-12 w-full bg-white-1 px-9 pb-[29px] pt-[54px] rounded-footer',
             'lg:flex-row lg:items-end lg:gap-0'
           )}
         >
@@ -25,7 +25,7 @@ export const ShellFooter = () => {
             <ShellFooterLogo />
             <div className="h-9" />
             <LinesHorizontal colorClass="border-gray-3" />
-            <div className="h-4.5" />
+            {/* <div className="h-4.5" /> */}
           </div>
           <ShellFooterRow
             footerRightMenuLinks={
