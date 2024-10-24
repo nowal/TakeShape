@@ -13,6 +13,12 @@ import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
 import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
+
+import '../css/inputs.css';
+import '../css/reset.css';
+import '../css/typography/index.css';
+import '../css/globals.css';
+import '../css/notifications.css';
 import 'react-toastify/dist/ReactToastify.min.css';
 
 export const metadata: Metadata = {
@@ -35,7 +41,11 @@ export default function RootLayout({ children }: TProps) {
                 <ShellHeader />
                 <ShellChildren>{children}</ShellChildren>
                 <ShellFooter />
-                <Suspense fallback={<FallbacksLoadingCircleCenter />}>
+                <Suspense
+                  fallback={
+                    <FallbacksLoadingCircleCenter />
+                  }
+                >
                   <SignInModal />
                 </Suspense>
               </ContextProviders>

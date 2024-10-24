@@ -13,7 +13,6 @@ import {
   TResolveValuesConfig,
 } from '@/components/inputs/select/values';
 import { IconsSelectChevronDown } from '@/components/icons/select/chevron/down';
-import './styles.css';
 
 export type TInputsSelectRootProps = Select.SelectProps;
 export type TBaseInputsSelectProps = Omit<
