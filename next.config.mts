@@ -8,16 +8,16 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    browsersListForSwc: true,
+    legacyBrowsers: false,
+  },
   async headers() {
     const accessControlAllowOriginValue =
       process.env.NODE_ENV === 'development'
         ? '*'
         : process.env.NEXT_PUBLIC_BASE_URL;
 
-    console.log(
-      'accessControlAllowOriginValue',
-      accessControlAllowOriginValue
-    );
     return [
       {
         source: '/api/:path*',

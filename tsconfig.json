@@ -31,8 +31,12 @@
     ".next/types/**/*.ts",
     "tailwind.config.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "_prev-root/**/*"
+  "exclude": ["node_modules", "_prev-root/**/*"],
+  "browserslist": [
+    "chrome 61",
+    "edge 16",
+    "firefox 60",
+    "opera 48",
+    "safari 11"
   ]
 }
