@@ -6,7 +6,17 @@
   --foreground-rgb: 0, 0, 0; /* Black for text */
   --background-start-rgb: 255, 255, 255; /* White for background */
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
-  --pink: #ff385c;
+  /* -- */
+  --pink: #ff385c; 
+  /* using this `--pink` variable will fail Google Insights accessiblity tests */
+  /* -- */
+  /* --pink: #eb0029; */
+  /* using this `--pink` variable will allow you to pass AA Google Insights accessiblity tests  */
+  /* -- */
+  /* --pink: #B3001F;  */
+  /* using this `--pink` variable will allow you to pass AAA Google Insights accessiblity tests */
+  /* -- */
+
   --gray: #afafaf;
   --red: #ff0000;
   --green: #83a68f;
@@ -153,6 +163,9 @@ input {
     @apply text-black-4 font-medium text-sm;
   }
   .typography-text-input {
+    @apply text-black font-medium text-base;
+  }
+  .typography-text-input-sm {
     @apply text-black font-medium text-sm;
   }
   .typography-form-title-base {
