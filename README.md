@@ -61,3 +61,19 @@ All components exist in `components/**/*`, the structure of this directory is as
 ### Buttons and inputs
 
 Heavily leverages `class-variance-authority` to strike a balance between configurability and consistency.
+
+### Google Insights score
+
+If you want 100% accessibility it should be as simple as changing the color variable `--pink` in `css/globals.css`.
+
+```
+  --pink: #ff385c; 
+  /* using this `--pink` variable will fail Google Insights accessiblity tests */
+  /* -- */
+  /* --pink: #eb0029; */
+  /* using this `--pink` variable will allow you to pass AA Google Insights accessiblity tests  */
+  /* -- */
+  /* --pink: #B3001F;  */
+  /* using this `--pink` variable will allow you to pass AAA Google Insights accessiblity tests */
+  /* -- */
+```
