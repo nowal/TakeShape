@@ -1,4 +1,4 @@
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { LinesHorizontalLight } from '@/components/lines/horizontal/light';
 import { useAuth } from '@/context/auth/provider';
 import { cx } from 'class-variance-authority';
@@ -38,7 +38,7 @@ export const AccountMenuList: FC<TProps> = ({
             <Fragment key={name}>
               <li>
                 {!isFirst && <LinesHorizontalLight />}
-                <ButtonsCvaButton
+                <CvaButton
                   onTap={() => {
                     handler();
                     dispatchMenuOpen(false);
@@ -66,7 +66,7 @@ export const AccountMenuList: FC<TProps> = ({
                   >
                     {name}
                   </span>
-                </ButtonsCvaButton>
+                </CvaButton>
               </li>
             </Fragment>
           );

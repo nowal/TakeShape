@@ -1,4 +1,4 @@
-import { TButtonsCvaLinkProps } from '@/components/cva/link';
+import { TCvaLinkProps } from '@/components/cva/link';
 
 export const FOOTER_RIGHT_MENU_LINKS = [
   {
@@ -10,6 +10,6 @@ export const FOOTER_RIGHT_MENU_LINKS = [
   {
     title: '',
   },
-] satisfies TButtonsCvaLinkProps[];
+] satisfies TCvaLinkProps[];
 
 export const FOOTER_BACKGROUND_COLOR = '#f8f8f8';

@@ -1,20 +1,20 @@
 import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
-import { ButtonsCvaContent } from '@/components/cva/content';
-import { useButtonsCvaProps } from '@/components/cva/props';
-import { TButtonsCvaProps } from '@/components/cva/types';
+import { CvaContent } from '@/components/cva/content';
+import { useCvaProps } from '@/components/cva/props';
+import { TCvaProps } from '@/components/cva/types';
 import { NOOP } from '@/constants/functions';
 import { TAnchorMotionProps } from '@/types/dom';
 
-export type TButtonsCvaAnchorProps =
-  TButtonsCvaProps<TAnchorMotionProps>;
-const ButtonsCvaAnchor = forwardRef<
+export type TCvaAnchorProps =
+  TCvaProps<TAnchorMotionProps>;
+const CvaAnchor = forwardRef<
   HTMLAnchorElement,
-  TButtonsCvaAnchorProps
+  TCvaAnchorProps
 >(({ type, onTap, title, href, target, rel, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
 
-  const { Icon, ...cvaProps } = useButtonsCvaProps({
+  const { Icon, ...cvaProps } = useCvaProps({
     isDisabled,
     ...props,
   });
@@ -33,16 +33,16 @@ const ButtonsCvaAnchor = forwardRef<
       {...cvaProps}
       layout={false}
     >
-      <ButtonsCvaContent
+      <CvaContent
         Icon={Icon}
         {...cvaProps}
         layout={false}
       >
         {props.children}
-      </ButtonsCvaContent>
+      </CvaContent>
     </motion.a>
   );
 });
 
-ButtonsCvaAnchor.displayName = 'ButtonsCvaAnchor';
-export { ButtonsCvaAnchor };
+CvaAnchor.displayName = 'CvaAnchor';
+export { CvaAnchor };

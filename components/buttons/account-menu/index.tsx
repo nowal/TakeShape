@@ -5,7 +5,7 @@ import {
   AccountMenuList,
   TAccountMenuListItem,
 } from '@/components/buttons/account-menu/list';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { useApp } from '@/context/app/provider';
@@ -36,7 +36,7 @@ export const AccountMenu = () => {
 
   return (
     <div ref={outsideClickRef}>
-      <ButtonsCvaButton
+      <CvaButton
         title="Title Open"
         onTap={onMenuOpenToggle}
         classValue={cx('bg-white', 'shadow-md', 'z-10')}
@@ -46,7 +46,7 @@ export const AccountMenu = () => {
         center
       >
         <AccountMenuIcon />
-      </ButtonsCvaButton>
+      </CvaButton>
       {isMenuOpen && <AccountMenuList items={items} />}
     </div>
   );

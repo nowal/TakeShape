@@ -1,12 +1,12 @@
 import { cx } from 'class-variance-authority';
 import { buttonsCvaConfig } from '@/components/cva/config';
 import { useMemo } from 'react';
-import { TButtonsCvaProps } from '@/components/cva/types';
+import { TCvaProps } from '@/components/cva/types';
 import { iconResolve } from '@/components/cva/icon/resolve';
 import { TClassValueProps } from '@/types/dom';
-import { TButtonsCvaChildrenProps } from '@/components/cva/children';
+import { TCvaChildrenProps } from '@/components/cva/children';
 
-export const useButtonsCvaProps = ({
+export const useCvaProps = ({
   children,
   icon,
   intent,
@@ -18,8 +18,8 @@ export const useButtonsCvaProps = ({
   isIconOnly,
   layout,
   ...rest
-}: TButtonsCvaProps &
-  TButtonsCvaChildrenProps &
+}: TCvaProps &
+  TCvaChildrenProps &
   TClassValueProps) => {
   const isDisabled = Boolean(rest.isDisabled);
 

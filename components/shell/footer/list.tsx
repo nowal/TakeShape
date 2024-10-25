@@ -1,13 +1,13 @@
 import {
-  ButtonsCvaLink,
-  TButtonsCvaLinkProps,
+  CvaLink,
+  TCvaLinkProps,
 } from '@/components/cva/link';
 import type { FC } from 'react';
 import { usePathname, useRouter } from 'next/navigation'; // Import usePathname and useRouter
 
 type TProps = {
   title: string;
-  items: readonly (TButtonsCvaLinkProps & { href: string })[];
+  items: readonly (TCvaLinkProps & { href: string })[];
 };
 
 export const ShellFooterList: FC<TProps> = ({
@@ -32,7 +32,7 @@ export const ShellFooterList: FC<TProps> = ({
         {items.map((item, index) => (
           <li key={`${item.title}-${index}`}>
             <button onClick={() => handleClick(item.href)}> 
-              <ButtonsCvaLink {...item} />
+              <CvaLink {...item} />
             </button>
           </li>
         ))}

@@ -4,7 +4,7 @@ import { cx } from 'class-variance-authority';
 import { TPainter } from '@/context/agent/dashboard/types';
 import { IconsCloseAlt } from '@/components/icons/close/alt';
 import { useAgentDashboardRemove } from '@/components/agent-dashboard/list/remove';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsLoading } from '@/components/icons/loading';
 
 type TProps = TPainter;
@@ -24,7 +24,7 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
       )}
     >
       <PainterCardData painterId={painter.userId} />
-      <ButtonsCvaButton
+      <CvaButton
         title="Remove painter"
         onTap={() =>
           !isRemoving &&
@@ -38,7 +38,7 @@ export const AgentDashboardItem: FC<TProps> = (painter) => {
          center
       >
         {isRemoving ? <IconsLoading /> : <IconsCloseAlt />}
-      </ButtonsCvaButton>
+      </CvaButton>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { usePainterRegister } from '@/context/painter/register/provider';
 import { cx } from 'class-variance-authority';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { InputsText } from '@/components/inputs/text';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { PainterAddress } from '@/components/painter/address';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 
@@ -96,7 +96,7 @@ export const ComponentsPainterRegister: FC = () => {
         placeholder="Password"
         required
       />
-      <ButtonsCvaButton
+      <CvaButton
         title={submitTitle}
         type="submit"
         disabled={isPainterRegisterSubmitting}
@@ -111,7 +111,7 @@ export const ComponentsPainterRegister: FC = () => {
         gap="xl"
       >
         {submitTitle}
-      </ButtonsCvaButton>
+      </CvaButton>
     </form>
   );
 };

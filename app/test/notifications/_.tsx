@@ -1,5 +1,5 @@
 'use client';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { notifyError } from '@/utils/notifications';
 import { useEffect } from 'react';
 import { ToastOptions, toast } from 'react-toastify';
@@ -21,14 +21,14 @@ export const TestNotifications_ = () => {
 
   return (
     <div className="flex items-center justify-center">
-      <ButtonsCvaButton
+      <CvaButton
         title={title}
         onTap={show}
         size="md"
         intent="ghost-1"
       >
         {title}
-      </ButtonsCvaButton>
+      </CvaButton>
     </div>
   );
 };

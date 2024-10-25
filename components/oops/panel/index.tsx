@@ -1,7 +1,7 @@
 'use client';
 import type { FC } from 'react';
 import { ComponentsPanel } from '@/components/panel';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 
 export const ComponentsOopsPanel: FC = () => {
   return (
@@ -11,14 +11,14 @@ export const ComponentsOopsPanel: FC = () => {
         <h2 className="text-base font-bold text-black px-2">
           Oops... Something went wrong
         </h2>
-        <ButtonsCvaButton
+        <CvaButton
           title="Try again"
           center
         >
           <span className="text-gray-7 font-semibold">
             Try again
           </span>
-        </ButtonsCvaButton>
+        </CvaButton>
       </div>
     </ComponentsPanel>
   );

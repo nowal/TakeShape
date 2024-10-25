@@ -1,18 +1,18 @@
 import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
-import { ButtonsCvaContent } from '@/components/cva/content';
-import { useButtonsCvaProps } from '@/components/cva/props';
-import { TButtonsCvaProps } from '@/components/cva/types';
+import { CvaContent } from '@/components/cva/content';
+import { useCvaProps } from '@/components/cva/props';
+import { TCvaProps } from '@/components/cva/types';
 import { TButtonMotionProps } from '@/types/dom';
 import { NOOP } from '@/constants/functions';
 
-export type TButtonsCvaButtonProps = TButtonsCvaProps<TButtonMotionProps>;
-const ButtonsCvaButton = forwardRef<
+export type TCvaButtonProps = TCvaProps<TButtonMotionProps>;
+const CvaButton = forwardRef<
   HTMLButtonElement,
-  TButtonsCvaButtonProps
+  TCvaButtonProps
 >(({ type, onTap, title, ...props }, ref) => {
   const isDisabled = Boolean(props.isDisabled);
-  const { Icon, className, ...cvaProps } = useButtonsCvaProps({
+  const { Icon, className, ...cvaProps } = useCvaProps({
     isDisabled,
     ...props,
   });
@@ -30,16 +30,16 @@ const ButtonsCvaButton = forwardRef<
       {...cvaProps}
       layout={false}
     >
-      <ButtonsCvaContent
+      <CvaContent
         Icon={Icon}
         {...cvaProps}
         layout={false}
       >
         {props.children}
-      </ButtonsCvaContent>
+      </CvaContent>
     </motion.button>
   );
 });
 
-ButtonsCvaButton.displayName = 'ButtonsCvaButton';
-export { ButtonsCvaButton };
+CvaButton.displayName = 'CvaButton';
+export { CvaButton };

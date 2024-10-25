@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { useButtonsCheckout } from '@/components/buttons/checkout/hook';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsStripe } from '@/components/icons/stripe';
 
 export type TButtonsCheckoutProps = {
@@ -19,7 +19,7 @@ export const ButtonsCheckout: FC<TButtonsCheckoutProps> = (
   const buttonsCheckout = useButtonsCheckout(props);
 
   return (
-    <ButtonsCvaButton
+    <CvaButton
       title="Pay securely with Stripe"
       onTap={buttonsCheckout.onClick}
       rounded="lg"
@@ -29,6 +29,6 @@ export const ButtonsCheckout: FC<TButtonsCheckoutProps> = (
       icon={{ Trailing: IconsStripe }}
     >
       Pay securely with
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };

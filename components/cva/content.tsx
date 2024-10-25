@@ -1,37 +1,37 @@
 import type { FC } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ButtonsCvaIconLeading } from '@/components/cva/icon/leading';
-import { ButtonsCvaIconTrailing } from '@/components/cva/icon/trailing';
-import { TButtonsCvaContentProps } from '@/components/cva/types';
-import { ButtonsCvaChildren } from '@/components/cva/children';
+import { CvaIconLeading } from '@/components/cva/icon/leading';
+import { CvaIconTrailing } from '@/components/cva/icon/trailing';
+import { TCvaContentProps } from '@/components/cva/types';
+import { CvaChildren } from '@/components/cva/children';
 import { TDivMotionProps } from '@/types/dom';
 
-export const ButtonsCvaContent: FC<
-  TButtonsCvaContentProps & TDivMotionProps
+export const CvaContent: FC<
+  TCvaContentProps & TDivMotionProps
 > = ({ Icon, children, ...props }) => {
   return (
     <>
       <AnimatePresence>
         {Icon.isLeading && (
-          <ButtonsCvaIconLeading
+          <CvaIconLeading
             key="icon-leading"
             {...props}
           >
             <Icon.Leading />
-          </ButtonsCvaIconLeading>
+          </CvaIconLeading>
         )}
       </AnimatePresence>
-      <ButtonsCvaChildren {...props}>
+      <CvaChildren {...props}>
         {children}
-      </ButtonsCvaChildren>
+      </CvaChildren>
       <AnimatePresence>
         {Icon.isTrailing && (
-          <ButtonsCvaIconTrailing
+          <CvaIconTrailing
             key="icon-trailing"
             {...props}
           >
             <Icon.Trailing />
-          </ButtonsCvaIconTrailing>
+          </CvaIconTrailing>
         )}
       </AnimatePresence>
     </>

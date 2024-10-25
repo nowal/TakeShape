@@ -1,14 +1,14 @@
 import type { FC } from 'react';
 import { cx } from 'class-variance-authority';
-import { TButtonsCvaLinkProps } from '@/components/cva/link';
-import { ButtonsCvaLink } from '@/components/cva/link';
+import { TCvaLinkProps } from '@/components/cva/link';
+import { CvaLink } from '@/components/cva/link';
 import { ShellFooterList } from '@/components/shell/footer/list';
 import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
 import { ShellFooterEmail } from '@/components/shell/footer/email';
 import { ShellFooterLogo } from '@/components/shell/footer/logo';
 
 type TProps = {
-  footerRightMenuLinks: TButtonsCvaLinkProps[];
+  footerRightMenuLinks: TCvaLinkProps[];
 };
 export const ShellFooterRow: FC<TProps> = ({
   footerRightMenuLinks,
@@ -74,7 +74,7 @@ export const ShellFooterRow: FC<TProps> = ({
         <ul className="hidden flex-col justify-between w-2/12 typography-footer-poppins lg:flex xl:flex-row xl:w-5/12">
           {footerRightMenuLinks.map((item) => (
             <li key={item.title} className="self-end">
-              <ButtonsCvaLink {...item} />
+              <CvaLink {...item} />
             </li>
           ))}
         </ul>

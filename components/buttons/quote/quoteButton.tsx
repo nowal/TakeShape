@@ -2,12 +2,12 @@
 import { useEffect, FC } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
-  ButtonsCvaLink,
-  TButtonsCvaLinkProps,
+  CvaLink,
+  TCvaLinkProps,
 } from '@/components/cva/link';
 import { useAuth } from '@/context/auth/provider';
 
-type TProps = TButtonsCvaLinkProps;
+type TProps = TCvaLinkProps;
 export const QuoteButton: FC<TProps> = ({ ...props }) => {
   const auth = useAuth();
   const firebaseAuth = getAuth();
@@ -28,7 +28,7 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
 
   const title = props.title ?? 'Get Quote';
   return (
-    <ButtonsCvaLink
+    <CvaLink
       href="/quote"
       title={title}
       intent="primary"
@@ -37,6 +37,6 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
       {...props}
     >
       {title}
-    </ButtonsCvaLink>
+    </CvaLink>
   );
 };

@@ -1,4 +1,4 @@
-import { TButtonsCvaIcon } from '@/components/cva/types';
+import { TCvaIcon } from '@/components/cva/types';
 import {isDefined} from '@/utils/validation/is/defined';
 import {isNull} from '@/utils/validation/is/null';
 
@@ -6,7 +6,7 @@ const EMPTY = {
   isLeading: false,
   isTrailing: false,
 } as const;
-export const iconResolve = (icon?: TButtonsCvaIcon) => {
+export const iconResolve = (icon?: TCvaIcon) => {
   if (!isDefined(icon)) return EMPTY;
 
   const {Leading, Trailing} = icon;

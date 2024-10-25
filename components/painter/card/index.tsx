@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import Image from 'next/image';
 import { IconsPhone } from '@/components/icons/phone';
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
+import { CvaAnchor } from '@/components/cva/anchor';
 import { cx } from 'class-variance-authority';
 import { TClassValueProps } from '@/types/dom';
 import { TPainterData } from '@/components/painter/card/types';
@@ -29,7 +29,7 @@ export const PainterCard: FC<TProps> = ({
         <h5 className="text-base font-semibold text-black">
           {businessName}
         </h5>
-        <ButtonsCvaAnchor
+        <CvaAnchor
           href={`tel:${phoneNumber}`}
           classValue="flex flex-row items-center gap-1 h-[16px]"
           title={`Call ${phoneNumber}`}
@@ -38,7 +38,7 @@ export const PainterCard: FC<TProps> = ({
           <h6 className="text-gray-9 text-xs font-medium">
             {phoneNumber}
           </h6>
-        </ButtonsCvaAnchor>
+        </CvaAnchor>
       </div>
     </div>
   );

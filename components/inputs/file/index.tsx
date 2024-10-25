@@ -1,14 +1,14 @@
 import { ChangeEvent, FC, useState } from 'react';
 import {
-  ButtonsCvaInput,
-  TButtonsCvaInputProps,
+  CvaInput,
+  TCvaInputProps,
 } from '@/components/cva/input';
 import { MarchingAnts } from '@/components/inputs/marching-ants';
 import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
 
 export type TInputsFileProps =
-  Partial<TButtonsCvaInputProps> & {
+  Partial<TCvaInputProps> & {
     title: string;
     onFile(file: File): void;
     isValue?: boolean;
@@ -42,7 +42,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
 
   return (
     <>
-      <ButtonsCvaInput
+      <CvaInput
         classValue={cx('px-6', classValue)}
         inputProps={{
           type: 'file',
@@ -100,7 +100,7 @@ export const InputsFile: FC<TInputsFileProps> = ({
           )}
         </div>
         <>{children}</>
-      </ButtonsCvaInput>
+      </CvaInput>
       <MarchingAnts isFocus={isFocus} borderRadius="8px" />
     </>
   );

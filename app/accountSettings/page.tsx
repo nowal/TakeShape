@@ -5,7 +5,7 @@ import { ComponentsAccountSettingsUser } from '@/components/account-settings/use
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useAuth } from '@/context/auth/provider';
 import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
 import { MapsEmpty } from '@/components/maps/empty';
@@ -56,7 +56,7 @@ const AccountSettingsPage = () => {
                   isPainter={isPainter}
                   isAgent={isAgent}
                 />
-                <ButtonsCvaButton
+                <CvaButton
                   title={submitTitle}
                   icon={{
                     Leading: isAccountSettingsSubmitting
@@ -76,7 +76,7 @@ const AccountSettingsPage = () => {
                     : { isDisabled: true })}
                 >
                   {submitTitle}
-                </ButtonsCvaButton>
+                </CvaButton>
               </form>
             </div>
           </div>

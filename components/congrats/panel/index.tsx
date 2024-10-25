@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { ComponentsPanel } from '@/components/panel';
 import { TPropsWithChildren } from '@/types/dom/main';
 import { ComponentsCongratsContent } from '@/components/congrats/content';
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
+import { CvaAnchor } from '@/components/cva/anchor';
 
 type TProps = TPropsWithChildren<{ short?: string }>;
 export const ComponentsCongratsPanel: FC<TProps> = ({
@@ -20,7 +20,7 @@ export const ComponentsCongratsPanel: FC<TProps> = ({
         title="Congratulations on accepting with:"
         long={long}
         footer={
-          <ButtonsCvaAnchor
+          <CvaAnchor
             title="Contact Support, Call (615) 809-6429"
             href="tel:+16158096429"
             center
@@ -28,7 +28,7 @@ export const ComponentsCongratsPanel: FC<TProps> = ({
             <span className="text-xs text-gray-7 font-semibold">
               Contact Support
             </span>
-          </ButtonsCvaAnchor>
+          </CvaAnchor>
         }
       >
         {children}

@@ -1,6 +1,6 @@
 import {
-  ButtonsCvaInput,
-  TButtonsCvaInputProps,
+  CvaInput,
+  TCvaInputProps,
 } from '@/components/cva/input';
 import { TCommonIconFC } from '@/components/icon';
 import { cx } from 'class-variance-authority';
@@ -11,7 +11,7 @@ type TProps = {
   value: string;
   isChecked: boolean;
   onChange(isChecked: boolean): void;
-} & TButtonsCvaInputProps;
+} & TCvaInputProps;
 export const PreferencesInitialInput: FC<TProps> = ({
   Icon,
   value,
@@ -22,7 +22,7 @@ export const PreferencesInitialInput: FC<TProps> = ({
   const { children, inputProps, ...restProps } = props;
   return (
     <li className="grow w-full relative">
-      <ButtonsCvaInput
+      <CvaInput
         icon={{ Leading: Icon }}
         classValue={cx(
           'gap-4',
@@ -41,7 +41,7 @@ export const PreferencesInitialInput: FC<TProps> = ({
         {...restProps}
       >
         {children}
-      </ButtonsCvaInput>
+      </CvaInput>
     </li>
   );
 };

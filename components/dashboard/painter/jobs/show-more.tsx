@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useDashboardPainter } from '@/context/dashboard/painter/provider';
 import { TJobTypeProps } from '@/components/dashboard/painter/types';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { TypographyDetailsSubtitle } from '@/components/typography/details/subtitle';
 import { TypographyDetailsPink } from '@/components/typography/details/pink';
 import { TypographyFormSubtitle } from '@/components/typography/form/subtitle';
@@ -26,7 +26,7 @@ export const DashboardPainterJobsShowMore: FC<TProps> = ({
       <TypographyDetailsSubtitle>
         Showing {Math.min(state.count, currCount)} of {currCount}
       </TypographyDetailsSubtitle>
-      <ButtonsCvaButton
+      <CvaButton
         title={title}
         onTap={handleShowMoreClick}
         intent="ghost-1"
@@ -34,7 +34,7 @@ export const DashboardPainterJobsShowMore: FC<TProps> = ({
         center
       >
         <span className="font-medium">{title}</span>
-      </ButtonsCvaButton>
+      </CvaButton>
     </div>
   );
 };

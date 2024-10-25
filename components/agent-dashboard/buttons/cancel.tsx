@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 
 export const AgentDashboardButtonsCancel: FC = () => {
@@ -21,13 +21,13 @@ export const AgentDashboardButtonsCancel: FC = () => {
 
   return (
     <div>
-      <ButtonsCvaButton
+      <CvaButton
         title={cancelTitle}
         onTap={handleCancel}
         classValue="text-gray-7"
       >
         {cancelTitle}
-      </ButtonsCvaButton>
+      </CvaButton>
     </div>
   );
 };

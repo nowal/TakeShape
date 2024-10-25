@@ -1,8 +1,8 @@
 import { forwardRef } from 'react';
-import { TButtonsCvaProps } from '@/components/cva/types';
+import { TCvaProps } from '@/components/cva/types';
 import { motion } from 'framer-motion';
-import { ButtonsCvaContent } from '@/components/cva/content';
-import { useButtonsCvaProps } from '@/components/cva/props';
+import { CvaContent } from '@/components/cva/content';
+import { useCvaProps } from '@/components/cva/props';
 import { TInputMotionProps } from '@/types/dom';
 import { TLabelMotionProps } from '@/types/dom/motion';
 import { cx } from 'class-variance-authority';
@@ -11,14 +11,14 @@ type TElementProps = TLabelMotionProps & {
   inputProps: TInputMotionProps;
   bottom?: JSX.Element;
 };
-export type TButtonsCvaInputProps =
-  TButtonsCvaProps<TElementProps>;
-const ButtonsCvaInput = forwardRef<
+export type TCvaInputProps =
+  TCvaProps<TElementProps>;
+const CvaInput = forwardRef<
   HTMLLabelElement,
-  TButtonsCvaInputProps
+  TCvaInputProps
 >(({ inputProps, children, ...props }, ref) => {
   const { classValue, ...restInputProps } = inputProps;
-  const { Icon, ...cvaProps } = useButtonsCvaProps(props);
+  const { Icon, ...cvaProps } = useCvaProps(props);
   return (
     <motion.label ref={ref} {...cvaProps}>
       <motion.input
@@ -30,12 +30,12 @@ const ButtonsCvaInput = forwardRef<
         {...restInputProps}
         layout={false}
       />
-      <ButtonsCvaContent Icon={Icon} layout={false}>
+      <CvaContent Icon={Icon} layout={false}>
         {children}
-      </ButtonsCvaContent>
+      </CvaContent>
     </motion.label>
   );
 });
 
-ButtonsCvaInput.displayName = 'ButtonsCvaInput';
-export { ButtonsCvaInput };
+CvaInput.displayName = 'CvaInput';
+export { CvaInput };

@@ -2,7 +2,7 @@
 import { Suspense, useEffect } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { InputsText } from '@/components/inputs/text';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { ALREADY_HAVE_AN_ACCOUNT_TEXT } from '@/components/sign-up/constants';
 import { useAuth } from '@/context/auth/provider';
@@ -97,7 +97,7 @@ const SignupAccountForm = () => {
                     placeholder="Password"
                     required
                   />
-                  <ButtonsCvaButton
+                  <CvaButton
                     type="submit"
                     isDisabled={isSignUpSubmitting}
                     title={submitButtonTitle}
@@ -114,14 +114,14 @@ const SignupAccountForm = () => {
                     <div className="text-base font-bold">
                       {submitButtonTitle}
                     </div>
-                  </ButtonsCvaButton>
+                  </CvaButton>
                 </form>
                 <div className="mt-3.5 text-center">
                   <p className="flex flex-row justify-center gap-1.5">
                     <span className="text-black-5">
                       {ALREADY_HAVE_AN_ACCOUNT_TEXT}
                     </span>
-                    <ButtonsCvaButton
+                    <CvaButton
                       isDisabled={isSignUpSubmitting}
                       title={submitButtonTitle}
                       onTap={onSignInButtonClick}
@@ -130,7 +130,7 @@ const SignupAccountForm = () => {
                       <div className="text-pink text-base font-bold">
                         Login
                       </div>
-                    </ButtonsCvaButton>
+                    </CvaButton>
                   </p>
                 </div>
               </div>

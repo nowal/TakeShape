@@ -6,7 +6,7 @@ import { cx } from 'class-variance-authority';
 import { InputsText } from '@/components/inputs/text';
 import { useAgentRegisterState } from '@/context/agent/register/state';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { ComponentsRegisterShell } from '@/components/register/shell';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsError16White } from '@/components/icons/error/16/white';
@@ -116,7 +116,7 @@ const AgentSignup = () => {
             }}
           />
         </div>
-        <ButtonsCvaButton
+        <CvaButton
           title={submitTitle}
           type="submit"
           disabled={isSubmitting}
@@ -133,7 +133,7 @@ const AgentSignup = () => {
           center
         >
           {submitTitle}
-        </ButtonsCvaButton>
+        </CvaButton>
       </form>
     </ComponentsRegisterShell>
   );

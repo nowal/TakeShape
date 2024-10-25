@@ -1,5 +1,5 @@
-import { ButtonsCvaButton } from '@/components/cva/button';
-import { ButtonsCvaLink } from '@/components/cva/link';
+import { CvaButton } from '@/components/cva/button';
+import { CvaLink } from '@/components/cva/link';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { IconsRedo } from '@/components/icons/redo';
 import { usePreferences } from '@/context/preferences/provider';
@@ -29,7 +29,7 @@ export const PreferencesFooter: FC = () => {
         onClick={onResubmit}
         className="flex flex-col items-end gap-4 xs:flex-row"
       >
-        <ButtonsCvaLink
+        <CvaLink
           icon={{ Leading: IconsRedo }}
           title={resubmitTitle}
           classValue="py-4"
@@ -37,9 +37,9 @@ export const PreferencesFooter: FC = () => {
           gap="lg"
         >
           {resubmitTitle}
-        </ButtonsCvaLink>
+        </CvaLink>
       </div>
-      <ButtonsCvaButton
+      <CvaButton
         onTap={() =>
           onPreferenceSubmit('/dashboard', false)
         }
@@ -55,7 +55,7 @@ export const PreferencesFooter: FC = () => {
         gap="xl"
       >
         {submitTitle}
-      </ButtonsCvaButton>
+      </CvaButton>
     </footer>
   );
 };

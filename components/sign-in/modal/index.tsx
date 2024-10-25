@@ -1,9 +1,9 @@
 'use client';
 import type { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { ComponentsModal } from '@/components/modal';
 import { InputsText } from '@/components/inputs/text';
-import { ButtonsCvaLink } from '@/components/cva/link';
+import { CvaLink } from '@/components/cva/link';
 import { NotificationsInlineHighlight } from '@/components/notifications/inline/highlight';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
@@ -70,7 +70,7 @@ export const SignInModal: FC = () => {
               )}
             </div>
             <div className="h-5" />
-            <ButtonsCvaButton
+            <CvaButton
               title={submitButtonTitle}
               type="submit"
               center
@@ -86,11 +86,11 @@ export const SignInModal: FC = () => {
               gap='xl'
             >
               {submitButtonTitle}
-            </ButtonsCvaButton>
+            </CvaButton>
             {pathname !== '/signup' && (
               <>
                 <div className="h-2" />
-                <ButtonsCvaLink
+                <CvaLink
                   href="/signup"
                   title={signUpTitle}
                   size="sm"
@@ -100,7 +100,7 @@ export const SignInModal: FC = () => {
                   <span className="text-pink font-bold">
                     {signUpTitle}
                   </span>
-                </ButtonsCvaLink>
+                </CvaLink>
               </>
             )}
           </form>

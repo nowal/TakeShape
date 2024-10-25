@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { InputsText } from '@/components/inputs/text';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { NotificationsInlineInfo } from '@/components/notifications/inline/info';
 import { AgentDashboardButtonsCancel } from '@/components/agent-dashboard/buttons/cancel';
 import { TypographyButtonPrimary } from '@/components/typography/button/primary';
@@ -77,7 +77,7 @@ export const AgentDashboardAdd: FC = () => {
             <div className="h-3.5" />
             <div className="flex flex-row justify-between">
               <AgentDashboardButtonsCancel />
-              <ButtonsCvaButton
+              <CvaButton
                 title={inviteTitle}
                 onTap={
                   isInviteDisabled ? NOOP : onInvitePainter
@@ -93,13 +93,13 @@ export const AgentDashboardAdd: FC = () => {
                 <TypographyButtonPrimary>
                   {inviteTitle}
                 </TypographyButtonPrimary>
-              </ButtonsCvaButton>
+              </CvaButton>
             </div>
           </div>
         ) : (
           <div className="flex flex-row justify-between">
             <AgentDashboardButtonsCancel />
-            <ButtonsCvaButton
+            <CvaButton
               title={addTitle}
               onTap={isAddDisabled ? NOOP : onAddPainter}
               isDisabled={isAddDisabled}
@@ -113,7 +113,7 @@ export const AgentDashboardAdd: FC = () => {
               <TypographyButtonPrimary>
                 {addTitle}
               </TypographyButtonPrimary>
-            </ButtonsCvaButton>
+            </CvaButton>
           </div>
         )}
         {error && (

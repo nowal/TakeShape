@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
+import { CvaAnchor } from '@/components/cva/anchor';
 import { TJob } from '@/types/jobs';
 import { getAuth } from 'firebase/auth';
 
@@ -15,7 +15,7 @@ export const DashboardPainterJobInvoice: FC<TProps> = (
     (price) => price.painterId === user?.uid
   )?.invoiceUrl;
   return (
-    <ButtonsCvaAnchor
+    <CvaAnchor
       href={invoiceUrl}
       target="_blank"
       rel="noopener noreferrer"
@@ -25,6 +25,6 @@ export const DashboardPainterJobInvoice: FC<TProps> = (
       <div className="text-black text-xs font-semibold p-0.5">
         {title}
       </div>
-    </ButtonsCvaAnchor>
+    </CvaAnchor>
   );
 };

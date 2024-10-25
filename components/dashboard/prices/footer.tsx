@@ -1,5 +1,5 @@
-import { ButtonsCvaAnchor } from '@/components/cva/anchor';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaAnchor } from '@/components/cva/anchor';
+import { CvaButton } from '@/components/cva/button';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { useDashboard } from '@/context/dashboard/provider';
 import { TPrice } from '@/types';
@@ -24,7 +24,7 @@ export const DashboardPricesItemFooter: FC<TProps> = (
         'py-3.5'
       )}
     >
-      <ButtonsCvaButton
+      <CvaButton
         title={acceptQuoteTitle}
         intent="primary"
         size="xxs"
@@ -39,9 +39,9 @@ export const DashboardPricesItemFooter: FC<TProps> = (
         }}
       >
         <span className="text-sm">{acceptQuoteTitle}</span>
-      </ButtonsCvaButton>
+      </CvaButton>
       {price.invoiceUrl && (
-        <ButtonsCvaAnchor
+        <CvaAnchor
           title={invoiceTitle}
           href={price.invoiceUrl}
           target="_blank"
@@ -50,7 +50,7 @@ export const DashboardPricesItemFooter: FC<TProps> = (
           <span className="text-sm font-bold">
             {invoiceTitle}
           </span>
-        </ButtonsCvaAnchor>
+        </CvaAnchor>
       )}
     </div>
   );

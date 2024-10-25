@@ -1,6 +1,6 @@
 import { FC, useRef } from 'react';
 import { motion, MotionValue } from 'framer-motion';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsResizeHorizontal } from '@/components/icons/resize/horizontal';
 import { resolveSquare } from '@/utils/measure/resolve-square';
 import { LANDING_HERO_HANDLE_SIZE } from '@/components/landing/hero/constants';
@@ -40,7 +40,7 @@ export const LandingHeroHandle: FC<TProps> = ({ x }) => {
           drag="x"
           dragConstraints={ref}
         >
-          <ButtonsCvaButton
+          <CvaButton
             title="Resize"
             icon={{ Leading: IconsResizeHorizontal }}
             isIconOnly

@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsHamburger } from '@/components/icons/hamburger';
 import { useAuth } from '@/context/auth/provider';
 import { IconsCloseEm } from '@/components/icons/close/em';
@@ -9,7 +9,7 @@ export const ShellHeaderMobileButton: FC = () => {
   const { isMenuOpen, onMenuOpenToggle } = menu;
   const Icon = isMenuOpen ? IconsCloseEm : IconsHamburger;
   return (
-    <ButtonsCvaButton
+    <CvaButton
       title="Menu"
       size="fill"
       center={true}
@@ -17,6 +17,6 @@ export const ShellHeaderMobileButton: FC = () => {
       onTap={onMenuOpenToggle}
     >
       <Icon />
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };

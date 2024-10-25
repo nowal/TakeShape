@@ -1,4 +1,4 @@
-import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
+import { CvaButtonAdd } from '@/components/cva/button/add';
 import { DashboardHeader } from '@/components/dashboard/header';
 import {
   InputsSelect,
@@ -22,7 +22,7 @@ export const DashboardHomeownerHeader: FC<TProps> = (
         placeholder="Select Quote"
         {...props}
       />
-      <ButtonsCvaButtonAdd
+      <CvaButtonAdd
         onTap={() => onNavigateScrollTopClick('/quote')}
         title="Add New Quote"
       />

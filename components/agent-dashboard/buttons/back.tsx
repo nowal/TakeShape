@@ -1,14 +1,14 @@
 import type { FC } from 'react';
-import { ButtonsCvaButtonAdd } from '@/components/cva/button/add';
+import { CvaButtonAdd } from '@/components/cva/button/add';
 import { useAgentDashboard } from '@/context/agent/dashboard/provider';
 import { IconsChevronsLeft } from '@/components/icons/chevrons/left';
 import {
-  ButtonsCvaButton,
-  TButtonsCvaButtonProps,
+  CvaButton,
+  TCvaButtonProps,
 } from '@/components/cva/button';
 import { cx } from 'class-variance-authority';
 
-type TProps = Partial<TButtonsCvaButtonProps>;
+type TProps = Partial<TCvaButtonProps>;
 export const AgentDashboardButtonsBack: FC<TProps> = ({
   children,
   classValue,
@@ -19,7 +19,7 @@ export const AgentDashboardButtonsBack: FC<TProps> = ({
   const backTitle = 'Back';
 
   return (
-    <ButtonsCvaButton
+    <CvaButton
       onTap={onAddPainterCancel}
       title={backTitle}
       icon={{ Leading: IconsChevronsLeft }}
@@ -27,6 +27,6 @@ export const AgentDashboardButtonsBack: FC<TProps> = ({
       {...props}
     >
       {children ?? backTitle}
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };

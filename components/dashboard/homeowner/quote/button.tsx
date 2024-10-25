@@ -2,7 +2,7 @@ import { IconsQuote } from '@/components/icons/quote';
 import { useDashboard } from '@/context/dashboard/provider';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
-import { ButtonsCvaLink } from '@/components/cva/link';
+import { CvaLink } from '@/components/cva/link';
 import { usePreferences } from '@/context/preferences/provider';
 import { IconsLoading } from '@/components/icons/loading';
 
@@ -26,7 +26,7 @@ export const DashboardHomeownerQuoteButton: FC = () => {
           '0px 4.288px 28.623px 0px rgba(0, 0, 0, 0.09)',
       }}
     >
-      <ButtonsCvaLink
+      <CvaLink
         title={preferencesTitle}
         href={`/defaultPreferences?userImageId=${selectedUserImage}`}
         size="fill"
@@ -49,7 +49,7 @@ export const DashboardHomeownerQuoteButton: FC = () => {
             {preferencesTitle}
           </span>
         </div>
-      </ButtonsCvaLink>
+      </CvaLink>
     </div>
   );
 };

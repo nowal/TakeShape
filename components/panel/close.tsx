@@ -1,17 +1,17 @@
 import type { FC } from 'react';
 import {
-  ButtonsCvaButton,
-  TButtonsCvaButtonProps,
+  CvaButton,
+  TCvaButtonProps,
 } from '@/components/cva/button';
 import { IconsCloseFat } from '@/components/icons/close/fat';
 
-export type TComponentsPanelCloseProps = Partial<TButtonsCvaButtonProps>;
+export type TComponentsPanelCloseProps = Partial<TCvaButtonProps>;
 export const ComponentsPanelClose: FC<TComponentsPanelCloseProps> = (
   props
 ) => {
   return (
     <div className="absolute bottom-full -translate-y-3 right-0">
-      <ButtonsCvaButton
+      <CvaButton
         title="Close Modal"
         isIconOnly
         rounded="full"
@@ -22,7 +22,7 @@ export const ComponentsPanelClose: FC<TComponentsPanelCloseProps> = (
         {...props}
       >
         <IconsCloseFat />
-      </ButtonsCvaButton>
+      </CvaButton>
     </div>
   );
 };

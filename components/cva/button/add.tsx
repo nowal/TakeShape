@@ -1,18 +1,18 @@
 import {
-  ButtonsCvaButton,
-  TButtonsCvaButtonProps,
+  CvaButton,
+  TCvaButtonProps,
 } from '@/components/cva/button';
 import { IconsPlusCircle } from '@/components/icons/plus/circle';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
-type TProps = TButtonsCvaButtonProps;
-export const ButtonsCvaButtonAdd: FC<TProps> = ({
+type TProps = TCvaButtonProps;
+export const CvaButtonAdd: FC<TProps> = ({
   children,
   ...props
 }) => {
   return (
-    <ButtonsCvaButton
+    <CvaButton
       // size="iconMd"
       center
       classValue={cx(
@@ -26,6 +26,6 @@ export const ButtonsCvaButtonAdd: FC<TProps> = ({
       {...props}
     >
       {children}
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };

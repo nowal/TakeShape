@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { IconsTick } from '@/components/icons/tick';
 import { IconsVideo } from '@/components/icons/video';
 import { LinesHorizontal } from '@/components/lines/horizontal';
@@ -35,7 +35,7 @@ export const QuoteInstructions: FC = () => {
         colorClass="border-white-pink-2"
         classValue="mt-5"
       />
-      {/*<ButtonsCvaButton
+      {/*<CvaButton
         title={SEE_VIDEO_TITLE}
         icon={{ Trailing: IconsVideo }}
         size="none"
@@ -45,7 +45,7 @@ export const QuoteInstructions: FC = () => {
         <span className="typography-pink-xs">
           {SEE_VIDEO_TITLE}
         </span>
-      </ButtonsCvaButton>*/}
+      </CvaButton>*/}
     </div>
   );
 };

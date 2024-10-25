@@ -1,13 +1,13 @@
 import type { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
-import { TButtonsCvaProps } from '@/components/cva/types';
+import { CvaButton } from '@/components/cva/button';
+import { TCvaProps } from '@/components/cva/types';
 import { TButtonMotionProps } from '@/types/dom';
 
 export const ButtonsQuoteSubmit: FC<
-  TButtonsCvaProps<TButtonMotionProps>
+  TCvaProps<TButtonMotionProps>
 > = ({ title, ...props }) => {
   return (
-    <ButtonsCvaButton
+    <CvaButton
       type="submit"
       title={title}
       intent="primary"
@@ -18,6 +18,6 @@ export const ButtonsQuoteSubmit: FC<
       {...props}
     >
       {title}
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };

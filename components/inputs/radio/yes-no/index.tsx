@@ -1,15 +1,15 @@
 import type { FC } from 'react';
 import {
-  ButtonsCvaInput,
-  TButtonsCvaInputProps,
+  CvaInput,
+  TCvaInputProps,
 } from '@/components/cva/input';
 import { cx } from 'class-variance-authority';
 
 type TProps = {
   name: string;
   onChange: any;
-  yesProps: TButtonsCvaInputProps;
-  noProps: TButtonsCvaInputProps;
+  yesProps: TCvaInputProps;
+  noProps: TCvaInputProps;
 };
 export const InputsRadioYesNo: FC<TProps> = (props) => {
   const { name, onChange, yesProps, noProps } = props;
@@ -23,7 +23,7 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
       ).map(([title, { inputProps, ...restProps }]) => {
         return (
           <li key={title}>
-            <ButtonsCvaInput
+            <CvaInput
               classValue={cx(
                 'relative',
                 'font-medium',
@@ -46,7 +46,7 @@ export const InputsRadioYesNo: FC<TProps> = (props) => {
               {...restProps}
             >
               {title}
-            </ButtonsCvaInput>
+            </CvaInput>
           </li>
         );
       })}

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { TJob } from '@/types/jobs';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { InputsFile } from '@/components/inputs/file';
 import { InputsText } from '@/components/inputs/text';
 import { usePainterJobAvailable } from '@/components/dashboard/painter/jobs/job/available/hook';
@@ -77,7 +77,7 @@ export const DashboardPainterJobAvailableForm: FC<
           </div>
         ))}
       </div>
-      <ButtonsCvaButton
+      <CvaButton
         title={title}
         type="submit"
         disabled={isSubmitting}
@@ -92,7 +92,7 @@ export const DashboardPainterJobAvailableForm: FC<
         gap="xl"
       >
         <span>{title}</span>
-      </ButtonsCvaButton>
+      </CvaButton>
     </form>
   );
 };

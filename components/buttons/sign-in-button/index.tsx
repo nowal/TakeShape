@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { ButtonsCvaButton } from '@/components/cva/button';
+import { CvaButton } from '@/components/cva/button';
 import { useAuth } from '@/context/auth/provider';
 import { useSignInButton } from '@/components/buttons/sign-in-button/hook';
 import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
@@ -13,13 +13,13 @@ export const SignInButton: FC = () => {
   }
 
   return (
-    <ButtonsCvaButton
+    <CvaButton
       onTap={handler}
       title={title}
       intent="ghost"
       size="sm"
     >
       {title}
-    </ButtonsCvaButton>
+    </CvaButton>
   );
 };
