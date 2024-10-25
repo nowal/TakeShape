@@ -1,15 +1,21 @@
-import { CommonIcon } from '@/components/icon';
+import {
+  CommonIcon,
+  TCommonIconProps,
+} from '@/components/icon';
 import type { FC } from 'react';
 
-export const IconsLogo: FC<{ backgroundColor?: string }> = ({ backgroundColor }) => {
+export const IconsLogo: FC<
+  { backgroundColor?: string } & TCommonIconProps
+> = ({ backgroundColor, ...props }) => {
   return (
     <CommonIcon
       width="67"
       height="67"
       viewBox="0 0 251 251"
-      classValue='size-10 sm:size-12'
+      classValue="size-10 sm:size-12"
       fill="none"
       classColor=""
+      {...props}
     >
       <path
         d="M149.189 211.166C167.89 206.078 184.552 194.96 196.507 179.226C197.143 178.389 197.559 177.276 197.807 176.003C199.452 167.593 192.503 159.943 183.945 160.417L170.778 161.145C160.396 161.719 151.51 153.769 150.93 143.387C150.35 133.006 160.516 125.4 170.778 120.744C197.807 108.481 206.19 87.5822 190.442 66.2595C187.843 62.7396 185.111 59.6559 182.295 57.3115C164.907 42.8346 142.927 35.5277 120.399 36.7381C71.4167 39.371 33.853 81.3071 36.6625 130.223C39.0983 172.641 71.1061 206.59 111.508 213.144"

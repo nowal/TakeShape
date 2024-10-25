@@ -5,7 +5,7 @@ import { useAuthNavigateHome } from '@/hooks/auth/navigate/home';
 import { PainterCardBackground } from '@/components/painter/card/background';
 import { PainterCardData } from '@/components/painter/card/data';
 import { useCongrats } from '@/components/congrats/hook';
-import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
+import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 
 const CongratsWithSuspense: FC = () => {
   const congrats = useCongrats();
@@ -13,7 +13,7 @@ const CongratsWithSuspense: FC = () => {
   useAuthNavigateHome();
 
   return (
-    <Suspense fallback={<FallbacksLoadingCircleCenter />}>
+    <Suspense fallback={<FallbacksLogoFill />}>
       <ComponentsCongrats>
         {painterId && (
           <PainterCardBackground>

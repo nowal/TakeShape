@@ -1,10 +1,9 @@
-'use client';
-
+'use client';;
 import { FC, Suspense } from 'react';
 import { cx } from 'class-variance-authority';
 import { TPropsWithChildren } from '@/types/dom/main';
-import { FallbacksLoadingFill } from '@/components/fallbacks/loading';
 import { usePathname } from 'next/navigation';
+import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 
 type TProps = TPropsWithChildren;
 export const ShellChildren: FC<TProps> = ({ children }) => {
@@ -18,7 +17,7 @@ export const ShellChildren: FC<TProps> = ({ children }) => {
         isHome ? 'min-h-screen' : 'min-h-[400px]'
       )}
     >
-      <Suspense fallback={<FallbacksLoadingFill />}>
+      <Suspense fallback={<FallbacksLogoFill />}>
         {children}
       </Suspense>
     </div>

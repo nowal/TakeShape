@@ -1,4 +1,4 @@
-import { FallbacksLoadingCircle } from '@/components/fallbacks/loading/circle';
+import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 import { TChildren } from '@/types/dom';
 import { FC, PropsWithChildren, Suspense } from 'react';
 
@@ -11,7 +11,7 @@ export const arrToNest = <
 ) => {
   return arr.reduce((a: TChildren, C: FC<P>) => {
     const next = (
-      <Suspense fallback={<FallbacksLoadingCircle />}>
+      <Suspense fallback={<FallbacksLogoFill />}>
         <C {...props}>{a}</C>
       </Suspense>
     );

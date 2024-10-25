@@ -12,7 +12,6 @@ import { ShellChildren } from '@/components/shell/children';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
-import { FallbacksLoadingCircleCenter } from '@/components/fallbacks/loading/circle/center';
 
 import '../css/inputs.css';
 import '../css/reset.css';
@@ -20,6 +19,7 @@ import '../css/typography/index.css';
 import '../css/globals.css';
 import '../css/notifications.css';
 import 'react-toastify/dist/ReactToastify.min.css';
+import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 
 export const metadata: Metadata = {
   title: 'TakeShape',
@@ -41,11 +41,7 @@ export default function RootLayout({ children }: TProps) {
                 <ShellHeader />
                 <ShellChildren>{children}</ShellChildren>
                 <ShellFooter />
-                <Suspense
-                  fallback={
-                    <FallbacksLoadingCircleCenter />
-                  }
-                >
+                <Suspense fallback={<FallbacksLogoFill />}>
                   <SignInModal />
                 </Suspense>
               </ContextProviders>

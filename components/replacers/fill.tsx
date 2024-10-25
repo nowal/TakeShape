@@ -11,7 +11,7 @@ export const ReplacersFill: FC<TPropsWithChildren> = ({
       classValue="absolute inset-0"
       Space={FallbacksLoadingFill}
     >
-      <> {children}</>
+      <>{children}</>
     </InViewReplacersCustom>
   );
 };
