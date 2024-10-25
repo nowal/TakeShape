@@ -13,6 +13,7 @@ export const FallbacksLogoFill: FC<TProps> = ({
   return (
     <FallbacksCenter
       classValue={cx('absolute inset-0', classValue)}
+      style={{ minHeight: 400 }}
       IconFc={IconsLogo}
       {...props}
     />
