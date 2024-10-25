@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "strictPropertyInitialization": false,
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -30,12 +29,8 @@
     ".next/types/**/*.ts",
     "tailwind.config.ts"
   ],
-  "exclude": ["node_modules", "_prev-root/**/*"],
-  "browserslist": [
-    "chrome 61",
-    "edge 16",
-    "firefox 60",
-    "opera 48",
-    "safari 11"
+  "exclude": [
+    "node_modules",
+    "_prev-root/**/*"
   ]
 }

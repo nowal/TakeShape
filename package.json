@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "@digitak/esrun": "^3.2.26",
-    "@types/firebase": "^3.2.3",
     "@types/google.maps": "^3.55.10",
     "@types/jquery": "^3.5.29",
     "@types/node": "^20",
