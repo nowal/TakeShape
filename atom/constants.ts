@@ -72,8 +72,40 @@ export const NONE_SELECT_PAINT_BRAND: TPaintBrand = {
   count: 0,
 };
 
+export const OTHER_NAME = 'Other Brand';
+
+export const OTHER_SELECT_PAINT_BRAND: TPaintBrand = {
+  id: OTHER_NAME,
+  name: OTHER_NAME,
+  count: 0,
+};
+
+export const CUSTOM_NAME = 'Custom Color';
+
+export const CUSTOM_SELECT_PAINT_BRAND: TPaintBrand = {
+  id: CUSTOM_NAME,
+  name: CUSTOM_NAME,
+  count: 0,
+};
+
+export const UNDECIDED_NAME = 'Undecided';
+
+export const UNDECIDED_SELECT_PAINT_BRAND: TPaintBrand = {
+  id: UNDECIDED_NAME,
+  name: UNDECIDED_NAME,
+  count: 0,
+};
+
+export const SELECT_NAME = 'Select Brand';
+
+export const SELECT_SELECT_PAINT_BRAND: TPaintBrand = {
+  id: SELECT_NAME,
+  name: SELECT_NAME,
+  count: 0,
+};
+
 export const PREFERENCES_COLOR_BRAND_RECORD = {
-  [PREFERENCES_NAME_STRING_COLOR]: NONE_NAME,
+  [PREFERENCES_NAME_STRING_COLOR]: SELECT_NAME,
   [PREFERENCES_NAME_STRING_CEILING_COLOR]: NONE_NAME,
   [PREFERENCES_NAME_STRING_TRIM_COLOR]: NONE_NAME,
 } as const;

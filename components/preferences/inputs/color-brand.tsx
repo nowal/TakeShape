@@ -14,12 +14,13 @@ type TProps = Omit<TInputProps, 'name' | 'value'> & {
   name: TPreferencesColorKey;
   value?: string;
 };
+
 export const PreferencesInputsColorBrand: FC<TProps> = ({
   name,
   ...props
 }) => {
   const preferences = usePreferences();
-  const { onColorValueChange, onColorChange } = preferences;
+  const { onColorValueChange } = preferences;
 
   const {
     selectedBrandRecord,
@@ -29,13 +30,11 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
   } = usePreferencesStateColor();
 
   const value = selectedBrandRecord[name];
-
   const colors = selectedBrandMatchesRecord[name];
-
-  // console.log(props.value, colors)
 
   return (
     <div className="flex flex-row justify-end grow gap-1">
+      {/* Brand Selection */}
       <InputsSelect
         placeholder="Select Brand"
         name={`${PREFERENCES_INPUTS_COLOR_BRAND_NAME}${INPUTS_NAME_DELIMITER}${name}`}
@@ -43,27 +42,36 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
         onValueChange={onSelectBrandValueChange}
         idValues={paintBrands}
       />
-      {value === NONE_NAME ||
-      !colors ||
-      colors.length === 0 ? null : (
-        <InputsSelect
+
+      {/* Conditional Color Input */}
+      {value === "Undecided" ? (
+        <div className="text-gray-600 italic">Decide with Painter Later</div>
+      ) : (value === "Other Brand" || value === "Custom Color") ? (
+        <InputsText
           name={name}
-          value={props.value}
-          onValueChange={(...args) => {
-            onColorValueChange(...args);
+          placeholder={value === "Other Brand" ? "Other Brand and Color" : "Explain Custom Color"}
+          classValue="border border-gray-1"
+          classPadding="px-6 py-2.5"
+          classRounded="rounded-4xl"
+          onChange={(event) => {
+            const colorValue = event.target.value;
+            onColorValueChange(name, colorValue);
           }}
-          placeholder={props.value ?? 'Select Color'}
-          idValues={colors}
+          // Removed ...props to prevent any placeholder overrides
         />
+      ) : (
+        value && colors && colors.length > 0 && (
+          <InputsSelect
+            name={name}
+            value={props.value}
+            onValueChange={(...args) => {
+              onColorValueChange(...args);
+            }}
+            placeholder={props.value ?? 'Select Color'}
+            idValues={colors}
+          />
+        )
       )}
-      <InputsText
-        name={name}
-        classValue="border border-gray-1"
-        classPadding="px-6 py-2.5"
-        classRounded="rounded-4xl"
-        onChange={onColorChange}
-        {...props}
-      />
     </div>
   );
 };
