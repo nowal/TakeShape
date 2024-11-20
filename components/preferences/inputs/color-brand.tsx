@@ -135,7 +135,7 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
   };
 
   return (
-    <div className="flex flex-row justify-end grow gap-4">
+    <div className="flex flex-row justify-end grow gap-2">
       {isLoadingBrands ? (
         <div className="text-gray-500 italic">Loading Brands...</div>
       ) : (
