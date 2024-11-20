@@ -54,6 +54,10 @@ export const usePreferencesStateColor = () => {
   ] = useState<
     Record<TPreferencesColorKey, readonly TColor[]>
   >(PREFERENCES_COLOR_BRAND_MATCHES_RECORD);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
+  const [isLoadingColors, setIsLoadingColors] = useState(true);
+
+  const [foundColors, setFoundColors] = useState<TColor[]>([]);
 
   const [hexCode, setHexCode] = useState<string | null>(
     null
@@ -62,19 +66,17 @@ export const usePreferencesStateColor = () => {
 
   useEffect(() => {
     const fetchPaintBrands = async () => {
+      setIsLoadingBrands(true); // Ensure loading state is reset
       try {
         const response = await fetch(COLOR_PAINTS_API_ROOT, {
-          headers: {
-            Authorization: `Bearer ${API_KEY}`,
-          },
+          headers: { Authorization: `Bearer ${API_KEY}` },
         });
         const paintBrands: TPaintBrand[] = await response.json();
-
-        // Filter to only include allowed brands
+  
         const filteredBrands = paintBrands.filter((brand) =>
           ALLOWED_PAINT_BRANDS.includes(brand.name)
         );
-
+  
         setPaintBrands([
           SELECT_SELECT_PAINT_BRAND,
           UNDECIDED_SELECT_PAINT_BRAND,
@@ -84,11 +86,22 @@ export const usePreferencesStateColor = () => {
         ]);
       } catch (err) {
         console.error('Error fetching paint brands:', err);
+      } finally {
+        setIsLoadingBrands(false); // Ensure it turns off
+        console.log(paintBrands);
       }
     };
-
+  
     fetchPaintBrands();
   }, []);
+
+  useEffect(() => {
+    // Reset derived states when brand or other dependent state changes
+    setSelectedBrandMatchesRecord(PREFERENCES_COLOR_BRAND_MATCHES_RECORD);
+    setHexCode(null);
+  }, [paintBrands]);
+  
+  
 
   const handleColorSearch = async (
     name: TPreferencesColorKey,
@@ -98,6 +111,8 @@ export const usePreferencesStateColor = () => {
     const limit = 20; // Max limit per request
   
     console.log('handleColorSearch');
+    console.log(isLoadingColors);
+    setIsLoadingColors(true);
   
     // Avoid search if selected brand is "Other Brand", "Custom Color", or "Undecided"
     if (selectedBrand === "Other Brand" || selectedBrand === "Custom Color" || selectedBrand === "Undecided") {
@@ -157,6 +172,9 @@ export const usePreferencesStateColor = () => {
           name = name.replace(/\s*-\s*/, '');
   
           console.log(`Original color name: ${color.name}, Simplified color name: ${name}`);
+
+          console.log(url);
+
   
           return { ...color, name };
         });
@@ -171,6 +189,10 @@ export const usePreferencesStateColor = () => {
         ...prev,
         [name]: allColors,
       }));
+
+      console.log("This happening too soon?");
+
+      setIsLoadingColors(false);
 
       return;
       /*const potentialHexCode = searchData.color;
@@ -249,12 +271,60 @@ export const usePreferencesStateColor = () => {
     }
   };
 
-  const handleSelectBrandValueChange = (
-    namePath: string,
-    value: string
+  const onSearchColors = async (
+    name: TPreferencesColorKey,
+    brand: string, 
+    searchTerm: string
   ) => {
+    try {
+      setIsLoadingColors(true); 
+      console.log(brand);
+
+      const brandSlug = brand; // Convert brand to slug
+      console.log(brandSlug);
+      console.log(brandSlug, searchTerm);
+      const url = `${COLOR_API_ROOT}/search?q=${searchTerm}&brand=${brandSlug}`;
+
+      console.log(url);
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const colors = data.result.colors; 
+
+      console.log(colors);
+
+      // Process and simplify color names (you can reuse your existing logic here)
+      const processedColors: TColor[] = colors.map((color: any) => ({
+        name: color.name,  // Map the 'name' property
+        id: color.hex,     // Map the 'hex' property to 'id'
+        brand: "",          // Add an empty string for the 'brand' property
+      }));
+
+      setFoundColors(processedColors); 
+    } catch (error) {
+      console.error('Error searching colors:', error);
+      // Handle the error, maybe show a message to the user
+    } finally {
+      setIsLoadingColors(false);
+    }
+  };
+
+  const handleSelectBrandValueChange = (namePath: string, value: string) => {
     const [_, name] = namePath.split(INPUTS_NAME_DELIMITER);
+    console.log(value, name);
+    
     if (isPreferencesColorKey(name)) {
+      // Reset color loading state when a new brand is selected
+      //setIsLoadingColors(false); // Ensure the state resets before a new fetch
       dispatchPreferences((prev: TPaintPreferences) => ({
         ...prev,
         [name]: undefined,
@@ -263,17 +333,28 @@ export const usePreferencesStateColor = () => {
         ...prev,
         [name]: value,
       }));
-      handleColorSearch(name, value);
+  
+      // Trigger new color search if applicable
+      //handleColorSearch(name, value);
+      setIsLoadingColors(false);
     }
   };
 
-  return {
+  const returnValue = {
     paintBrands,
     searchError,
     hexCode,
     selectedBrandRecord,
     selectedBrandMatchesRecord,
+    isLoadingBrands,
+    isLoadingColors,
+    onSearchColors, // Add the new function
+    foundColors,    // Add the new state
     onSelectBrandValueChange: handleSelectBrandValueChange,
     dispatchSelectedBrand: setSelectedBrandRecord,
   };
+  
+  console.log("usePreferencesStateColor return values:", returnValue);
+
+  return returnValue;
 };

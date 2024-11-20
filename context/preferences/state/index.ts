@@ -12,6 +12,10 @@ import {
   setDoc,
   getDoc,
   updateDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { defaultPreferencesAtom } from '@/atom';
 import { TValueChangeHandler } from '@/components/inputs/types';
@@ -288,11 +292,40 @@ export const usePreferencesState = () => {
     }
   };
 
-  const handleColorValueChange = (
+  const handleColorValueChange = async (
     name: string,
-    color: string
+    color: string,
+    brand: string
   ) => {
     handleValueChange(name, color);
+    const userId = auth.currentUser?.uid;
+  
+    if (userId) {
+      try {
+        // Query the userImages collection to find the document with matching userId
+        const userImagesRef = collection(firestore, 'userImages');
+        const q = query(userImagesRef, where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          const userImageDoc = querySnapshot.docs[0]; // Get the first matching document
+          const paintPreferencesId = userImageDoc.data().paintPreferencesId;
+  
+          if (paintPreferencesId) {
+            const paintPrefDocRef = doc(firestore, 'paintPreferences', paintPreferencesId);
+  
+            await updateDoc(paintPrefDocRef, { brand: brand });
+            console.log("Brand updated successfully!");
+          } else {
+            console.error("paintPreferencesId not found in userImages document");
+          }
+        } else {
+          console.error("No userImage document found with the given userId");
+        }
+      } catch (error) {
+        console.error("Error updating brand:", error);
+      }
+    }
   };
 
   const handleColorChange = (

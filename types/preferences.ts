@@ -8,6 +8,7 @@ export type TPaintPreferences =
   Partial<TPaintPreferencesFlags> & {
     color?: string;
     finish?: string;
+    brand?: string;
     ceilingColor?: string;
     ceilingFinish?: string;
     trimColor?: string;

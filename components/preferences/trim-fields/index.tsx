@@ -4,6 +4,7 @@ import {
   PREFERENCES_NAME_STRING_TRIM_FINISH,
 } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
+import { InputsText } from '@/components/inputs/text';
 import { InputsRow } from '@/components/inputs/row';
 import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
 import type { FC } from 'react';
@@ -35,13 +36,13 @@ export const PreferencesTrimFields: FC = () => {
       </InputsRadioYesNoRow>
       {isSelected && (
         <>
-          <InputsRow
+          <InputsRow // Updated InputsRow for Trim Color
             input={
-              <PreferencesInputsColorBrand
-                name="trimColor"
+              <InputsText // Use InputsText instead of PreferencesInputsColorBrand
+                name="trimColor" 
                 value={trimColor}
-                onChange={onColorChange}
-                placeholder="Trim Color"
+                onChange={(event) => onColorChange(event)} // Adjust onChange handler
+                placeholder="Trim Color" 
               />
             }
           >

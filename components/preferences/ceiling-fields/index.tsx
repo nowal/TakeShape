@@ -5,6 +5,7 @@ import {
   PREFERENCES_NAME_STRING_CEILING_FINISH,
 } from '@/atom/constants';
 import { InputsSelect } from '@/components/inputs/select';
+import { InputsText } from '@/components/inputs/text';
 import { InputsRow } from '@/components/inputs/row';
 import type { FC } from 'react';
 import { InputsRadioYesNoRow } from '@/components/inputs/radio/yes-no/row';
@@ -36,13 +37,13 @@ export const PreferencesCeilingFields: FC = () => {
       </InputsRadioYesNoRow>
       {isSelected && (
         <>
-          <InputsRow
+          <InputsRow // Updated InputsRow for Ceiling Color
             input={
-              <PreferencesInputsColorBrand
+              <InputsText // Use InputsText instead of PreferencesInputsColorBrand
                 name={PREFERENCES_NAME_STRING_CEILING_COLOR}
                 value={ceilingColor}
-                onChange={onColorChange}
-                placeholder="Select Ceiling Color"
+                onChange={(event) => onColorChange(event)} // Adjust onChange handler
+                placeholder="Ceiling Color" 
               />
             }
           >
