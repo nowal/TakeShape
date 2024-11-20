@@ -75,7 +75,8 @@ export const InputsSelect = ({
         <div
           className={cx(
             'flex flex-row gap-2 w-full',
-            'disabled:text-gray disabled:opacity-70'
+            'disabled:text-gray disabled:opacity-70',
+            'touch-none'
           )}
         >
           <div className="truncate w-full">

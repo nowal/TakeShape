@@ -135,7 +135,7 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
   };
 
   return (
-    <div className="flex flex-row justify-end grow gap-1">
+    <div className="flex flex-row justify-end grow gap-4">
       {isLoadingBrands ? (
         <div className="text-gray-500 italic">Loading Brands...</div>
       ) : (
@@ -185,9 +185,11 @@ export const PreferencesInputsColorBrand: FC<TProps> = ({
               }}
             />
           </div>
-          <CvaButton title="Search" onTap={handleSearch}>
-            Search
-          </CvaButton>
+          <div className="ml-4">
+            <CvaButton title="Search" onTap={handleSearch}>
+              Search
+            </CvaButton>
+          </div>
           {showDropdown && (
             <ul
               className="absolute bg-white border border-gray-300 w-full max-h-60 overflow-auto z-10"
