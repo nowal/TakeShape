@@ -18,17 +18,15 @@ export const LandingProblemAndDecisionText: FC = () => {
       )}
     >
       <TextLayout
-        pretitle="Still Waiting?"
+        pretitle="Don't Wait!"
         title="Getting painting quotes used to be a nightmare"
         subtitle="Your painting quote is only clicks away"
         text={
           <p>
-            &quot;Stop the awkward phone calls and in-home
-            estimates with strangers. Get guaranteed
-            painting quotes instantly with one video.
-            We&apos;ve done the hard work of finding the
-            painters, now just show us what you want
-            done.&quot;
+            We provide proud homeowners quick painting quotes 
+            so they can avoid in-home estimates 
+            and love the home they&apos;re in!
+
           </p>
         }
       />

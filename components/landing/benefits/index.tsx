@@ -10,7 +10,7 @@ export const LandingBenefits: FC = () => {
     <div className="flex flex-col items-center w-full h-full overflow-hidden">
       <div className="h-20" />
       <h3 className="typography-landing-subtitle--responsive">
-        Benefits
+        Painting Without the Pain
       </h3>
       <div className="h-9" />
       <ul
@@ -23,7 +23,7 @@ export const LandingBenefits: FC = () => {
           [
             [
               'No more in-home estimates',
-              'Get painting quotes without having more painters in your home.',
+              'Get guaranteed painting quotes without having more painters in your home.',
               LandingBenefitsUpload,
             ],
             [

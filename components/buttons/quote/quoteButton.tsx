@@ -26,7 +26,7 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
     return null; // Don't render the button if user is not signed in
   }
 
-  const title = props.title ?? 'Get Quote';
+  const title = props.title ?? 'Get Quotes';
   return (
     <CvaLink
       href="/quote"
