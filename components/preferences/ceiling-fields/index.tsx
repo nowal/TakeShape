@@ -41,7 +41,7 @@ export const PreferencesCeilingFields: FC = () => {
             input={
               <InputsText // Use InputsText instead of PreferencesInputsColorBrand
                 name={PREFERENCES_NAME_STRING_CEILING_COLOR}
-                value={ceilingColor}
+                value={ceilingColor || 'White'}
                 onChange={(event) => onColorChange(event)} // Adjust onChange handler
                 placeholder="Ceiling Color" 
               />

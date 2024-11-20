@@ -40,7 +40,7 @@ export const PreferencesTrimFields: FC = () => {
             input={
               <InputsText // Use InputsText instead of PreferencesInputsColorBrand
                 name="trimColor" 
-                value={trimColor}
+                value={trimColor || 'White'}
                 onChange={(event) => onColorChange(event)} // Adjust onChange handler
                 placeholder="Trim Color" 
               />
