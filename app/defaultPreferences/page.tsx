@@ -33,7 +33,7 @@ const DefaultPreferences: FC = () => {
         <div className="flex flex-col items-stretch w-full sm:w-[709px]">
           <div className="h-6" />
           <>
-            {isPopup ? (
+            {!isPopup ? (
               <PreferencesNotificationsPaintPreferences />
             ) : (
               <h2 className="typography-page-title-preferences">
@@ -62,10 +62,10 @@ const DefaultPreferences: FC = () => {
                   Please select your preferences
                 </TypographyFormSubtitle>
                 <div className="h-1" />
-                <h5 className="typography-form-notification">
-                  If you have difficulties with chosing the
-                  option, please pick the “uncertain” in the
-                  menu.
+                <h5 className="typography-form-notification text-left">
+                  If you are unsure of your paint color,
+                  please select “Undecided” from the
+                  brand dropdown.
                 </h5>
                 <div className="h-4" />
                 <PreferencesLaborAndMaterials />
