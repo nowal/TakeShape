@@ -59,9 +59,9 @@ export const DashboardModalQuoteAccept: FC = () => {
                 <p className="text-black text-xs font-medium">
                   ${remainingAmount.toLocaleString()}
                 </p>
-                <div title={`${remainingFraction * 100}%`}>
+                {/*<div title={`${remainingFraction * 100}%`}>
                   <IconsInfo />
-                </div>
+                </div>*/}
               </div>
             </div>
           </div>
