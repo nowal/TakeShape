@@ -25,6 +25,7 @@ export const useButtonsCheckout = ({
 
   useEffect(() => {
     console.log('SESSION ID HOOK');
+    console.log(depositAmount);
 
     const fetchSessionId = async () => {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -33,7 +34,7 @@ export const useButtonsCheckout = ({
         const url =
           `${baseUrl}/api/stripe/checkout` as const;
         const body = JSON.stringify({
-          amount: depositAmount,
+          amount: depositAmount*100,
           painterId, // Include painterId in the request body
           userImageId, // Include userImageId in the request body
         });
@@ -59,6 +60,8 @@ export const useButtonsCheckout = ({
   }, [selectedQuoteAmount, painterId, userImageId]);
 
   const handleClick = async () => {
+    console.log("Checking Deposit:");
+    console.log(depositAmount);
     if (isRedirecting) return; // Prevent further execution if already redirecting
 
     const stripe = await stripePromise;
