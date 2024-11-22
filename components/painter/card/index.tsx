@@ -23,6 +23,7 @@ export const PainterCard: FC<TProps> = ({
           width="48"
           height="48"
           style={{objectFit: 'cover'}}
+          unoptimized
         />
       )}
       <div className="flex flex-col gap-1.5">
