@@ -9,6 +9,11 @@ const nextConfig = {
     ],
     domains: ['firebasestorage.googleapis.com'],
   },
+  experimental: {
+    images: {
+      allowFutureImage: true, 
+    },
+  },
   async headers() {
     const accessControlAllowOriginValue =
       process.env.NODE_ENV === 'development'
