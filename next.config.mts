@@ -4,8 +4,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
+        port: '',
       },
     ],
+    domains: ['firebasestorage.googleapis.com'],
   },
   async headers() {
     const accessControlAllowOriginValue =
