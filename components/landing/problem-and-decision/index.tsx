@@ -19,7 +19,7 @@ export const LandingProblemAndDecision: FC = () => {
           )}
         >
           <div className="relative h-[572px]"> {/* Set a fixed height for the container */}
-            <div style={{ position: 'relative', paddingTop: '5%', paddingBottom: '5%', height: '100%' }}>
+            <div className='absolute inset-8'>
               <iframe
                 src={video + "?rel=0&modestbranding=1&controls=1&showinfo=0&width=707&height=572"}
                 title="YouTube video player"
