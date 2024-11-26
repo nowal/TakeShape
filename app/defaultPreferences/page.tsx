@@ -33,7 +33,7 @@ const DefaultPreferences: FC = () => {
         <div className="flex flex-col items-stretch w-full sm:w-[709px]">
           <div className="h-6" />
           <>
-            {!isPopup ? (
+            {isPopup ? (
               <PreferencesNotificationsPaintPreferences />
             ) : (
               <h2 className="typography-page-title-preferences">

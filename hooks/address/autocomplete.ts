@@ -18,6 +18,7 @@ export const useAddressAutocomplete = (
   const {
     range,
     dispatchAddressFormatted,
+    dispatchAddress,
     onCoordsUpdate,
   } = accountSettings;
   const current = {
@@ -32,7 +33,9 @@ export const useAddressAutocomplete = (
     places: google.maps.PlacesLibrary
   ) => {
     const { Autocomplete } = places;
+    console.log("Here1");
     if (!addressInputRef.current) return null;
+    console.log("Here2");
     const autocomplete = new Autocomplete(
       addressInputRef.current,
       {
@@ -42,6 +45,7 @@ export const useAddressAutocomplete = (
     );
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
+      console.log("Here3");
       if (
         !place.geometry ||
         !place.geometry.location ||
@@ -53,6 +57,7 @@ export const useAddressAutocomplete = (
         return;
       }
 
+      console.log("Here4");
       const formattedAddress = place.formatted_address;
       const location = place.geometry.location;
 
@@ -69,6 +74,7 @@ export const useAddressAutocomplete = (
         currentRef.current.range
       );
       onCoordsUpdate(nextCoords);
+      console.log("Here5");
     });
   };
 

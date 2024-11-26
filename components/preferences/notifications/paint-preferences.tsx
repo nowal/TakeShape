@@ -7,8 +7,8 @@ export const PreferencesNotificationsPaintPreferences: FC =
       <NotificationsInlineHighlight>
         <strong className="font-bold">Warning: </strong>
         <span className="block sm:inline">
-          If you modify your paint preferences, then any
-          existing quotes will no longer be available.
+          If you modify your paint preferences, then your
+          existing quotes may not be valid.
         </span>
       </NotificationsInlineHighlight>
     );

@@ -109,6 +109,7 @@ export const useQuoteUpload = ({
         }));
         // Update the userImage document with the video URL
         const docId = sessionStorage.getItem('userImageId');
+        console.log(docId);
         if (docId) {
           await updateDoc(
             doc(firestore, 'userImages', docId),

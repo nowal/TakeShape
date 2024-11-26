@@ -149,7 +149,7 @@ export const useSignUp = (config: TConfig) => {
               ...(name && { name }),
               ...(phoneNumber && { phoneNumber }),
               userId: user.uid, // Ensure userId is set
-              video: existingData.video, // Preserve existing video URL
+              //video: existingData.video, // Preserve existing video URL
             });
           }
         }

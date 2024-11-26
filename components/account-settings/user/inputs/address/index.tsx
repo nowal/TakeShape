@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { TInputProps } from '@/types/dom/element';
 import { InputsText } from '@/components/inputs/text';
@@ -13,6 +13,12 @@ export const InputsAddress: FC<TProps> = (props) => {
     dispatchAddress,
   } = useAccountSettings();
   const addressValue = addressFormatted ?? address;
+
+  useEffect(() => { 
+    if(addressFormatted != null) {
+      dispatchAddress(addressFormatted);
+    }
+  }, [addressFormatted]);
 
   return (
     <div>
