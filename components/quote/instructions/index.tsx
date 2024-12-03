@@ -17,7 +17,7 @@ export const QuoteInstructions: FC = () => {
   };
 
   return (
-    <div className="relative flex flex-col px-9 py-5.5">
+    <div className="relative flex flex-col px-6 py-4">
       <h2 className="text-sm text-pink font-semibold">
         How to Record Your Video
       </h2>
