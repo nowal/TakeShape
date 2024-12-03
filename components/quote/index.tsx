@@ -6,24 +6,16 @@ import { ComponentsQuoteInput } from '@/components/quote/input';
 
 export const ComponentsQuote: FC = () => {
   return (
-    <div className="flex flex-col items-center gap-6 lg:gap-4 xl:gap-0">
+    <div className="flex flex-col items-center gap-6 lg:gap-4 xl:gap-4">
       <div className="flex flex-col items-center px-4 lg:px-0 gap-1 text-center">
         <h2 className="typography-page-title">
-          Get an Instant Painting Quote Today
+          View Instructions, Take Video, Receive Quotes
         </h2>
-        <h3 className="typography-page-subtitle">
-          Upload a Video, Receive a Quote Within Minutes
-        </h3>
+        {/*<h3 className="typography-page-subtitle">
+          We've made quoting simple, please view the instructions below
+        </h3>*/}
       </div>
-      <div className="flex flex-col items-center justify-center gap-[31px] mx-auto lg:flex-row">
-        <div
-          className={cx(
-            'hidden xl:flex',
-            'w-0 h-0 ',
-            'xs:w-[21rem]'
-          )}
-        />
-        <ComponentsQuoteInput />
+      <div className="flex flex-col items-center justify-center gap-[31px] mx-auto lg:flex-col">
         <div
           className={cx(
             'relative',
@@ -36,6 +28,14 @@ export const ComponentsQuote: FC = () => {
           <QuoteInstructionsBackground />
           <QuoteInstructions />
         </div>
+        <ComponentsQuoteInput /> {/* Moved ComponentsQuoteInput below */}
+        <div
+          className={cx(
+            'hidden xl:flex',
+            'w-0 h-0 ',
+            'xs:w-[21rem]'
+          )}
+        />
       </div>
     </div>
   );

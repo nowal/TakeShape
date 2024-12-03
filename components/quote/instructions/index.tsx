@@ -24,17 +24,18 @@ export const QuoteInstructions: FC = () => {
       <ul className="flex flex-col gap-3 mt-3.5">
         {(
           [
-            'Use the back camera. Hold the phone horizontally. Zoom out as far as possible.',
-            'Go around the edge of the room as best as possible with camera facing the center. Move camera up and down occasionally to capture ceilings and trim.',
-            'Walk through all areas that you would like painted, taking 15-30 seconds for each full room. You can exclude an area in your video from the quote in the next step.',
-            'Exclude unwanted areas in your video during the next step.',
+            'Use your back camera. Hold the phone horizontal. Zoom out as far as your camera will allow.',
+            'Walk around the edge of each room you want painted with the camera facing the center of the room. Move the camera up and down occasionally to capture the ceilings and trim.',
+            'Continue your video through all areas that you want painted. It should take around 30 seconds per room. You can specify any areas you want excluded later.',
           ] as const
         ).map((text, index) => (
           <li
             key={`text-${index}`}
             className="flex flex-row gap-2.5"
           >
-            <IconsTick />
+            <span className="text-xs font-open-sans font-semibold leading-[120%] text-pink"> {/* Apply the same styles as the text */}
+              {index + 1}. 
+            </span>
             <span className="text-xs font-open-sans leading-[120%]">
               {text}
             </span>
