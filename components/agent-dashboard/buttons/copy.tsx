@@ -11,7 +11,7 @@ export const AgentDashboardButtonsCopy: FC = () => {
   const { onGenerateInviteLink } = agentDashboard;
 
   const { isArmed, trigger } = useTimebomb(1000);
-  const inviteTitle = isArmed ? 'Copied' : 'Invite Link';
+  const inviteTitle = isArmed ? 'Copied' : 'Invite Client';
 
   const handleTap = async () => {
     try {

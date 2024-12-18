@@ -245,7 +245,7 @@ export const useAgentDashboardState = () => {
         // setSearchError('');
       } else {
         const message =
-          'Painter not found. Please input name and we will send them an invite.';
+          "This painter isn't on TakeShape yet. Enter their name below and we will send them an invite.";
         setSearchError(message);
         setError('');
         timeoutRef.timeoutRef.current = setTimeout(() => {

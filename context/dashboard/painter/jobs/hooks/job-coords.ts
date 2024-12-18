@@ -15,6 +15,8 @@ export const useJobCoords = () => {
       const coords = await handleAddressGeocode(
         jobData.address
       );
+      console.log("Got Stuff:")
+      console.log(coords);
       return coords;
     }
     return { lat, lng };

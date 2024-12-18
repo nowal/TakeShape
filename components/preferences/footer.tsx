@@ -25,7 +25,7 @@ export const PreferencesFooter: FC = () => {
         'flex flex-col items-center justify-between w-full gap-4 sm:flex-row sm:gap-0'
       )}
     >
-      <div
+      {/*<div
         onClick={onResubmit}
         className="flex flex-col items-end gap-4 xs:flex-row"
       >
@@ -38,7 +38,7 @@ export const PreferencesFooter: FC = () => {
         >
           {resubmitTitle}
         </CvaLink>
-      </div>
+      </div>*/}
       <CvaButton
         onTap={() =>
           onPreferenceSubmit('/dashboard', false)

@@ -8,7 +8,7 @@ export const AgentDashboardButtonsAdd: FC = () => {
   const agentDashboard = useAgentDashboard();
   const { onAddPainterStart, isAddingPainter } =
     agentDashboard;
-  const addTitle = 'Add New';
+  const addTitle = 'Add Painter';
 
   const isDisabled = isAddingPainter;
 

@@ -10,21 +10,21 @@ export const isMocks = () =>
 export const MOCKS_PRICES: TPrice[] = [
   {
     painterId: 'Thomas',
-    amount: 1200,
+    amount: 475,
     invoiceUrl: 'ID123123',
     timestamp: 123,
     accepted: false,
   },
   {
     painterId: 'Sam',
-    amount: 1300,
+    amount: 450,
     invoiceUrl: 'INV3412341',
     timestamp: 6456245624,
     accepted: true,
   },
   {
     painterId: 'Jonny',
-    amount: 1150,
+    amount: 525,
     invoiceUrl: 'INV34413',
     timestamp: 112323,
     accepted: false,

@@ -26,7 +26,7 @@ export const AgentDashboardSuccess: FC = () => {
         title={
           "Congratulations! We've successfully sent an invite to:"
         }
-        long="Thank you for helping us grow our community of local painters. We’ll notify you once they accept the invite and become available for instant quotes!"
+        long="Thank you for helping us grow our community of local painters. We’ll notify you once they accept the invite and become available for quotes!"
         footer={
           <AgentDashboardButtonsBack
             classValue="text-pink font-semibold"

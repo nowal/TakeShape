@@ -81,6 +81,11 @@ const DefaultPreferences: FC = () => {
               <PreferencesTrimFields />
               <PreferencesMoveFurniture />
             </div>
+            <div className="h-14" />
+            <TypographyFormSubtitle>
+              Special Requests
+            </TypographyFormSubtitle>
+            <div className="h-4" />
             <PreferencesSpecialRequest />
             <div className="h-10 sm:h-5" />
             <PreferencesFooter />

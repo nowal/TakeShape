@@ -56,13 +56,20 @@ export const usePainterJobsAvailable = () => {
           return;
         }
 
+        console.log("Painter Coords");
+        console.log(painterCoords);
+        console.log("Job Coords");
+        console.log(jobCoords);
+        console.log("Range");
+        console.log(painter.range);
+
         const isWithinRange = await handleWithinRangeCheck(
           painterCoords,
           jobCoords,
           painter.range
         );
 
-        if (isWithinRange) {
+        if (!isWithinRange) {
           console.error('Is not within range');
           return;
         }

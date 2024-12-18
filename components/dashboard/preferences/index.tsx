@@ -17,10 +17,12 @@ type TProps = TPropsWithChildren<
 >;
 export const DashboardPreferences: FC<TProps> = ({
   children,
-  ...paintPreferences
+  ...paintPreferencesUpper
 }) => {
+
+  console.log("Paint Preferences:", paintPreferencesUpper);
   const isLaborAndMaterials =
-    paintPreferences?.[
+    paintPreferencesUpper?.[
       PREFERENCES_NAME_BOOLEAN_LABOR_AND_MATERIAL
     ];
 
@@ -57,20 +59,20 @@ export const DashboardPreferences: FC<TProps> = ({
         items={[
           [
             'Color',
-            paintPreferences?.laborAndMaterial
-              ? paintPreferences?.color || 'N/A'
+            paintPreferencesUpper?.laborAndMaterial
+              ? paintPreferencesUpper.paintPreferences?.color || 'N/A'
               : 'N/A',
           ],
           [
             'Finish',
-            paintPreferences?.laborAndMaterial
-              ? paintPreferences?.finish || 'N/A'
+            paintPreferencesUpper?.laborAndMaterial
+              ? paintPreferencesUpper.paintPreferences?.finish || 'N/A'
               : 'N/A',
           ],
           [
             'Quality',
-            (paintPreferences?.laborAndMaterial
-              ? paintPreferences?.paintQuality || 'N/A'
+            (paintPreferencesUpper?.laborAndMaterial
+              ? paintPreferencesUpper.paintPreferences?.paintQuality || 'N/A'
               : 'N/A'
             )
               .replace('Quality', '')
@@ -78,43 +80,43 @@ export const DashboardPreferences: FC<TProps> = ({
           ],
         ]}
       />
-      {paintPreferences?.ceilings && (
+      {paintPreferencesUpper.paintPreferences?.ceilings && (
         <DashboardPainterJobPreferencesRow
           title="Ceilings"
           items={[
             [
               'Color',
-              paintPreferences?.ceilings &&
-              paintPreferences?.laborAndMaterial
-                ? paintPreferences?.ceilingColor || 'N/A'
+              paintPreferencesUpper.paintPreferences?.ceilings &&
+              paintPreferencesUpper?.laborAndMaterial
+                ? paintPreferencesUpper.paintPreferences?.ceilingColor || 'N/A'
                 : 'N/A',
             ],
             [
               'Finish',
-              paintPreferences?.ceilings &&
-              paintPreferences?.laborAndMaterial
-                ? paintPreferences?.ceilingFinish || 'N/A'
+              paintPreferencesUpper.paintPreferences?.ceilings &&
+              paintPreferencesUpper?.laborAndMaterial
+                ? paintPreferencesUpper.paintPreferences?.ceilingFinish || 'N/A'
                 : 'N/A',
             ],
           ]}
         />
       )}
-      {paintPreferences?.trim && (
+      {paintPreferencesUpper.paintPreferences?.trim && (
         <DashboardPainterJobPreferencesRow
           title="Trim and Doors"
           items={[
             [
               'Color',
-              paintPreferences?.trim &&
-              paintPreferences?.laborAndMaterial
-                ? paintPreferences?.trimColor || 'N/A'
+              paintPreferencesUpper.paintPreferences?.trim &&
+              paintPreferencesUpper?.laborAndMaterial
+                ? paintPreferencesUpper.paintPreferences?.trimColor || 'N/A'
                 : 'N/A',
             ],
             [
               'Finish',
-              paintPreferences?.trim &&
-              paintPreferences?.laborAndMaterial
-                ? paintPreferences?.trimFinish || 'N/A'
+              paintPreferencesUpper.paintPreferences?.trim &&
+              paintPreferencesUpper?.laborAndMaterial
+                ? paintPreferencesUpper.paintPreferences?.trimFinish || 'N/A'
                 : 'N/A',
             ],
           ]}
@@ -125,16 +127,16 @@ export const DashboardPreferences: FC<TProps> = ({
           Move Furniture
         </TypographyDetailsTitle>
         <TypographyDetailsPink classValue="font-semibold">
-          {paintPreferences.moveFurniture ? 'Yes' : 'No'}
+          {paintPreferencesUpper.moveFurniture ? 'Yes' : 'No'}
         </TypographyDetailsPink>
       </DashboardPainterJobPanel>
-      {paintPreferences.specialRequests && (
+      {paintPreferencesUpper.specialRequests && (
         <DashboardPainterJobPanel classValue="flex flex-col">
           <TypographyDetailsPink>
             Special Requests
           </TypographyDetailsPink>
           <TypographyDetailsTitle>
-            {paintPreferences.specialRequests}
+            {paintPreferencesUpper.specialRequests}
           </TypographyDetailsTitle>
         </DashboardPainterJobPanel>
       )}

@@ -16,7 +16,7 @@ export const AccountMenuIcon: FC = () => {
     return <IconsLoading classValue="size-6 text-white" />;
   if (profilePictureSrc)
     return (
-      <Image
+      <img  // Use the standard img tag
         src={profilePictureSrc}
         alt="Profile"
         className="size-12 object-cover rounded-full"
