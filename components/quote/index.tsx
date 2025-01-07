@@ -3,6 +3,7 @@ import { cx } from 'class-variance-authority';
 import { QuoteInstructions } from '@/components/quote/instructions';
 import { QuoteInstructionsBackground } from '@/components/quote/instructions/background';
 import { ComponentsQuoteInput } from '@/components/quote/input';
+import LiDARBanner from './LiDARBanner';
 
 export const ComponentsQuote: FC = () => {
   return (
@@ -15,6 +16,7 @@ export const ComponentsQuote: FC = () => {
           We've made quoting simple, please view the instructions below
         </h3>*/}
       </div>
+      <LiDARBanner />
       <div className="flex flex-col items-center justify-center gap-[31px] mx-auto lg:flex-col">
         <div
           className={cx(
