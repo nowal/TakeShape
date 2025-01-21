@@ -12,6 +12,7 @@ import { useQuoteFakeHandler } from '@/components/quote/fake/handler';
 import { useQuoteTitleFake } from '@/components/quote/fake/title';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
+import { PoseData } from '@/components/inputs/file/ARCapture';
 
 type TProps = { fixedTitle?: string };
 export const ComponentsQuoteInput: FC<TProps> = ({
@@ -35,8 +36,9 @@ export const ComponentsQuoteInput: FC<TProps> = ({
   const isError = uploadStatus === 'error';
   const isReady = Boolean(quoteTitle) && isString(fileName);
 
-  const handleUpload = (file: File) => {
+  const handleUpload = (file: File, poseData?: PoseData[]) => {
     onInit();
+    // Pass both file and pose data to onFileUpload
     onFileUpload(file);
   };
 

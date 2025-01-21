@@ -1,10 +1,9 @@
-// /app/appTest/page.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, Timestamp } from 'firebase/firestore';
 import app from '@/lib/firebase';
-import { Send } from 'lucide-react';
+import { MessageCircle, X, Send } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -14,7 +13,8 @@ type Message = {
 
 const DEFAULT_PAINTER_ID = 'Zqq2sQOPV9bDLYm7PBgH';
 
-const AppTest: React.FC = () => {
+const FloatingChat: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -98,6 +98,7 @@ const AppTest: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Include the quoting schema in the API request
       const response = await fetch('/api/anthropic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,62 +131,74 @@ const AppTest: React.FC = () => {
     }
   };
 
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-16 right-16 p-4 bg-pink text-white rounded-full shadow-lg hover:bg-pink-1 transition-colors"
+      >
+        <MessageCircle size={24} />
+      </button>
+    );
+  }
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-xl flex flex-col h-[80vh]">
-        {/* Chat Header */}
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-semibold">Get a Painting Quote</h2>
-        </div>
+    <div className="fixed bottom-16 right-16 w-96 bg-white rounded-lg shadow-xl flex flex-col max-h-[45vh]">
+      <div className="flex justify-between items-center p-4 border-b">
+        <h2 className="text-lg font-semibold">Get a Painting Quote</h2>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((msg, index) => (
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
-              key={index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`max-w-[80%] p-3 rounded-lg ${
+                msg.role === 'user'
+                  ? 'bg-pink text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
             >
-              <div
-                className={`max-w-[80%] p-4 rounded-lg ${
-                  msg.role === 'user'
-                    ? 'bg-pink text-white'
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {msg.content}
-              </div>
+              {msg.content}
             </div>
-          ))}
-          {isLoading && (
-            <div className="text-gray-500 italic">Typing...</div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="p-6 border-t">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-1 p-3 border rounded-full"
-              placeholder="Type your message..."
-              disabled={isLoading}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={isLoading || !userInput.trim()}
-              className="p-3 bg-pink text-white rounded-full hover:bg-pink-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send size={24} />
-            </button>
           </div>
+        ))}
+        {isLoading && (
+          <div className="text-gray-500 italic">Typing...</div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="p-4 border-t">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            className="flex-1 p-2 border rounded-full"
+            placeholder="Type a message..."
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={isLoading || !userInput.trim()}
+            className="p-2 bg-pink text-white rounded-full hover:bg-pink-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send size={20} />
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-export default AppTest;
+export default FloatingChat;
