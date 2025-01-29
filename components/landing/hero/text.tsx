@@ -21,14 +21,14 @@ export const LandingHeroText: FC = () => {
       <div className="relative flex flex-col px-10 text-left pb-16 lg:pb-0">
         <h2 className="typography-landing-hero-title--responsive">
           <AnimationFadeUp delay={0.5}>
-            Love your walls with video painting quotes
+            One video for no more salesmen in your home, ever
           </AnimationFadeUp>
         </h2>
         <div className="h-5" />
         <AnimationFadeUp delay={0.75}>
           <p className="text-xl">
-            Take one video of your space and get quotes from
-            local painters. Avoid in-home estimates and bring your vision to life.
+            It takes 5 minutes to walk through your house.
+            Thats's it to never speak with a salesman ever again.
           </p>
         </AnimationFadeUp>
         <div className="h-7" />

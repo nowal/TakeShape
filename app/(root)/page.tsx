@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import { cx } from 'class-variance-authority';
 import { LandingFaq } from '@/components/landing/faq';
