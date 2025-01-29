@@ -50,8 +50,8 @@ const PointCloudViewer: React.FC<PointCloudViewerProps> = ({ pointcloud, confide
       const geometry = new THREE.BufferGeometry();
       
       // Convert point cloud to flat array
-      let vertices: number[] = [];
-      let colors: number[] = [];
+      const vertices: number[] = [];
+      const colors: number[] = [];
 
       // Process the 224x224x3 point cloud data
       for (let i = 0; i < pointcloud[0].length; i++) {
