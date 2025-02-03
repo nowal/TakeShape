@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+
 'use client';
 
 import { useState } from 'react';
