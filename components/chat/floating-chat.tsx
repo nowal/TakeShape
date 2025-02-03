@@ -1,4 +1,4 @@
-'use client';
+/*'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, Timestamp } from 'firebase/firestore';
@@ -202,3 +202,4 @@ const FloatingChat: React.FC = () => {
 };
 
 export default FloatingChat;
+*/

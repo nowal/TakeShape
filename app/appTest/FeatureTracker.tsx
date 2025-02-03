@@ -9,10 +9,26 @@ declare global {
   }
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 interface FeatureTrackerProps {
   onStartRecording?: () => void;
   onStopRecording?: () => void;
 }
+
+const distance = (p1: Point, p2: Point): number => {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+  };
+  
+  const findNearestNeighbors = (point: Point, points: Point[], maxConnections: number = 3, maxDistance: number = 100): Point[] => {
+    return points
+      .filter(p => p !== point && distance(point, p) < maxDistance)
+      .sort((a, b) => distance(point, a) - distance(point, b))
+      .slice(0, maxConnections);
+  };
 
 const FeatureTracker: React.FC<FeatureTrackerProps> = ({
   onStartRecording,
@@ -27,6 +43,7 @@ const FeatureTracker: React.FC<FeatureTrackerProps> = ({
   const processingFrame = useRef(false);
   const frameCount = useRef(0);
   const animationFrameId = useRef<number | null>(null);
+  const trackedPoints = useRef<Point[]>([]);
 
   useEffect(() => {
     const setupCamera = async () => {
@@ -44,19 +61,16 @@ const FeatureTracker: React.FC<FeatureTrackerProps> = ({
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           
-          // Wait for video metadata to load
           const video = videoRef.current;
           video.onloadedmetadata = () => {
             console.log('Video metadata loaded');
             setDebugInfo('Video metadata loaded');
             
-            // Set canvas size to match video
             if (canvasRef.current && video) {
               const tracks = stream.getVideoTracks();
               const settings = tracks[0].getSettings();
               console.log('Video settings:', settings);
               
-              // Use actual video dimensions from stream
               canvasRef.current.width = settings.width || 1280;
               canvasRef.current.height = settings.height || 720;
               console.log(`Canvas size set to ${canvasRef.current.width}x${canvasRef.current.height}`);
@@ -81,7 +95,6 @@ const FeatureTracker: React.FC<FeatureTrackerProps> = ({
     }
 
     return () => {
-      // Cleanup on unmount
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
@@ -89,138 +102,134 @@ const FeatureTracker: React.FC<FeatureTrackerProps> = ({
   }, [cvLoaded]);
 
   const processVideo = () => {
-    console.log('Processing video frame...');
-    
-    // Check each condition separately
     if (!isRecordingRef.current) {
-      console.log('Not recording, skipping frame');
-      setDebugInfo('Skipping frame - not recording');
-      return;
-    }
-    if (!videoRef.current) {
-      console.log('No video element');
-      setDebugInfo('Skipping frame - no video element');
-      return;
-    }
-    if (!canvasRef.current) {
-      console.log('No canvas element');
-      setDebugInfo('Skipping frame - no canvas element');
-      return;
-    }
-    if (!window.cv) {
-      console.log('OpenCV not loaded');
-      setDebugInfo('Skipping frame - OpenCV not loaded');
+      setDebugInfo('Not recording');
       return;
     }
     
-    // Additional checks for video readiness
-    if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
-      console.log('Video dimensions not ready');
-      setDebugInfo('Skipping frame - video dimensions not ready');
+    if (!videoRef.current || !canvasRef.current || !window.cv) {
+      animationFrameId.current = requestAnimationFrame(processVideo);
       return;
     }
     
-    if (videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
-      console.log('Waiting for video data');
-      setDebugInfo('Skipping frame - waiting for video data');
-      return;
-    }
-
     if (processingFrame.current) {
-      console.log('Still processing previous frame');
       animationFrameId.current = requestAnimationFrame(processVideo);
       return;
     }
 
     processingFrame.current = true;
     frameCount.current += 1;
-    console.log('Processing frame:', frameCount.current);
 
     try {
-      const cv = window.cv;
-      
-      // Null check for videoRef
-      if (!videoRef.current) throw new Error('Video element not available');
-      
-      // Get the actual video dimensions
-      const videoWidth = videoRef.current.videoWidth;
-      const videoHeight = videoRef.current.videoHeight;
-      
-      console.log(`Processing frame with dimensions: ${videoWidth}x${videoHeight}`);
-      
-      // Create source and output matrices with correct dimensions
-      const src = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
-      const dst = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
-
-      // Get video frame data
-      const canvasContext = canvasRef.current?.getContext('2d');
-      if (!canvasContext) throw new Error('Could not get canvas context');
-      
-      // Draw the current video frame to the canvas
-      canvasContext.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
-      
-      // Get the frame data from the canvas
-      const imageData = canvasContext.getImageData(0, 0, videoWidth, videoHeight);
-      src.data.set(imageData.data);
-
-      // Convert to grayscale
-      cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-
-      // Find features
-      const corners = new cv.Mat();
-      const maxCorners = 50;
-      const qualityLevel = 0.01;
-      const minDistance = 10;
-      const none = new cv.Mat();
-
-      cv.goodFeaturesToTrack(
-        dst,
-        corners,
-        maxCorners,
-        qualityLevel,
-        minDistance,
-        none
-      );
-
-      // Clear canvas
-      canvasContext.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
-
-      // Draw feature points
-      for (let i = 0; i < corners.rows; i++) {
-        const x = corners.data32F[i * 2];
-        const y = corners.data32F[i * 2 + 1];
-
-        canvasContext.beginPath();
-        canvasContext.arc(x, y, 3, 0, 2 * Math.PI);
-        canvasContext.fillStyle = 'red';
-        canvasContext.fill();
+        const cv = window.cv;
+        if (!videoRef.current) throw new Error('Video element not available');
+        
+        const videoWidth = videoRef.current.videoWidth;
+        const videoHeight = videoRef.current.videoHeight;
+        
+        // Create matrices
+        const src = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
+        const dst = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
+  
+        const canvasContext = canvasRef.current?.getContext('2d');
+        if (!canvasContext) throw new Error('Could not get canvas context');
+        
+        // Draw current frame
+        canvasContext.drawImage(videoRef.current, 0, 0);
+        const imageData = canvasContext.getImageData(0, 0, videoWidth, videoHeight);
+        src.data.set(imageData.data);
+        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+  
+        // Find features
+        const corners = new cv.Mat();
+        const maxCorners = 100;
+        const qualityLevel = 0.01;
+        const minDistance = 30;
+        const mask = new cv.Mat();
+        const blockSize = 3;
+        const useHarrisDetector = false;
+        const k = 0.04;
+  
+        cv.goodFeaturesToTrack(
+          dst,
+          corners,
+          maxCorners,
+          qualityLevel,
+          minDistance,
+          mask,
+          blockSize,
+          useHarrisDetector,
+          k
+        );
+  
+        // Convert corners to points
+        const points: Point[] = [];
+        for (let i = 0; i < corners.rows; i++) {
+          points.push({
+            x: corners.data32F[i * 2],
+            y: corners.data32F[i * 2 + 1]
+          });
+        }
+  
+        // Clear canvas and draw video frame with reduced opacity
+        canvasContext.clearRect(0, 0, videoWidth, videoHeight);
+        canvasContext.globalAlpha = 0.7;
+        canvasContext.drawImage(videoRef.current, 0, 0);
+        canvasContext.globalAlpha = 1.0;
+  
+        // Draw connections between points
+        canvasContext.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+        canvasContext.lineWidth = 1;
+  
+        points.forEach(point => {
+          const neighbors = findNearestNeighbors(point, points);
+          
+          neighbors.forEach(neighbor => {
+            // Draw line
+            canvasContext.beginPath();
+            canvasContext.moveTo(point.x, point.y);
+            canvasContext.lineTo(neighbor.x, neighbor.y);
+            canvasContext.stroke();
+  
+            // Draw small circle at intersection
+            canvasContext.beginPath();
+            canvasContext.arc(neighbor.x, neighbor.y, 2, 0, 2 * Math.PI);
+            canvasContext.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            canvasContext.fill();
+          });
+  
+          // Draw feature points
+          canvasContext.beginPath();
+          canvasContext.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+          canvasContext.fillStyle = 'red';
+          canvasContext.fill();
+        });
+  
+        setDebugInfo(`Features: ${points.length}, Frame: ${frameCount.current}`);
+  
+        // Cleanup OpenCV objects
+        src.delete();
+        dst.delete();
+        corners.delete();
+        mask.delete();
+      } catch (err: unknown) {
+        console.error('Error processing frame:', err);
+        setDebugInfo(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
-
-      console.log(`Found ${corners.rows} features`);
-      setDebugInfo(`Processing frame ${frameCount.current}, found ${corners.rows} features`);
-
-      // Cleanup
-      src.delete();
-      dst.delete();
-      corners.delete();
-      none.delete();
-    } catch (err: unknown) {
-      console.error('Error processing frame:', err);
-      setDebugInfo(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-
-    processingFrame.current = false;
-    animationFrameId.current = requestAnimationFrame(processVideo);
-  };
+  
+      processingFrame.current = false;
+      animationFrameId.current = requestAnimationFrame(processVideo);
+    };
 
   const handleStartRecording = () => {
     console.log('Starting recording...');
     isRecordingRef.current = true;
     setIsRecording(true);
     frameCount.current = 0;
+    trackedPoints.current = [];
     setDebugInfo('Started recording');
     onStartRecording?.();
-    animationFrameId.current = requestAnimationFrame(processVideo);
+    requestAnimationFrame(processVideo);
   };
 
   const handleStopRecording = () => {

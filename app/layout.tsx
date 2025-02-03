@@ -1,4 +1,3 @@
-// /app/layout.tsx
 import type { Metadata } from 'next';
 import { ShellHeader } from '@/components/shell/header';
 import { ShellFooter } from '@/components/shell/footer';
@@ -13,7 +12,6 @@ import { ShellChildren } from '@/components/shell/children';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
-import dynamic from 'next/dynamic';
 
 import '../css/inputs.css';
 import '../css/reset.css';
@@ -23,23 +21,22 @@ import '../css/notifications.css';
 import 'react-toastify/dist/ReactToastify.min.css';
 import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 
-// Dynamically import the FloatingChat component to prevent SSR issues
-const FloatingChat = dynamic(() => import('@/components/chat/floating-chat'), {
-  ssr: false
-});
-
 export const metadata: Metadata = {
   title: 'TakeShape',
   description: 'Your home, your style, your terms',
 };
-
 type TProps = Readonly<{
   children: ReactNode;
 }>;
-
 export default function RootLayout({ children }: TProps) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="module"
+          src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+        />
+      </head>
       <CssGlobal />
       <Provider>
         <body className="font-montserrat">
@@ -53,7 +50,6 @@ export default function RootLayout({ children }: TProps) {
                 <Suspense fallback={<FallbacksLogoFill />}>
                   <SignInModal />
                 </Suspense>
-                <FloatingChat />
               </ContextProviders>
             </MotionConfig>
             <LibsToastify />
@@ -76,6 +72,7 @@ export default function RootLayout({ children }: TProps) {
             `}
           </Script>
           <noscript>
+            {/* eslint-disable @next/next/no-img-element */}
             <img
               height="1"
               width="1"
