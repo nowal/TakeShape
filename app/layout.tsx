@@ -31,12 +31,6 @@ type TProps = Readonly<{
 export default function RootLayout({ children }: TProps) {
   return (
     <html lang="en">
-      <head>
-        <script
-          type="module"
-          src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-        />
-      </head>
       <CssGlobal />
       <Provider>
         <body className="font-montserrat">
@@ -54,6 +48,12 @@ export default function RootLayout({ children }: TProps) {
             </MotionConfig>
             <LibsToastify />
           </div>
+          <Script
+            type="module"
+            src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+            id="model-viewer"
+            strategy="afterInteractive"
+          />
           <Script
             id="facebook-pixel"
             strategy="afterInteractive"

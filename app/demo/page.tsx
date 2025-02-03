@@ -95,10 +95,10 @@ export default function MastPage() {
   return (
     <div className="container mx-auto p-4">
       <div className="mb-8 text-gray-700">
-        Hi! This is a demo of the 3D modeling tech I'm working on.
+        Hi! This is a demo of the 3D modeling tech I&apos;m working on.
         You can upload a video of your home interior or exterior. Max zoom recommended.
-        It can do full exterior or interior that isn't too tight. Hallways are mean.
-        I'm using a sparse view construction model called Mast3r and tweaking it to get a whole house modeled.
+        It can do full exterior or interior that isn&apos;t too tight. Hallways are mean.
+        I&apos;m using a sparse view construction model called Mast3r and tweaking it to get a whole house modeled.
         This demo is more optimized for speed than full reconstruction. Wait about 3 minutes for it to process.
       </div>
       
