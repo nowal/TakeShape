@@ -65,27 +65,57 @@ export default function MastPage() {
 
   const handleUpload = async () => {
     if (!video) return;
-
+  
     try {
       setIsProcessing(true);
       setErrorMessage(null);
-
+  
+      console.log('Extracting frames...');
       const frames = await extractFrames(video);
+      console.log(`Extracted ${frames.length} frames`);
+  
       const formData = new FormData();
-      frames.forEach((frame) => {
+      frames.forEach((frame, index) => {
         formData.append('images', frame);
+        console.log(`Added frame ${index + 1}/${frames.length}`);
       });
-
-      const response = await fetch('http://104.171.203.98:8000/process', {
+  
+      console.log('Sending request to server...');
+      const response = await fetch('https://api.dwelldone.io/process', {
         method: 'POST',
         body: formData,
+        // Remove credentials since we're not using sessions
+        headers: {
+          'Accept': 'application/json',
+        },
       });
-
-      if (!response.ok) throw new Error('Processing failed');
-
-      const data = await response.json();
-      setModelUrl(`http://104.171.203.98:8000${data.model_url}`);
-
+  
+      if (!response.ok) {
+        console.error('Server response:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
+        throw new Error(`Processing failed: ${response.statusText}`);
+      }
+  
+      console.log('Starting to read response...');
+      const reader = response.body?.getReader();
+      const chunks = [];
+      
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+      }
+      
+      const blob = new Blob(chunks);
+      const text = await blob.text();
+      const data = JSON.parse(text);
+      
+      console.log('Server response:', data);
+      setModelUrl(`https://api.dwelldone.io${data.model_url}`);
+  
     } catch (error) {
       console.error('Error:', error);
       setErrorMessage(error instanceof Error ? error.message : 'An error occurred');
