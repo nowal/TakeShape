@@ -243,99 +243,148 @@ export default function RoomScanner() {
     try {
       console.log('Initializing camera with environment facing mode and widest possible view');
       
-      // Request the widest field of view possible
-      // Use type assertion to handle non-standard properties
-      const constraints = {
+      // First, enumerate all video devices to find the back cameras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      console.log('Available video devices:', videoDevices.map(d => ({
+        deviceId: d.deviceId,
+        groupId: d.groupId,
+        label: d.label || 'Unlabeled Camera'
+      })));
+      
+      // Start with strict constraints to force back camera
+      const strictConstraints = {
         video: {
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-          // Note: zoom is not in the standard MediaTrackConstraints type
-          // We'll handle it after getting the stream
+          facingMode: { exact: 'environment' }, // Force back camera
+          width: { ideal: 4032 }, // Request maximum width
+          height: { ideal: 3024 }, // Request maximum height
         }
       } as MediaStreamConstraints;
       
-      console.log('Requesting camera access with constraints:', constraints);
+      console.log('Attempting to access back camera with strict constraints:', strictConstraints);
       
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
-      console.log('Camera access granted, setting up video stream');
-      
-      if (cameraFeedRef.current) {
-        cameraFeedRef.current.srcObject = stream;
-      }
-      
-      // Try to set the camera to the widest field of view
       try {
+        // First try with strict constraints
+        const stream = await navigator.mediaDevices.getUserMedia(strictConstraints);
+        console.log('Successfully accessed back camera with strict constraints');
+        
+        if (cameraFeedRef.current) {
+          cameraFeedRef.current.srcObject = stream;
+        }
+        
+        // Try to set the zoom to minimum (widest view)
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
-          console.log('Attempting to set camera to widest field of view');
+          console.log('Video track info:', {
+            label: videoTrack.label,
+            id: videoTrack.id,
+            kind: videoTrack.kind,
+            enabled: videoTrack.enabled,
+            muted: videoTrack.muted,
+          });
           
-          // Check if the camera supports zoom
+          // Log detailed capabilities
           if ('getCapabilities' in videoTrack) {
             const capabilities = videoTrack.getCapabilities();
             console.log('Camera capabilities:', capabilities);
             
             // If zoom is supported, set it to the minimum value (widest field of view)
-            // Use type assertion to handle the zoom property that might not be in the type definition
             const capabilitiesAny = capabilities as any;
             if (capabilitiesAny.zoom) {
               console.log(`Setting zoom to minimum value: ${capabilitiesAny.zoom.min}`);
-              // Use type assertion to handle non-standard properties
-              await videoTrack.applyConstraints({
-                advanced: [{ zoom: capabilitiesAny.zoom.min } as any]
-              } as MediaTrackConstraints);
+              
+              try {
+                // Use type assertion to handle non-standard properties
+                await videoTrack.applyConstraints({
+                  advanced: [{ zoom: capabilitiesAny.zoom.min } as any]
+                } as MediaTrackConstraints);
+                
+                console.log('Successfully set minimum zoom');
+              } catch (zoomError) {
+                console.error('Error setting zoom:', zoomError);
+              }
+            } else {
+              console.log('Camera does not support zoom capability');
             }
             
-            // Try to find and use the ultra-wide camera if available (for newer iPhones)
-            navigator.mediaDevices.enumerateDevices()
-              .then(devices => {
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                console.log('Available video devices:', videoDevices);
+            // If we have a wide-angle camera option, try to use it
+            if (capabilitiesAny.facingMode && 
+                Array.isArray(capabilitiesAny.facingMode) && 
+                capabilitiesAny.facingMode.includes('environment-ultra-wide')) {
+              console.log('Ultra-wide back camera detected, attempting to use it');
+              
+              try {
+                await videoTrack.applyConstraints({
+                  facingMode: 'environment-ultra-wide'
+                } as MediaTrackConstraints);
                 
-                if (videoDevices.length > 1) {
-                  console.log('Multiple cameras detected, attempting to use ultra-wide camera');
-                  // On iPhones, the ultra-wide camera is usually the first in the list
-                  // This is experimental and may not work on all devices
-                  navigator.mediaDevices.getUserMedia({
-                    video: {
-                      deviceId: { exact: videoDevices[0].deviceId },
-                      facingMode: 'environment'
-                    }
-                  }).then(wideStream => {
-                    console.log('Successfully switched to ultra-wide camera');
-                    if (cameraFeedRef.current) {
-                      cameraFeedRef.current.srcObject = wideStream;
-                      
-                      // Update the stream in state
-                      setState(prevState => ({
-                        ...prevState,
-                        stream: wideStream
-                      }));
-                    }
-                  }).catch(err => {
-                    console.log('Could not access ultra-wide camera:', err);
-                  });
-                }
-              })
-              .catch(err => {
-                console.log('Error enumerating devices:', err);
-              });
+                console.log('Successfully switched to ultra-wide camera');
+              } catch (ultraWideError) {
+                console.error('Error switching to ultra-wide camera:', ultraWideError);
+              }
+            }
+          } else {
+            console.log('getCapabilities not supported on this device/browser');
           }
         }
-      } catch (zoomError) {
-        console.log('Error setting camera zoom:', zoomError);
-        // Continue with default camera settings if zoom setting fails
-      }
-      
-      setState(prevState => {
-        return {
+        
+        // Update state with the stream
+        setState(prevState => ({
           ...prevState,
           stream
-        };
-      });
+        }));
+        
+        console.log('Camera initialized successfully with back camera');
+        return; // Exit early since we successfully got the back camera
+      } catch (strictError) {
+        console.warn('Failed to access camera with strict constraints:', strictError);
+        console.log('Falling back to less strict constraints...');
+      }
       
-      console.log('Camera initialized successfully');
+      // Fallback to less strict constraints if the above fails
+      const fallbackConstraints = {
+        video: {
+          facingMode: 'environment', // Prefer back camera but don't require it
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      } as MediaStreamConstraints;
+      
+      console.log('Requesting camera access with fallback constraints:', fallbackConstraints);
+      
+      const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+      console.log('Camera access granted with fallback constraints');
+      
+      if (cameraFeedRef.current) {
+        cameraFeedRef.current.srcObject = fallbackStream;
+      }
+      
+      // Update state with the fallback stream
+      setState(prevState => ({
+        ...prevState,
+        stream: fallbackStream
+      }));
+      
+      console.log('Camera initialized with fallback settings');
+      
+      // Try to identify if we got a back camera or front camera
+      const videoTrack = fallbackStream.getVideoTracks()[0];
+      if (videoTrack) {
+        console.log('Using camera:', videoTrack.label);
+        // Most devices include "back" or "rear" in the label for back cameras
+        const isLikelyBackCamera = videoTrack.label.toLowerCase().includes('back') || 
+                                  videoTrack.label.toLowerCase().includes('rear') ||
+                                  !videoTrack.label.toLowerCase().includes('front');
+        
+        console.log(`Camera appears to be a ${isLikelyBackCamera ? 'back' : 'front'} camera based on label`);
+        
+        if (!isLikelyBackCamera) {
+          console.warn('WARNING: May be using front camera instead of back camera');
+          // Show a warning to the user
+          alert('Warning: Your device may be using the front camera. For best results, please use the back camera.');
+        }
+      }
     } catch (error) {
       // Type guard for Error objects
       const err = error instanceof Error ? error : new Error(String(error));
@@ -347,7 +396,7 @@ export default function RoomScanner() {
       });
       
       // Show a more detailed error message
-      alert(`Unable to access camera: ${err.message}. Please ensure camera permissions are granted.`);
+      alert(`Unable to access camera: ${err.message}. Please ensure camera permissions are granted and try again.`);
       
       // Switch to room list view if camera fails
       setState(prevState => ({
