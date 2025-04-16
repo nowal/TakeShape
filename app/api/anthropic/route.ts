@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     // Check if session exists, create if it doesn't
-    let session = await getSession(sessionId);
+    const session = await getSession(sessionId);
     if (!session) {
       await createSession(sessionId);
     }

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     
     // Check if session exists, create if it doesn't
     console.log('Checking if session exists in Firestore...');
-    let session = await getSession(sessionId);
+    const session = await getSession(sessionId);
     if (!session) {
       console.log('Session not found, creating new session...');
       await createSession(sessionId);

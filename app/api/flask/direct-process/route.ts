@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      let errorBody = await response.text(); // Try to get error text
+      const errorBody = await response.text(); // Try to get error text
       console.error(`Flask backend returned error: ${response.status}. Body: ${errorBody}`);
       // Try to parse as JSON, but default to text if it fails
       let errorJson = {};

@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // Check if session exists (keep your existing logic)
     console.log('Checking if session exists in Firestore...');
-    let session = await getSession(sessionId);
+    const session = await getSession(sessionId);
     if (!session) {
       console.log('Session not found, creating new session...');
       await createSession(sessionId);
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      let errorBody = await response.text(); // Try to get error text
+      const errorBody = await response.text(); // Try to get error text
       console.error(`Flask backend returned error: ${response.status}. Body: ${errorBody}`);
       // Try to parse as JSON, but default to text if it fails
       let errorJson = {};

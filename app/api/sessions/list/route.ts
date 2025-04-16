@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore, collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import firebaseApp from '@/lib/firebase';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Initialize Firestore
 const db = getFirestore(firebaseApp);
 

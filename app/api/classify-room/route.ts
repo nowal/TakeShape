@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     // Check if the request is multipart/form-data or JSON
     const contentType = req.headers.get('content-type') || '';
     
-    let imageBuffers: Buffer[] = [];
+    const imageBuffers: Buffer[] = [];
     let sessionId: string = '';
     
     if (contentType.includes('multipart/form-data')) {

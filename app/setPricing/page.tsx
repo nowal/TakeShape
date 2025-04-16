@@ -353,7 +353,7 @@ export default function SetPricingPage() {
           <div className="border-t border-gray-200 pt-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Pricing Rules</h2>
             <p className="text-gray-600 mb-4">
-              Add rules to adjust pricing based on specific conditions. For example, "If the room has a tray ceiling, add $150 to the quote."
+              Add rules to adjust pricing based on specific conditions. For example, &quot;If the room has a tray ceiling, add $150 to the quote.&quot;
             </p>
             
             <div className="mb-6">
@@ -398,7 +398,7 @@ export default function SetPricingPage() {
                   {rules.map((rule) => (
                     <div key={rule.id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
                       <div>
-                        <p className="text-gray-800">If {rule.condition}, add ${rule.amount.toFixed(2)} to the quote</p>
+                        <p className="text-gray-800">If {rule.condition}, add ${rule.amount.toFixed(2)} to the quote&quot;</p>
                       </div>
                       <button
                         onClick={() => removeRule(rule.id)}
