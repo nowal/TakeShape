@@ -241,15 +241,19 @@ export default function RoomScanner() {
   // Initialize camera
   const initCamera = async () => {
     try {
-      console.log('Initializing camera with environment facing mode');
+      console.log('Initializing camera with environment facing mode and widest possible view');
       
+      // Request the widest field of view possible
+      // Use type assertion to handle non-standard properties
       const constraints = {
         video: {
           facingMode: 'environment',
           width: { ideal: 1280 },
           height: { ideal: 720 }
+          // Note: zoom is not in the standard MediaTrackConstraints type
+          // We'll handle it after getting the stream
         }
-      };
+      } as MediaStreamConstraints;
       
       console.log('Requesting camera access with constraints:', constraints);
       
@@ -259,6 +263,69 @@ export default function RoomScanner() {
       
       if (cameraFeedRef.current) {
         cameraFeedRef.current.srcObject = stream;
+      }
+      
+      // Try to set the camera to the widest field of view
+      try {
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          console.log('Attempting to set camera to widest field of view');
+          
+          // Check if the camera supports zoom
+          if ('getCapabilities' in videoTrack) {
+            const capabilities = videoTrack.getCapabilities();
+            console.log('Camera capabilities:', capabilities);
+            
+            // If zoom is supported, set it to the minimum value (widest field of view)
+            // Use type assertion to handle the zoom property that might not be in the type definition
+            const capabilitiesAny = capabilities as any;
+            if (capabilitiesAny.zoom) {
+              console.log(`Setting zoom to minimum value: ${capabilitiesAny.zoom.min}`);
+              // Use type assertion to handle non-standard properties
+              await videoTrack.applyConstraints({
+                advanced: [{ zoom: capabilitiesAny.zoom.min } as any]
+              } as MediaTrackConstraints);
+            }
+            
+            // Try to find and use the ultra-wide camera if available (for newer iPhones)
+            navigator.mediaDevices.enumerateDevices()
+              .then(devices => {
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                console.log('Available video devices:', videoDevices);
+                
+                if (videoDevices.length > 1) {
+                  console.log('Multiple cameras detected, attempting to use ultra-wide camera');
+                  // On iPhones, the ultra-wide camera is usually the first in the list
+                  // This is experimental and may not work on all devices
+                  navigator.mediaDevices.getUserMedia({
+                    video: {
+                      deviceId: { exact: videoDevices[0].deviceId },
+                      facingMode: 'environment'
+                    }
+                  }).then(wideStream => {
+                    console.log('Successfully switched to ultra-wide camera');
+                    if (cameraFeedRef.current) {
+                      cameraFeedRef.current.srcObject = wideStream;
+                      
+                      // Update the stream in state
+                      setState(prevState => ({
+                        ...prevState,
+                        stream: wideStream
+                      }));
+                    }
+                  }).catch(err => {
+                    console.log('Could not access ultra-wide camera:', err);
+                  });
+                }
+              })
+              .catch(err => {
+                console.log('Error enumerating devices:', err);
+              });
+          }
+        }
+      } catch (zoomError) {
+        console.log('Error setting camera zoom:', zoomError);
+        // Continue with default camera settings if zoom setting fails
       }
       
       setState(prevState => {
@@ -532,87 +599,251 @@ export default function RoomScanner() {
         });
       });
       
-      console.log('Sending images for direct processing', {
-        endpoint: `${API_BASE_URL}/direct-process`,
-        imageCount: pendingImages.length,
-        sessionId,
-        roomId: newRoomId,
-        formDataEntries: Array.from(formData.entries()).map(([key]) => key)
+      // Create a separate FormData for Claude classification
+      const classifyFormData = new FormData();
+      classifyFormData.append('sessionId', sessionId);
+      classifyFormData.append('roomId', newRoomId);
+      
+      // Add images to the classify form data (limit to 4 for Claude)
+      const imagesToClassify = pendingImages.slice(0, 4);
+      imagesToClassify.forEach((blob, index) => {
+        const filename = `image_${Date.now()}_${index}.jpg`;
+        classifyFormData.append(`image${index}`, blob, filename);
       });
       
-      // Set a timeout to detect if the request is taking too long
-      const timeoutId = setTimeout(() => {
-        console.warn('Direct process request is taking longer than expected (30s)');
-      }, 30000);
+      console.log('Starting concurrent processing:');
+      console.log('1. Sending images to Claude for classification');
+      console.log('2. Sending images to Flask for 3D reconstruction');
       
-      // Send all images for direct processing
-      const response = await fetch(`${API_BASE_URL}/direct-process`, {
-        method: 'POST',
-        body: formData,
-        // Don't set Content-Type header manually, let the browser set it with the boundary
-        headers: {
-          // Add a custom header to help with debugging
-          'X-Client-Info': 'TakeShape-Demo-App'
-        }
-      }).catch(err => {
-        console.error('Fetch operation failed:', {
-          message: err.message,
-          name: err.name,
-          stack: err.stack
-        });
-        throw err;
-      });
-      
-      // Clear the timeout
-      clearTimeout(timeoutId);
-      
-      console.log('Received response from server:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        ok: response.ok
-      });
-      
-      if (!response.ok) {
-        // Try to get more details from the error response
-        let errorDetails = '';
-        try {
-          const errorData = await response.json();
-          errorDetails = JSON.stringify(errorData);
-          console.error('Error response body:', errorData);
-        } catch (e) {
-          // If we can't parse JSON, try to get text
-          try {
-            errorDetails = await response.text();
-            console.error('Error response text:', errorDetails);
-          } catch (e2) {
-            console.error('Could not read error response body');
+      // Run both processes concurrently
+      const [classifyPromise, flaskPromise] = [
+        // 1. Claude Classification
+        fetch('/api/classify-room', {
+          method: 'POST',
+          body: classifyFormData
+        }).then(async response => {
+          if (!response.ok) {
+            console.warn('Room classification failed:', response.status, response.statusText);
+            return { success: false, roomType: null };
           }
+          
+          const data = await response.json();
+          console.log('Classification result:', data);
+          
+          if (data.roomType) {
+            // Update room name immediately
+            console.log(`Room classified as: ${data.roomType}`);
+            
+            // Update the room name in Firestore
+            const updateNameResponse = await fetch('/api/rooms/update-name', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                sessionId,
+                roomId: newRoomId,
+                name: data.roomType
+              })
+            });
+            
+            if (updateNameResponse.ok) {
+              console.log('Room name updated successfully');
+              
+              // Update local state with the new name
+              setState(prevState => ({
+                ...prevState,
+                rooms: {
+                  ...prevState.rooms,
+                  [newRoomId]: {
+                    ...prevState.rooms[newRoomId],
+                    name: data.roomType
+                  }
+                }
+              }));
+              
+              return { success: true, roomType: data.roomType };
+            } else {
+              console.warn('Failed to update room name:', await updateNameResponse.text());
+              return { success: false, roomType: data.roomType };
+            }
+          }
+          
+          return { success: false, roomType: null };
+        }).catch(error => {
+          console.error('Error during room classification:', error);
+          return { success: false, error };
+        }),
+        
+        // 2. Flask 3D Reconstruction
+        fetch(`${API_BASE_URL}/direct-process`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Client-Info': 'TakeShape-Demo-App'
+          }
+        }).then(async response => {
+          if (!response.ok) {
+            // Try to get more details from the error response
+            let errorDetails = '';
+            try {
+              const errorData = await response.json();
+              errorDetails = JSON.stringify(errorData);
+            } catch (e) {
+              try {
+                errorDetails = await response.text();
+              } catch (e2) {
+                errorDetails = 'Could not read error response';
+              }
+            }
+            
+            return { 
+              success: false, 
+              status: response.status, 
+              details: errorDetails 
+            };
+          }
+          
+          // Parse the response JSON
+          try {
+            const data = await response.json();
+            console.log('3D reconstruction response:', data);
+            
+            if (!data.modelPath) {
+              return { 
+                success: false, 
+                error: 'Missing modelPath in response' 
+              };
+            }
+            
+            return { success: true, data };
+          } catch (jsonError) {
+            const error = jsonError as Error;
+            return { 
+              success: false, 
+              error: 'Invalid JSON response', 
+              details: error.message 
+            };
+          }
+        }).catch(error => {
+          return { 
+            success: false, 
+            error: error.message, 
+            name: error.name 
+          };
+        })
+      ];
+      
+      // Wait for both processes to complete
+      const [classifyResult, flaskResult] = await Promise.allSettled([
+        classifyPromise,
+        flaskPromise
+      ]);
+      
+      console.log('Concurrent processing results:');
+      console.log('Classification:', classifyResult);
+      console.log('3D Reconstruction:', flaskResult);
+      
+      // Handle 3D reconstruction result
+      if (flaskResult.status === 'fulfilled' && flaskResult.value.success) {
+        // Type guard to check if data property exists
+        if ('data' in flaskResult.value) {
+          const data = flaskResult.value.data;
+          
+          // Reload rooms from Firestore to get the latest data
+          await loadRooms();
+          
+          // Load the 3D model
+          loadModel(newRoomId, data.modelPath);
+          
+          // Update the room in Firestore with the processed flag
+          await fetch('/api/rooms/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              sessionId,
+              roomId: newRoomId,
+              processed: true,
+              model_path: data.modelPath
+            })
+          });
+          
+          // Update local state
+          setState(prevState => ({
+            ...prevState,
+            rooms: {
+              ...prevState.rooms,
+              [newRoomId]: {
+                ...prevState.rooms[newRoomId],
+                processed: true,
+                model_path: data.modelPath
+              }
+            }
+          }));
+        } else {
+          console.error('Missing data in successful response');
+        }
+      } else if (flaskResult.status === 'fulfilled') {
+        // Flask request completed but with an error
+        let errorMessage = 'Unknown error';
+        
+        // Type guard to check if details property exists
+        if ('details' in flaskResult.value && flaskResult.value.details) {
+          errorMessage = String(flaskResult.value.details);
+        } else if ('error' in flaskResult.value && flaskResult.value.error) {
+          errorMessage = String(flaskResult.value.error);
         }
         
-        throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorDetails}`);
+        console.error('3D reconstruction failed:', errorMessage);
+        
+        // Show a more user-friendly error message
+        const errorDisplay = document.createElement('div');
+        errorDisplay.className = 'error-message';
+        errorDisplay.innerHTML = `
+          <p>Error processing 3D model</p>
+          <p class="error-details">${errorMessage}</p>
+          <button class="retry-button">Retry</button>
+        `;
+        
+        if (modelViewerRef.current) {
+          modelViewerRef.current.innerHTML = '';
+          modelViewerRef.current.appendChild(errorDisplay);
+          
+          // Add retry button functionality
+          const retryButton = errorDisplay.querySelector('.retry-button');
+          if (retryButton) {
+            retryButton.addEventListener('click', () => {
+              // Retry the 3D reconstruction
+              processRoom(newRoomId);
+            });
+          }
+        }
+      } else {
+        // Flask promise rejected
+        console.error('3D reconstruction request failed:', flaskResult.reason);
+        
+        // Show error in UI
+        if (modelViewerRef.current) {
+          modelViewerRef.current.innerHTML = `
+            <div class="error">
+              <p>Failed to process 3D model</p>
+              <p class="error-details">${flaskResult.reason?.message || 'Network error'}</p>
+              <button class="retry-button">Retry</button>
+            </div>
+          `;
+          
+          // Add retry button functionality
+          const retryButton = modelViewerRef.current.querySelector('.retry-button');
+          if (retryButton) {
+            retryButton.addEventListener('click', () => {
+              // Retry the 3D reconstruction
+              processRoom(newRoomId);
+            });
+          }
+        }
       }
-      
-      // Parse the response JSON
-      let data;
-      try {
-        data = await response.json();
-        console.log('Direct process response:', data);
-      } catch (jsonError) {
-        console.error('Failed to parse response JSON:', jsonError);
-        throw new Error('Invalid response format from server');
-      }
-      
-      if (!data.modelPath) {
-        console.error('Response missing modelPath:', data);
-        throw new Error('Server response missing modelPath');
-      }
-      
-      // Reload rooms from Firestore to get the updated room name
-      await loadRooms();
-      
-      // Load the model
-      loadModel(newRoomId, data.modelPath);
       
       // Clear the polling interval
       if (state.pollingInterval) {
@@ -719,8 +950,27 @@ export default function RoomScanner() {
         stack: err.stack
       });
       
-      // Show a more detailed error message
-      alert(`Failed to upload and process images: ${err.message}. Check the console for more details.`);
+      // Show a more detailed error message with mobile-friendly display
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'error-message-overlay';
+      errorMessage.innerHTML = `
+        <div class="error-content">
+          <h3>Error Processing Images</h3>
+          <p>${err.message}</p>
+          <p class="error-details">${err.name}: ${err.stack ? err.stack.split('\n')[0] : 'Unknown error'}</p>
+          <button class="error-close">Close</button>
+        </div>
+      `;
+      
+      document.body.appendChild(errorMessage);
+      
+      // Add close button functionality
+      const closeButton = errorMessage.querySelector('.error-close');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          document.body.removeChild(errorMessage);
+        });
+      }
       
       // Hide loading indicator
       if (loadingIndicatorRef.current) {

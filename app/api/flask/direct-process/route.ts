@@ -18,7 +18,7 @@ const HOUSES_COLLECTION = 'houses';
 const FLASK_BACKEND_URL = 'http://150.136.43.145:8080';
 
 // Function to make a fetch request with timeout
-const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 60000) => { // 60 second timeout
+const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 180000) => { // 180 second timeout (3 minutes)
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   
@@ -41,7 +41,7 @@ const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 600
 };
 
 // Retry logic for failed requests
-const fetchWithRetry = async (url: string, options: RequestInit, retries = 2, timeout = 60000) => {
+const fetchWithRetry = async (url: string, options: RequestInit, retries = 2, timeout = 180000) => { // 180 second timeout (3 minutes)
   let lastError;
   
   for (let i = 0; i <= retries; i++) {
