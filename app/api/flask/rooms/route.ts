@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession, createSession, getSessionRooms, updateRoomName } from '@/utils/firestore/session';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // The Flask backend URL - this should be an environment variable in production
 const FLASK_BACKEND_URL = 'http://150.136.43.145:8080';
 

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ROOM_TYPES, isValidRoomType, DEFAULT_ROOM_NAME } from '@/constants/rooms';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -135,11 +139,3 @@ Rules:
     );
   }
 }
-
-// Configure the API route
-export const config = {
-  api: {
-    bodyParser: false, // Essential for handling FormData correctly
-    responseLimit: '50mb', // Ensure this is large enough
-  },
-};

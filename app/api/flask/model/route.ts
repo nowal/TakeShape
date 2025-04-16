@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // The Flask backend URL - this should be an environment variable in production
 const FLASK_BACKEND_URL = 'http://150.136.43.145:8080';
 
@@ -65,10 +69,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-// Configure the API route to handle large responses
-export const config = {
-  api: {
-    responseLimit: '50mb',
-  },
-};

@@ -3,6 +3,10 @@ import { getSession, createSession, updateSessionRoom, getSessionRooms } from '@
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import firebaseApp from '@/lib/firebase';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Initialize Firestore
 const db = getFirestore(firebaseApp);
 
@@ -403,10 +407,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Configure the API route to handle large responses
-export const config = {
-  api: {
-    responseLimit: '50mb',
-  },
-};

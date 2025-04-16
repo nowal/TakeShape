@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateSessionRoom, getSession } from '@/utils/firestore/session';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const { sessionId, roomId, name } = await request.json();

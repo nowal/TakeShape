@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession, createSession, updateSessionRoom, getSessionRooms } from '@/utils/firestore/session';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // The Flask backend URL - this should be an environment variable in production
 const FLASK_BACKEND_URL = 'http://150.136.43.145:8080';
 
@@ -211,11 +215,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Configure the API route to handle large file uploads
-export const config = {
-  api: {
-    bodyParser: false,
-    responseLimit: '50mb',
-  },
-};

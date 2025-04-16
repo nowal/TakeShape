@@ -4,6 +4,10 @@ import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/fires
 import firebaseApp from '@/lib/firebase';
 import { getFallbackRoomName } from '@/constants/rooms';
 
+// Route segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Initialize Firestore
 const db = getFirestore(firebaseApp);
 
@@ -321,11 +325,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Configure the API route
-export const config = {
-  api: {
-    bodyParser: false, // Essential for handling FormData correctly
-    responseLimit: '50mb', // Ensure this is large enough
-  },
-};
