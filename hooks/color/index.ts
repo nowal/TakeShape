@@ -88,7 +88,6 @@ export const usePreferencesStateColor = () => {
         console.error('Error fetching paint brands:', err);
       } finally {
         setIsLoadingBrands(false); // Ensure it turns off
-        console.log(paintBrands);
       }
     };
   

@@ -8,6 +8,7 @@ import { DashboardProvider } from '@/context/dashboard/provider';
 import { PainterRegisterProvider } from '@/context/painter/register/provider';
 import { PreferencesProvider } from '@/context/preferences/provider';
 import { QuoteProvider } from '@/context/quote/provider';
+import { SessionProvider } from '@/context/session/provider';
 import { ViewportProvider } from '@/context/viewport';
 import { TChildrenProps } from '@/types/dom';
 import { arrToNest } from '@/utils/transform/arr-to-nest';
@@ -21,6 +22,7 @@ export const ContextProviders: FC<TProps> = ({
   const children = useMemo(() => {
     return arrToNest<PropsWithChildren>(
       [
+        SessionProvider, // Add SessionProvider first so it's available to all other providers
         AgentDashboardProvider,
         AgentRegisterProvider,
         PainterRegisterProvider,

@@ -84,6 +84,7 @@ export const usePainterRegisterState = () => {
         logoUrl,
         phoneNumber,
         userId: user.uid, // Link the painter data to the user ID
+        sessions: [], // Initialize empty sessions array for storing lead session IDs
       };
 
       const firestore = getFirestore();

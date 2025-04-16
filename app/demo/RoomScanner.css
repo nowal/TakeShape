@@ -1,0 +1,565 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.room-scanner-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px); /* Adjust for header and footer */
+    width: 100%;
+    padding: 20px 0;
+}
+
+.app-container {
+    width: 375px; /* iPhone standard width */
+    height: 667px; /* iPhone standard height */
+    background-color: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.view {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform 0.3s ease-in-out;
+}
+
+.hidden {
+    transform: translateX(100%);
+}
+
+/* Camera View Styles */
+.camera-view {
+    display: flex;
+    flex-direction: column;
+    background-color: #000;
+}
+
+.camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    color: white;
+    z-index: 10;
+}
+
+.image-counter {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.chevron-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.camera-viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.camera-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camera-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Camera Flash Animation */
+.camera-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.flash-animation {
+    animation: flash 0.3s ease-out;
+}
+
+@keyframes flash {
+    0% { opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
+
+.camera-controls {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.capture-button {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.capture-button-inner {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Room List View Styles */
+.room-list-view {
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f8f8;
+}
+
+.room-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.room-list-header h2 {
+    font-size: 18px;
+    color: #333;
+}
+
+.submit-button-header {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.room-list-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 33%; /* Take up top 1/3 of the screen */
+}
+
+.room-list {
+    list-style: none;
+}
+
+.room-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.room-item:hover {
+    background-color: #f5f5f5;
+}
+
+.room-item.active {
+    border-left: 4px solid #007aff;
+    background-color: #f0f8ff;
+}
+
+.room-item.classifying {
+    background-color: #f9f9f9;
+    border-left: 4px solid #ffc107; /* Yellow for classifying state */
+}
+
+.classifying-label {
+    display: flex;
+    align-items: center;
+    font-style: italic;
+    color: #666;
+}
+
+.classifying-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #007aff;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+
+.room-name {
+    margin-bottom: 8px;
+}
+
+.room-name input {
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    background: transparent;
+    width: 100%;
+    padding: 5px 0;
+}
+
+.room-name input:focus {
+    outline: none;
+    border-bottom: 2px solid #007aff;
+}
+
+.room-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #666;
+}
+
+.processed-badge {
+    background-color: #4caf50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.expand-button {
+    background: none;
+    border: none;
+    color: #007aff;
+    cursor: pointer;
+}
+
+.model-viewer-container {
+    position: relative;
+    height: 67%; /* Take up bottom 2/3 of the screen */
+    background-color: #eee;
+}
+
+.model-viewer {
+    width: 100%;
+    height: 100%;
+}
+
+.loading-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+    color: white;
+    z-index: 10;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+}
+
+/* Styles for model loading message */
+.loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #000;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #ffdddd;
+    color: #d32f2f;
+    padding: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.no-model {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #f5f5f5;
+    color: #666;
+    font-size: 16px;
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 15px;
+}
+
+.loading-subtitle {
+    font-size: 14px;
+    margin-top: 8px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.camera-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #007aff;
+    border: none;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.camera-button-middle {
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.camera-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.processing-indicator {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.submit-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #4caf50; /* Green color for submit */
+    border: none;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Quote View Styles */
+.quote-view {
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f8f8;
+    padding: 20px;
+}
+
+.quote-header {
+    margin-bottom: 20px;
+}
+
+.quote-header h2 {
+    font-size: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.quote-items {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.quote-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quote-item-description {
+    font-size: 16px;
+    color: #333;
+}
+
+.quote-item-amount {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.quote-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #007aff;
+    color: white;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.quote-total-label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.quote-total-amount {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.accept-quote-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0 auto;
+    display: block;
+    width: 200px;
+}
+
+/* Expanded Room Item */
+.room-item.expanded {
+    background-color: #f0f8ff;
+}
+
+.room-item.active {
+    border-left: 4px solid #007aff;
+}
+
+/* Instructions Modal */
+.instructions-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    color: white;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.instructions-content {
+    margin-top: 40px;
+}
+
+.instructions-content h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+.instructions-content ol {
+    padding-left: 20px;
+}
+
+.instructions-content li {
+    margin-bottom: 10px;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 375px) {
+    .app-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+}
+
+@media (min-width: 768px) {
+    /* For desktop, keep the iPhone size as requested */
+    .app-container {
+        width: 375px;
+        height: 667px;
+    }
+}
