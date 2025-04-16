@@ -46,9 +46,9 @@ app.secret_key = os.urandom(24)
 # Enable CORS for all routes, but specifically allow the Next.js domain
 # Replace 'https://your-nextjs-domain.com' with your actual Next.js app URL when deployed
 CORS(app, resources={r"/api/*": {
-    "origins": ["http://localhost:3000", "https://your-nextjs-domain.com"],
+    "origins": ["http://localhost:3000", "https://localhost:3000", "https://www.takeshapehome.com", "https://takeshapehome.com"],
     "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    "allow_headers": ["Content-Type", "Authorization"],
+    "allow_headers": ["Content-Type", "Authorization", "X-Client-Info"],
     "supports_credentials": False  # Set to True only if you need to send cookies
 }})
 
@@ -545,4 +545,5 @@ def process_images():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    # Use port 443 for HTTPS
+    app.run(host='0.0.0.0', port=443, debug=True, ssl_context='adhoc')

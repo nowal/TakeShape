@@ -15,7 +15,7 @@ const db = getFirestore(firebaseApp);
 const HOUSES_COLLECTION = 'houses';
 
 // The Flask backend URL - this should be an environment variable in production
-const FLASK_BACKEND_URL = 'http://150.136.43.145:8080';
+const FLASK_BACKEND_URL = 'https://150.136.43.145:443';
 
 // Function to make a fetch request with timeout
 const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 180000) => { // 180 second timeout (3 minutes)
