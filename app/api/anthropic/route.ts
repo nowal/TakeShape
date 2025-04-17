@@ -9,6 +9,10 @@ import {
   ChatMessage 
 } from '@/utils/firestore/session';
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED to '0' to ignore certificate validation
+// This is a global setting and should be used with caution
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ROOM_TYPES, isValidRoomType, DEFAULT_ROOM_NAME } from '@/constants/rooms';
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED to '0' to ignore certificate validation
+// This is a global setting and should be used with caution
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Route segment config
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

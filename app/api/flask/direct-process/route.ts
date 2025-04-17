@@ -17,6 +17,10 @@ const HOUSES_COLLECTION = 'houses';
 // The Flask backend URL - this should be an environment variable in production
 const FLASK_BACKEND_URL = 'https://150.136.43.145:443';
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED to '0' to ignore certificate validation
+// This is a global setting and should be used with caution
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Function to make a fetch request with timeout
 const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 180000) => { // 180 second timeout (3 minutes)
   const controller = new AbortController();
