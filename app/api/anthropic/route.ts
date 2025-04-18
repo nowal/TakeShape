@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     let sessionId = '';
     let context = '';
     let roomId = '';
-    let imageBuffers: Buffer[] = [];
+    const imageBuffers: Buffer[] = [];
     
     if (contentType.includes('multipart/form-data')) {
       // Handle form data with image files
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     }));
 
     // Create the user message content
-    let userMessageContent: any[] = [
+    const userMessageContent: any[] = [
       {
         type: 'text',
         text: message

@@ -1677,7 +1677,7 @@ export default function RoomScanner() {
             className="submit-button-header" 
             onClick={generateQuote}
           >
-            Submit Quote
+            Submit
           </button>
         </div>
         <div className="model-viewer-container">

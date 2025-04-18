@@ -251,7 +251,7 @@ body {
     font-weight: 500;
     color: #333;
     background: transparent;
-    width: 100%;
+    width: 50%; /* Changed from 100% to 50% to take up only half the space */
     padding: 5px 0;
 }
 
@@ -265,10 +265,12 @@ body {
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 10px 15px; /* Increased padding to match dropdown height */
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
+    height: 40px; /* Match the height of the dropdown */
+    margin-left: 15px; /* Add margin between dropdown and button */
 }
 
 .model-viewer-container {
