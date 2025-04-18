@@ -18,12 +18,20 @@ export interface Room {
   processed?: boolean;
 }
 
+// AddOn interface
+export interface AddOn {
+  name: string;
+  price: number;
+  roomId: string;
+}
+
 // House interface
 export interface House {
   id?: string;
   address: string;
   homeownerId: string;
   rooms: Room[];
+  addOns?: AddOn[];
   createdAt: Date | Timestamp;
   updatedAt: Date | Timestamp;
 }
@@ -311,6 +319,48 @@ export const setRoomModelPath = async (houseId: string, roomId: string, modelPat
     return updatedHouse.rooms[roomIndex];
   } catch (error) {
     console.error('Error setting room model path:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add an add-on to a house
+ * @param houseId The house ID
+ * @param addOn The add-on to add
+ * @returns The updated house data
+ */
+export const addAddOnToHouse = async (houseId: string, addOn: AddOn) => {
+  try {
+    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
+    const houseSnap = await getDoc(houseRef);
+    
+    if (!houseSnap.exists()) {
+      throw new Error('House not found');
+    }
+    
+    const house = houseSnap.data() as House;
+    
+    // Initialize addOns array if it doesn't exist
+    const currentAddOns = house.addOns || [];
+    
+    // Add the new add-on
+    const updatedAddOns = [...currentAddOns, addOn];
+    
+    // Update the house
+    await updateDoc(houseRef, {
+      addOns: updatedAddOns,
+      updatedAt: new Date()
+    });
+    
+    // Return the updated house
+    return {
+      id: houseId,
+      ...house,
+      addOns: updatedAddOns,
+      updatedAt: new Date()
+    } as House;
+  } catch (error) {
+    console.error('Error adding add-on to house:', error);
     throw error;
   }
 };

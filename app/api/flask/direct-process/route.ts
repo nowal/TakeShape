@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, createSession, updateSessionRoom } from '@/utils/firestore/session';
+import { getSession, createSession, updateSessionRoom, getRoom } from '@/utils/firestore/session';
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import firebaseApp from '@/lib/firebase';
 import { getFallbackRoomName } from '@/constants/rooms';
+import { uploadFiles } from '@/utils/firestore/storage';
 
 // Route segment config
 export const dynamic = 'force-dynamic';
@@ -114,71 +115,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least 2 images are required' }, { status: 400 });
     }
 
-    // Get the number of rooms to determine a fallback room name
-    const roomCount = sessionData?.rooms ? Object.keys(sessionData.rooms).length : 0;
-    const fallbackRoomName = `Room ${roomCount + 1}`;
-    
-    // Classify the room using Claude
-    let classifiedRoomName = roomName;
-    
-    try {
-      console.log('Classifying room based on images...');
-      
-      // Create a new FormData for the classify-room endpoint
-      const classifyFormData = new FormData();
-      classifyFormData.append('sessionId', sessionId);
-      
-      // Add the image files to the FormData
-      for (let i = 0; i < imageFiles.length; i++) {
-        classifyFormData.append(`image${i}`, imageFiles[i]);
-      }
-      
-      // Call the classify-room endpoint
-      const classifyResponse = await fetch(`${request.nextUrl.origin}/api/classify-room`, {
-        method: 'POST',
-        body: classifyFormData
-      });
-      
-      if (classifyResponse.ok) {
-        const classifyData = await classifyResponse.json();
-        if (classifyData.roomType) {
-          classifiedRoomName = classifyData.roomType;
-          console.log(`Room classified as: ${classifiedRoomName}`);
-          
-          // Update the room name immediately in Firestore
-          console.log(`Updating room name to "${classifiedRoomName}" immediately`);
-          const updateNameResponse = await fetch(`${request.nextUrl.origin}/api/rooms/update-name`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              sessionId,
-              roomId,
-              name: classifiedRoomName
-            })
-          });
-          
-          if (updateNameResponse.ok) {
-            console.log('Room name updated successfully');
-          } else {
-            console.warn('Failed to update room name immediately:', await updateNameResponse.text());
-          }
-        } else {
-          console.log('Room classification did not return a room type, using fallback name');
-          classifiedRoomName = fallbackRoomName;
-        }
-      } else {
-        console.warn('Room classification failed, using fallback name');
-        classifiedRoomName = fallbackRoomName;
-      }
-    } catch (error) {
-      console.error('Error classifying room:', error);
-      console.log('Using fallback room name due to classification error');
-      classifiedRoomName = fallbackRoomName;
-    }
-    
-    console.log(`Using room name: ${classifiedRoomName}`);
+    // We'll use the room name provided from the frontend
+    // The frontend is already handling room classification with Claude
+    console.log(`Using provided room name: ${roomName}`);
     
     // 6. Create a NEW FormData object for the Flask request
     const flaskFormData = new FormData();
@@ -236,15 +175,53 @@ export async function POST(request: NextRequest) {
       
       console.log(`Updating Firestore for session ${sessionId}, room ${roomId}...`);
       
-      // Update the room in Firestore with the model path and classified room name
-      await updateSessionRoom(sessionId, roomId, {
-        name: classifiedRoomName, // Use the classified room name
-        model_path: data.modelPath,
-        processed: true,
-        created_at: Date.now(),
-      });
+      // Upload images to Firebase Storage
+      console.log('Uploading images to Firebase Storage...');
+      const storageBasePath = `rooms/${sessionId}/${roomId}/images`;
       
-      console.log(`Updated room ${roomId} with model path ${data.modelPath} and name "${classifiedRoomName}"`);
+      try {
+        // Upload all images to Firebase Storage
+        const imageUrls = await uploadFiles(imageFiles, storageBasePath);
+        console.log(`Successfully uploaded ${imageUrls.length} images to Firebase Storage`);
+        
+        // Get the current room data to preserve the name
+        const currentRoom = await getRoom(sessionId, roomId);
+        // Use the existing name if available, otherwise fall back to the provided name
+        const preservedName = currentRoom?.name || roomName;
+        
+        console.log(`Preserving existing room name: "${preservedName}" instead of "${roomName}"`);
+        
+        // Update the room in Firestore with the model path and image URLs, but preserve the existing name
+        await updateSessionRoom(sessionId, roomId, {
+          name: preservedName, // Use the existing name instead of "Classifying..."
+          model_path: data.modelPath,
+          processed: true,
+          created_at: Date.now(),
+          images: imageUrls, // Store image URLs for later use with add-on detection
+        });
+        
+        console.log(`Updated room ${roomId} with model path ${data.modelPath} and preserved name "${preservedName}"`);
+        console.log(`Stored ${imageUrls.length} image URLs with the room`);
+      } catch (storageError) {
+        console.error('Error uploading images to Firebase Storage:', storageError);
+        
+        // Get the current room data to preserve the name, even in error case
+        const currentRoom = await getRoom(sessionId, roomId);
+        // Use the existing name if available, otherwise fall back to the provided name
+        const preservedName = currentRoom?.name || roomName;
+        
+        console.log(`Preserving existing room name in error case: "${preservedName}" instead of "${roomName}"`);
+        
+        // Even if storage upload fails, still update the room with the model path
+        await updateSessionRoom(sessionId, roomId, {
+          name: preservedName, // Use the existing name instead of "Classifying..."
+          model_path: data.modelPath,
+          processed: true,
+          created_at: Date.now()
+        });
+        
+        console.log(`Updated room ${roomId} with model path ${data.modelPath} and preserved name "${preservedName}" (without images)`);
+      }
       
       // Get the session to check for house ID
       const session = await getSession(sessionId);

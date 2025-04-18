@@ -13,10 +13,13 @@ declare global {
 export interface Room {
   id: string;
   name: string;
-  images: string[];
+  sessionId: string;
+  images?: string[];
   model_path?: string | null;
-  created_at: number;
+  created_at?: number | Date | string;
+  updated_at?: number | Date | string;
   processed?: boolean;
+  [key: string]: any; // Allow for additional properties
 }
 
 // Define QuoteItem interface
@@ -24,6 +27,14 @@ export interface QuoteItem {
   description: string;
   amount: number;
   roomId?: string;
+}
+
+// Define AddOnConfirmation interface
+export interface AddOnConfirmation {
+  name: string;
+  price: number;
+  roomId: string;
+  explanation: string;
 }
 
 // Define RoomState interface
@@ -43,6 +54,12 @@ export interface RoomState {
   analyzingAddOnsForRooms: string[]; // Array of room IDs being analyzed for add-ons
   quoteItems: QuoteItem[]; // Array of all quote line items
   totalQuoteAmount: number; // Total quote amount
+  temporaryRooms: Record<string, Room>; // Rooms that exist in UI only before Firestore creation
+  classifyingRooms: string[]; // Array of room IDs that are being classified
+  classifiedRoomNames: Record<string, string>; // Store the classified names for rooms to prevent overwriting
+  dropdownOpen?: boolean; // Whether the room dropdown is open
+  currentAddOnConfirmation: AddOnConfirmation | null; // Current add-on being confirmed
+  pendingAddOnConfirmations: AddOnConfirmation[]; // Queue of add-ons waiting for confirmation
 }
 
 // Define ThreeRef interface for THREE.js objects

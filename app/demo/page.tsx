@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, FC } from 'react';
-import { Room, RoomState, ThreeRef, QuoteItem } from './types';
+import { Room, RoomState, ThreeRef, QuoteItem, AddOnConfirmation as AddOnConfirmationType } from './types';
 import { useSession } from '@/context/session/provider';
 import Chat from '@/components/chat';
 import HomeownerIntake from '@/components/demo/homeowner-intake';
+import AddOnConfirmation from '@/components/demo/addon-confirmation';
 import { getPainter, Painter } from '@/utils/firestore/painter';
 import { getPricingSheetByProviderId, PricingSheet } from '@/utils/firestore/pricingSheet';
+import { addAddOnToHouse } from '@/utils/firestore/house';
 import './RoomScanner.css';
+import { uploadFiles } from '@/utils/firestore/storage';
 
 // Use the Next.js API proxy routes instead of directly accessing the Flask backend
 const API_BASE_URL = '/api/flask';
@@ -72,7 +75,13 @@ export default function RoomScanner() {
     addOns: [], // Array to store identified add-ons
     analyzingAddOnsForRooms: [], // Array of room IDs being analyzed for add-ons
     quoteItems: [], // Array of all quote line items
-    totalQuoteAmount: 0 // Total quote amount
+    totalQuoteAmount: 0, // Total quote amount
+    temporaryRooms: {}, // Rooms that exist in UI only before Firestore creation
+    classifyingRooms: [], // Array of room IDs that are being classified
+    classifiedRoomNames: {}, // Store the classified names for rooms to prevent overwriting
+    dropdownOpen: false, // Whether the room dropdown is open
+    currentAddOnConfirmation: null, // Current add-on being confirmed
+    pendingAddOnConfirmations: [] // Queue of add-ons waiting for confirmation
   });
 
   // Refs for DOM elements
@@ -132,11 +141,14 @@ export default function RoomScanner() {
   
   // Helper function to check if any room is being processed
   const isProcessingAnyRoom = () => {
-    return (
+    /*return (
       state.processingRoom !== null || // 3D model still processing
-      Object.values(state.rooms).some(room => room.name === 'Classifying...') || // Room still classifying
+      Object.values(state.rooms).some(room => room.name === 'Classifying...') || // Room still classifying in Firestore
+      Object.values(state.temporaryRooms).length > 0 || // Any temporary rooms (which are all "Classifying...")
+      state.classifyingRooms.length > 0 || // Rooms being classified
       state.analyzingAddOnsForRooms.length > 0 // Add-on analysis in progress
-    );
+    );*/
+    return false;
   };
 
   // Initialize the application
@@ -431,11 +443,37 @@ export default function RoomScanner() {
         roomCount: data.rooms ? Object.keys(data.rooms).length : 0
       });
       
-      // Update state with server data
-      setState(prevState => ({
-        ...prevState,
-        rooms: data.rooms || {}
-      }));
+      // Update state with server data, but preserve classified names
+      setState(prevState => {
+        // Get the rooms from the server
+        const serverRooms = data.rooms || {};
+        
+        // Create a new rooms object that preserves classified names
+        const updatedRooms: Record<string, Room> = {};
+        
+        // Process each room from the server
+        Object.entries(serverRooms).forEach(([roomId, serverRoom]) => {
+          const room = serverRoom as Room;
+          
+          // Check if we have a classified name for this room
+          if (roomId in prevState.classifiedRoomNames) {
+            // Use the classified name instead of the server name
+            updatedRooms[roomId] = {
+              ...room,
+              name: prevState.classifiedRoomNames[roomId]
+            };
+            console.log(`Using classified name for room ${roomId}: ${prevState.classifiedRoomNames[roomId]}`);
+          } else {
+            // Use the server name
+            updatedRooms[roomId] = room;
+          }
+        });
+        
+        return {
+          ...prevState,
+          rooms: updatedRooms
+        };
+      });
     } catch (error) {
       // Type guard for Error objects
       const err = error instanceof Error ? error : new Error(String(error));
@@ -600,22 +638,24 @@ export default function RoomScanner() {
       
       console.log(`Created new room with ID: ${newRoomId}, name: ${roomName}`);
       
-      // Create a temporary room entry with a temporary name
-      // This will be visible while the 3D model is being processed and room is being classified
+      // Create a temporary room entry in local state only
+      // This will be visible in the UI while the room is being classified
       setState(prevState => ({
         ...prevState,
-        rooms: {
-          ...prevState.rooms,
+        temporaryRooms: {
+          ...prevState.temporaryRooms,
           [newRoomId]: {
             id: newRoomId,
             name: roomName,
+            sessionId: sessionId,
             images: [],
             created_at: Date.now(),
             processed: false
           }
         },
         activeRoom: newRoomId,
-        processingRoom: newRoomId
+        processingRoom: newRoomId,
+        classifyingRooms: [...prevState.classifyingRooms, newRoomId]
       }));
       
       // Start polling for room name updates
@@ -680,11 +720,28 @@ export default function RoomScanner() {
           console.log('Classification result:', data);
           
           if (data.roomType) {
-            // Update room name immediately
+            // Classification complete - now create the room in Firestore with the correct name
             console.log(`Room classified as: ${data.roomType}`);
             
-            // Update the room name in Firestore
-            const updateNameResponse = await fetch('/api/rooms/update-name', {
+            // Store the classified name in state to prevent it from being overwritten
+            setState(prevState => ({
+              ...prevState,
+              classifiedRoomNames: {
+                ...prevState.classifiedRoomNames,
+                [newRoomId]: data.roomType
+              }
+            }));
+            
+            // Upload images to Firebase Storage
+            console.log('Uploading images to Firebase Storage');
+            const storageBasePath = `rooms/${sessionId}/${newRoomId}`;
+            const imageUrls = await uploadFiles(pendingImages, storageBasePath);
+            console.log(`Uploaded ${imageUrls.length} images to Firebase Storage:`, imageUrls);
+            
+            console.log(`Converted ${imageUrls.length} images to data URLs`);
+            
+            // Use the dedicated create endpoint instead of update
+            const createRoomResponse = await fetch('/api/rooms/create', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -692,28 +749,50 @@ export default function RoomScanner() {
               body: JSON.stringify({
                 sessionId,
                 roomId: newRoomId,
-                name: data.roomType
+                name: data.roomType,
+                created_at: Date.now(),
+                images: imageUrls // Include the image data URLs
               })
             });
             
-            if (updateNameResponse.ok) {
-              console.log('Room name updated successfully');
+            if (createRoomResponse.ok) {
+              console.log('Room created in Firestore with classified name');
               
-              // Update local state with the new name
-              setState(prevState => ({
-                ...prevState,
-                rooms: {
-                  ...prevState.rooms,
-                  [newRoomId]: {
-                    ...prevState.rooms[newRoomId],
-                    name: data.roomType
-                  }
-                }
-              }));
+              // Get the created room data from the response
+              const createdRoomData = await createRoomResponse.json();
+              console.log('Created room data:', createdRoomData);
+              
+              // Update local state - add to rooms and remove from temporaryRooms
+              setState(prevState => {
+                // Create a copy of temporaryRooms without the current room
+                const { [newRoomId]: _, ...remainingTempRooms } = prevState.temporaryRooms;
+                
+                return {
+                  ...prevState,
+                  // Add to real rooms with the classified name
+                  rooms: {
+                    ...prevState.rooms,
+                    [newRoomId]: createdRoomData.room || {
+                      id: newRoomId,
+                      name: data.roomType,
+                      sessionId: sessionId,
+                      images: [],
+                      created_at: Date.now()
+                    }
+                  },
+                  // Remove from temporary rooms
+                  temporaryRooms: remainingTempRooms,
+                  // Remove from classifying rooms
+                  classifyingRooms: prevState.classifyingRooms.filter(id => id !== newRoomId)
+                };
+              });
+              
+              // Reload rooms from Firestore to ensure we have the latest data
+              await loadRooms();
               
               return { success: true, roomType: data.roomType };
             } else {
-              console.warn('Failed to update room name:', await updateNameResponse.text());
+              console.warn('Failed to create room in Firestore:', await createRoomResponse.text());
               return { success: false, roomType: data.roomType };
             }
           }
@@ -783,21 +862,76 @@ export default function RoomScanner() {
         })
       ];
       
-      // Wait for both processes to complete
-      const [classifyResult, flaskResult] = await Promise.allSettled([
-        classifyPromise,
-        flaskPromise
-      ]);
+      // Start both processes concurrently, but handle classification result immediately when it completes
+      const classifyResult = await classifyPromise;
+      console.log('Classification result:', classifyResult);
       
-      console.log('Concurrent processing results:');
-      console.log('Classification:', classifyResult);
-      console.log('3D Reconstruction:', flaskResult);
+      // If classification was successful, search for add-ons immediately
+      if (classifyResult.success && 'roomType' in classifyResult && classifyResult.roomType) {
+        // Add room to analyzingAddOnsForRooms
+        setState(prevState => ({
+          ...prevState,
+          analyzingAddOnsForRooms: [...prevState.analyzingAddOnsForRooms, newRoomId]
+        }));
+        
+        try {
+          console.log('Searching for add-ons with the new API endpoint');
+          
+          // Use the new search-addons API endpoint
+          const searchAddOnsResponse = await fetch('/api/search-addons', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              sessionId,
+              roomId: newRoomId,
+              providerId: DEMO_PAINTER_ID
+            })
+          });
+          
+          if (!searchAddOnsResponse.ok) {
+            throw new Error(`HTTP error! Status: ${searchAddOnsResponse.status}`);
+          }
+          
+          const addOnsData = await searchAddOnsResponse.json();
+          console.log('Add-ons search result:', addOnsData);
+          
+          // If add-ons were found, queue them for confirmation
+          /*if (addOnsData.addOns && addOnsData.addOns.length > 0) {
+            setState(prevState => ({
+              ...prevState,
+              pendingAddOnConfirmations: addOnsData.addOns
+            }));
+            
+            // Show the first add-on confirmation
+            if (addOnsData.addOns.length > 0) {
+              setState(prevState => ({
+                ...prevState,
+                currentAddOnConfirmation: addOnsData.addOns[0]
+              }));
+            }
+          }*/
+        } catch (error) {
+          console.error('Error searching for add-ons:', error);
+        } finally {
+          // Remove room from analyzingAddOnsForRooms when done
+          setState(prevState => ({
+            ...prevState,
+            analyzingAddOnsForRooms: prevState.analyzingAddOnsForRooms.filter(id => id !== newRoomId)
+          }));
+        }
+      }
+      
+      // Wait for the 3D model process to complete
+      const flaskResult = await flaskPromise;
+      console.log('3D Reconstruction result:', flaskResult);
       
       // Handle 3D reconstruction result
-      if (flaskResult.status === 'fulfilled' && flaskResult.value.success) {
+      if (flaskResult.success) {
         // Type guard to check if data property exists
-        if ('data' in flaskResult.value) {
-          const data = flaskResult.value.data;
+        if ('data' in flaskResult) {
+          const data = flaskResult.data;
           
           // Reload rooms from Firestore to get the latest data
           await loadRooms();
@@ -805,7 +939,12 @@ export default function RoomScanner() {
           // Load the 3D model
           loadModel(newRoomId, data.modelPath);
           
-          // Update the room in Firestore with the processed flag
+          // Get the current room data to preserve the name
+          const currentRoom = state.rooms[newRoomId] || {};
+          console.log('Current room data before 3D model update:', currentRoom);
+          
+          // Update the room in Firestore with the processed flag and model path only
+          // Explicitly NOT including the name field to preserve the classified name
           await fetch('/api/rooms/update', {
             method: 'POST',
             headers: {
@@ -816,33 +955,40 @@ export default function RoomScanner() {
               roomId: newRoomId,
               processed: true,
               model_path: data.modelPath
+              // name field intentionally omitted to preserve the classified name
             })
           });
           
-          // Update local state
-          setState(prevState => ({
-            ...prevState,
-            rooms: {
-              ...prevState.rooms,
-              [newRoomId]: {
-                ...prevState.rooms[newRoomId],
-                processed: true,
-                model_path: data.modelPath
+          // Update local state - only update processed and model_path fields
+          // This preserves all other fields including the name
+          setState(prevState => {
+            // Get the current room from state to ensure we have the latest data
+            const existingRoom = prevState.rooms[newRoomId] || {};
+            
+            return {
+              ...prevState,
+              rooms: {
+                ...prevState.rooms,
+                [newRoomId]: {
+                  ...existingRoom, // Preserve all existing fields including name
+                  processed: true,
+                  model_path: data.modelPath
+                }
               }
-            }
-          }));
+            };
+          });
         } else {
           console.error('Missing data in successful response');
         }
-      } else if (flaskResult.status === 'fulfilled') {
+      } else {
         // Flask request completed but with an error
         let errorMessage = 'Unknown error';
         
         // Type guard to check if details property exists
-        if ('details' in flaskResult.value && flaskResult.value.details) {
-          errorMessage = String(flaskResult.value.details);
-        } else if ('error' in flaskResult.value && flaskResult.value.error) {
-          errorMessage = String(flaskResult.value.error);
+        if ('details' in flaskResult && flaskResult.details) {
+          errorMessage = String(flaskResult.details);
+        } else if ('error' in flaskResult && flaskResult.error) {
+          errorMessage = String(flaskResult.error);
         }
         
         console.error('3D reconstruction failed:', errorMessage);
@@ -862,29 +1008,6 @@ export default function RoomScanner() {
           
           // Add retry button functionality
           const retryButton = errorDisplay.querySelector('.retry-button');
-          if (retryButton) {
-            retryButton.addEventListener('click', () => {
-              // Retry the 3D reconstruction
-              processRoom(newRoomId);
-            });
-          }
-        }
-      } else {
-        // Flask promise rejected
-        console.error('3D reconstruction request failed:', flaskResult.reason);
-        
-        // Show error in UI
-        if (modelViewerRef.current) {
-          modelViewerRef.current.innerHTML = `
-            <div class="error">
-              <p>Failed to process 3D model</p>
-              <p class="error-details">${flaskResult.reason?.message || 'Network error'}</p>
-              <button class="retry-button">Retry</button>
-            </div>
-          `;
-          
-          // Add retry button functionality
-          const retryButton = modelViewerRef.current.querySelector('.retry-button');
           if (retryButton) {
             retryButton.addEventListener('click', () => {
               // Retry the 3D reconstruction
@@ -918,71 +1041,6 @@ export default function RoomScanner() {
       // Reset image counter display
       if (imageCounterRef.current) {
         imageCounterRef.current.textContent = '0';
-      }
-      
-      // Check for add-ons with Claude
-      if (pricingSheet && pricingSheet.rules && pricingSheet.rules.length > 0) {
-        // Add room to analyzingAddOnsForRooms
-        setState(prevState => ({
-          ...prevState,
-          analyzingAddOnsForRooms: [...prevState.analyzingAddOnsForRooms, newRoomId]
-        }));
-        
-        try {
-          console.log('Checking for add-ons with Claude');
-          
-          // For each rule, ask Claude if it applies to this room
-          for (const rule of pricingSheet.rules) {
-            // Construct a message for Claude
-            const message = `Based on the images of this room, does the following condition apply? "${rule.condition}" Please respond with YES or NO followed by a brief explanation.`;
-            
-            // Send to Claude API
-            const response = await fetch('/api/anthropic', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                message,
-                sessionId,
-                context: `The user has uploaded images of a room and we need to determine if certain conditions apply for pricing.`
-              })
-            });
-            
-            if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('Claude response for condition:', rule.condition, data.response);
-            
-            // Check if Claude's response indicates the condition applies
-            if (data.response.toLowerCase().includes('yes')) {
-              console.log('Add-on condition applies:', rule.condition);
-              
-              // Add this as an add-on
-              setState(prevState => ({
-                ...prevState,
-                addOns: [
-                  ...prevState.addOns,
-                  {
-                    description: rule.condition,
-                    amount: rule.amount,
-                    roomId: newRoomId
-                  }
-                ]
-              }));
-            }
-          }
-        } catch (error) {
-          console.error('Error checking add-ons with Claude:', error);
-        } finally {
-          // Remove room from analyzingAddOnsForRooms when done
-          setState(prevState => ({
-            ...prevState,
-            analyzingAddOnsForRooms: prevState.analyzingAddOnsForRooms.filter(id => id !== newRoomId)
-          }));
-        }
       }
       
       // Hide loading indicator
@@ -1048,65 +1106,20 @@ export default function RoomScanner() {
       activeRoom: roomId
     }));
     
-    // Load the 3D model if available
-    const room = state.rooms[roomId];
-    if (room && room.model_path) {
+    // Check if this is a room in Firestore or a temporary room
+    const room = state.rooms[roomId] || state.temporaryRooms[roomId];
+    
+    // Load the 3D model if available (only for Firestore rooms)
+    if (room && 'model_path' in room && room.model_path) {
       loadModel(roomId, room.model_path);
     }
   };
   
   // Handle room name change
   const handleRoomNameChange = (roomId: string, name: string) => {
-    setState(prevState => ({
-      ...prevState,
-      rooms: {
-        ...prevState.rooms,
-        [roomId]: {
-          ...prevState.rooms[roomId],
-          name
-        }
-      }
-    }));
-  };
-  
-  // Save room name to server
-  const saveRoomName = async (roomId: string, name: string) => {
-    if (!sessionId) return;
-    
-    try {
-      console.log(`Saving name for room ${roomId}:`, name);
-      
-      // Update room name in Firestore directly
-      // This bypasses the Flask API which is causing 404 errors
-      const response = await fetch(`/api/rooms/update`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sessionId,
-          roomId,
-          name
-        })
-      });
-      
-      console.log('Save room name response:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      // Update active input field
-      setState(prevState => ({
-        ...prevState,
-        activeInputField: null
-      }));
-      
-      // Update local state with the new name
+    // Check if this is a room in Firestore or a temporary room
+    if (roomId in state.rooms) {
+      // Update name for a Firestore room
       setState(prevState => ({
         ...prevState,
         rooms: {
@@ -1117,8 +1130,88 @@ export default function RoomScanner() {
           }
         }
       }));
+    } else if (roomId in state.temporaryRooms) {
+      // Update name for a temporary room
+      setState(prevState => ({
+        ...prevState,
+        temporaryRooms: {
+          ...prevState.temporaryRooms,
+          [roomId]: {
+            ...prevState.temporaryRooms[roomId],
+            name
+          }
+        }
+      }));
+    }
+  };
+  
+  // Save room name to server
+  const saveRoomName = async (roomId: string, name: string) => {
+    if (!sessionId) return;
+    
+    try {
+      console.log(`Saving name for room ${roomId}:`, name);
       
-      console.log('Room name saved successfully');
+      // Check if this is a room in Firestore or a temporary room
+      if (roomId in state.rooms) {
+        // Update room name in Firestore directly
+        // This bypasses the Flask API which is causing 404 errors
+        const response = await fetch(`/api/rooms/update`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sessionId,
+            roomId,
+            name
+          })
+        });
+        
+        console.log('Save room name response:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Update local state with the new name
+        setState(prevState => ({
+          ...prevState,
+          rooms: {
+            ...prevState.rooms,
+            [roomId]: {
+              ...prevState.rooms[roomId],
+              name
+            }
+          }
+        }));
+        
+        console.log('Room name saved successfully to Firestore');
+      } else if (roomId in state.temporaryRooms) {
+        // For temporary rooms, just update the local state
+        setState(prevState => ({
+          ...prevState,
+          temporaryRooms: {
+            ...prevState.temporaryRooms,
+            [roomId]: {
+              ...prevState.temporaryRooms[roomId],
+              name
+            }
+          }
+        }));
+        
+        console.log('Temporary room name updated in local state');
+      }
+      
+      // Update active input field
+      setState(prevState => ({
+        ...prevState,
+        activeInputField: null
+      }));
     } catch (error) {
       // Type guard for Error objects
       const err = error instanceof Error ? error : new Error(String(error));
@@ -1336,6 +1429,72 @@ export default function RoomScanner() {
     }
   };
 
+  // Handle add-on confirmation
+  const handleAddOnConfirmation = async (confirmed: boolean) => {
+    if (!state.currentAddOnConfirmation || !houseId) return;
+    
+    const currentAddOn = state.currentAddOnConfirmation;
+    
+    if (confirmed) {
+      try {
+        console.log(`Adding add-on to house: ${currentAddOn.name}`);
+        
+        // Add the add-on to the house document
+        const response = await fetch('/api/house/add-addon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            houseId,
+            addOn: {
+              name: currentAddOn.name,
+              price: currentAddOn.price,
+              roomId: currentAddOn.roomId
+            }
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Add to local state as well
+        setState(prevState => ({
+          ...prevState,
+          addOns: [
+            ...prevState.addOns,
+            {
+              description: currentAddOn.name,
+              amount: currentAddOn.price,
+              roomId: currentAddOn.roomId
+            }
+          ]
+        }));
+        
+        console.log('Add-on added successfully');
+      } catch (error) {
+        console.error('Error adding add-on to house:', error);
+      }
+    } else {
+      console.log(`User declined add-on: ${currentAddOn.name}`);
+    }
+    
+    // Check if there are more add-ons to confirm
+    setState(prevState => {
+      const remainingAddOns = [...prevState.pendingAddOnConfirmations];
+      
+      // Remove the current add-on from the queue
+      remainingAddOns.shift();
+      
+      return {
+        ...prevState,
+        currentAddOnConfirmation: remainingAddOns.length > 0 ? remainingAddOns[0] : null,
+        pendingAddOnConfirmations: remainingAddOns
+      };
+    });
+  };
+
   // Generate quote
   const generateQuote = () => {
     if (!pricingSheet) {
@@ -1374,6 +1533,15 @@ export default function RoomScanner() {
     <div className="app-container">
       {/* Chat Component */}
       {sessionId && <Chat sessionId={sessionId} />}
+      
+      {/* Add-on Confirmation Modal */}
+      {state.currentAddOnConfirmation && (
+        <AddOnConfirmation
+          addOn={state.currentAddOnConfirmation}
+          onConfirm={handleAddOnConfirmation}
+          onClose={() => setState(prev => ({ ...prev, currentAddOnConfirmation: null }))}
+        />
+      )}
       
       {/* Homeowner Intake Form */}
       {state.currentView === 'intake' && (
@@ -1417,55 +1585,100 @@ export default function RoomScanner() {
         ref={roomListViewRef} 
         className={`view room-list-view ${state.currentView === 'roomList' ? '' : 'hidden'}`}
       >
-        <div className="room-list-header">
-          <h2>Your Rooms</h2>
+        <div className="room-dropdown-header">
+          <div className="room-dropdown">
+            <div 
+              className="room-dropdown-trigger"
+              onClick={() => setState(prev => ({ ...prev, dropdownOpen: !prev.dropdownOpen }))}
+            >
+              {/* Show the active room name or a placeholder */}
+              {state.activeRoom ? (
+                state.rooms[state.activeRoom]?.name === 'Classifying...' || 
+                state.temporaryRooms[state.activeRoom]?.name === 'Classifying...' ? (
+                  <div className="classifying-label">
+                    <span>Classifying...</span>
+                    <div className="classifying-spinner"></div>
+                  </div>
+                ) : (
+                  <span>
+                    {state.activeRoom in state.classifiedRoomNames 
+                      ? state.classifiedRoomNames[state.activeRoom] 
+                      : state.rooms[state.activeRoom]?.name || 
+                        state.temporaryRooms[state.activeRoom]?.name || 
+                        'Select a room'}
+                  </span>
+                )
+              ) : (
+                <span>Select a room</span>
+              )}
+              <svg 
+                className={`dropdown-arrow ${state.dropdownOpen ? 'open' : ''}`} 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            
+            {/* Dropdown menu */}
+            {state.dropdownOpen && (
+              <div className="room-dropdown-menu">
+                {[
+                  ...Object.entries(state.rooms).map(([id, room]) => ({ id, room, source: 'firestore' })),
+                  ...Object.entries(state.temporaryRooms).map(([id, room]) => ({ id, room, source: 'temp' }))
+                ].map(({ id: roomId, room, source }) => (
+                  <div 
+                    key={`${source}-${roomId}`} 
+                    className={`dropdown-item ${state.activeRoom === roomId ? 'active' : ''} ${room.name === 'Classifying...' ? 'classifying' : ''}`}
+                    onClick={() => {
+                      handleRoomSelect(roomId);
+                      setState(prev => ({ ...prev, dropdownOpen: false }));
+                    }}
+                  >
+                    {/* Check if this room is being classified */}
+                    {room.name === 'Classifying...' ? (
+                      // Uneditable text for classifying rooms
+                      <div className="classifying-label">
+                        <span>Classifying...</span>
+                        <div className="classifying-spinner"></div>
+                      </div>
+                    ) : (
+                      // Editable input for normal rooms
+                      // Use the classified name if available, otherwise use the room name
+                      <input
+                        type="text"
+                        value={roomId in state.classifiedRoomNames ? state.classifiedRoomNames[roomId] : room.name}
+                        onChange={(e) => handleRoomNameChange(roomId, e.target.value)}
+                        onBlur={() => saveRoomName(roomId, roomId in state.classifiedRoomNames ? state.classifiedRoomNames[roomId] : room.name)}
+                        onFocus={(e) => setState(prev => ({ 
+                          ...prev, 
+                          activeInputField: { 
+                            roomId: roomId, 
+                            element: e.currentTarget 
+                          } 
+                        }))}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
           <button 
             className="submit-button-header" 
             onClick={generateQuote}
           >
             Submit Quote
           </button>
-        </div>
-        <div className="room-list-container">
-          <ul ref={roomListRef} className="room-list">
-            {Object.entries(state.rooms).map(([roomId, room]) => (
-              <li 
-                key={roomId} 
-                className={`room-item ${state.activeRoom === roomId ? 'active' : ''} ${room.name === 'Classifying...' ? 'classifying' : ''}`}
-                onClick={() => handleRoomSelect(roomId)}
-              >
-                <div className="room-name">
-                  {room.name === 'Classifying...' ? (
-                    // Uneditable text for classifying rooms
-                    <div className="classifying-label">
-                      <span>Classifying...</span>
-                      <div className="classifying-spinner"></div>
-                    </div>
-                  ) : (
-                    // Editable input for normal rooms
-                    <input
-                      type="text"
-                      value={room.name}
-                      onChange={(e) => handleRoomNameChange(roomId, e.target.value)}
-                      onBlur={() => saveRoomName(roomId, room.name)}
-                      onFocus={(e) => setState(prev => ({ 
-                        ...prev, 
-                        activeInputField: { 
-                          roomId: roomId, 
-                          element: e.currentTarget 
-                        } 
-                      }))}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </div>
-                <div className="room-info">
-                  <span>{room.images?.length || 0} images</span>
-                  {room.processed && <span className="processed-badge">Processed</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
         <div className="model-viewer-container">
           <div ref={modelViewerRef} className="model-viewer">

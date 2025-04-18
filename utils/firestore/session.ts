@@ -11,6 +11,18 @@ export interface ChatMessage {
   timestamp: Date | Timestamp;
 }
 
+export interface Room {
+  id: string;
+  name: string;
+  sessionId: string;
+  created_at?: number | Date | Timestamp;
+  updated_at?: number | Date | Timestamp;
+  processed?: boolean;
+  model_path?: string;
+  images?: string[]; // Array of image data URLs
+  [key: string]: any; // Allow for additional properties
+}
+
 export interface Session {
   id: string;
   createdAt: Date | Timestamp;
@@ -19,6 +31,7 @@ export interface Session {
   homeownerId?: string;
   houseId?: string;
   currentRoomId?: string;
+  rooms?: Record<string, Room>;
 }
 
 // This is what getSession returns
@@ -194,6 +207,74 @@ export const getSessionRooms = async (sessionId: string) => {
 };
 
 /**
+ * Get a specific room by ID
+ * @param sessionId The session ID
+ * @param roomId The room ID
+ * @returns The room data or null if not found
+ */
+export const getRoom = async (sessionId: string, roomId: string): Promise<Room | null> => {
+  try {
+    console.log(`[getRoom] Fetching room ${roomId} for session ${sessionId}`);
+    
+    const roomRef = doc(db, ROOMS_COLLECTION, roomId);
+    const roomSnap = await getDoc(roomRef);
+    
+    if (!roomSnap.exists()) {
+      console.log(`[getRoom] Room ${roomId} not found in Firestore`);
+      return null;
+    }
+    
+    const roomData = roomSnap.data();
+    console.log(`[getRoom] Room ${roomId} data retrieved:`, {
+      hasSessionId: !!roomData.sessionId,
+      hasImages: !!roomData.images,
+      imageCount: roomData.images ? roomData.images.length : 0,
+      name: roomData.name,
+      processed: roomData.processed
+    });
+    
+    // Verify session ID matches
+    if (roomData.sessionId !== sessionId) {
+      console.warn(`[getRoom] Session ID mismatch for room ${roomId}: expected ${sessionId}, got ${roomData.sessionId}`);
+      return null;
+    }
+    
+    const room = {
+      id: roomId,
+      ...roomData
+    } as Room;
+    
+    // Log image information if available
+    if (room.images && room.images.length > 0) {
+      console.log(`[getRoom] Room ${roomId} has ${room.images.length} images`);
+      room.images.forEach((image, index) => {
+        const imageType = image.startsWith('data:') 
+          ? 'data URL' 
+          : (isUrl(image) ? 'URL' : 'unknown format');
+        console.log(`[getRoom] Image ${index}: ${imageType} (length: ${image.length})`);
+      });
+    } else {
+      console.log(`[getRoom] Room ${roomId} has no images`);
+    }
+    
+    return room;
+  } catch (error) {
+    console.error('[getRoom] Error getting room:', error);
+    throw error;
+  }
+};
+
+// Helper function to check if a string is a URL
+function isUrl(str: string): boolean {
+  try {
+    new URL(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Save a room to Firestore
  * @param sessionId The session ID
  * @param roomId The room ID
@@ -269,6 +350,8 @@ export const updateRoomName = async (sessionId: string, roomId: string, name: st
  */
 export const updateSessionRoom = async (sessionId: string, roomId: string, roomData: any) => {
   try {
+    console.log(`[DEBUG] updateSessionRoom called for room ${roomId} with data:`, roomData);
+    
     // First check if the room exists
     const roomRef = doc(db, ROOMS_COLLECTION, roomId);
     const roomSnap = await getDoc(roomRef);
@@ -276,29 +359,62 @@ export const updateSessionRoom = async (sessionId: string, roomId: string, roomD
     if (roomSnap.exists()) {
       // Update existing room
       const existingData = roomSnap.data();
+      console.log(`[DEBUG] Existing room data for ${roomId}:`, existingData);
       
       // Verify session ID matches
       if (existingData.sessionId !== sessionId) {
+        console.error(`[DEBUG] Session ID mismatch: expected ${sessionId}, got ${existingData.sessionId}`);
         throw new Error('Session ID mismatch');
       }
       
-      // Update room with new data
-      await updateDoc(roomRef, {
+      // Create update data with timestamp
+      const updateData = {
         ...roomData,
         updatedAt: new Date()
-      });
+      };
       
-      return {
+      console.log(`[DEBUG] Updating room ${roomId} with data:`, updateData);
+      
+      // Use a transaction to ensure atomic updates
+      const db = getFirestore(firebaseApp);
+      
+      try {
+        // Update room with new data
+        await updateDoc(roomRef, updateData);
+        console.log(`[DEBUG] Room ${roomId} updated successfully in Firestore`);
+        
+        // Verify the update by reading the room data again
+        const updatedRoomSnap = await getDoc(roomRef);
+        if (updatedRoomSnap.exists()) {
+          const updatedData = updatedRoomSnap.data();
+          console.log(`[DEBUG] Verified room data after update:`, updatedData);
+          
+          // Check if the name was updated correctly
+          if (roomData.name && updatedData.name !== roomData.name) {
+            console.error(`[DEBUG] Room name not updated correctly: expected "${roomData.name}", got "${updatedData.name}"`);
+          }
+        }
+      } catch (updateError) {
+        console.error(`[DEBUG] Error during Firestore update operation:`, updateError);
+        throw updateError;
+      }
+      
+      // Return the merged data
+      const mergedData = {
         id: roomId,
         ...existingData,
         ...roomData
       };
+      
+      console.log(`[DEBUG] Returning merged room data:`, mergedData);
+      return mergedData;
     } else {
+      console.log(`[DEBUG] Room ${roomId} does not exist, creating new room`);
       // Create new room
       return saveRoom(sessionId, roomId, roomData);
     }
   } catch (error) {
-    console.error('Error updating session room:', error);
+    console.error('[DEBUG] Error updating session room:', error);
     throw error;
   }
 };
