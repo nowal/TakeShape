@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ROOM_TYPES, isValidRoomType, DEFAULT_ROOM_NAME } from '@/constants/rooms';
+import { resizeAndCompressImage } from '@/utils/imageProcessing';
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED to '0' to ignore certificate validation
 // This is a global setting and should be used with caution
@@ -18,6 +19,24 @@ const anthropic = new Anthropic({
 // Function to convert Buffer to base64
 function bufferToBase64(buffer: Buffer, mimeType: string = 'image/jpeg'): string {
   return `data:${mimeType};base64,${buffer.toString('base64')}`;
+}
+
+// Function to resize and compress an image buffer
+async function processImageBuffer(buffer: Buffer): Promise<Buffer> {
+  // Convert Buffer to Blob
+  const blob = new Blob([buffer], { type: 'image/jpeg' });
+  
+  // Resize and compress the image
+  const processedBlob = await resizeAndCompressImage(
+    blob,
+    1024, // Max width
+    768,  // Max height
+    0.8   // JPEG quality
+  );
+  
+  // Convert processed Blob back to Buffer
+  const arrayBuffer = await processedBlob.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 export async function POST(req: NextRequest) {
@@ -67,8 +86,25 @@ export async function POST(req: NextRequest) {
 
     console.log(`Classifying room for session ${sessionId} with ${imageBuffers.length} images`);
 
+    // Process images (resize and compress)
+    console.log('Processing images to reduce size...');
+    const processedBuffers: Buffer[] = [];
+    
+    for (const buffer of imageBuffers) {
+      try {
+        console.log(`Original image size: ${buffer.length} bytes`);
+        const processedBuffer = await processImageBuffer(buffer);
+        console.log(`Processed image size: ${processedBuffer.length} bytes (${Math.round(processedBuffer.length / buffer.length * 100)}% of original)`);
+        processedBuffers.push(processedBuffer);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        // If processing fails, use the original image
+        processedBuffers.push(buffer);
+      }
+    }
+    
     // Limit to first 4 images to avoid token limits
-    const buffersToProcess = imageBuffers.slice(0, 4);
+    const buffersToProcess = processedBuffers.slice(0, 4);
 
     // Create the system message for room classification
     const systemMessage = `You are an expert in interior design and home architecture. Your task is to identify what type of room is shown in the provided images.

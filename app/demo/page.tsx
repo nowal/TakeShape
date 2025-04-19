@@ -11,6 +11,7 @@ import { getPricingSheetByProviderId, PricingSheet } from '@/utils/firestore/pri
 import { addAddOnToHouse } from '@/utils/firestore/house';
 import './RoomScanner.css';
 import { uploadFiles } from '@/utils/firestore/storage';
+import { resizeAndCompressImage } from '@/utils/imageProcessing';
 
 // Use the Next.js API proxy routes instead of directly accessing the Flask backend
 const API_BASE_URL = '/api/flask';
@@ -268,7 +269,7 @@ export default function RoomScanner() {
       // Start with strict constraints to force back camera
       const strictConstraints = {
         video: {
-          facingMode: { exact: 'environment' }, // Force back camera
+          facingMode: 'environment', // Force back camera
           width: { ideal: 4032 }, // Request maximum width
           height: { ideal: 3024 }, // Request maximum height
         }
@@ -556,46 +557,66 @@ export default function RoomScanner() {
     
     // Convert canvas to blob
     console.log('Converting canvas to blob...');
-    offscreenCanvas.toBlob(async (blob) => {
-      if (!blob) {
+    offscreenCanvas.toBlob(async (originalBlob) => {
+      if (!originalBlob) {
         console.error('Failed to capture image - blob is null');
         return;
       }
       
-      console.log('Blob created successfully', {
-        size: blob.size,
-        type: blob.type
+      console.log('Original blob created successfully', {
+        size: originalBlob.size,
+        type: originalBlob.type
       });
       
-      // Store the blob locally instead of uploading immediately
-      // Add the blob to the ref
-      pendingImagesRef.current.push(blob);
-      
-      // Use the functional form of setState to ensure we're using the latest state
-      setState(prevState => {
-        const newImageCount = prevState.imageCount + 1;
+      try {
+        // Resize and compress the image to reduce file size
+        console.log('Resizing and compressing image...');
+        const processedBlob = await resizeAndCompressImage(
+          originalBlob,
+          1024, // Max width
+          768,  // Max height
+          0.8   // JPEG quality (0-1)
+        );
         
-        // Update image counter display
-        if (imageCounterRef.current) {
-          imageCounterRef.current.textContent = newImageCount.toString();
+        console.log('Image processed successfully', {
+          originalSize: originalBlob.size,
+          processedSize: processedBlob.size,
+          reduction: `${Math.round((1 - processedBlob.size / originalBlob.size) * 100)}%`
+        });
+        
+        // Store the processed blob locally instead of uploading immediately
+        // Add the blob to the ref
+        pendingImagesRef.current.push(processedBlob);
+        
+        // Use the functional form of setState to ensure we're using the latest state
+        setState(prevState => {
+          const newImageCount = prevState.imageCount + 1;
+          
+          // Update image counter display
+          if (imageCounterRef.current) {
+            imageCounterRef.current.textContent = newImageCount.toString();
+          }
+          
+          // Return the new state
+          return {
+            ...prevState,
+            imageCount: newImageCount
+          };
+        });
+        
+        // Check if we have enough images to process
+        // Use the updated count directly instead of checking inside setState
+        const newCount = pendingImagesRef.current.length;
+        if (newCount >= REQUIRED_IMAGES_COUNT) {
+          // Automatically process images when we reach the required count
+          // No confirmation dialog needed
+          console.log('Required image count reached, processing automatically');
+          // Use requestAnimationFrame instead of setTimeout to avoid race conditions
+          requestAnimationFrame(() => uploadAndProcessImages());
         }
-        
-        // Return the new state
-        return {
-          ...prevState,
-          imageCount: newImageCount
-        };
-      });
-      
-      // Check if we have enough images to process
-      // Use the updated count directly instead of checking inside setState
-      const newCount = pendingImagesRef.current.length;
-      if (newCount >= REQUIRED_IMAGES_COUNT) {
-        // Automatically process images when we reach the required count
-        // No confirmation dialog needed
-        console.log('Required image count reached, processing automatically');
-        // Use requestAnimationFrame instead of setTimeout to avoid race conditions
-        requestAnimationFrame(() => uploadAndProcessImages());
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image. Please try again.');
       }
     }, 'image/jpeg', 0.95);
   };
