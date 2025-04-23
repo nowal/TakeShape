@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TakeShape Embed Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    
+    .description {
+      margin-bottom: 20px;
+      color: #666;
+    }
+    
+    .embed-container {
+      margin-bottom: 20px;
+    }
+    
+    .code-example {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 15px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      margin-right: 5px;
+      cursor: pointer;
+    }
+    
+    .tab.active {
+      background-color: #fff;
+      border-bottom: 1px solid #fff;
+      margin-bottom: -1px;
+    }
+    
+    .tab-content {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 0 4px 4px 4px;
+    }
+    
+    .tab-pane {
+      display: none;
+    }
+    
+    .tab-pane.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TakeShape Room Scanner Embed Test</h1>
+    
+    <div class="description">
+      <p>This page demonstrates how to use the TakeShape Room Scanner embed script to add the scanner to your website.</p>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" data-tab="basic">Basic Example</div>
+      <div class="tab" data-tab="custom">Custom Colors</div>
+      <div class="tab" data-tab="callback">With Callbacks</div>
+    </div>
+    
+    <div class="tab-content">
+      <div class="tab-pane active" id="basic">
+        <h2>Basic Example</h2>
+        <p>This is the simplest way to embed the TakeShape Room Scanner.</p>
+        
+        <div id="basic-embed-container" class="embed-container"></div>
+        
+        <div class="code-example">
+          <h3>HTML Code</h3>
+          <pre>&lt;!-- 1. Add the embed script --&gt;
+&lt;script src="/embed.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Add a container for the embed --&gt;
+&lt;div id="basic-embed-container"&gt;&lt;/div&gt;
+
+&lt;!-- 3. Initialize the embed --&gt;
+&lt;script&gt;
+  TakeShapeEmbed.init({
+    container: 'basic-embed-container',
+    height: '600px'
+  });
+&lt;/script&gt;</pre>
+        </div>
+      </div>
+      
+      <div class="tab-pane" id="custom">
+        <h2>Custom Colors Example</h2>
+        <p>You can customize the colors and appearance of the embed to match your brand.</p>
+        
+        <div id="custom-embed-container" class="embed-container"></div>
+        
+        <div class="code-example">
+          <h3>HTML Code</h3>
+          <pre>&lt;!-- 1. Add the embed script --&gt;
+&lt;script src="/embed.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Add a container for the embed --&gt;
+&lt;div id="custom-embed-container"&gt;&lt;/div&gt;
+
+&lt;!-- 3. Initialize the embed with custom colors --&gt;
+&lt;script&gt;
+  TakeShapeEmbed.init({
+    container: 'custom-embed-container',
+    primaryColor: '#4CAF50',
+    secondaryColor: '#2196F3',
+    backgroundColor: '#f9f9f9',
+    textColor: '#333333',
+    fontFamily: 'Arial, sans-serif',
+    borderRadius: '12px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    height: '600px'
+  });
+&lt;/script&gt;</pre>
+        </div>
+      </div>
+      
+      <div class="tab-pane" id="callback">
+        <h2>With Callbacks Example</h2>
+        <p>You can add callback functions to handle events from the embed.</p>
+        
+        <div id="callback-embed-container" class="embed-container"></div>
+        
+        <div id="callback-result" style="margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 4px;">
+          <p>Callback results will appear here when the user completes the process.</p>
+        </div>
+        
+        <div class="code-example">
+          <h3>HTML Code</h3>
+          <pre>&lt;!-- 1. Add the embed script --&gt;
+&lt;script src="/embed.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Add a container for the embed --&gt;
+&lt;div id="callback-embed-container"&gt;&lt;/div&gt;
+
+&lt;!-- 3. Add a container for callback results --&gt;
+&lt;div id="callback-result"&gt;&lt;/div&gt;
+
+&lt;!-- 4. Initialize the embed with callbacks --&gt;
+&lt;script&gt;
+  TakeShapeEmbed.init({
+    container: 'callback-embed-container',
+    primaryColor: '#9C27B0',
+    height: '600px',
+    onComplete: function(data) {
+      // Handle completion event
+      document.getElementById('callback-result').innerHTML = 
+        '&lt;h3&gt;Quote Accepted!&lt;/h3&gt;' +
+        '&lt;pre&gt;' + JSON.stringify(data, null, 2) + '&lt;/pre&gt;';
+    },
+    onError: function(error) {
+      // Handle error event
+      document.getElementById('callback-result').innerHTML = 
+        '&lt;h3&gt;Error Occurred&lt;/h3&gt;' +
+        '&lt;p&gt;' + error.message + '&lt;/p&gt;';
+    }
+  });
+&lt;/script&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add the embed script -->
+  <script src="/embed.js"></script>
+  
+  <!-- Initialize the embeds -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up tab switching
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Hide all tab panes
+          const tabPanes = document.querySelectorAll('.tab-pane');
+          tabPanes.forEach(pane => pane.classList.remove('active'));
+          
+          // Show the selected tab pane
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // Initialize the basic embed
+      TakeShapeEmbed.init({
+        container: 'basic-embed-container',
+        height: '600px'
+      });
+      
+      // Initialize the custom colors embed
+      TakeShapeEmbed.init({
+        container: 'custom-embed-container',
+        primaryColor: '#4CAF50',
+        secondaryColor: '#2196F3',
+        backgroundColor: '#f9f9f9',
+        textColor: '#333333',
+        fontFamily: 'Arial, sans-serif',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        height: '600px'
+      });
+      
+      // Initialize the callback embed
+      TakeShapeEmbed.init({
+        container: 'callback-embed-container',
+        primaryColor: '#9C27B0',
+        height: '600px',
+        onComplete: function(data) {
+          // Handle completion event
+          document.getElementById('callback-result').innerHTML = 
+            '<h3>Quote Accepted!</h3>' +
+            '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        },
+        onError: function(error) {
+          // Handle error event
+          document.getElementById('callback-result').innerHTML = 
+            '<h3>Error Occurred</h3>' +
+            '<p>' + error.message + '</p>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

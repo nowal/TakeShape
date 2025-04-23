@@ -32,6 +32,7 @@ export interface Session {
   houseId?: string;
   currentRoomId?: string;
   rooms?: Record<string, Room>;
+  quoteFeedback?: string;
 }
 
 // This is what getSession returns
@@ -554,6 +555,46 @@ export const setCurrentRoom = async (sessionId: string, roomId: string): Promise
     } as SessionData;
   } catch (error) {
     console.error('Error setting current room:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save quote feedback for a session
+ * @param sessionId The session ID
+ * @param feedback The feedback text
+ */
+export const saveQuoteFeedback = async (sessionId: string, feedback: string): Promise<SessionData> => {
+  try {
+    const sessionRef = doc(db, SESSIONS_COLLECTION, sessionId);
+    const sessionSnap = await getDoc(sessionRef);
+    
+    if (!sessionSnap.exists()) {
+      throw new Error('Session not found');
+    }
+    
+    // Update session with feedback
+    await updateDoc(sessionRef, {
+      quoteFeedback: feedback,
+      lastActive: new Date()
+    });
+    
+    const sessionData = sessionSnap.data();
+    
+    // Ensure we have all required properties for SessionData
+    return {
+      id: sessionId,
+      createdAt: sessionData.createdAt,
+      lastActive: sessionData.lastActive,
+      chatHistory: sessionData.chatHistory || [],
+      homeownerId: sessionData.homeownerId,
+      houseId: sessionData.houseId,
+      currentRoomId: sessionData.currentRoomId,
+      quoteFeedback: feedback,
+      ...sessionData
+    } as SessionData;
+  } catch (error) {
+    console.error('Error saving quote feedback:', error);
     throw error;
   }
 };

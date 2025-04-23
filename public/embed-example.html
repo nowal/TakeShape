@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TakeShape Embed Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    
+    .description {
+      margin-bottom: 20px;
+      color: #666;
+    }
+    
+    .embed-container {
+      width: 100%;
+      height: 700px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .customization {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    
+    .customization h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+    }
+    
+    .checkbox-group input {
+      width: auto;
+      margin-right: 8px;
+    }
+    
+    .checkbox-group label {
+      display: inline;
+      font-weight: normal;
+    }
+    
+    button {
+      background-color: #ff385c;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .code-example {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TakeShape Room Scanner Embed Example</h1>
+    
+    <div class="description">
+      <p>This example demonstrates how to embed the TakeShape Room Scanner into your website. The embed can be customized to match your brand colors and style.</p>
+    </div>
+    
+    <div class="embed-container">
+      <iframe id="takeshape-embed" src="/embed/demo" allowfullscreen></iframe>
+    </div>
+    
+    <div class="customization">
+      <h2>Customize the Embed</h2>
+      <p>Use the form below to customize the appearance of the embed. Changes will be applied when you click "Apply Changes".</p>
+      
+      <div class="form-group checkbox-group">
+        <input type="checkbox" id="enableChat">
+        <label for="enableChat">Enable Chat</label>
+      </div>
+      
+      <div class="form-group">
+        <label for="primaryColor">Primary Color (buttons, accents)</label>
+        <input type="color" id="primaryColor" value="#ff385c">
+      </div>
+      
+      <div class="form-group">
+        <label for="secondaryColor">Secondary Color</label>
+        <input type="color" id="secondaryColor" value="#007aff">
+      </div>
+      
+      <div class="form-group">
+        <label for="backgroundColor">Background Color</label>
+        <input type="color" id="backgroundColor" value="#ffffff">
+      </div>
+      
+      <div class="form-group">
+        <label for="textColor">Text Color</label>
+        <input type="color" id="textColor" value="#333333">
+      </div>
+      
+      <div class="form-group">
+        <label for="fontFamily">Font Family</label>
+        <select id="fontFamily">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+          <option value="'Segoe UI', Tahoma, Geneva, sans-serif">Segoe UI</option>
+          <option value="Roboto, sans-serif">Roboto</option>
+          <option value="'Open Sans', sans-serif">Open Sans</option>
+          <option value="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif">System Default</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="borderRadius">Border Radius (px)</label>
+        <input type="range" id="borderRadius" min="0" max="20" value="8">
+        <span id="borderRadiusValue">8px</span>
+      </div>
+      
+      <button id="applyChanges">Apply Changes</button>
+      
+      <div class="code-example">
+        <h3>HTML Code Example</h3>
+        <pre id="codeExample">&lt;iframe 
+  src="/embed/demo?primaryColor=%23ff385c&secondaryColor=%23007aff&backgroundColor=%23ffffff&textColor=%23333333&fontFamily=Arial%2C%20sans-serif&borderRadius=8&enableChat=false" 
+  width="100%" 
+  height="700" 
+  style="border: none; border-radius: 8px;" 
+  allowfullscreen
+&gt;&lt;/iframe&gt;</pre>
+      </div>
+      
+      <div class="code-example">
+        <h3>JavaScript Initialization Example</h3>
+        <pre id="jsExample">&lt;div id="takeshape-embed-container"&gt;&lt;/div&gt;
+
+&lt;script src="/embed.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  TakeShapeEmbed.init({
+    container: 'takeshape-embed-container',
+    primaryColor: '#ff385c',
+    secondaryColor: '#007aff',
+    backgroundColor: '#ffffff',
+    textColor: '#333333',
+    fontFamily: 'Arial, sans-serif',
+    borderRadius: '8px',
+    enableChat: false
+  });
+&lt;/script&gt;</pre>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const iframe = document.getElementById('takeshape-embed');
+      const enableChat = document.getElementById('enableChat');
+      const primaryColor = document.getElementById('primaryColor');
+      const secondaryColor = document.getElementById('secondaryColor');
+      const backgroundColor = document.getElementById('backgroundColor');
+      const textColor = document.getElementById('textColor');
+      const fontFamily = document.getElementById('fontFamily');
+      const borderRadius = document.getElementById('borderRadius');
+      const borderRadiusValue = document.getElementById('borderRadiusValue');
+      const applyChanges = document.getElementById('applyChanges');
+      const codeExample = document.getElementById('codeExample');
+      const jsExample = document.getElementById('jsExample');
+      
+      // Update border radius value display
+      borderRadius.addEventListener('input', function() {
+        borderRadiusValue.textContent = this.value + 'px';
+      });
+      
+      // Apply changes button
+      applyChanges.addEventListener('click', function() {
+        updateEmbed();
+      });
+      
+      function updateEmbed() {
+        const params = new URLSearchParams();
+        params.set('primaryColor', primaryColor.value);
+        params.set('secondaryColor', secondaryColor.value);
+        params.set('backgroundColor', backgroundColor.value);
+        params.set('textColor', textColor.value);
+        params.set('fontFamily', fontFamily.value);
+        params.set('borderRadius', borderRadius.value);
+        params.set('enableChat', enableChat.checked ? 'true' : 'false');
+        
+        const url = `/embed/demo?${params.toString()}`;
+        iframe.src = url;
+        
+        // Update iframe code example
+        codeExample.textContent = `<iframe 
+  src="${url}" 
+  width="100%" 
+  height="700" 
+  style="border: none; border-radius: 8px;" 
+  allowfullscreen
+></iframe>`;
+
+        // Update JavaScript initialization example
+        jsExample.textContent = `<div id="takeshape-embed-container"></div>
+
+<script src="/embed.js"><\/script>
+<script>
+  TakeShapeEmbed.init({
+    container: 'takeshape-embed-container',
+    primaryColor: '${primaryColor.value}',
+    secondaryColor: '${secondaryColor.value}',
+    backgroundColor: '${backgroundColor.value}',
+    textColor: '${textColor.value}',
+    fontFamily: '${fontFamily.value}',
+    borderRadius: '${borderRadius.value}px',
+    enableChat: ${enableChat.checked}
+  });
+<\/script>`;
+      }
+      
+      // Initialize with default values
+      updateEmbed();
+    });
+  </script>
+</body>
+</html>

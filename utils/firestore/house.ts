@@ -32,6 +32,8 @@ export interface House {
   homeownerId: string;
   rooms: Room[];
   addOns?: AddOn[];
+  submitted?: boolean;
+  accepted?: boolean;
   createdAt: Date | Timestamp;
   updatedAt: Date | Timestamp;
 }
@@ -361,6 +363,76 @@ export const addAddOnToHouse = async (houseId: string, addOn: AddOn) => {
     } as House;
   } catch (error) {
     console.error('Error adding add-on to house:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark a house as submitted
+ * @param houseId The house ID
+ * @returns The updated house data
+ */
+export const markHouseAsSubmitted = async (houseId: string) => {
+  try {
+    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
+    const houseSnap = await getDoc(houseRef);
+    
+    if (!houseSnap.exists()) {
+      throw new Error('House not found');
+    }
+    
+    const house = houseSnap.data() as House;
+    
+    // Update the house
+    await updateDoc(houseRef, {
+      submitted: true,
+      updatedAt: new Date()
+    });
+    
+    // Return the updated house
+    return {
+      id: houseId,
+      ...house,
+      submitted: true,
+      updatedAt: new Date()
+    } as House;
+  } catch (error) {
+    console.error('Error marking house as submitted:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark a house as accepted
+ * @param houseId The house ID
+ * @returns The updated house data
+ */
+export const markHouseAsAccepted = async (houseId: string) => {
+  try {
+    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
+    const houseSnap = await getDoc(houseRef);
+    
+    if (!houseSnap.exists()) {
+      throw new Error('House not found');
+    }
+    
+    const house = houseSnap.data() as House;
+    
+    // Update the house
+    await updateDoc(houseRef, {
+      accepted: true,
+      updatedAt: new Date()
+    });
+    
+    // Return the updated house
+    return {
+      id: houseId,
+      ...house,
+      accepted: true,
+      updatedAt: new Date()
+    } as House;
+  } catch (error) {
+    console.error('Error marking house as accepted:', error);
     throw error;
   }
 };

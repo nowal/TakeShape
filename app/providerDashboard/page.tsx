@@ -137,6 +137,16 @@ export default function ProviderDashboardPage() {
                     if (houseRooms.length > 0) {
                       rooms = houseRooms;
                       stage = 'Started TakeShape';
+                      
+                      // Check if the house has been submitted
+                      if (house.submitted) {
+                        stage = 'Completed TakeShape';
+                        
+                        // Check if the house has been accepted
+                        if (house.accepted) {
+                          stage = 'Accepted Quote';
+                        }
+                      }
                     }
                   }
                 }
@@ -171,6 +181,22 @@ export default function ProviderDashboardPage() {
                 
                 if (rooms.length > 0) {
                   stage = 'Started TakeShape';
+                  
+                  // If session has a house, check for submitted and accepted flags
+                  if (session.houseId) {
+                    const houseData = await getHouse(session.houseId);
+                    if (houseData) {
+                      // Check if the house has been submitted
+                      if (houseData.submitted) {
+                        stage = 'Completed TakeShape';
+                        
+                        // Check if the house has been accepted
+                        if (houseData.accepted) {
+                          stage = 'Accepted Quote';
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }

@@ -1,4 +1,16 @@
 /* Global Styles */
+:root {
+    --primary-color: #ff385c;
+    --primary-color-faded: rgba(255, 56, 92, 0.8);
+    --primary-color-light: rgba(255, 56, 92, 0.1);
+    --primary-color-dark: #d32f4f;
+    --button-padding: 12px 20px;
+    --button-font-size: 16px;
+    --button-font-weight: 500;
+    --button-border-radius: 8px;
+    --button-transition: all 0.2s ease;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -261,7 +273,7 @@ body {
 }
 
 .submit-button-header {
-    background-color: #4caf50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 4px;
@@ -271,6 +283,12 @@ body {
     cursor: pointer;
     height: 40px; /* Match the height of the dropdown */
     margin-left: 15px; /* Add margin between dropdown and button */
+    transition: var(--button-transition);
+}
+
+.submit-button-header:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 .model-viewer-container {
@@ -371,7 +389,7 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #007aff;
+    background-color: var(--primary-color);
     border: none;
     color: white;
     display: flex;
@@ -379,6 +397,12 @@ body {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: var(--button-transition);
+}
+
+.camera-button:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
 }
 
 .camera-button-middle {
@@ -412,7 +436,7 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #4caf50; /* Green color for submit */
+    background-color: var(--primary-color);
     border: none;
     color: white;
     display: flex;
@@ -420,6 +444,12 @@ body {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: var(--button-transition);
+}
+
+.submit-button:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
 }
 
 /* Quote View Styles */
@@ -428,6 +458,48 @@ body {
     flex-direction: column;
     background-color: #f8f8f8;
     padding: 20px;
+}
+
+/* Schedule Intro Call Button */
+.intro-call-button {
+    background-color: var(--primary-color-light);
+    color: var(--primary-color-dark);
+    border: 1px solid rgba(255, 56, 92, 0.3);
+    border-radius: var(--button-border-radius);
+    padding: var(--button-padding);
+    font-size: var(--button-font-size);
+    font-weight: var(--button-font-weight);
+    cursor: pointer;
+    transition: var(--button-transition);
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.intro-call-button:hover {
+    background-color: rgba(255, 56, 92, 0.2);
+    transform: translateY(-1px);
+}
+
+/* I Don't Like My Quote Button */
+.dislike-quote-button {
+    background-color: transparent;
+    color: #333;
+    border: none;
+    border-radius: var(--button-border-radius);
+    padding: var(--button-padding);
+    font-size: var(--button-font-size);
+    font-weight: var(--button-font-weight);
+    cursor: pointer;
+    transition: var(--button-transition);
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.dislike-quote-button:hover {
+    text-decoration: underline;
+    transform: translateY(-1px);
 }
 
 .quote-header {
@@ -470,9 +542,9 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 15px;
-    background-color: #007aff;
+    background-color: var(--primary-color);
     color: white;
-    border-radius: 8px;
+    border-radius: var(--button-border-radius);
     margin: 20px 0;
 }
 
@@ -487,17 +559,22 @@ body {
 }
 
 .accept-quote-button {
-    background-color: #4caf50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 8px;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: bold;
+    border-radius: var(--button-border-radius);
+    padding: var(--button-padding);
+    font-size: var(--button-font-size);
+    font-weight: var(--button-font-weight);
     cursor: pointer;
-    margin: 0 auto;
-    display: block;
-    width: 200px;
+    transition: var(--button-transition);
+    text-align: center;
+    width: 100%;
+}
+
+.accept-quote-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 /* Expanded Room Item */

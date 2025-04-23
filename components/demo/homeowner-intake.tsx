@@ -204,7 +204,7 @@ export const HomeownerIntake: React.FC<HomeownerIntakeProps> = ({ onComplete }) 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 disabled:bg-blue-400"
+          className="w-full bg-[#ff385c] text-white py-2 px-4 rounded-md hover:opacity-90 transition duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Submitting...' : 'Get Started'}
         </button>

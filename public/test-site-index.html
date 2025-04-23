@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TakeShape Embed Testing</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #ff385c;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      color: #333;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card h3 {
+      margin-top: 0;
+      color: #ff385c;
+    }
+    
+    .button {
+      display: inline-block;
+      background-color: #ff385c;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .button:hover {
+      background-color: #e6243f;
+    }
+    
+    .button.secondary {
+      background-color: #007aff;
+    }
+    
+    .button.secondary:hover {
+      background-color: #0062cc;
+    }
+    
+    .code {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    table th, table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    
+    table th {
+      background-color: #f5f5f5;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>TakeShape Embed Testing</h1>
+  
+  <p>This page provides access to various testing resources for the TakeShape embed scripts.</p>
+  
+  <div class="card">
+    <h3>Test Site</h3>
+    <p>A lightweight test site that simulates a home service provider's website. It includes both the site-wide embed script and the contact form embed.</p>
+    <a href="/test-site/index.html" class="button">Open Test Site</a>
+    <a href="/test-site/README.md" class="button secondary">View Documentation</a>
+  </div>
+  
+  <h2>Test Site Pages</h2>
+  
+  <div class="grid">
+    <div class="card">
+      <h3>Home Page</h3>
+      <p>Landing page with general information about the service provider.</p>
+      <a href="/test-site/index.html" class="button">View Home Page</a>
+    </div>
+    
+    <div class="card">
+      <h3>About Page</h3>
+      <p>Information about the company, values, and team.</p>
+      <a href="/test-site/about.html" class="button">View About Page</a>
+    </div>
+    
+    <div class="card">
+      <h3>Services Page</h3>
+      <p>Details about the services offered by the provider.</p>
+      <a href="/test-site/services.html" class="button">View Services Page</a>
+    </div>
+    
+    <div class="card">
+      <h3>Contact Page</h3>
+      <p>Contact information and forms, including the TakeShape embed.</p>
+      <a href="/test-site/contact.html" class="button">View Contact Page</a>
+    </div>
+  </div>
+  
+  <h2>Embed Scripts</h2>
+  
+  <div class="grid">
+    <div class="card">
+      <h3>Site-wide Embed</h3>
+      <p>The site-wide embed script for tracking and chat functionality.</p>
+      <a href="/site-embed.js" class="button">View Script</a>
+      <a href="/site-embed-example.html" class="button secondary">View Example</a>
+    </div>
+    
+    <div class="card">
+      <h3>Contact Form Embed</h3>
+      <p>The embed script for the contact form replacement.</p>
+      <a href="/embed.js" class="button">View Script</a>
+      <a href="/embed-example.html" class="button secondary">View Example</a>
+    </div>
+  </div>
+  
+  <h2>Testing with URL Parameters</h2>
+  
+  <p>You can customize the embed scripts using URL parameters. Here are some examples:</p>
+  
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+      <th>Example</th>
+    </tr>
+    <tr>
+      <td>painterId</td>
+      <td>Sets the painter ID for the site-wide embed script</td>
+      <td><a href="/test-site/index.html?painterId=YOUR_PAINTER_ID">Try it</a></td>
+    </tr>
+    <tr>
+      <td>enableChat</td>
+      <td>Enables or disables the chat widget (true/false)</td>
+      <td><a href="/test-site/index.html?enableChat=false">Try it</a></td>
+    </tr>
+    <tr>
+      <td>primaryColor</td>
+      <td>Sets the primary color for the embed scripts (hex code)</td>
+      <td><a href="/test-site/index.html?primaryColor=%2300ff00">Try it</a></td>
+    </tr>
+    <tr>
+      <td>position</td>
+      <td>Sets the position of the chat widget</td>
+      <td><a href="/test-site/index.html?position=bottom-left">Try it</a></td>
+    </tr>
+  </table>
+  
+  <p>You can combine multiple parameters:</p>
+  
+  <div class="code">
+    /test-site/index.html?painterId=YOUR_PAINTER_ID&enableChat=true&primaryColor=%23ff0000&position=bottom-left
+  </div>
+  
+  <h2>Other Resources</h2>
+  
+  <div class="grid">
+    <div class="card">
+      <h3>Provider Dashboard</h3>
+      <p>View the provider dashboard to see session data and leads.</p>
+      <a href="/providerDashboard" class="button">Open Dashboard</a>
+    </div>
+    
+    <div class="card">
+      <h3>Embed Demo</h3>
+      <p>View the standalone embed demo page.</p>
+      <a href="/embed/demo" class="button">Open Embed Demo</a>
+    </div>
+  </div>
+</body>
+</html>
