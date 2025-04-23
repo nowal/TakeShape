@@ -603,6 +603,8 @@ export const useRooms = ({ sessionId, houseId }: UseRoomsProps): UseRoomsReturn 
       modelViewer.setAttribute('style', 'width: 100%; height: 100%;');
       modelViewer.setAttribute('shadow-intensity', '1');
       modelViewer.setAttribute('exposure', '0.5');
+      modelViewer.setAttribute('point-size', '1.0');
+      modelViewer.setAttribute('background-color', '#000000');
       
       // Add debugging info
       console.log('Model-viewer element created with attributes:', {
