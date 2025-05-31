@@ -16,12 +16,6 @@ export default function EmbedLayout({
   return (
     <div className="embed-container">
       {children}
-      <Script
-        type="module"
-        src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-        id="model-viewer"
-        strategy="afterInteractive"
-      />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import {
 } from '@/components/cva/link';
 import { useAuth } from '@/context/auth/provider';
 
-type TProps = TCvaLinkProps;
+type TProps = Omit<TCvaLinkProps, 'ref' | 'href'> & { href?: string };
 export const QuoteButton: FC<TProps> = ({ ...props }) => {
   const auth = useAuth();
   const firebaseAuth = getAuth();
@@ -27,14 +27,16 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
   }
 
   const title = props.title ?? 'Get Quotes';
+  // In quoteButton.tsx
+  const { href = "/quote", ...restProps } = props;
   return (
     <CvaLink
-      href="/quote"
+      href={href}
       title={title}
       intent="primary"
       size="sm"
       weight="bold"
-      {...props}
+      {...restProps}
     >
       {title}
     </CvaLink>

@@ -11,16 +11,18 @@ import { TCvaChildrenProps } from '@/components/cva/children';
 import { TClassValueProps } from '@/types/dom';
 import { cx } from 'class-variance-authority';
 
-const LinkMotion = motion.create(Link);
+const LinkMotion = motion(Link);
 
 export type TLinkMotionElement = typeof LinkMotion &
   HTMLAnchorElement;
 export type TLinkMotionElementProps =
   ComponentPropsWithoutRef<TLinkMotionElement>;
 export type TCvaLinkProps =
-  TCvaProps<TLinkMotionElementProps> &
+  TCvaProps<Omit<TLinkMotionElementProps, 'href'>> &
     TCvaChildrenProps &
-    TClassValueProps;
+    TClassValueProps & {
+      href?: string;
+    };
 
 const CvaLink = forwardRef<
   TLinkMotionElement,

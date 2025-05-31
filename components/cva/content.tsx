@@ -11,7 +11,7 @@ export const CvaContent: FC<
 > = ({ Icon, children, ...props }) => {
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {Icon.isLeading && (
           <CvaIconLeading
             key="icon-leading"
@@ -24,7 +24,7 @@ export const CvaContent: FC<
       <CvaChildren {...props}>
         {children}
       </CvaChildren>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {Icon.isTrailing && (
           <CvaIconTrailing
             key="icon-trailing"
