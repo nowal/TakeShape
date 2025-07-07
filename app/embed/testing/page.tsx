@@ -33,20 +33,22 @@ function FastApiCameraTester() {
   // State for display data
   const [framesSentCount, setFramesSentCount] = useState<number>(0);
   const [lastProcessedFrameId, setLastProcessedFrameId] = useState<number>(-1);
-  const [displayedKeyframeId, setDisplayedKeyframeId] = useState<number>(-1);
   const [numKeyframes, setNumKeyframes] = useState<number>(0);
   const [slamStatus, setSlamStatus] = useState<string>('UNKNOWN');
   const [relocRequiredMsg, setRelocRequiredMsg] = useState<string | null>(null);
   
   // State for visualization data
-  const [points, setPoints] = useState<{ [key: string]: { points: number[][], colors: number[][] } }>({});
+  const [points, setPoints] = useState<number[][]>([]);
+  const [pointColors, setPointColors] = useState<number[][]>([]);
   const [poses, setPoses] = useState<{ position: number[], orientation: number[] }[]>([]);
+  const [isIncrementalUpdate, setIsIncrementalUpdate] = useState<boolean>(false);
 
   // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const sendMessageRef = useRef<((message: any) => boolean) | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
+  const iPhoneScreenRef = useRef<{ handleMessage: (message: any) => void } | null>(null);
 
   // 1. Connect to backend
   const connectToBackend = useCallback(async () => {
@@ -55,7 +57,7 @@ function FastApiCameraTester() {
     setSessionId(null); setIsConnected(false);
     setFramesSentCount(0); setLastProcessedFrameId(-1);
     setNumKeyframes(0); setSlamStatus('CONNECTING'); setRelocRequiredMsg(null);
-    setPoints({}); setPoses([]); // Reset visualization data
+    setPoints([]); setPointColors([]); setPoses([]); // Reset visualization data
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     console.log("Attempting connection via /connect...");
@@ -122,6 +124,20 @@ function FastApiCameraTester() {
   const handleWebSocketMessage = useCallback((message: any) => {
     setLastMessage(message); // Store raw message
 
+    // Handle point cloud messages first
+    if (message.type === "POINT_CLOUD_UPDATE" || message.type === "BINARY_POINT_CLOUD_DATA") {
+      // Forward point cloud messages to the point cloud viewer
+      if (iPhoneScreenRef.current) {
+        iPhoneScreenRef.current.handleMessage(message);
+      }
+      
+      // Update status for point cloud updates
+      if (message.type === "POINT_CLOUD_UPDATE") {
+        setStatusMessage(`Point cloud update: ${message.point_count} points from ${message.total_keyframes} keyframes`);
+      }
+      return; // Don't process further
+    }
+
     // Handle different message types from backend
     if (message.type === "debug_log") {
         // Handle debug messages from backend
@@ -151,21 +167,11 @@ function FastApiCameraTester() {
         }
         
         // --- UPDATE VISUALIZATION STATE ---
-        if (Array.isArray(message.keyframePoses)) setPoses(message.keyframePoses);
-        // ---------------------------------
-    } else if (message.type === "slam_update_batched") {
-        if (typeof message.processedFrameId === 'number') setLastProcessedFrameId(message.processedFrameId);
-        if (typeof message.numKeyframes === 'number') setNumKeyframes(message.numKeyframes);
-        if (typeof message.status === 'string') {
-             setSlamStatus(message.status);
-             if (message.status !== 'RELOC') setRelocRequiredMsg(null); // Clear prompt if not in RELOC
-             setStatusMessage(`Mode: ${message.status} | KFs: ${message.numKeyframes}`);
-        }
+        // Check if this is an incremental update
+        setIsIncrementalUpdate(message.isIncrementalPointCloud === true);
         
-        // --- UPDATE VISUALIZATION STATE ---
-        if (message.batchedData) {
-            setPoints(prevPoints => ({ ...prevPoints, ...message.batchedData }));
-        }
+        if (Array.isArray(message.latestKfWorldPoints)) setPoints(message.latestKfWorldPoints);
+        if (Array.isArray(message.latestKfColors)) setPointColors(message.latestKfColors);
         if (Array.isArray(message.keyframePoses)) setPoses(message.keyframePoses);
         // ---------------------------------
     } else if (message.type === "RELOC_NEEDED") {
@@ -210,10 +216,6 @@ function FastApiCameraTester() {
     setStatusMessage(`Transmission Error: ${error}`);
   }, []);
 
-  const handleFrameRendered = useCallback((frameId: number) => {
-    setDisplayedKeyframeId(frameId);
-  }, []);
-
   // --- JSX Rendering ---
   return (
     <div style={{ 
@@ -229,14 +231,15 @@ function FastApiCameraTester() {
       
       {/* iPhone Screen - Main Focus */}
       <IPhoneScreen
+        ref={iPhoneScreenRef}
         onCameraReady={handleCameraReady}
         onCameraError={handleCameraError}
         isRecording={isRecording}
         onRecordingToggle={handleRecordingToggle}
         pointsData={points}
+        colorsData={pointColors}
         posesData={poses}
-        relocRequiredMsg={relocRequiredMsg}
-        onFrameRendered={handleFrameRendered}
+        isIncrementalUpdate={isIncrementalUpdate}
       />
 
       {/* Debug Toggle Button - Bottom */}
@@ -273,11 +276,11 @@ function FastApiCameraTester() {
         statusMessage={statusMessage}
         framesSentCount={framesSentCount}
         lastProcessedFrameId={lastProcessedFrameId}
-        displayedKeyframeId={displayedKeyframeId}
         numKeyframes={numKeyframes}
         slamStatus={slamStatus}
         relocRequiredMsg={relocRequiredMsg}
         points={points}
+        isIncrementalUpdate={isIncrementalUpdate}
         sessionId={sessionId}
         isConnected={isConnected}
         isCameraReady={isCameraReady}
