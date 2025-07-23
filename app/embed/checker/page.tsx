@@ -22,6 +22,12 @@ function FastApiCameraTester() {
 
   // Recording state - controls frame sending
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  
+  // Screen mode state - controls what view is shown
+  const [screenMode, setScreenMode] = useState<'camera' | 'loading' | 'results'>('camera');
+  
+  // Final point cloud data from backend
+  const [finalPointCloudData, setFinalPointCloudData] = useState<number[]>([]);
 
   // Core state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -37,7 +43,7 @@ function FastApiCameraTester() {
   const [slamStatus, setSlamStatus] = useState<string>('UNKNOWN');
   const [relocRequiredMsg, setRelocRequiredMsg] = useState<string | null>(null);
   
-  // State for visualization data
+  // State for visualization data (keeping for future use)
   const [points, setPoints] = useState<number[][]>([]);
   const [pointColors, setPointColors] = useState<number[][]>([]);
   const [poses, setPoses] = useState<{ position: number[], orientation: number[] }[]>([]);
@@ -105,8 +111,19 @@ function FastApiCameraTester() {
 
   // Handle recording toggle
   const handleRecordingToggle = useCallback(() => {
-    setIsRecording(prev => !prev);
-    console.log("Recording toggled:", !isRecording);
+    const newRecordingState = !isRecording;
+    setIsRecording(newRecordingState);
+    console.log("Recording toggled:", newRecordingState);
+    
+    // If stopping recording, switch to loading screen
+    if (!newRecordingState) {
+      console.log("Recording stopped, switching to loading screen");
+      setScreenMode('loading');
+      
+      // TODO: Add logic here to detect when backend processing is complete
+      // For now, this will just stay on loading screen
+      // Future: Listen for completion message from backend and switch back or to results view
+    }
   }, [isRecording]);
 
   // Handle WebSocket connection change
@@ -169,6 +186,16 @@ function FastApiCameraTester() {
          setRelocRequiredMsg(null);
          setStatusMessage(message.message || "Tracking re-established!");
          // Mode will change via next slam_update
+    } else if (message.type === "final_pointcloud_ready") {
+        console.log("Final point cloud received!", message);
+        if (Array.isArray(message.data) && message.data.length > 0) {
+            setFinalPointCloudData(message.data);
+            setScreenMode('results');
+            setStatusMessage('3D model ready!');
+        } else {
+            console.warn("Received final_pointcloud_ready but no valid data");
+            setStatusMessage('3D reconstruction failed - no data received');
+        }
     } else if (message.type === "error") {
         console.error("Backend Error Message:", message.message);
         setStatusMessage(`Backend Error: ${message.message}`);
@@ -201,6 +228,15 @@ function FastApiCameraTester() {
     setStatusMessage(`Transmission Error: ${error}`);
   }, []);
 
+  // Handle back to camera from results screen
+  const handleBackToCamera = useCallback(() => {
+    console.log("Returning to camera view");
+    setScreenMode('camera');
+    setFinalPointCloudData([]); // Clear previous results
+    // Reset recording state if needed
+    setIsRecording(false);
+  }, []);
+
   // --- JSX Rendering ---
   return (
     <div style={{ 
@@ -220,10 +256,9 @@ function FastApiCameraTester() {
         onCameraError={handleCameraError}
         isRecording={isRecording}
         onRecordingToggle={handleRecordingToggle}
-        pointsData={points}
-        colorsData={pointColors}
-        posesData={poses}
-        isIncrementalUpdate={isIncrementalUpdate}
+        screenMode={screenMode}
+        finalPointCloudData={finalPointCloudData}
+        onBackToCamera={handleBackToCamera}
       />
 
       {/* Debug Toggle Button - Bottom */}

@@ -4,13 +4,11 @@ import Image from 'next/image';
 import { cx } from 'class-variance-authority';
 import { LandingFaq } from '@/components/landing/faq';
 import { LandingProblemAndDecision } from '@/components/landing/problem-and-decision';
-import { LandingHero } from '@/components/landing/hero';
+
 import { LandingBenefits } from '@/components/landing/benefits';
 import { LandingDreamRoom } from '@/components/landing/dream-room';
 import { QuoteButton } from '@/components/buttons/quote/quoteButton';
 import imageHero from '@/public/landing/hero.png';
-import { resolveUrlId } from '@/utils/css/format';
-import { FILTER_GRAYSCALE_ID } from '@/filters/grayscale';
 import { LandingHeroText } from '@/components/landing/hero/text';
 import { useObjectPosition } from '@/components/landing/hero/object-position';
 import { useViewport } from '@/context/viewport';
@@ -32,7 +30,6 @@ const Landing = () => {
         <AnimationFade classValue="absolute inset-0">
           <Image
             style={{
-              filter: resolveUrlId(FILTER_GRAYSCALE_ID),
               objectPosition,
               objectFit: 'cover',
             }}
@@ -45,15 +42,7 @@ const Landing = () => {
             sizes="(max-width: 1250px) 100vw, 1250px"
           />
         </AnimationFade>
-        {viewport.isDimensions ? (
-          <>
-            {viewport.isResizing ? null : (
-              <LandingHero {...viewport} />
-            )}
-          </>
-        ) : (
-          <LandingHeroText />
-        )}
+        <LandingHeroText />
       </section>
       <section
         className={cx(

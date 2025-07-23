@@ -2,18 +2,18 @@
 
 import React from 'react';
 import CameraPermission from './CameraPermission';
-import ModelOverlay from './ModelOverlay';
 import RecordingToggleButton from './RecordingToggleButton';
+import LoadingScreen from './LoadingScreen';
+import ResultsScreen from './ResultsScreen';
 
 interface IPhoneScreenProps {
   onCameraReady: (stream: MediaStream, videoElement: HTMLVideoElement) => void;
   onCameraError: (error: string) => void;
   isRecording: boolean;
   onRecordingToggle: () => void;
-  pointsData: number[][];
-  colorsData: number[][];
-  posesData: { position: number[], orientation: number[] }[];
-  isIncrementalUpdate: boolean;
+  screenMode: 'camera' | 'loading' | 'results';
+  finalPointCloudData?: number[];
+  onBackToCamera?: () => void;
 }
 
 export default function IPhoneScreen({
@@ -21,10 +21,9 @@ export default function IPhoneScreen({
   onCameraError,
   isRecording,
   onRecordingToggle,
-  pointsData,
-  colorsData,
-  posesData,
-  isIncrementalUpdate
+  screenMode,
+  finalPointCloudData = [],
+  onBackToCamera
 }: IPhoneScreenProps) {
   return (
     <div
@@ -40,27 +39,32 @@ export default function IPhoneScreen({
         margin: '0 auto',
       }}
     >
-      {/* Camera Feed - Full Background */}
-      <CameraPermission
-        onCameraReady={onCameraReady}
-        onError={onCameraError}
-        width={390}
-        height={844}
-      />
-      
-      {/* Model Overlay - Top 25% */}
-      <ModelOverlay
-        pointsData={pointsData}
-        colorsData={colorsData}
-        posesData={posesData}
-        isIncrementalUpdate={isIncrementalUpdate}
-      />
-      
-      {/* Recording Toggle Button - Bottom Center */}
-      <RecordingToggleButton
-        isRecording={isRecording}
-        onToggle={onRecordingToggle}
-      />
+      {screenMode === 'camera' ? (
+        <>
+          {/* Camera Feed - Full Background */}
+          <CameraPermission
+            onCameraReady={onCameraReady}
+            onError={onCameraError}
+            width={390}
+            height={844}
+          />
+          
+          {/* Recording Toggle Button - Bottom Center */}
+          <RecordingToggleButton
+            isRecording={isRecording}
+            onToggle={onRecordingToggle}
+          />
+        </>
+      ) : screenMode === 'loading' ? (
+        /* Loading Screen - Full Screen */
+        <LoadingScreen />
+      ) : (
+        /* Results Screen - Full Screen */
+        <ResultsScreen 
+          pointCloudData={finalPointCloudData}
+          onBack={onBackToCamera}
+        />
+      )}
     </div>
   );
 }
