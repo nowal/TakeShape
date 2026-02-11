@@ -4,7 +4,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { room_name, user_name, permissions } = await request.json();
+    const {
+      room_name,
+      user_name,
+      permissions,
+      join_audio_muted,
+      join_video_muted
+    } = await request.json();
 
     const projectId = process.env.SIGNALWIRE_PROJECT_ID?.trim();
     const apiToken = (process.env.SIGNALWIRE_API_TOKEN || process.env.SIGNALWIRE_TOKEN)?.trim();
@@ -26,6 +32,12 @@ export async function POST(request: NextRequest) {
 
     if (Array.isArray(permissions) && permissions.length > 0) {
       payload.permissions = permissions;
+    }
+    if (typeof join_audio_muted === 'boolean') {
+      payload.join_audio_muted = join_audio_muted;
+    }
+    if (typeof join_video_muted === 'boolean') {
+      payload.join_video_muted = join_video_muted;
     }
 
     const response = await fetch(`https://${spaceUrl}/api/video/room_tokens`, {

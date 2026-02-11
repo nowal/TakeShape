@@ -7,11 +7,28 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 
+const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
+  const videoInputs = devices.filter((device) => device.kind === 'videoinput');
+  if (!videoInputs.length) return null;
+  const prioritized = videoInputs.find((device) =>
+    /back|rear|environment|world/i.test(device.label)
+  );
+  return prioritized || null;
+};
+
+const isEnvironmentFacingTrack = (track: MediaStreamTrack | undefined) => {
+  if (!track) return false;
+  const settings = track.getSettings?.();
+  return String(settings?.facingMode || '').toLowerCase() === 'environment';
+};
+
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const tokenRef = useRef<string>('');
+  const [debugEnabled, setDebugEnabled] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
   const [isMuted, setMuted] = useState(false);
@@ -20,7 +37,15 @@ const ConsultPage: React.FC = () => {
   const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
 
+  const pushDebugLog = useCallback((message: string) => {
+    if (!debugEnabled) return;
+    const stamp = new Date().toISOString().slice(11, 23);
+    setDebugLogs((prev) => [...prev.slice(-13), `${stamp} ${message}`]);
+    console.log(`[consult-debug] ${message}`);
+  }, [debugEnabled]);
+
   const cleanupSession = useCallback(async () => {
+    pushDebugLog('cleanupSession()');
     if (sessionRef.current) {
       try {
         await sessionRef.current.leave();
@@ -33,30 +58,18 @@ const ConsultPage: React.FC = () => {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
     }
-  }, []);
+  }, [pushDebugLog]);
 
-  const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
-    const videoInputs = devices.filter((device) => device.kind === 'videoinput');
-    if (!videoInputs.length) return null;
-    const prioritized = videoInputs.find((device) =>
-      /back|rear|environment|world/i.test(device.label)
-    );
-    return prioritized || null;
-  };
-
-  const isEnvironmentFacingTrack = (track: MediaStreamTrack | undefined) => {
-    if (!track) return false;
-    const settings = track.getSettings?.();
-    return String(settings?.facingMode || '').toLowerCase() === 'environment';
-  };
-
-  const getBackCameraStream = async (): Promise<MediaStream> => {
+  const getBackCameraStream = useCallback(async (): Promise<MediaStream> => {
+    pushDebugLog('Requesting initial stream with facingMode=environment (ideal)');
     const initialStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: { facingMode: { ideal: 'environment' } }
     });
     const initialVideoTrack = initialStream.getVideoTracks()[0];
+    pushDebugLog(`Initial video settings: ${JSON.stringify(initialVideoTrack?.getSettings?.() || {})}`);
     if (isEnvironmentFacingTrack(initialVideoTrack)) {
+      pushDebugLog('Initial stream already environment-facing');
       return initialStream;
     }
 
@@ -64,6 +77,7 @@ const ConsultPage: React.FC = () => {
     const videoInputs = devices.filter((device) => device.kind === 'videoinput');
     const currentDeviceId = initialVideoTrack?.getSettings()?.deviceId;
     const prioritizedBack = pickLikelyBackCamera(devices);
+    pushDebugLog(`Camera candidates found: ${videoInputs.length}; prioritized back: ${prioritizedBack?.label || 'none'}`);
 
     const candidates = [
       ...(prioritizedBack ? [prioritizedBack] : []),
@@ -76,6 +90,7 @@ const ConsultPage: React.FC = () => {
 
     for (const candidate of candidates) {
       try {
+        pushDebugLog(`Trying candidate camera: ${candidate.label || candidate.deviceId}`);
         const switchedStream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: { deviceId: { exact: candidate.deviceId } }
@@ -85,17 +100,20 @@ const ConsultPage: React.FC = () => {
           isEnvironmentFacingTrack(switchedTrack) ||
           /back|rear|environment|world/i.test(candidate.label);
         if (appearsBackCamera) {
+          pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
           initialStream.getTracks().forEach((track) => track.stop());
           return switchedStream;
         }
         switchedStream.getTracks().forEach((track) => track.stop());
       } catch {
+        pushDebugLog(`Candidate failed: ${candidate.label || candidate.deviceId}`);
         // try next candidate
       }
     }
 
+    pushDebugLog('Falling back to initial stream');
     return initialStream;
-  };
+  }, [pushDebugLog]);
 
   const createTokenForRoom = async (roomName: string) => {
     const response = await fetch('/api/signalwire/room-token', {
@@ -103,7 +121,9 @@ const ConsultPage: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         room_name: roomName,
-        user_name: `Homeowner-${Date.now()}`
+        user_name: `Homeowner-${Date.now()}`,
+        join_audio_muted: false,
+        join_video_muted: false
       })
     });
     const payload = await response.json().catch(() => ({}));
@@ -126,6 +146,7 @@ const ConsultPage: React.FC = () => {
   const attachLocalStreamPreview = async (stream: MediaStream) => {
     const videoEl = localVideoRef.current;
     if (!videoEl) return false;
+    pushDebugLog(`attachLocalStreamPreview(): track settings ${JSON.stringify(stream.getVideoTracks()[0]?.getSettings?.() || {})}`);
     videoEl.srcObject = stream;
     try {
       await videoEl.play();
@@ -138,13 +159,19 @@ const ConsultPage: React.FC = () => {
   const joinConsult = useCallback(async (token: string) => {
     await cleanupSession();
     setHasVideoFrame(false);
+    pushDebugLog('joinConsult(): begin');
 
     const stream = await getBackCameraStream();
     localStreamRef.current = stream;
     stream.getVideoTracks().forEach((track) => {
       track.enabled = true;
+      pushDebugLog(`Local video track enabled=${track.enabled} muted=${track.muted} readyState=${track.readyState}`);
+      track.onended = () => pushDebugLog('Local video track ended');
+      track.onmute = () => pushDebugLog('Local video track muted');
+      track.onunmute = () => pushDebugLog('Local video track unmuted');
     });
     const previewReady = await attachLocalStreamPreview(stream);
+    pushDebugLog(`Local preview ready=${previewReady}`);
 
     const session = new SWVideo.RoomSession({
       token,
@@ -156,19 +183,27 @@ const ConsultPage: React.FC = () => {
       receiveAudio: true,
       receiveVideo: true
     });
+    pushDebugLog('Room joined with sendVideo=true');
     try {
       await session.videoUnmute?.();
+      pushDebugLog('session.videoUnmute() called');
     } catch {
       // no-op
     }
     try {
       await session.restoreOutboundVideo?.();
+      pushDebugLog('session.restoreOutboundVideo() called');
     } catch {
       // no-op
     }
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-  }, [cleanupSession]);
+  }, [cleanupSession, getBackCameraStream, pushDebugLog]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDebugEnabled(params.get('debug') === '1');
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -196,12 +231,14 @@ const ConsultPage: React.FC = () => {
         await joinConsult(token);
         if (mounted) {
           setStatus('Connected');
+          pushDebugLog('Status=Connected');
           setEnded(false);
           setMuted(false);
           setVideoOff(false);
         }
       } catch (error) {
         console.error('Consult join error:', error);
+        pushDebugLog(`Join error: ${(error as Error).message}`);
         if (mounted) {
           setStatus(`Failed to join: ${(error as Error).message}`);
           setEnded(true);
@@ -212,6 +249,7 @@ const ConsultPage: React.FC = () => {
     start();
 
     const handleOffline = () => {
+      pushDebugLog('Window offline event');
       setStatus('Connection lost. Reconnect when network returns.');
     };
 
@@ -222,7 +260,7 @@ const ConsultPage: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
       cleanupSession();
     };
-  }, [cleanupSession, joinConsult]);
+  }, [cleanupSession, joinConsult, pushDebugLog]);
 
   const toggleMute = async () => {
     const session = sessionRef.current;
@@ -230,9 +268,11 @@ const ConsultPage: React.FC = () => {
     try {
       if (isMuted) {
         await session.audioUnmute();
+        pushDebugLog('audioUnmute()');
         setMuted(false);
       } else {
         await session.audioMute();
+        pushDebugLog('audioMute()');
         setMuted(true);
       }
     } catch (error) {
@@ -246,9 +286,11 @@ const ConsultPage: React.FC = () => {
     try {
       if (isVideoOff) {
         await session.restoreOutboundVideo();
+        pushDebugLog('restoreOutboundVideo() from button');
         setVideoOff(false);
       } else {
         await session.stopOutboundVideo();
+        pushDebugLog('stopOutboundVideo() from button');
         setVideoOff(true);
       }
     } catch (error) {
@@ -258,6 +300,7 @@ const ConsultPage: React.FC = () => {
 
   const endCall = async () => {
     await cleanupSession();
+    pushDebugLog('Call ended by user');
     setEnded(true);
     setHasVideoFrame(false);
     setStatus('Call ended.');
@@ -268,12 +311,14 @@ const ConsultPage: React.FC = () => {
     setRejoining(true);
     try {
       setStatus('Rejoining consult...');
+      pushDebugLog('Rejoining consult');
       await joinConsult(tokenRef.current);
       setEnded(false);
       setStatus('Connected');
     } catch (error) {
       console.error('Rejoin error:', error);
       setStatus(`Rejoin failed: ${(error as Error).message}`);
+      pushDebugLog(`Rejoin error: ${(error as Error).message}`);
     } finally {
       setRejoining(false);
     }
@@ -375,6 +420,28 @@ const ConsultPage: React.FC = () => {
             >
               {status}
             </div>
+            {debugEnabled && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  right: 10,
+                  top: 34,
+                  maxHeight: '35%',
+                  overflowY: 'auto',
+                  borderRadius: 8,
+                  background: 'rgba(0,0,0,0.55)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  padding: '8px 10px',
+                  fontSize: 10,
+                  lineHeight: 1.3,
+                  color: '#d1e0ff',
+                  textAlign: 'left'
+                }}
+              >
+                {debugLogs.length ? debugLogs.join('\n') : 'Debug log enabled...'}
+              </div>
+            )}
             <div
               style={{
                 position: 'absolute',
