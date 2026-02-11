@@ -8,7 +8,7 @@ const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 
 const ConsultPage: React.FC = () => {
-  const roomRef = useRef<HTMLDivElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const tokenRef = useRef<string>('');
@@ -35,27 +35,68 @@ const ConsultPage: React.FC = () => {
     }
   }, []);
 
-  const joinConsult = useCallback(async (token: string) => {
-    if (!roomRef.current) {
-      throw new Error('Video container not ready');
+  const getBackCameraStream = async () => {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          facingMode: { exact: 'environment' }
+        }
+      });
+    } catch {
+      return navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          facingMode: { ideal: 'environment' }
+        }
+      });
     }
+  };
 
+  const createTokenForRoom = async (roomName: string) => {
+    const response = await fetch('/api/signalwire/room-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        room_name: roomName,
+        user_name: `Homeowner-${Date.now()}`
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.token) {
+      const detail = [payload.error, payload.details].filter(Boolean).join(' | ');
+      throw new Error(detail || 'Failed to generate consult token');
+    }
+    return payload.token as string;
+  };
+
+  const attachLocalStreamPreview = (stream: MediaStream) => {
+    const videoEl = localVideoRef.current;
+    if (!videoEl) return;
+    videoEl.srcObject = stream;
+    videoEl
+      .play()
+      .then(() => undefined)
+      .catch(() => undefined);
+  };
+
+  const joinConsult = useCallback(async (token: string) => {
     await cleanupSession();
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: {
-        facingMode: { ideal: 'environment' }
-      }
-    });
+    const stream = await getBackCameraStream();
     localStreamRef.current = stream;
+    attachLocalStreamPreview(stream);
 
     const session = new SWVideo.RoomSession({
       token,
-      rootElement: roomRef.current,
       localStream: stream
     });
-    await session.join({ audio: true, video: true });
+    await session.join({
+      sendAudio: true,
+      sendVideo: true,
+      receiveAudio: true,
+      receiveVideo: true
+    });
     sessionRef.current = session;
   }, [cleanupSession]);
 
@@ -64,7 +105,17 @@ const ConsultPage: React.FC = () => {
 
     const start = async () => {
       try {
-        const token = new URLSearchParams(window.location.search).get('token');
+        const params = new URLSearchParams(window.location.search);
+        let token = params.get('token');
+        if (!token) {
+          const roomName = params.get('room');
+          if (!roomName) {
+            setStatus('Missing token');
+            return;
+          }
+          setStatus('Preparing secure room access...');
+          token = await createTokenForRoom(roomName);
+        }
         if (!token) {
           setStatus('Missing token');
           return;
@@ -78,7 +129,7 @@ const ConsultPage: React.FC = () => {
           setEnded(false);
           setMuted(false);
           setVideoOff(false);
-          setHasVideoFrame(false);
+          setHasVideoFrame(true);
         }
       } catch (error) {
         console.error('Consult join error:', error);
@@ -103,21 +154,6 @@ const ConsultPage: React.FC = () => {
       cleanupSession();
     };
   }, [cleanupSession, joinConsult]);
-
-  useEffect(() => {
-    if (isEnded) return;
-    const timer = window.setInterval(() => {
-      const container = roomRef.current;
-      if (!container) return;
-      const videos = Array.from(container.querySelectorAll('video')) as HTMLVideoElement[];
-      const hasReadyVideo = videos.some((video) => video.readyState >= 2 && video.videoWidth > 0);
-      if (hasReadyVideo) {
-        setHasVideoFrame(true);
-        window.clearInterval(timer);
-      }
-    }, 500);
-    return () => window.clearInterval(timer);
-  }, [isEnded, status]);
 
   const toggleMute = async () => {
     const session = sessionRef.current;
@@ -228,7 +264,20 @@ const ConsultPage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div ref={roomRef} style={{ position: 'absolute', inset: 0 }} />
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                background: '#000'
+              }}
+            />
             {!hasVideoFrame && (
               <div
                 style={{

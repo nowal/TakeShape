@@ -49,7 +49,7 @@ const PainterCallCenter: React.FC = () => {
   const [painterDocId, setPainterDocId] = useState<string | null>(null);
   const [authUid, setAuthUid] = useState<string | null>(null);
 
-  const roomRef = useRef<HTMLDivElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
   const signalWireRecordingRef = useRef<any>(null);
   const signalWireRecordingIdRef = useRef<string | null>(null);
@@ -60,6 +60,7 @@ const PainterCallCenter: React.FC = () => {
   const recordedChunksRef = useRef<Blob[]>([]);
   const activeCallRef = useRef(false);
   const findVideoTimerRef = useRef<number | null>(null);
+  const trackHandlerRef = useRef<((event: RTCTrackEvent) => void) | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -99,6 +100,13 @@ const PainterCallCenter: React.FC = () => {
       if (findVideoTimerRef.current) {
         window.clearInterval(findVideoTimerRef.current);
       }
+      if (roomSessionRef.current) {
+        if (trackHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('track', trackHandlerRef.current);
+        }
+        roomSessionRef.current.leave().catch(() => undefined);
+        roomSessionRef.current = null;
+      }
     };
   }, []);
 
@@ -132,42 +140,55 @@ const PainterCallCenter: React.FC = () => {
     return getJsonOrThrow(response, 'Failed to create room token') as Promise<RoomTokenResponse>;
   };
 
-  const waitForVideoContainer = async (timeoutMs = 4000) => {
-    const start = Date.now();
-    while (!roomRef.current) {
-      if (Date.now() - start > timeoutMs) {
-        throw new Error('Video container not ready');
-      }
-      await new Promise((resolve) => setTimeout(resolve, 50));
+  const setRemoteVideoStream = (stream: MediaStream | null) => {
+    const videoEl = remoteVideoRef.current;
+    if (!videoEl) return;
+    videoEl.srcObject = stream;
+    if (stream) {
+      videoEl
+        .play()
+        .then(() => undefined)
+        .catch(() => undefined);
     }
-    return roomRef.current;
   };
 
   const joinPainterRoomAudioOnly = async (token: string) => {
-    await waitForVideoContainer();
-
     if (roomSessionRef.current) {
+      if (trackHandlerRef.current && roomSessionRef.current.off) {
+        roomSessionRef.current.off('track', trackHandlerRef.current);
+      }
       await roomSessionRef.current.leave();
       roomSessionRef.current = null;
     }
 
     const session = new SWVideo.RoomSession({
-      token,
-      rootElement: roomRef.current
+      token
     });
-    await session.join({ audio: true, video: false });
+    const trackHandler = (event: RTCTrackEvent) => {
+      const track = event?.track;
+      if (!track || track.kind !== 'video') return;
+      const stream = event.streams?.[0] || new MediaStream([track]);
+      setRemoteVideoStream(stream);
+      setHasVideoFrame(true);
+      startEstimateRecording();
+    };
+    session.on('track', trackHandler);
+    trackHandlerRef.current = trackHandler;
+
+    await session.join({
+      sendAudio: true,
+      sendVideo: false,
+      receiveAudio: true,
+      receiveVideo: true
+    });
     roomSessionRef.current = session;
     setMuted(false);
   };
 
   const findPlayableVideoElement = () => {
-    const container = roomRef.current;
-    if (!container) return null;
-    const videos = Array.from(container.querySelectorAll('video')) as HTMLVideoElement[];
-    return (
-      videos.find((video) => video.readyState >= 2 && video.videoWidth > 0) ||
-      null
-    );
+    const video = remoteVideoRef.current;
+    if (!video) return null;
+    return video.readyState >= 2 && video.videoWidth > 0 ? video : null;
   };
 
   const startEstimateRecording = () => {
@@ -364,9 +385,8 @@ const PainterCallCenter: React.FC = () => {
       painterTokenRef.current = painterToken.token;
       await joinPainterRoomAudioOnly(painterToken.token);
 
-      const guestToken = await createRoomToken(confData.name, 'Homeowner');
       const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      setGuestLink(`${appBase}/consult?token=${encodeURIComponent(guestToken.token)}`);
+      setGuestLink(`${appBase}/consult?room=${encodeURIComponent(confData.name)}`);
 
       setStatus('Dialing homeowner...');
       const dialResponse = await fetch('/api/signalwire/dial', {
@@ -461,6 +481,9 @@ const PainterCallCenter: React.FC = () => {
       await persistEstimateRecording();
 
       if (roomSessionRef.current) {
+        if (trackHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('track', trackHandlerRef.current);
+        }
         await roomSessionRef.current.leave();
         roomSessionRef.current = null;
       }
@@ -480,6 +503,8 @@ const PainterCallCenter: React.FC = () => {
     recordedChunksRef.current = [];
     signalWireRecordingRef.current = null;
     signalWireRecordingIdRef.current = null;
+    trackHandlerRef.current = null;
+    setRemoteVideoStream(null);
     setStatus((prev) => prev.startsWith('Call ended') ? prev : 'Call ended.');
   };
 
@@ -600,11 +625,17 @@ const PainterCallCenter: React.FC = () => {
                 ? 'Audio call in progress. Send video estimate when ready.'
                 : 'Waiting for homeowner video...'}
             </div>
-            <div
-              ref={roomRef}
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
               style={{
                 position: 'absolute',
-                inset: 0
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                background: '#000'
               }}
             />
             {!hasVideoFrame && (
