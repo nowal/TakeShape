@@ -132,10 +132,19 @@ const PainterCallCenter: React.FC = () => {
     return getJsonOrThrow(response, 'Failed to create room token') as Promise<RoomTokenResponse>;
   };
 
-  const joinPainterRoomAudioOnly = async (token: string) => {
-    if (!roomRef.current) {
-      throw new Error('Video container not ready');
+  const waitForVideoContainer = async (timeoutMs = 4000) => {
+    const start = Date.now();
+    while (!roomRef.current) {
+      if (Date.now() - start > timeoutMs) {
+        throw new Error('Video container not ready');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
+    return roomRef.current;
+  };
+
+  const joinPainterRoomAudioOnly = async (token: string) => {
+    await waitForVideoContainer();
 
     if (roomSessionRef.current) {
       await roomSessionRef.current.leave();
@@ -345,6 +354,7 @@ const PainterCallCenter: React.FC = () => {
       const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
       setConference(confData);
       setHasVideoFrame(false);
+      setPhase('calling');
 
       const painterToken = await createRoomToken(confData.name, 'Painter', [
         'room.recording',
