@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
         enable_room_previews: true,
         enable_chat: true,
         tone_on_entry_and_exit: false,
+        user_join_video_off: false,
+        room_join_video_off: false,
         record_on_start: false
       })
     });
@@ -55,8 +57,15 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    // Some spaces can ignore create-time flags; enforce no entry/exit tone.
-    if (data?.id && data?.tone_on_entry_and_exit !== false) {
+    // Some spaces can ignore create-time flags; enforce tone/video defaults.
+    if (
+      data?.id &&
+      (
+        data?.tone_on_entry_and_exit !== false ||
+        data?.user_join_video_off !== false ||
+        data?.room_join_video_off !== false
+      )
+    ) {
       try {
         const patchResponse = await fetch(`https://${spaceUrl}/api/video/conferences/${data.id}`, {
           method: 'PUT',
@@ -66,7 +75,9 @@ export async function POST(request: NextRequest) {
             'Accept': 'application/json'
           },
           body: JSON.stringify({
-            tone_on_entry_and_exit: false
+            tone_on_entry_and_exit: false,
+            user_join_video_off: false,
+            room_join_video_off: false
           })
         });
 
