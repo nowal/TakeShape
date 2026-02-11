@@ -11,6 +11,10 @@ export const resolveVideoUrl = async (
     return '';
   }
 
+  if (/^https?:\/\//.test(url)) {
+    return url;
+  }
+
   const storage = getStorage();
 
   const videoRef = ref(storage, url);
