@@ -54,6 +54,34 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+
+    // Some spaces can ignore create-time flags; enforce no entry/exit tone.
+    if (data?.id && data?.tone_on_entry_and_exit !== false) {
+      try {
+        const patchResponse = await fetch(`https://${spaceUrl}/api/video/conferences/${data.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Basic ${authHeader}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            tone_on_entry_and_exit: false
+          })
+        });
+
+        if (patchResponse.ok) {
+          const patched = await patchResponse.json();
+          return NextResponse.json({
+            ...patched,
+            space_url: spaceUrl
+          });
+        }
+      } catch (patchError) {
+        console.error('SignalWire conference tone patch failed:', patchError);
+      }
+    }
+
     return NextResponse.json({
       ...data,
       space_url: spaceUrl

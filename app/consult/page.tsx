@@ -35,21 +35,42 @@ const ConsultPage: React.FC = () => {
     }
   }, []);
 
+  const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
+    const videoInputs = devices.filter((device) => device.kind === 'videoinput');
+    if (!videoInputs.length) return null;
+    const prioritized = videoInputs.find((device) =>
+      /back|rear|environment|ultra wide|wide/i.test(device.label)
+    );
+    return prioritized || null;
+  };
+
   const getBackCameraStream = async () => {
+    const initialStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: { facingMode: { ideal: 'environment' } }
+    });
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const backCamera = pickLikelyBackCamera(devices);
+    if (!backCamera) {
+      return initialStream;
+    }
+
+    const currentVideoTrack = initialStream.getVideoTracks()[0];
+    const currentDeviceId = currentVideoTrack?.getSettings()?.deviceId;
+    if (currentDeviceId && currentDeviceId === backCamera.deviceId) {
+      return initialStream;
+    }
+
     try {
-      return await navigator.mediaDevices.getUserMedia({
+      const switchedStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: {
-          facingMode: { exact: 'environment' }
-        }
+        video: { deviceId: { exact: backCamera.deviceId } }
       });
+      initialStream.getTracks().forEach((track) => track.stop());
+      return switchedStream;
     } catch {
-      return navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          facingMode: { ideal: 'environment' }
-        }
-      });
+      return initialStream;
     }
   };
 
