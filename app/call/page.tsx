@@ -19,6 +19,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'ended';
 
@@ -590,6 +591,8 @@ const PainterCallCenter: React.FC = () => {
     position: 'relative',
     boxShadow: '0 20px 40px rgba(0,0,0,0.35)'
   };
+  const primaryActionColor = PRIMARY_COLOR_HEX;
+  const disabledPrimaryActionColor = `${PRIMARY_COLOR_HEX}99`;
 
   return (
     <div style={{ minHeight: '100dvh', background: 'radial-gradient(circle at 15% 0%, #edf7ff 0%, #f5f7fb 55%, #eef2f8 100%)', color: '#fff', padding: '8px' }}>
@@ -622,7 +625,7 @@ const PainterCallCenter: React.FC = () => {
                 padding: 14,
                 border: 'none',
                 borderRadius: 999,
-                background: isStartingCall ? '#4d7a5d' : '#2cb35f',
+                background: isStartingCall ? disabledPrimaryActionColor : primaryActionColor,
                 color: '#fff',
                 fontWeight: 700,
                 cursor: isStartingCall ? 'not-allowed' : 'pointer',
@@ -729,7 +732,7 @@ const PainterCallCenter: React.FC = () => {
                     borderRadius: 999,
                     border: 'none',
                     padding: '0 18px',
-                    background: '#4f87ff',
+                    background: isSendingVideoInvite ? disabledPrimaryActionColor : primaryActionColor,
                     color: '#fff',
                     fontWeight: 700,
                     display: 'inline-flex',
