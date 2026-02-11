@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const extractPlaybackUrl = (payload: any): string | null => {

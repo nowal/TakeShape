@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const FORCED_SMS_FROM = '+16156947135';
 
 export async function POST(request: NextRequest) {

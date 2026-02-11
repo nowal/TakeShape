@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const pickToken = (tokens: any[], patterns: RegExp[]) =>
   tokens.find((t) => patterns.some((re) => re.test(String(t?.name || t?.role || t?.type || ''))));
 
