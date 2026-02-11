@@ -1,6 +1,7 @@
 'use client';
 
 import React, { FC } from 'react';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 interface StartScreenProps {
   isVisible: boolean;
@@ -20,7 +21,7 @@ const StartScreen: FC<StartScreenProps> = ({
   businessName,
   homeownerName,
   serviceType = 'painted',
-  primaryColor = '#ff385c',
+  primaryColor = PRIMARY_COLOR_HEX,
   onStartCapture,
   onScheduleInHome
 }) => {

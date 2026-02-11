@@ -43,7 +43,7 @@ For more control and features, use the JavaScript embed:
 <script>
   TakeShapeEmbed.init({
     container: 'takeshape-embed-container',
-    primaryColor: '#ff385c',
+    primaryColor: '#c20a3e',
     height: '700px'
   });
 </script>
@@ -55,7 +55,7 @@ You can customize the appearance of the embed by passing options to the `TakeSha
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `primaryColor` | Main color for buttons and accents | `#ff385c` |
+| `primaryColor` | Main color for buttons and accents | `#c20a3e` |
 | `secondaryColor` | Secondary color for highlights | `#007aff` |
 | `backgroundColor` | Background color | `#ffffff` |
 | `textColor` | Text color | `#333333` |
@@ -72,7 +72,7 @@ When using the JavaScript embed, you can add callback functions to handle events
 ```javascript
 TakeShapeEmbed.init({
   container: 'takeshape-embed-container',
-  primaryColor: '#ff385c',
+  primaryColor: '#c20a3e',
   height: '700px',
   onComplete: function(data) {
     // Handle completion event

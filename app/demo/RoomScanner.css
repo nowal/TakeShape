@@ -1,9 +1,9 @@
 /* Global Styles */
 :root {
-    --primary-color: #ff385c;
-    --primary-color-faded: rgba(255, 56, 92, 0.8);
-    --primary-color-light: rgba(255, 56, 92, 0.1);
-    --primary-color-dark: #d32f4f;
+    --primary-color: hsl(var(--primary-hsl, 343 90% 40%));
+    --primary-color-faded: rgba(194, 10, 62, 0.8);
+    --primary-color-light: rgba(194, 10, 62, 0.1);
+    --primary-color-dark: #9b0832;
     --button-padding: 12px 20px;
     --button-font-size: 16px;
     --button-font-weight: 500;

@@ -7,7 +7,7 @@ export const IconsTick: TCommonIconFC = (props) => {
       d="M2.25 5.67857L4.97727 8.25L9.75 3.75"
       fill="none"
       pathProps={{
-        stroke: '#FF385C',
+        stroke: 'var(--pink)',
         strokeWidth: '2.25',
         strokeLinecap: 'round',
         strokeLinejoin: 'round',

@@ -15,6 +15,7 @@ import {
   DEFAULT_LAT,
   MAP_ID,
 } from '@/components/painter/address/map/constants';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 export const MapReady: FC = () => {
   const map = useMap();
@@ -78,8 +79,8 @@ export const MapReady: FC = () => {
       <AddressCircle
         radius={rangeMetres}
         center={coords}
-        fillColor="#ff385c"
-        strokeColor="#ff385c"
+        fillColor={PRIMARY_COLOR_HEX}
+        strokeColor={PRIMARY_COLOR_HEX}
         strokeOpacity={0.8}
         strokeWeight={2}
         fillOpacity={0.1}
@@ -93,7 +94,7 @@ export const MapReady: FC = () => {
         style={{ outline: 'transparent' }}
       >
         <Pin
-          background="#ff385c"
+          background={PRIMARY_COLOR_HEX}
           glyphColor="#000"
           borderColor="#000"
         />

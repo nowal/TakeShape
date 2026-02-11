@@ -5,13 +5,14 @@ import Script from 'next/script';
 import { Provider } from 'jotai';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CssGlobal } from '@/css/global';
-import { ReactNode, Suspense } from 'react';
+import { CSSProperties, ReactNode, Suspense } from 'react';
 import { SignInModal } from '@/components/sign-in/modal';
 import { ContextProviders } from '@/context/providers';
 import { ShellChildren } from '@/components/shell/children';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
+import { PRIMARY_COLOR_HSL } from '@/constants/brand-color';
 
 import '../css/inputs.css';
 import '../css/reset.css';
@@ -29,8 +30,14 @@ type TProps = Readonly<{
   children: ReactNode;
 }>;
 export default function RootLayout({ children }: TProps) {
+  const primaryColorVars = {
+    '--primary-h': `${PRIMARY_COLOR_HSL.hue}`,
+    '--primary-s': `${PRIMARY_COLOR_HSL.saturation}%`,
+    '--primary-l': `${PRIMARY_COLOR_HSL.lightness}%`,
+  } as CSSProperties;
+
   return (
-    <html lang="en">
+    <html lang="en" style={primaryColorVars}>
       <CssGlobal />
       <Provider>
         <body className="font-montserrat">

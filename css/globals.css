@@ -7,7 +7,9 @@
   --background-start-rgb: 255, 255, 255; /* White for background */
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
   /* -- */
-  --pink: #ff385c; 
+  /* Primary brand color is set globally from app/layout.tsx. */
+  --primary-hsl: var(--primary-h, 343) var(--primary-s, 90%) var(--primary-l, 40%);
+  --pink: hsl(var(--primary-hsl));
   /* using this `--pink` variable will fail Google Insights accessiblity tests */
   /* -- */
   /* --pink: #eb0029; */
@@ -85,7 +87,7 @@ input {
 
 .button-color {
   /* background-color: #034E35; */
-  background-color: #ff385c;
+  background-color: var(--pink);
 }
 
 @layer components {

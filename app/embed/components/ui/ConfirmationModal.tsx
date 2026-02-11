@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 interface ConfirmationModalProps {
   onClose: () => void;
@@ -12,7 +13,7 @@ interface ConfirmationModalProps {
 const ConfirmationModal: FC<ConfirmationModalProps> = ({ 
   onClose, 
   onConfirm,
-  primaryColor = '#ff385c' // Default primary color if not provided
+  primaryColor = PRIMARY_COLOR_HEX
 }) => (
   <div className="instructions-modal">
     <button className="close-button" onClick={onClose}>×</button>

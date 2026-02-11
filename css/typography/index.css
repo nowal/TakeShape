@@ -6,7 +6,7 @@
 }
 
 .sign-in {
-  color: #ff385c;
+  color: var(--pink);
   font-size: 16px;
   font-weight: 600;
   line-height: 100%; /* 16px */
@@ -76,7 +76,7 @@
   line-height: 100%; /* 16px */
 }
 .signup-instructions {
-  color: #ff385c;
+  color: var(--pink);
   text-align: center;
   font-family: 'Open Sans';
   font-size: 12px;
@@ -85,7 +85,7 @@
   line-height: 152%; /* 18.24px */
 }
 .quote-instructions-title {
-  color: #ff385c;
+  color: var(--pink);
   font-family: Montserrat;
   font-size: 16px;
   font-style: normal;
@@ -103,7 +103,7 @@
 }
 
 .quote-instructions-button {
-  color: #ff385c;
+  color: var(--pink);
   text-align: center;
   font-family: 'Open Sans';
   font-size: 12px;

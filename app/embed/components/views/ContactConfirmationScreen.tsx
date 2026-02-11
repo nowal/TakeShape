@@ -2,6 +2,7 @@
 
 import React, { FC } from 'react';
 import { Painter } from '@/utils/firestore/painter';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 // Define the different modes for the confirmation screen
 export type ConfirmationMode = 'inHomeEstimate' | 'quoteAccepted' | 'earlyScanExit' | 'quoteAcceptedNew' | 'introCall' | 'quoteDisliked' | 'custom';
@@ -25,7 +26,7 @@ const ContactConfirmationScreen: FC<ContactConfirmationScreenProps> = ({
   mode,
   homeownerName = '',
   businessName,
-  primaryColor = '#ff385c',
+  primaryColor = PRIMARY_COLOR_HEX,
   customMessage,
   painter,
   onClose
