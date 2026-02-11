@@ -39,39 +39,62 @@ const ConsultPage: React.FC = () => {
     const videoInputs = devices.filter((device) => device.kind === 'videoinput');
     if (!videoInputs.length) return null;
     const prioritized = videoInputs.find((device) =>
-      /back|rear|environment|ultra wide|wide/i.test(device.label)
+      /back|rear|environment|world/i.test(device.label)
     );
     return prioritized || null;
   };
 
-  const getBackCameraStream = async () => {
+  const isEnvironmentFacingTrack = (track: MediaStreamTrack | undefined) => {
+    if (!track) return false;
+    const settings = track.getSettings?.();
+    return String(settings?.facingMode || '').toLowerCase() === 'environment';
+  };
+
+  const getBackCameraStream = async (): Promise<MediaStream> => {
     const initialStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: { facingMode: { ideal: 'environment' } }
     });
+    const initialVideoTrack = initialStream.getVideoTracks()[0];
+    if (isEnvironmentFacingTrack(initialVideoTrack)) {
+      return initialStream;
+    }
 
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const backCamera = pickLikelyBackCamera(devices);
-    if (!backCamera) {
-      return initialStream;
+    const videoInputs = devices.filter((device) => device.kind === 'videoinput');
+    const currentDeviceId = initialVideoTrack?.getSettings()?.deviceId;
+    const prioritizedBack = pickLikelyBackCamera(devices);
+
+    const candidates = [
+      ...(prioritizedBack ? [prioritizedBack] : []),
+      ...videoInputs.filter((device) => {
+        if (prioritizedBack && device.deviceId === prioritizedBack.deviceId) return false;
+        if (currentDeviceId && device.deviceId === currentDeviceId) return false;
+        return !/front|user|facetime/i.test(device.label);
+      })
+    ];
+
+    for (const candidate of candidates) {
+      try {
+        const switchedStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: { deviceId: { exact: candidate.deviceId } }
+        });
+        const switchedTrack = switchedStream.getVideoTracks()[0];
+        const appearsBackCamera =
+          isEnvironmentFacingTrack(switchedTrack) ||
+          /back|rear|environment|world/i.test(candidate.label);
+        if (appearsBackCamera) {
+          initialStream.getTracks().forEach((track) => track.stop());
+          return switchedStream;
+        }
+        switchedStream.getTracks().forEach((track) => track.stop());
+      } catch {
+        // try next candidate
+      }
     }
 
-    const currentVideoTrack = initialStream.getVideoTracks()[0];
-    const currentDeviceId = currentVideoTrack?.getSettings()?.deviceId;
-    if (currentDeviceId && currentDeviceId === backCamera.deviceId) {
-      return initialStream;
-    }
-
-    try {
-      const switchedStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: { deviceId: { exact: backCamera.deviceId } }
-      });
-      initialStream.getTracks().forEach((track) => track.stop());
-      return switchedStream;
-    } catch {
-      return initialStream;
-    }
+    return initialStream;
   };
 
   const createTokenForRoom = async (roomName: string) => {
@@ -91,22 +114,37 @@ const ConsultPage: React.FC = () => {
     return payload.token as string;
   };
 
-  const attachLocalStreamPreview = (stream: MediaStream) => {
+  const waitForLocalVideoFrame = async (videoEl: HTMLVideoElement, timeoutMs = 6000) => {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (videoEl.readyState >= 2 && videoEl.videoWidth > 0) return true;
+      await new Promise((resolve) => setTimeout(resolve, 120));
+    }
+    return false;
+  };
+
+  const attachLocalStreamPreview = async (stream: MediaStream) => {
     const videoEl = localVideoRef.current;
-    if (!videoEl) return;
+    if (!videoEl) return false;
     videoEl.srcObject = stream;
-    videoEl
-      .play()
-      .then(() => undefined)
-      .catch(() => undefined);
+    try {
+      await videoEl.play();
+    } catch {
+      // iOS/Safari may still resolve playback after metadata is loaded.
+    }
+    return waitForLocalVideoFrame(videoEl);
   };
 
   const joinConsult = useCallback(async (token: string) => {
     await cleanupSession();
+    setHasVideoFrame(false);
 
     const stream = await getBackCameraStream();
     localStreamRef.current = stream;
-    attachLocalStreamPreview(stream);
+    stream.getVideoTracks().forEach((track) => {
+      track.enabled = true;
+    });
+    const previewReady = await attachLocalStreamPreview(stream);
 
     const session = new SWVideo.RoomSession({
       token,
@@ -118,7 +156,18 @@ const ConsultPage: React.FC = () => {
       receiveAudio: true,
       receiveVideo: true
     });
+    try {
+      await session.videoUnmute?.();
+    } catch {
+      // no-op
+    }
+    try {
+      await session.restoreOutboundVideo?.();
+    } catch {
+      // no-op
+    }
     sessionRef.current = session;
+    setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession]);
 
   useEffect(() => {
@@ -150,7 +199,6 @@ const ConsultPage: React.FC = () => {
           setEnded(false);
           setMuted(false);
           setVideoOff(false);
-          setHasVideoFrame(true);
         }
       } catch (error) {
         console.error('Consult join error:', error);
@@ -222,7 +270,6 @@ const ConsultPage: React.FC = () => {
       setStatus('Rejoining consult...');
       await joinConsult(tokenRef.current);
       setEnded(false);
-      setHasVideoFrame(false);
       setStatus('Connected');
     } catch (error) {
       console.error('Rejoin error:', error);
