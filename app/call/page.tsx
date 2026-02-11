@@ -18,6 +18,7 @@ import {
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { normalizeUsPhoneToE164 } from '@/utils/phone';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'ended';
 
@@ -30,8 +31,7 @@ interface RoomTokenResponse {
   token: string;
 }
 
-const FIXED_HOMEOWNER_NUMBER = '+16784471565';
-const FIXED_PAINTER_CALLER_ID = '+16158096429';
+const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 
@@ -48,6 +48,8 @@ const PainterCallCenter: React.FC = () => {
   const [isPainterUser, setPainterUser] = useState(false);
   const [painterDocId, setPainterDocId] = useState<string | null>(null);
   const [authUid, setAuthUid] = useState<string | null>(null);
+  const [homeownerNumberInput, setHomeownerNumberInput] = useState(DEFAULT_HOMEOWNER_NUMBER);
+  const [painterCallerId, setPainterCallerId] = useState('');
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -61,6 +63,7 @@ const PainterCallCenter: React.FC = () => {
   const activeCallRef = useRef(false);
   const findVideoTimerRef = useRef<number | null>(null);
   const trackHandlerRef = useRef<((event: RTCTrackEvent) => void) | null>(null);
+  const activeHomeownerNumberRef = useRef(DEFAULT_HOMEOWNER_NUMBER);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -83,11 +86,22 @@ const PainterCallCenter: React.FC = () => {
       );
       const snapshot = await getDocs(paintersQuery);
       if (!snapshot.empty) {
-        setPainterDocId(snapshot.docs[0].id);
+        const painterDoc = snapshot.docs[0];
+        setPainterDocId(painterDoc.id);
+        const painterData = painterDoc.data() as Record<string, unknown>;
+        const normalizedPhone = normalizeUsPhoneToE164(
+          String(
+            painterData.phoneNumber ||
+              painterData.phoneNumberRaw ||
+              ''
+          )
+        );
+        setPainterCallerId(normalizedPhone || '');
         setPainterUser(true);
       } else {
         setPainterDocId(null);
         setPainterUser(false);
+        setPainterCallerId('');
       }
       setCheckingAuth(false);
     });
@@ -275,7 +289,7 @@ const PainterCallCenter: React.FC = () => {
     const userImageRef = await addDoc(collection(firestore, 'userImages'), {
       address: 'Video Estimate',
       prices: [],
-      phoneNumber: FIXED_HOMEOWNER_NUMBER,
+      phoneNumber: activeHomeownerNumberRef.current,
       userId: authUid || undefined,
       title: `Estimate ${new Date().toLocaleString()}`,
       signalwireConferenceId: conference?.id || null,
@@ -360,6 +374,17 @@ const PainterCallCenter: React.FC = () => {
 
     setIsStartingCall(true);
     try {
+      const normalizedHomeowner = normalizeUsPhoneToE164(homeownerNumberInput);
+      if (!normalizedHomeowner) {
+        setStatus('Enter a valid US homeowner phone number.');
+        return;
+      }
+      const normalizedPainterCallerId = normalizeUsPhoneToE164(painterCallerId);
+      if (!normalizedPainterCallerId) {
+        setStatus('Painter caller ID is missing or invalid. Re-register phone verification.');
+        return;
+      }
+
       setStatus('Requesting microphone permission...');
       await requestMicPermission();
 
@@ -387,6 +412,7 @@ const PainterCallCenter: React.FC = () => {
 
       const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
       setGuestLink(`${appBase}/consult?room=${encodeURIComponent(confData.name)}`);
+      activeHomeownerNumberRef.current = normalizedHomeowner;
 
       setStatus('Dialing homeowner...');
       const dialResponse = await fetch('/api/signalwire/dial', {
@@ -395,8 +421,8 @@ const PainterCallCenter: React.FC = () => {
         body: JSON.stringify({
           conference_id: confData.id,
           room_name: confData.name,
-          to: FIXED_HOMEOWNER_NUMBER,
-          from: FIXED_PAINTER_CALLER_ID
+          to: normalizedHomeowner,
+          from: normalizedPainterCallerId
         })
       });
       await getJsonOrThrow(dialResponse, 'Failed to dial homeowner');
@@ -443,7 +469,7 @@ const PainterCallCenter: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: FIXED_HOMEOWNER_NUMBER,
+          to: activeHomeownerNumberRef.current,
           body: `Join your video estimate: ${guestLink}`
         })
       });
@@ -575,10 +601,16 @@ const PainterCallCenter: React.FC = () => {
 
         {phase === 'idle' && (
           <div style={{ maxWidth: 440, margin: '0 auto', background: '#171a20', border: '1px solid #2a2f36', borderRadius: 14, padding: 16 }}>
+            <label style={{ display: 'block', fontSize: 13, color: '#b6c2d4', marginBottom: 8 }}>Call from (verified painter number)</label>
+            <input
+              value={painterCallerId}
+              disabled
+              style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #3a404a', background: '#0f1217', color: '#94a3b8', marginBottom: 10 }}
+            />
             <label style={{ display: 'block', fontSize: 13, color: '#b6c2d4', marginBottom: 8 }}>Number to call</label>
             <input
-              value={FIXED_HOMEOWNER_NUMBER}
-              disabled
+              value={homeownerNumberInput}
+              onChange={(event) => setHomeownerNumberInput(event.target.value)}
               style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #3a404a', background: '#0f1217', color: '#fff' }}
             />
             <button

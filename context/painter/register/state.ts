@@ -8,6 +8,7 @@ import {
   doc,
   setDoc,
   collection,
+  updateDoc,
 } from 'firebase/firestore';
 import {
   getAuth,
@@ -24,6 +25,7 @@ import { useAtom } from 'jotai';
 import { painterInfoAtom } from '@/atom';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useApp } from '@/context/app/provider';
+import { normalizeUsPhoneToE164 } from '@/utils/phone';
 
 export const usePainterRegisterState = () => {
   const {
@@ -74,6 +76,14 @@ export const usePainterRegisterState = () => {
         ? await uploadLogoAndGetUrl(logo)
         : ''; // Handle logo upload if provided
       const addressValue = addressFormatted ?? address;
+      const normalizedPhone = normalizeUsPhoneToE164(
+        phoneNumber
+      );
+      if (!normalizedPhone) {
+        throw new Error(
+          'Please enter a valid US phone number'
+        );
+      }
 
       const painterData = {
         businessName,
@@ -82,7 +92,12 @@ export const usePainterRegisterState = () => {
         range,
         isInsured: false,
         logoUrl,
-        phoneNumber,
+        phoneNumber: normalizedPhone,
+        phoneNumberRaw: phoneNumber,
+        signalwireCallerId: {
+          status: 'pending',
+          initiatedAt: new Date().toISOString(),
+        },
         userId: user.uid, // Link the painter data to the user ID
         sessions: [], // Initialize empty sessions array for storing lead session IDs
       };
@@ -94,6 +109,58 @@ export const usePainterRegisterState = () => {
 
       await setDoc(painterDocRef, painterData);
       console.log('Painter info saved:', painterData);
+
+      try {
+        const verifyResponse = await fetch(
+          '/api/signalwire/verify-caller-id',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              phoneNumber: normalizedPhone,
+              friendlyName: businessName,
+            }),
+          }
+        );
+        const verifyPayload = await verifyResponse
+          .json()
+          .catch(() => ({}));
+
+        if (verifyResponse.ok) {
+          await updateDoc(painterDocRef, {
+            signalwireCallerId: {
+              status:
+                verifyPayload.status || 'pending',
+              id: verifyPayload.id || null,
+              callSid:
+                verifyPayload.callSid || null,
+              phoneNumber:
+                verifyPayload.phoneNumber ||
+                normalizedPhone,
+              initiatedAt: new Date().toISOString(),
+            },
+          });
+        } else {
+          await updateDoc(painterDocRef, {
+            signalwireCallerId: {
+              status: 'verification_failed',
+              phoneNumber: normalizedPhone,
+              error:
+                verifyPayload?.error ||
+                'Failed to start caller ID verification',
+              initiatedAt: new Date().toISOString(),
+            },
+          });
+        }
+      } catch (verificationError) {
+        console.error(
+          'Failed to auto-start caller ID verification:',
+          verificationError
+        );
+      }
+
       dispatchPainter(true); // Set the user as a painter
       onNavigateScrollTopClick('/dashboard');
     } catch (error) {
