@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, display_name } = await request.json();
+    const { name, display_name, meta } = await request.json();
 
     const projectId = process.env.SIGNALWIRE_PROJECT_ID?.trim();
     const apiToken = (process.env.SIGNALWIRE_API_TOKEN || process.env.SIGNALWIRE_TOKEN)?.trim();
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         tone_on_entry_and_exit: false,
         user_join_video_off: false,
         room_join_video_off: false,
+        ...(meta && typeof meta === 'object' ? { meta } : {}),
         record_on_start: false
       })
     });

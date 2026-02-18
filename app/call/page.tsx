@@ -78,6 +78,8 @@ const PainterCallCenter: React.FC = () => {
   const activeCallSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
+  const activeConferenceIdRef = useRef<string | null>(null);
+  const activeConferenceNameRef = useRef<string | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -86,6 +88,22 @@ const PainterCallCenter: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        if (activeCallRef.current) {
+          localEndRequestedRef.current = true;
+          activeCallRef.current = false;
+          stopConferenceWatch();
+          await forceEndConference();
+          if (roomSessionRef.current) {
+            try {
+              await roomSessionRef.current.leave();
+            } catch {
+              // no-op
+            }
+            roomSessionRef.current = null;
+          }
+          setPhase('dropped');
+          setStatus('Session expired. Call ended.');
+        }
         setAuthUid(null);
         setPainterDocId(null);
         setPainterUser(false);
@@ -158,14 +176,16 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const forceEndConference = async () => {
-    if (!conference?.id && !conference?.name) return;
+    const conferenceId = activeConferenceIdRef.current || conference?.id || null;
+    const roomName = activeConferenceNameRef.current || conference?.name || null;
+    if (!conferenceId && !roomName) return;
     try {
       await fetch('/api/signalwire/end-conference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          conferenceId: conference?.id || undefined,
-          roomName: conference?.name || undefined,
+          conferenceId: conferenceId || undefined,
+          roomName: roomName || undefined,
           callSid: activeCallSidRef.current || undefined
         })
       });
@@ -376,6 +396,28 @@ const PainterCallCenter: React.FC = () => {
     }, 4000);
   };
 
+  const waitForCallAnswer = async (callSid: string, timeoutMs = 45000) => {
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+      const response = await fetch(`/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`);
+      const payload = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        const currentStatus = String(payload?.status || '').toLowerCase();
+        if (currentStatus === 'in-progress' || currentStatus === 'answered') {
+          return { answered: true as const, status: currentStatus };
+        }
+        if (payload?.completed) {
+          return { answered: false as const, status: currentStatus || 'completed' };
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    return { answered: false as const, status: 'timeout' };
+  };
+
   const persistEstimateRecording = async () => {
     if (!estimateInviteSentRef.current || !recordingStartedRef.current) {
       return;
@@ -484,17 +526,33 @@ const PainterCallCenter: React.FC = () => {
       setStatus('Requesting microphone permission...');
       await requestMicPermission();
 
+      // Ensure stale sessions for this painter are cleaned up before creating a new call.
+      await fetch('/api/signalwire/cleanup-painter-calls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          painterDocId
+        })
+      }).catch(() => undefined);
+
       setStatus('Creating call room...');
       const createResponse = await fetch('/api/signalwire/create-conference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: `quote-call-${Date.now()}`,
-          display_name: 'Quote Call with Homeowner'
+          display_name: 'Quote Call with Homeowner',
+          meta: {
+            painter_doc_id: painterDocId,
+            call_mode: 'live',
+            started_at: new Date().toISOString()
+          }
         })
       });
       const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
       setConference(confData);
+      activeConferenceIdRef.current = confData.id;
+      activeConferenceNameRef.current = confData.name;
       setHasVideoFrame(false);
       setPhase('calling');
 
@@ -528,6 +586,33 @@ const PainterCallCenter: React.FC = () => {
         dialData?.callSid ||
         ''
       ) || null;
+
+      if (activeCallSidRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: confData.id,
+            metaPatch: {
+              call_sid: activeCallSidRef.current
+            }
+          })
+        }).catch(() => undefined);
+
+        setStatus('Ringing homeowner...');
+        const answerState = await waitForCallAnswer(activeCallSidRef.current);
+        if (!answerState.answered) {
+          await forceEndConference();
+          if (roomSessionRef.current) {
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          activeCallRef.current = false;
+          setPhase('dropped');
+          setStatus('Homeowner did not answer. You can call back.');
+          return;
+        }
+      }
 
       activeCallRef.current = true;
       localEndRequestedRef.current = false;
@@ -651,6 +736,8 @@ const PainterCallCenter: React.FC = () => {
 
     setPhase('ended');
     setConference(null);
+    activeConferenceIdRef.current = null;
+    activeConferenceNameRef.current = null;
     setMuted(false);
     setHasVideoFrame(false);
     setGuestLink('');

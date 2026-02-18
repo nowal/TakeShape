@@ -49,16 +49,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { conferenceId, roomName, mode } = await request.json();
+    const { conferenceId, roomName, mode, metaPatch } = await request.json();
     if (!conferenceId && !roomName) {
       return NextResponse.json(
         { error: 'conferenceId or roomName is required' },
         { status: 400 }
       );
     }
-    if (typeof mode !== 'string' || !mode.trim()) {
+    if (
+      (typeof mode !== 'string' || !mode.trim()) &&
+      (!metaPatch || typeof metaPatch !== 'object')
+    ) {
       return NextResponse.json(
-        { error: 'mode is required' },
+        { error: 'mode or metaPatch is required' },
         { status: 400 }
       );
     }
@@ -89,7 +92,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         meta: {
           ...(conference.meta || {}),
-          call_mode: mode.trim()
+          ...(typeof mode === 'string' && mode.trim()
+            ? { call_mode: mode.trim() }
+            : {}),
+          ...(metaPatch && typeof metaPatch === 'object' ? metaPatch : {})
         }
       })
     });
@@ -108,7 +114,7 @@ export async function POST(request: NextRequest) {
       exists: true,
       conferenceId: updated?.id || conference.id,
       roomName: updated?.name || conference.name || null,
-      mode: updated?.meta?.call_mode || mode.trim(),
+      mode: updated?.meta?.call_mode || (typeof mode === 'string' ? mode.trim() : 'live'),
       meta: updated?.meta || {}
     });
   } catch (error) {
@@ -119,4 +125,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

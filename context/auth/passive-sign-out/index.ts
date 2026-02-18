@@ -25,8 +25,12 @@ isUserSignedIn,
     handleSignout();
   };
 
-  useEventListener(isUserSignedIn ? 'mousemove' : null,  handleReset);
+  useEventListener(isUserSignedIn ? 'mousemove' : null, handleReset);
   useEventListener(isUserSignedIn ? 'keydown' : null, handleReset);
+  useEventListener(isUserSignedIn ? 'click' : null, handleReset);
+  useEventListener(isUserSignedIn ? 'touchstart' : null, handleReset);
+  useEventListener(isUserSignedIn ? 'pointerdown' : null, handleReset);
+  useEventListener(isUserSignedIn ? 'focus' : null, handleReset);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

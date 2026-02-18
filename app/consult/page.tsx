@@ -28,6 +28,7 @@ const ConsultPage: React.FC = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const tokenRef = useRef<string>('');
   const roomNameRef = useRef<string>('');
+  const callSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -79,7 +80,8 @@ const ConsultPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          roomName: roomNameRef.current
+          roomName: roomNameRef.current,
+          callSid: callSidRef.current || undefined
         })
       });
     } catch (error) {
@@ -250,6 +252,11 @@ const ConsultPage: React.FC = () => {
           setStatus('It looks like your call dropped unexpectedly.');
           stopConferenceWatch();
           return;
+        }
+
+        const conferenceCallSid = String(payload?.meta?.call_sid || '').trim();
+        if (conferenceCallSid) {
+          callSidRef.current = conferenceCallSid;
         }
 
         if (payload?.mode === 'quote' && !isQuoteMode) {
