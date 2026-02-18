@@ -102,6 +102,7 @@ const PainterCallCenter: React.FC = () => {
   const callAnsweredRef = useRef(false);
   const remoteEndingRef = useRef(false);
   const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
+  const memberLeftHandlerRef = useRef<((payload: any) => void) | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -177,6 +178,9 @@ const PainterCallCenter: React.FC = () => {
         }
         if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+        }
+        if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
         }
         roomSessionRef.current.leave().catch(() => undefined);
         roomSessionRef.current = null;
@@ -260,6 +264,9 @@ const PainterCallCenter: React.FC = () => {
       if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
         roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
       }
+      if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+        roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+      }
       await roomSessionRef.current.leave();
       roomSessionRef.current = null;
     }
@@ -293,6 +300,49 @@ const PainterCallCenter: React.FC = () => {
     };
     session.on('member.joined', memberJoinedHandler);
     memberJoinedHandlerRef.current = memberJoinedHandler;
+
+    const memberLeftHandler = async (payload: any) => {
+      if (localEndRequestedRef.current) return;
+      const memberId = String(payload?.member?.id || '');
+      if (!memberId) return;
+      if (memberId === String((session as any)?.memberId || '')) return;
+      if (!activeCallRef.current) return;
+
+      remoteEndingRef.current = true;
+      activeCallRef.current = false;
+      callAnsweredRef.current = false;
+      stopConferenceWatch();
+      if (findVideoTimerRef.current) {
+        window.clearInterval(findVideoTimerRef.current);
+        findVideoTimerRef.current = null;
+      }
+
+      try {
+        await forceEndConference();
+      } catch {
+        // no-op
+      }
+
+      if (roomSessionRef.current) {
+        if (trackHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('track', trackHandlerRef.current);
+        }
+        if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+        }
+        if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+        }
+        await roomSessionRef.current.leave().catch(() => undefined);
+        roomSessionRef.current = null;
+      }
+
+      setPhase('ended');
+      setStatus('Call ended by other participant.');
+      setHasVideoFrame(false);
+    };
+    session.on('member.left', memberLeftHandler);
+    memberLeftHandlerRef.current = memberLeftHandler;
 
     await session.join({
       sendAudio: true,
@@ -412,9 +462,10 @@ const PainterCallCenter: React.FC = () => {
             await roomSessionRef.current.leave().catch(() => undefined);
             roomSessionRef.current = null;
           }
-          setPhase(remoteEndingRef.current ? 'ended' : 'dropped');
+          const shouldBeEnded = remoteEndingRef.current || callAnsweredRef.current;
+          setPhase(shouldBeEnded ? 'ended' : 'dropped');
           setStatus(
-            remoteEndingRef.current
+            shouldBeEnded
               ? 'Call ended by other participant.'
               : 'It looks like your call dropped unexpectedly.'
           );
@@ -454,8 +505,8 @@ const PainterCallCenter: React.FC = () => {
               await roomSessionRef.current.leave().catch(() => undefined);
               roomSessionRef.current = null;
             }
-            setPhase('dropped');
-            setStatus('It looks like your call dropped unexpectedly.');
+            setPhase('ended');
+            setStatus('Call ended by other participant.');
           }
         }
       } catch (error) {
@@ -825,6 +876,9 @@ const PainterCallCenter: React.FC = () => {
         if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
         }
+        if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+        }
         await roomSessionRef.current.leave();
         roomSessionRef.current = null;
       }
@@ -848,6 +902,7 @@ const PainterCallCenter: React.FC = () => {
     signalWireRecordingIdRef.current = null;
     trackHandlerRef.current = null;
     memberJoinedHandlerRef.current = null;
+    memberLeftHandlerRef.current = null;
     activeCallSidRef.current = null;
     setRemoteVideoStream(null);
     setStatus((prev) => prev.startsWith('Call ended') ? prev : 'Call ended.');
