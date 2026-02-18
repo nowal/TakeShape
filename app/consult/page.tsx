@@ -22,6 +22,18 @@ const isEnvironmentFacingTrack = (track: MediaStreamTrack | undefined) => {
   return String(settings?.facingMode || '').toLowerCase() === 'environment';
 };
 
+const mergeStreamTracks = ({
+  audioFrom,
+  videoFrom
+}: {
+  audioFrom: MediaStream;
+  videoFrom: MediaStream;
+}) =>
+  new MediaStream([
+    ...videoFrom.getVideoTracks(),
+    ...audioFrom.getAudioTracks()
+  ]);
+
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
@@ -105,21 +117,10 @@ const ConsultPage: React.FC = () => {
 
   const getBackCameraStream = useCallback(async (): Promise<MediaStream> => {
     pushDebugLog('Requesting initial stream with facingMode=environment (ideal)');
-    const initialVideoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: 'environment' } as any }
-    }).catch(async () =>
-      navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } }
-      })
-    );
-    const audioStream = await navigator.mediaDevices.getUserMedia({
+    const initialStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: false
+      video: { facingMode: { ideal: 'environment' } }
     });
-    const initialStream = new MediaStream([
-      ...initialVideoStream.getVideoTracks(),
-      ...audioStream.getAudioTracks()
-    ]);
     const initialVideoTrack = initialStream.getVideoTracks()[0];
     pushDebugLog(`Initial video settings: ${JSON.stringify(initialVideoTrack?.getSettings?.() || {})}`);
     if (isEnvironmentFacingTrack(initialVideoTrack)) {
@@ -133,42 +134,34 @@ const ConsultPage: React.FC = () => {
     const prioritizedBack = pickLikelyBackCamera(devices);
     pushDebugLog(`Camera candidates found: ${videoInputs.length}; prioritized back: ${prioritizedBack?.label || 'none'}`);
 
-    const candidates = [
-      ...(prioritizedBack ? [prioritizedBack] : []),
-      ...videoInputs.filter((device) => {
-        if (prioritizedBack && device.deviceId === prioritizedBack.deviceId) return false;
+    // Single fallback attempt to avoid iOS Safari permission deadlocks from multiple getUserMedia hops.
+    const candidate = prioritizedBack ||
+      videoInputs.find((device) => {
         if (currentDeviceId && device.deviceId === currentDeviceId) return false;
         return !/front|user|facetime/i.test(device.label);
-      })
-    ];
-
-    for (const candidate of candidates) {
+      });
+    if (candidate) {
       try {
-        pushDebugLog(`Trying candidate camera: ${candidate.label || candidate.deviceId}`);
+        pushDebugLog(`Trying fallback camera: ${candidate.label || candidate.deviceId}`);
         const switchedVideoStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: { exact: candidate.deviceId } }
         });
-        const switchedAudioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: false
+        const switchedStream = mergeStreamTracks({
+          audioFrom: initialStream,
+          videoFrom: switchedVideoStream
         });
-        const switchedStream = new MediaStream([
-          ...switchedVideoStream.getVideoTracks(),
-          ...switchedAudioStream.getAudioTracks()
-        ]);
         const switchedTrack = switchedStream.getVideoTracks()[0];
         const appearsBackCamera =
           isEnvironmentFacingTrack(switchedTrack) ||
           /back|rear|environment|world/i.test(candidate.label);
         if (appearsBackCamera) {
           pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
-          initialStream.getTracks().forEach((track) => track.stop());
+          initialStream.getVideoTracks().forEach((track) => track.stop());
           return switchedStream;
         }
-        switchedStream.getTracks().forEach((track) => track.stop());
+        switchedStream.getVideoTracks().forEach((track) => track.stop());
       } catch {
-        pushDebugLog(`Candidate failed: ${candidate.label || candidate.deviceId}`);
-        // try next candidate
+        pushDebugLog(`Fallback candidate failed: ${candidate.label || candidate.deviceId}`);
       }
     }
 
