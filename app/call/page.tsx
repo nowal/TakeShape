@@ -80,6 +80,8 @@ const PainterCallCenter: React.FC = () => {
   const conferenceWatchTimerRef = useRef<number | null>(null);
   const activeConferenceIdRef = useRef<string | null>(null);
   const activeConferenceNameRef = useRef<string | null>(null);
+  const callAnsweredRef = useRef(false);
+  const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -152,6 +154,9 @@ const PainterCallCenter: React.FC = () => {
       if (roomSessionRef.current) {
         if (trackHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('track', trackHandlerRef.current);
+        }
+        if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
         }
         roomSessionRef.current.leave().catch(() => undefined);
         roomSessionRef.current = null;
@@ -232,6 +237,9 @@ const PainterCallCenter: React.FC = () => {
       if (trackHandlerRef.current && roomSessionRef.current.off) {
         roomSessionRef.current.off('track', trackHandlerRef.current);
       }
+      if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+        roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+      }
       await roomSessionRef.current.leave();
       roomSessionRef.current = null;
     }
@@ -249,6 +257,18 @@ const PainterCallCenter: React.FC = () => {
     };
     session.on('track', trackHandler);
     trackHandlerRef.current = trackHandler;
+
+    const memberJoinedHandler = (payload: any) => {
+      const memberId = String(payload?.member?.id || '');
+      if (!memberId) return;
+      if (memberId === String((session as any)?.memberId || '')) return;
+      callAnsweredRef.current = true;
+      if (phase === 'calling') {
+        setStatus('Phone call connected (audio-only).');
+      }
+    };
+    session.on('member.joined', memberJoinedHandler);
+    memberJoinedHandlerRef.current = memberJoinedHandler;
 
     await session.join({
       sendAudio: true,
@@ -399,12 +419,18 @@ const PainterCallCenter: React.FC = () => {
   const waitForCallAnswer = async (callSid: string, timeoutMs = 45000) => {
     const startedAt = Date.now();
     while (Date.now() - startedAt < timeoutMs) {
+      if (localEndRequestedRef.current) {
+        return { answered: false as const, status: 'cancelled' };
+      }
+      if (callAnsweredRef.current) {
+        return { answered: true as const, status: 'member_joined' };
+      }
       const response = await fetch(`/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`);
       const payload = await response.json().catch(() => ({}));
 
       if (response.ok) {
         const currentStatus = String(payload?.status || '').toLowerCase();
-        if (currentStatus === 'in-progress' || currentStatus === 'answered') {
+        if (currentStatus === 'in-progress' || currentStatus === 'in_progress' || currentStatus === 'answered') {
           return { answered: true as const, status: currentStatus };
         }
         if (payload?.completed) {
@@ -586,6 +612,7 @@ const PainterCallCenter: React.FC = () => {
         dialData?.callSid ||
         ''
       ) || null;
+      callAnsweredRef.current = false;
 
       if (activeCallSidRef.current) {
         await fetch('/api/signalwire/conference-state', {
@@ -601,6 +628,9 @@ const PainterCallCenter: React.FC = () => {
 
         setStatus('Ringing homeowner...');
         const answerState = await waitForCallAnswer(activeCallSidRef.current);
+        if (localEndRequestedRef.current) {
+          return;
+        }
         if (!answerState.answered) {
           await forceEndConference();
           if (roomSessionRef.current) {
@@ -703,6 +733,7 @@ const PainterCallCenter: React.FC = () => {
   const endCall = async () => {
     localEndRequestedRef.current = true;
     activeCallRef.current = false;
+    callAnsweredRef.current = false;
     if (findVideoTimerRef.current) {
       window.clearInterval(findVideoTimerRef.current);
       findVideoTimerRef.current = null;
@@ -727,6 +758,9 @@ const PainterCallCenter: React.FC = () => {
         if (trackHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('track', trackHandlerRef.current);
         }
+        if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+          roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+        }
         await roomSessionRef.current.leave();
         roomSessionRef.current = null;
       }
@@ -749,6 +783,7 @@ const PainterCallCenter: React.FC = () => {
     signalWireRecordingRef.current = null;
     signalWireRecordingIdRef.current = null;
     trackHandlerRef.current = null;
+    memberJoinedHandlerRef.current = null;
     activeCallSidRef.current = null;
     setRemoteVideoStream(null);
     setStatus((prev) => prev.startsWith('Call ended') ? prev : 'Call ended.');
