@@ -27,6 +27,9 @@ const ConsultPage: React.FC = () => {
   const sessionRef = useRef<any>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const tokenRef = useRef<string>('');
+  const roomNameRef = useRef<string>('');
+  const localEndRequestedRef = useRef(false);
+  const conferenceWatchTimerRef = useRef<number | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -36,6 +39,8 @@ const ConsultPage: React.FC = () => {
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
+  const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
+  const [isQuoteMode, setQuoteMode] = useState(false);
 
   const pushDebugLog = useCallback((message: string) => {
     if (!debugEnabled) return;
@@ -59,6 +64,28 @@ const ConsultPage: React.FC = () => {
       localStreamRef.current = null;
     }
   }, [pushDebugLog]);
+
+  const stopConferenceWatch = useCallback(() => {
+    if (conferenceWatchTimerRef.current) {
+      window.clearInterval(conferenceWatchTimerRef.current);
+      conferenceWatchTimerRef.current = null;
+    }
+  }, []);
+
+  const endConferenceEverywhere = useCallback(async () => {
+    if (!roomNameRef.current) return;
+    try {
+      await fetch('/api/signalwire/end-conference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomName: roomNameRef.current
+        })
+      });
+    } catch (error) {
+      console.error('End conference from consult failed:', error);
+    }
+  }, []);
 
   const getBackCameraStream = useCallback(async (): Promise<MediaStream> => {
     pushDebugLog('Requesting initial stream with facingMode=environment (ideal)');
@@ -159,6 +186,7 @@ const ConsultPage: React.FC = () => {
   const joinConsult = useCallback(async (token: string) => {
     await cleanupSession();
     setHasVideoFrame(false);
+    setQuoteMode(false);
     pushDebugLog('joinConsult(): begin');
 
     const stream = await getBackCameraStream();
@@ -200,6 +228,50 @@ const ConsultPage: React.FC = () => {
     setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession, getBackCameraStream, pushDebugLog]);
 
+  const watchConferenceState = useCallback(() => {
+    stopConferenceWatch();
+    conferenceWatchTimerRef.current = window.setInterval(async () => {
+      if (!roomNameRef.current || isEnded) return;
+      if (localEndRequestedRef.current) return;
+
+      try {
+        const response = await fetch(
+          `/api/signalwire/conference-state?roomName=${encodeURIComponent(roomNameRef.current)}`
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) return;
+
+        if (!payload?.exists) {
+          pushDebugLog('Conference missing while active -> dropped');
+          await cleanupSession();
+          setEndReason('dropped');
+          setEnded(true);
+          setHasVideoFrame(false);
+          setStatus('It looks like your call dropped unexpectedly.');
+          stopConferenceWatch();
+          return;
+        }
+
+        if (payload?.mode === 'quote' && !isQuoteMode) {
+          pushDebugLog('Conference mode switched to quote');
+          setQuoteMode(true);
+          setHasVideoFrame(false);
+          setStatus('Your quote is being completed');
+          const session = sessionRef.current;
+          if (session) {
+            try {
+              await session.stopOutboundVideo?.();
+            } catch {
+              // no-op
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Consult conference watcher error:', error);
+      }
+    }, 4000);
+  }, [cleanupSession, isEnded, isQuoteMode, pushDebugLog, stopConferenceWatch]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get('debug') === '1');
@@ -212,8 +284,9 @@ const ConsultPage: React.FC = () => {
       try {
         const params = new URLSearchParams(window.location.search);
         let token = params.get('token');
+        const roomName = params.get('room');
+        roomNameRef.current = roomName || '';
         if (!token) {
-          const roomName = params.get('room');
           if (!roomName) {
             setStatus('Missing token');
             return;
@@ -233,14 +306,18 @@ const ConsultPage: React.FC = () => {
           setStatus('Connected');
           pushDebugLog('Status=Connected');
           setEnded(false);
+          setEndReason('ended');
+          localEndRequestedRef.current = false;
           setMuted(false);
           setVideoOff(false);
+          watchConferenceState();
         }
       } catch (error) {
         console.error('Consult join error:', error);
         pushDebugLog(`Join error: ${(error as Error).message}`);
         if (mounted) {
           setStatus(`Failed to join: ${(error as Error).message}`);
+          setEndReason('dropped');
           setEnded(true);
         }
       }
@@ -258,9 +335,10 @@ const ConsultPage: React.FC = () => {
     return () => {
       mounted = false;
       window.removeEventListener('offline', handleOffline);
+      stopConferenceWatch();
       cleanupSession();
     };
-  }, [cleanupSession, joinConsult, pushDebugLog]);
+  }, [cleanupSession, joinConsult, pushDebugLog, stopConferenceWatch, watchConferenceState]);
 
   const toggleMute = async () => {
     const session = sessionRef.current;
@@ -299,9 +377,14 @@ const ConsultPage: React.FC = () => {
   };
 
   const endCall = async () => {
+    localEndRequestedRef.current = true;
+    stopConferenceWatch();
+    await endConferenceEverywhere();
     await cleanupSession();
     pushDebugLog('Call ended by user');
+    setEndReason('ended');
     setEnded(true);
+    setQuoteMode(false);
     setHasVideoFrame(false);
     setStatus('Call ended.');
   };
@@ -312,9 +395,13 @@ const ConsultPage: React.FC = () => {
     try {
       setStatus('Rejoining consult...');
       pushDebugLog('Rejoining consult');
+      localEndRequestedRef.current = false;
       await joinConsult(tokenRef.current);
       setEnded(false);
+      setEndReason('ended');
+      setQuoteMode(false);
       setStatus('Connected');
+      watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
       setStatus(`Rejoin failed: ${(error as Error).message}`);
@@ -354,7 +441,7 @@ const ConsultPage: React.FC = () => {
               gap: 14
             }}
           >
-            <div>Call ended</div>
+            <div>{endReason === 'dropped' ? 'It looks like your call dropped unexpectedly.' : 'Call ended'}</div>
             {!!tokenRef.current && (
               <button
                 onClick={rejoin}
@@ -371,7 +458,7 @@ const ConsultPage: React.FC = () => {
                 }}
               >
                 <RotateCcw size={14} />
-                {isRejoining ? 'Rejoining...' : 'Rejoin'}
+                {isRejoining ? 'Calling...' : 'Call Back'}
               </button>
             )}
           </div>
@@ -391,7 +478,7 @@ const ConsultPage: React.FC = () => {
                 background: '#000'
               }}
             />
-            {!hasVideoFrame && (
+            {!hasVideoFrame && !isQuoteMode && (
               <div
                 style={{
                   position: 'absolute',
@@ -404,6 +491,33 @@ const ConsultPage: React.FC = () => {
                 }}
               >
                 Waiting for video...
+              </div>
+            )}
+            {isQuoteMode && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: '#000',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  color: '#d2d7df'
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    border: '3px solid rgba(255,255,255,0.25)',
+                    borderTopColor: '#fff',
+                    animation: 'consult-spin 1s linear infinite'
+                  }}
+                />
+                <div>Your quote is being completed</div>
               </div>
             )}
             <div
@@ -473,23 +587,25 @@ const ConsultPage: React.FC = () => {
               >
                 {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
               </button>
-              <button
-                onClick={toggleVideo}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: isVideoOff ? '#0f1116' : '#fff',
-                  color: isVideoOff ? '#fff' : '#111',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                aria-label={isVideoOff ? 'Turn video on' : 'Turn video off'}
-              >
-                {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
-              </button>
+              {!isQuoteMode && (
+                <button
+                  onClick={toggleVideo}
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: isVideoOff ? '#0f1116' : '#fff',
+                    color: isVideoOff ? '#fff' : '#111',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  aria-label={isVideoOff ? 'Turn video on' : 'Turn video off'}
+                >
+                  {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
+                </button>
+              )}
               <button
                 onClick={endCall}
                 style={{
@@ -511,6 +627,12 @@ const ConsultPage: React.FC = () => {
           </>
         )}
       </div>
+      <style>{`
+        @keyframes consult-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

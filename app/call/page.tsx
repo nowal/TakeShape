@@ -21,7 +21,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
-type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'ended';
+type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended' | 'dropped';
 
 interface ConferenceData {
   id: string;
@@ -30,6 +30,13 @@ interface ConferenceData {
 
 interface RoomTokenResponse {
   token: string;
+}
+
+interface DialResponse {
+  sid?: string;
+  call_sid?: string;
+  callSid?: string;
+  [key: string]: unknown;
 }
 
 const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
@@ -51,6 +58,9 @@ const PainterCallCenter: React.FC = () => {
   const [authUid, setAuthUid] = useState<string | null>(null);
   const [homeownerNumberInput, setHomeownerNumberInput] = useState(DEFAULT_HOMEOWNER_NUMBER);
   const [painterCallerId, setPainterCallerId] = useState('');
+  const [quoteItem, setQuoteItem] = useState('');
+  const [quotePrice, setQuotePrice] = useState('');
+  const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -65,6 +75,9 @@ const PainterCallCenter: React.FC = () => {
   const findVideoTimerRef = useRef<number | null>(null);
   const trackHandlerRef = useRef<((event: RTCTrackEvent) => void) | null>(null);
   const activeHomeownerNumberRef = useRef(DEFAULT_HOMEOWNER_NUMBER);
+  const activeCallSidRef = useRef<string | null>(null);
+  const localEndRequestedRef = useRef(false);
+  const conferenceWatchTimerRef = useRef<number | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -115,6 +128,9 @@ const PainterCallCenter: React.FC = () => {
       if (findVideoTimerRef.current) {
         window.clearInterval(findVideoTimerRef.current);
       }
+      if (conferenceWatchTimerRef.current) {
+        window.clearInterval(conferenceWatchTimerRef.current);
+      }
       if (roomSessionRef.current) {
         if (trackHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('track', trackHandlerRef.current);
@@ -132,6 +148,30 @@ const PainterCallCenter: React.FC = () => {
       throw new Error(detail || fallbackMessage);
     }
     return payload;
+  };
+
+  const stopConferenceWatch = () => {
+    if (conferenceWatchTimerRef.current) {
+      window.clearInterval(conferenceWatchTimerRef.current);
+      conferenceWatchTimerRef.current = null;
+    }
+  };
+
+  const forceEndConference = async () => {
+    if (!conference?.id && !conference?.name) return;
+    try {
+      await fetch('/api/signalwire/end-conference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conference?.id || undefined,
+          roomName: conference?.name || undefined,
+          callSid: activeCallSidRef.current || undefined
+        })
+      });
+    } catch (error) {
+      console.error('Failed to end conference on server:', error);
+    }
   };
 
   const requestMicPermission = async () => {
@@ -281,6 +321,61 @@ const PainterCallCenter: React.FC = () => {
     }, 1000);
   };
 
+  const watchCallHealth = () => {
+    stopConferenceWatch();
+    conferenceWatchTimerRef.current = window.setInterval(async () => {
+      if (!conference?.id || !activeCallRef.current) return;
+      if (localEndRequestedRef.current) return;
+
+      try {
+        const conferenceStateResponse = await fetch(
+          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conference.id)}`
+        );
+        const conferenceState = await conferenceStateResponse.json().catch(() => ({}));
+        if (!conferenceStateResponse.ok) return;
+
+        if (!conferenceState?.exists) {
+          activeCallRef.current = false;
+          stopConferenceWatch();
+          if (roomSessionRef.current) {
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          setPhase('ended');
+          setStatus('Call ended by other participant.');
+          return;
+        }
+
+        if (conferenceState?.mode === 'quote' && phase === 'videoInviteSent') {
+          setPhase('quoteDraft');
+          setStatus('Quote mode active. Audio call continues.');
+          setHasVideoFrame(false);
+        }
+
+        const callSid = activeCallSidRef.current;
+        if (callSid) {
+          const callStatusResponse = await fetch(
+            `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`
+          );
+          const callStatusPayload = await callStatusResponse.json().catch(() => ({}));
+          if (callStatusResponse.ok && callStatusPayload?.completed) {
+            activeCallRef.current = false;
+            stopConferenceWatch();
+            await forceEndConference();
+            if (roomSessionRef.current) {
+              await roomSessionRef.current.leave().catch(() => undefined);
+              roomSessionRef.current = null;
+            }
+            setPhase('dropped');
+            setStatus('It looks like your call dropped unexpectedly.');
+          }
+        }
+      } catch (error) {
+        console.error('Call health watcher error:', error);
+      }
+    }, 4000);
+  };
+
   const persistEstimateRecording = async () => {
     if (!estimateInviteSentRef.current || !recordingStartedRef.current) {
       return;
@@ -426,13 +521,21 @@ const PainterCallCenter: React.FC = () => {
           from: normalizedPainterCallerId
         })
       });
-      await getJsonOrThrow(dialResponse, 'Failed to dial homeowner');
+      const dialData = (await getJsonOrThrow(dialResponse, 'Failed to dial homeowner')) as DialResponse;
+      activeCallSidRef.current = String(
+        dialData?.sid ||
+        dialData?.call_sid ||
+        dialData?.callSid ||
+        ''
+      ) || null;
 
       activeCallRef.current = true;
+      localEndRequestedRef.current = false;
       estimateInviteSentRef.current = false;
       recordingStartedRef.current = false;
       setPhase('calling');
       setStatus('Phone call connected (audio-only).');
+      watchCallHealth();
     } catch (error) {
       console.error(error);
       setStatus(`Error: ${(error as Error).message}`);
@@ -488,14 +591,42 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
+  const enterQuoteMode = async () => {
+    if (!conference?.id) return;
+    setSettingQuoteMode(true);
+    try {
+      const response = await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conference.id,
+          mode: 'quote'
+        })
+      });
+      await getJsonOrThrow(response, 'Failed to enter quote mode');
+      setPhase('quoteDraft');
+      setHasVideoFrame(false);
+      setStatus('Quote mode active. Audio call continues.');
+    } catch (error) {
+      console.error('Quote mode error:', error);
+      setStatus(`Error: ${(error as Error).message}`);
+    } finally {
+      setSettingQuoteMode(false);
+    }
+  };
+
   const endCall = async () => {
+    localEndRequestedRef.current = true;
     activeCallRef.current = false;
     if (findVideoTimerRef.current) {
       window.clearInterval(findVideoTimerRef.current);
       findVideoTimerRef.current = null;
     }
+    stopConferenceWatch();
 
     try {
+      await forceEndConference();
+
       if (signalWireRecordingRef.current) {
         try {
           await signalWireRecordingRef.current.stop();
@@ -531,14 +662,27 @@ const PainterCallCenter: React.FC = () => {
     signalWireRecordingRef.current = null;
     signalWireRecordingIdRef.current = null;
     trackHandlerRef.current = null;
+    activeCallSidRef.current = null;
     setRemoteVideoStream(null);
     setStatus((prev) => prev.startsWith('Call ended') ? prev : 'Call ended.');
+  };
+
+  const callBack = async () => {
+    setQuoteItem('');
+    setQuotePrice('');
+    setConference(null);
+    setGuestLink('');
+    setHasVideoFrame(false);
+    setPhase('idle');
+    await startPhoneCall();
   };
 
   const stageLabel = useMemo(() => {
     if (phase === 'idle') return 'Ready';
     if (phase === 'calling') return 'On Call';
     if (phase === 'videoInviteSent') return 'Video Estimate';
+    if (phase === 'quoteDraft') return 'Create Quote';
+    if (phase === 'dropped') return 'Dropped';
     return 'Ended';
   }, [phase]);
 
@@ -641,7 +785,7 @@ const PainterCallCenter: React.FC = () => {
           </div>
         )}
 
-        {(phase === 'calling' || phase === 'videoInviteSent') && (
+        {(phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft') && (
           <div style={phoneFrameStyle}>
             <div
               style={{
@@ -658,22 +802,26 @@ const PainterCallCenter: React.FC = () => {
             >
               {phase === 'calling'
                 ? 'Audio call in progress. Send video estimate when ready.'
-                : 'Waiting for homeowner video...'}
+                : phase === 'videoInviteSent'
+                  ? 'Waiting for homeowner video...'
+                  : 'Build quote while audio call remains active.'}
             </div>
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                background: '#000'
-              }}
-            />
-            {!hasVideoFrame && (
+            {phase !== 'quoteDraft' && (
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  background: '#000'
+                }}
+              />
+            )}
+            {phase !== 'quoteDraft' && !hasVideoFrame && (
               <div
                 style={{
                   position: 'absolute',
@@ -688,6 +836,48 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 {phase === 'calling' ? 'Audio call active' : 'Waiting for homeowner video...'}
+              </div>
+            )}
+            {phase === 'quoteDraft' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: '#000',
+                  padding: '72px 16px 96px',
+                  color: '#d7dfeb'
+                }}
+              >
+                <div style={{ marginBottom: 10, fontWeight: 700 }}>Create Quote</div>
+                <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: '#8ea0bb' }}>Item</label>
+                <input
+                  value={quoteItem}
+                  onChange={(event) => setQuoteItem(event.target.value)}
+                  placeholder="Interior Walls"
+                  style={{
+                    width: '100%',
+                    padding: 10,
+                    borderRadius: 10,
+                    border: '1px solid #2a3444',
+                    background: '#0f131a',
+                    color: '#fff',
+                    marginBottom: 12
+                  }}
+                />
+                <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: '#8ea0bb' }}>Price</label>
+                <input
+                  value={quotePrice}
+                  onChange={(event) => setQuotePrice(event.target.value)}
+                  placeholder="$2,500"
+                  style={{
+                    width: '100%',
+                    padding: 10,
+                    borderRadius: 10,
+                    border: '1px solid #2a3444',
+                    background: '#0f131a',
+                    color: '#fff'
+                  }}
+                />
               </div>
             )}
 
@@ -745,6 +935,27 @@ const PainterCallCenter: React.FC = () => {
                   Send Video Estimate
                 </button>
               )}
+              {phase === 'videoInviteSent' && (
+                <button
+                  onClick={enterQuoteMode}
+                  disabled={isSettingQuoteMode}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: isSettingQuoteMode ? disabledPrimaryActionColor : primaryActionColor,
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8
+                  }}
+                >
+                  {isSettingQuoteMode ? 'Starting...' : 'Create Quote'}
+                </button>
+              )}
               <button
                 onClick={endCall}
                 style={{
@@ -767,7 +978,7 @@ const PainterCallCenter: React.FC = () => {
           </div>
         )}
 
-        {phase === 'ended' && (
+        {(phase === 'ended' || phase === 'dropped') && (
           <div style={phoneFrameStyle}>
             <div
               style={{
@@ -775,12 +986,28 @@ const PainterCallCenter: React.FC = () => {
                 inset: 0,
                 background: '#000',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#7f8ba0'
+                color: '#7f8ba0',
+                gap: 12
               }}
             >
-              Call ended
+              {phase === 'dropped' ? 'It looks like your call dropped unexpectedly.' : 'Call ended'}
+              <button
+                onClick={callBack}
+                disabled={isStartingCall}
+                style={{
+                  border: 'none',
+                  borderRadius: 999,
+                  padding: '10px 18px',
+                  color: '#fff',
+                  background: isStartingCall ? disabledPrimaryActionColor : primaryActionColor,
+                  fontWeight: 700
+                }}
+              >
+                {isStartingCall ? 'Calling...' : 'Call Back'}
+              </button>
             </div>
           </div>
         )}
