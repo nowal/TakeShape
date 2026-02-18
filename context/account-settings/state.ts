@@ -29,6 +29,7 @@ import { notifyError } from '@/utils/notifications';
 import { TAccountSettingsConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
 import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
+import { normalizeUsPhoneToE164 } from '@/utils/phone';
 
 export const useAccountSettingsState = (
   config: TAccountSettingsConfig
@@ -131,7 +132,9 @@ export const useAccountSettingsState = (
                 dispatchRange(painterData.range || 10);
                 setInsured(painterData.isInsured || false);
                 setPhoneNumber(
-                  painterData.phoneNumber || ''
+                  painterData.phoneNumberRaw ||
+                    painterData.phoneNumber ||
+                    ''
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
@@ -257,6 +260,26 @@ export const useAccountSettingsState = (
 
         if (isPainter) {
           const painterDocRef = painterSnapshot.docs[0].ref;
+          const currentPainterData =
+            painterSnapshot.docs[0].data();
+          const normalizedPhone =
+            normalizeUsPhoneToE164(phoneNumber);
+          if (!normalizedPhone) {
+            setErrorMessage(
+              'Please enter a valid US phone number.'
+            );
+            return;
+          }
+          const currentNormalizedPhone =
+            normalizeUsPhoneToE164(
+              String(
+                currentPainterData.phoneNumber ||
+                  currentPainterData.phoneNumberRaw ||
+                  ''
+              )
+            );
+          const phoneChanged =
+            normalizedPhone !== currentNormalizedPhone;
           const updatedLogoUrl = logo
             ? await resolveLogosUpload(logo)
             : logoUrl; // Handle logo upload if provided
@@ -267,13 +290,78 @@ export const useAccountSettingsState = (
             range,
             isInsured,
             logoUrl: updatedLogoUrl,
-            phoneNumber,
+            phoneNumber: normalizedPhone,
+            phoneNumberRaw: phoneNumber,
           };
 
           await updateDoc(
             painterDocRef,
             updatedPainterData
           );
+          if (phoneChanged) {
+            try {
+              const verifyResponse = await fetch(
+                '/api/signalwire/verify-caller-id',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type':
+                      'application/json',
+                  },
+                  body: JSON.stringify({
+                    phoneNumber: normalizedPhone,
+                    friendlyName: businessName,
+                  }),
+                }
+              );
+              const verifyPayload =
+                await verifyResponse
+                  .json()
+                  .catch(() => ({}));
+
+              if (verifyResponse.ok) {
+                await updateDoc(painterDocRef, {
+                  signalwireCallerId: {
+                    status:
+                      verifyPayload.status ||
+                      'pending',
+                    id:
+                      verifyPayload.id || null,
+                    callSid:
+                      verifyPayload.callSid ||
+                      null,
+                    phoneNumber:
+                      verifyPayload.phoneNumber ||
+                      normalizedPhone,
+                    alreadyVerified: Boolean(
+                      verifyPayload.alreadyVerified
+                    ),
+                    initiatedAt:
+                      new Date().toISOString(),
+                  },
+                });
+              } else {
+                await updateDoc(painterDocRef, {
+                  signalwireCallerId: {
+                    status:
+                      'verification_failed',
+                    phoneNumber:
+                      normalizedPhone,
+                    error:
+                      verifyPayload?.error ||
+                      'Failed to start caller ID verification',
+                    initiatedAt:
+                      new Date().toISOString(),
+                  },
+                });
+              }
+            } catch (verifyError) {
+              console.error(
+                'Phone change verification error:',
+                verifyError
+              );
+            }
+          }
           console.log(
             'Painter info updated:',
             updatedPainterData
