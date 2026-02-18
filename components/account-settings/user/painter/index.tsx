@@ -6,6 +6,7 @@ import { IconsUpload } from '@/components/icons/upload';
 import { cx } from 'class-variance-authority';
 import { InputsFilePic } from '@/components/inputs/file/pic';
 import { PainterAddress } from '@/components/painter/address';
+import { ComponentsAccountSettingsUserInputsPhoneNumber } from '@/components/account-settings/user/inputs/phone-number';
 
 export const ComponentsAccountSettingsPainter: FC = () => {
   const {
@@ -30,6 +31,7 @@ export const ComponentsAccountSettingsPainter: FC = () => {
         />
       </div>
       <PainterAddress />
+      <ComponentsAccountSettingsUserInputsPhoneNumber />
       <div className="relative h-[96px]">
         <InputsFile
           title="Company Logo"
