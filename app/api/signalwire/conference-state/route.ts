@@ -96,24 +96,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const swResponse = await fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
-      method: 'PUT',
-      cache: 'no-store',
-      headers: {
-        Authorization: `Basic ${config.authHeader}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        meta: {
-          ...(conference.meta || {}),
-          ...(typeof mode === 'string' && mode.trim()
-            ? { call_mode: mode.trim() }
-            : {}),
-          ...(metaPatch && typeof metaPatch === 'object' ? metaPatch : {})
-        }
-      })
-    });
+    const nextMeta = {
+      ...(conference.meta || {}),
+      ...(typeof mode === 'string' && mode.trim()
+        ? { call_mode: mode.trim() }
+        : {}),
+      ...(metaPatch && typeof metaPatch === 'object' ? metaPatch : {})
+    };
+
+    const attemptUpdate = async (method: 'PATCH' | 'PUT') =>
+      fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
+        method,
+        cache: 'no-store',
+        headers: {
+          Authorization: `Basic ${config.authHeader}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          meta: nextMeta
+        })
+      });
+
+    let swResponse = await attemptUpdate('PATCH');
+    if (!swResponse.ok) {
+      swResponse = await attemptUpdate('PUT');
+    }
 
     if (!swResponse.ok) {
       const errorText = await swResponse.text();
