@@ -33,6 +33,9 @@ const ConsultPage: React.FC = () => {
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
   const remoteEndingRef = useRef(false);
+  const isEndedRef = useRef(false);
+  const isQuoteModeRef = useRef(false);
+  const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -44,6 +47,14 @@ const ConsultPage: React.FC = () => {
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
   const [isQuoteMode, setQuoteMode] = useState(false);
+
+  useEffect(() => {
+    isEndedRef.current = isEnded;
+  }, [isEnded]);
+
+  useEffect(() => {
+    isQuoteModeRef.current = isQuoteMode;
+  }, [isQuoteMode]);
 
   const pushDebugLog = useCallback((message: string) => {
     if (!debugEnabled) return;
@@ -94,10 +105,21 @@ const ConsultPage: React.FC = () => {
 
   const getBackCameraStream = useCallback(async (): Promise<MediaStream> => {
     pushDebugLog('Requesting initial stream with facingMode=environment (ideal)');
-    const initialStream = await navigator.mediaDevices.getUserMedia({
+    const initialVideoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: 'environment' } as any }
+    }).catch(async () =>
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } }
+      })
+    );
+    const audioStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: { facingMode: { ideal: 'environment' } }
+      video: false
     });
+    const initialStream = new MediaStream([
+      ...initialVideoStream.getVideoTracks(),
+      ...audioStream.getAudioTracks()
+    ]);
     const initialVideoTrack = initialStream.getVideoTracks()[0];
     pushDebugLog(`Initial video settings: ${JSON.stringify(initialVideoTrack?.getSettings?.() || {})}`);
     if (isEnvironmentFacingTrack(initialVideoTrack)) {
@@ -123,10 +145,17 @@ const ConsultPage: React.FC = () => {
     for (const candidate of candidates) {
       try {
         pushDebugLog(`Trying candidate camera: ${candidate.label || candidate.deviceId}`);
-        const switchedStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
+        const switchedVideoStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: { exact: candidate.deviceId } }
         });
+        const switchedAudioStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false
+        });
+        const switchedStream = new MediaStream([
+          ...switchedVideoStream.getVideoTracks(),
+          ...switchedAudioStream.getAudioTracks()
+        ]);
         const switchedTrack = switchedStream.getVideoTracks()[0];
         const appearsBackCamera =
           isEnvironmentFacingTrack(switchedTrack) ||
@@ -229,15 +258,13 @@ const ConsultPage: React.FC = () => {
     } catch {
       // no-op
     }
-    if (!previewReady) {
-      try {
-        await session.stopOutboundVideo?.();
-        await new Promise((resolve) => setTimeout(resolve, 180));
-        await session.restoreOutboundVideo?.();
-        pushDebugLog('Forced outbound video restart after join');
-      } catch {
-        // no-op
-      }
+    try {
+      await session.stopOutboundVideo?.();
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      await session.restoreOutboundVideo?.();
+      pushDebugLog('Forced outbound video restart after join');
+    } catch {
+      // no-op
     }
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
@@ -246,7 +273,7 @@ const ConsultPage: React.FC = () => {
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
-      if ((!roomNameRef.current && !conferenceIdRef.current) || isEnded) return;
+      if ((!roomNameRef.current && !conferenceIdRef.current) || isEndedRef.current) return;
       if (localEndRequestedRef.current) return;
 
       try {
@@ -289,7 +316,7 @@ const ConsultPage: React.FC = () => {
           callSidRef.current = conferenceCallSid;
         }
 
-        if (payload?.mode === 'quote' && !isQuoteMode) {
+        if (payload?.mode === 'quote' && !isQuoteModeRef.current) {
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);
@@ -306,8 +333,8 @@ const ConsultPage: React.FC = () => {
       } catch (error) {
         console.error('Consult conference watcher error:', error);
       }
-    }, 4000);
-  }, [cleanupSession, isEnded, isQuoteMode, pushDebugLog, stopConferenceWatch]);
+    }, 1000);
+  }, [cleanupSession, pushDebugLog, stopConferenceWatch]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -315,6 +342,8 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
     let mounted = true;
 
     const start = async () => {
@@ -378,7 +407,7 @@ const ConsultPage: React.FC = () => {
       stopConferenceWatch();
       cleanupSession();
     };
-  }, [cleanupSession, joinConsult, pushDebugLog, stopConferenceWatch, watchConferenceState]);
+  }, []);
 
   const toggleMute = async () => {
     const session = sessionRef.current;
