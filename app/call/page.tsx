@@ -39,6 +39,25 @@ interface DialResponse {
   [key: string]: unknown;
 }
 
+const isQuoteModePayload = (payload: any) => {
+  const mode = String(payload?.mode || '').trim().toLowerCase();
+  const meta = payload?.meta || {};
+  const quoteFlagRaw =
+    meta.quote_mode ??
+    meta.quoteMode ??
+    meta.quote_started ??
+    meta.quoteStarted;
+  const quoteStartedRaw =
+    meta.quote_started_at ??
+    meta.quoteStartedAt ??
+    meta.quote_startedAt;
+  const quoteFlag =
+    quoteFlagRaw === true ||
+    String(quoteFlagRaw || '').trim().toLowerCase() === 'true' ||
+    String(quoteFlagRaw || '').trim() === '1';
+  return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
+};
+
 const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
@@ -415,12 +434,7 @@ const PainterCallCenter: React.FC = () => {
           return;
         }
 
-        if (
-          (conferenceState?.mode === 'quote' ||
-            conferenceState?.meta?.quote_mode === true ||
-            Boolean(conferenceState?.meta?.quote_started_at)) &&
-          phase === 'videoInviteSent'
-        ) {
+        if (isQuoteModePayload(conferenceState) && phase === 'videoInviteSent') {
           setPhase('quoteDraft');
           setStatus('Quote mode active. Audio call continues.');
           setHasVideoFrame(false);

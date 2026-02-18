@@ -3,6 +3,16 @@ import { getSignalWireConfig, resolveConference } from '@/app/api/signalwire/_li
 
 export const dynamic = 'force-dynamic';
 
+const normalizeCallMode = (conference: any): string => {
+  const raw =
+    conference?.meta?.call_mode ??
+    conference?.meta?.callMode ??
+    conference?.call_mode ??
+    conference?.callMode ??
+    'live';
+  return String(raw).trim().toLowerCase() || 'live';
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -35,7 +45,7 @@ export async function GET(request: NextRequest) {
       exists: true,
       conferenceId: conference.id || null,
       roomName: conference.name || null,
-      mode: conference?.meta?.call_mode || 'live',
+      mode: normalizeCallMode(conference),
       meta: conference?.meta || {}
     });
     response.headers.set('Cache-Control', 'no-store, max-age=0');
@@ -88,6 +98,7 @@ export async function POST(request: NextRequest) {
 
     const swResponse = await fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
       method: 'PUT',
+      cache: 'no-store',
       headers: {
         Authorization: `Basic ${config.authHeader}`,
         'Content-Type': 'application/json',
@@ -118,7 +129,9 @@ export async function POST(request: NextRequest) {
       exists: true,
       conferenceId: updated?.id || conference.id,
       roomName: updated?.name || conference.name || null,
-      mode: updated?.meta?.call_mode || (typeof mode === 'string' ? mode.trim() : 'live'),
+      mode:
+        normalizeCallMode(updated) ||
+        (typeof mode === 'string' ? mode.trim().toLowerCase() : 'live'),
       meta: updated?.meta || {}
     });
     nextResponse.headers.set('Cache-Control', 'no-store, max-age=0');

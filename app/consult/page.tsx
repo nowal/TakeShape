@@ -34,6 +34,25 @@ const mergeStreamTracks = ({
     ...audioFrom.getAudioTracks()
   ]);
 
+const isQuoteModePayload = (payload: any) => {
+  const mode = String(payload?.mode || '').trim().toLowerCase();
+  const meta = payload?.meta || {};
+  const quoteFlagRaw =
+    meta.quote_mode ??
+    meta.quoteMode ??
+    meta.quote_started ??
+    meta.quoteStarted;
+  const quoteStartedRaw =
+    meta.quote_started_at ??
+    meta.quoteStartedAt ??
+    meta.quote_startedAt;
+  const quoteFlag =
+    quoteFlagRaw === true ||
+    String(quoteFlagRaw || '').trim().toLowerCase() === 'true' ||
+    String(quoteFlagRaw || '').trim() === '1';
+  return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
+};
+
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
@@ -314,12 +333,7 @@ const ConsultPage: React.FC = () => {
           callSidRef.current = conferenceCallSid;
         }
 
-        if (
-          (payload?.mode === 'quote' ||
-            payload?.meta?.quote_mode === true ||
-            Boolean(payload?.meta?.quote_started_at)) &&
-          !isQuoteModeRef.current
-        ) {
+        if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);

@@ -26,6 +26,7 @@ const parseConferenceList = (payload: any): any[] => {
 export const listConferences = async (config: SignalWireConfig): Promise<any[]> => {
   const response = await fetch(`https://${config.spaceUrl}/api/video/conferences`, {
     method: 'GET',
+    cache: 'no-store',
     headers: {
       Authorization: `Basic ${config.authHeader}`,
       Accept: 'application/json'
@@ -47,6 +48,7 @@ export const getConferenceById = async (
 ): Promise<any | null> => {
   const response = await fetch(`https://${config.spaceUrl}/api/video/conferences/${conferenceId}`, {
     method: 'GET',
+    cache: 'no-store',
     headers: {
       Authorization: `Basic ${config.authHeader}`,
       Accept: 'application/json'
@@ -78,4 +80,3 @@ export const resolveConference = async (
   const conferences = await listConferences(config);
   return conferences.find((conference: any) => conference?.name === roomName) || null;
 };
-
