@@ -3,7 +3,18 @@ import { getSignalWireConfig, resolveConference } from '@/app/api/signalwire/_li
 
 export const dynamic = 'force-dynamic';
 
+const parseModeFromDescription = (description: unknown): string | null => {
+  const value = String(description || '').trim();
+  if (!value) return null;
+  const match = value.match(/(?:^|\s|;)call_mode[:=]\s*([a-z_]+)/i);
+  if (!match?.[1]) return null;
+  return match[1].trim().toLowerCase();
+};
+
 const normalizeCallMode = (conference: any): string => {
+  const fromDescription = parseModeFromDescription(conference?.description);
+  if (fromDescription) return fromDescription;
+
   const raw =
     conference?.meta?.call_mode ??
     conference?.meta?.callMode ??
@@ -103,6 +114,10 @@ export async function POST(request: NextRequest) {
         : {}),
       ...(metaPatch && typeof metaPatch === 'object' ? metaPatch : {})
     };
+    const nextMode =
+      (typeof mode === 'string' && mode.trim().toLowerCase()) ||
+      normalizeCallMode({ ...conference, meta: nextMeta });
+    const nextDescription = `call_mode:${nextMode};updated_at:${new Date().toISOString()}`;
 
     const attemptUpdate = async (method: 'PATCH' | 'PUT') =>
       fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
@@ -114,7 +129,8 @@ export async function POST(request: NextRequest) {
           Accept: 'application/json'
         },
         body: JSON.stringify({
-          meta: nextMeta
+          meta: nextMeta,
+          description: nextDescription
         })
       });
 
