@@ -28,9 +28,11 @@ const ConsultPage: React.FC = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const tokenRef = useRef<string>('');
   const roomNameRef = useRef<string>('');
+  const conferenceIdRef = useRef<string>('');
   const callSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
+  const remoteEndingRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -74,13 +76,14 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   const endConferenceEverywhere = useCallback(async () => {
-    if (!roomNameRef.current) return;
+    if (!roomNameRef.current && !conferenceIdRef.current) return;
     try {
       await fetch('/api/signalwire/end-conference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          roomName: roomNameRef.current,
+          roomName: roomNameRef.current || undefined,
+          conferenceId: conferenceIdRef.current || undefined,
           callSid: callSidRef.current || undefined
         })
       });
@@ -226,6 +229,16 @@ const ConsultPage: React.FC = () => {
     } catch {
       // no-op
     }
+    if (!previewReady) {
+      try {
+        await session.stopOutboundVideo?.();
+        await new Promise((resolve) => setTimeout(resolve, 180));
+        await session.restoreOutboundVideo?.();
+        pushDebugLog('Forced outbound video restart after join');
+      } catch {
+        // no-op
+      }
+    }
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession, getBackCameraStream, pushDebugLog]);
@@ -233,12 +246,14 @@ const ConsultPage: React.FC = () => {
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
-      if (!roomNameRef.current || isEnded) return;
+      if ((!roomNameRef.current && !conferenceIdRef.current) || isEnded) return;
       if (localEndRequestedRef.current) return;
 
       try {
         const response = await fetch(
-          `/api/signalwire/conference-state?roomName=${encodeURIComponent(roomNameRef.current)}`
+          conferenceIdRef.current
+            ? `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceIdRef.current)}`
+            : `/api/signalwire/conference-state?roomName=${encodeURIComponent(roomNameRef.current)}`
         );
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) return;
@@ -246,10 +261,25 @@ const ConsultPage: React.FC = () => {
         if (!payload?.exists) {
           pushDebugLog('Conference missing while active -> dropped');
           await cleanupSession();
-          setEndReason('dropped');
+          setEndReason(remoteEndingRef.current ? 'ended' : 'dropped');
           setEnded(true);
           setHasVideoFrame(false);
-          setStatus('It looks like your call dropped unexpectedly.');
+          setStatus(
+            remoteEndingRef.current
+              ? 'Call ended.'
+              : 'It looks like your call dropped unexpectedly.'
+          );
+          stopConferenceWatch();
+          return;
+        }
+
+        if (payload?.mode === 'ending' && !localEndRequestedRef.current) {
+          remoteEndingRef.current = true;
+          await cleanupSession();
+          setEndReason('ended');
+          setEnded(true);
+          setHasVideoFrame(false);
+          setStatus('Call ended.');
           stopConferenceWatch();
           return;
         }
@@ -292,7 +322,9 @@ const ConsultPage: React.FC = () => {
         const params = new URLSearchParams(window.location.search);
         let token = params.get('token');
         const roomName = params.get('room');
+        const conferenceId = params.get('conferenceId');
         roomNameRef.current = roomName || '';
+        conferenceIdRef.current = conferenceId || '';
         if (!token) {
           if (!roomName) {
             setStatus('Missing token');
@@ -315,6 +347,7 @@ const ConsultPage: React.FC = () => {
           setEnded(false);
           setEndReason('ended');
           localEndRequestedRef.current = false;
+          remoteEndingRef.current = false;
           setMuted(false);
           setVideoOff(false);
           watchConferenceState();
@@ -386,6 +419,16 @@ const ConsultPage: React.FC = () => {
   const endCall = async () => {
     localEndRequestedRef.current = true;
     stopConferenceWatch();
+    if (conferenceIdRef.current) {
+      await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conferenceIdRef.current,
+          mode: 'ending'
+        })
+      }).catch(() => undefined);
+    }
     await endConferenceEverywhere();
     await cleanupSession();
     pushDebugLog('Call ended by user');
@@ -403,6 +446,7 @@ const ConsultPage: React.FC = () => {
       setStatus('Rejoining consult...');
       pushDebugLog('Rejoining consult');
       localEndRequestedRef.current = false;
+      remoteEndingRef.current = false;
       await joinConsult(tokenRef.current);
       setEnded(false);
       setEndReason('ended');

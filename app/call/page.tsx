@@ -81,6 +81,7 @@ const PainterCallCenter: React.FC = () => {
   const activeConferenceIdRef = useRef<string | null>(null);
   const activeConferenceNameRef = useRef<string | null>(null);
   const callAnsweredRef = useRef(false);
+  const remoteEndingRef = useRef(false);
   const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
 
   const auth = getAuth(firebase);
@@ -263,8 +264,12 @@ const PainterCallCenter: React.FC = () => {
       if (!memberId) return;
       if (memberId === String((session as any)?.memberId || '')) return;
       callAnsweredRef.current = true;
-      if (phase === 'calling') {
-        setStatus('Phone call connected (audio-only).');
+      if (phase === 'calling' || phase === 'videoInviteSent') {
+        setStatus(
+          estimateInviteSentRef.current
+            ? 'Homeowner video connected.'
+            : 'Phone call connected (audio-only).'
+        );
       }
     };
     session.on('member.joined', memberJoinedHandler);
@@ -375,6 +380,23 @@ const PainterCallCenter: React.FC = () => {
         if (!conferenceStateResponse.ok) return;
 
         if (!conferenceState?.exists) {
+          activeCallRef.current = false;
+          stopConferenceWatch();
+          if (roomSessionRef.current) {
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          setPhase(remoteEndingRef.current ? 'ended' : 'dropped');
+          setStatus(
+            remoteEndingRef.current
+              ? 'Call ended by other participant.'
+              : 'It looks like your call dropped unexpectedly.'
+          );
+          return;
+        }
+
+        if (conferenceState?.mode === 'ending' && !localEndRequestedRef.current) {
+          remoteEndingRef.current = true;
           activeCallRef.current = false;
           stopConferenceWatch();
           if (roomSessionRef.current) {
@@ -591,7 +613,7 @@ const PainterCallCenter: React.FC = () => {
       await joinPainterRoomAudioOnly(painterToken.token);
 
       const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      setGuestLink(`${appBase}/consult?room=${encodeURIComponent(confData.name)}`);
+      setGuestLink(`${appBase}/consult?room=${encodeURIComponent(confData.name)}&conferenceId=${encodeURIComponent(confData.id)}`);
       activeHomeownerNumberRef.current = normalizedHomeowner;
 
       setStatus('Dialing homeowner...');
@@ -646,6 +668,7 @@ const PainterCallCenter: React.FC = () => {
 
       activeCallRef.current = true;
       localEndRequestedRef.current = false;
+      remoteEndingRef.current = false;
       estimateInviteSentRef.current = false;
       recordingStartedRef.current = false;
       setPhase('calling');
@@ -741,6 +764,17 @@ const PainterCallCenter: React.FC = () => {
     stopConferenceWatch();
 
     try {
+      if (activeConferenceIdRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: activeConferenceIdRef.current,
+            mode: 'ending'
+          })
+        }).catch(() => undefined);
+      }
+
       await forceEndConference();
 
       if (signalWireRecordingRef.current) {
@@ -925,7 +959,7 @@ const PainterCallCenter: React.FC = () => {
               {phase === 'calling'
                 ? 'Audio call in progress. Send video estimate when ready.'
                 : phase === 'videoInviteSent'
-                  ? 'Waiting for homeowner video...'
+                  ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for homeowner video...')
                   : 'Build quote while audio call remains active.'}
             </div>
             {phase !== 'quoteDraft' && (
