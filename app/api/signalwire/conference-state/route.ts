@@ -31,13 +31,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       exists: true,
       conferenceId: conference.id || null,
       roomName: conference.name || null,
       mode: conference?.meta?.call_mode || 'live',
       meta: conference?.meta || {}
     });
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error('Conference state API error:', error);
     return NextResponse.json(
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
+    const swResponse = await fetch(`https://${config.spaceUrl}/api/video/conferences/${conference.id}`, {
       method: 'PUT',
       headers: {
         Authorization: `Basic ${config.authHeader}`,
@@ -100,23 +104,27 @@ export async function POST(request: NextRequest) {
       })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!swResponse.ok) {
+      const errorText = await swResponse.text();
       return NextResponse.json(
         { error: 'Failed to update conference mode', details: errorText },
-        { status: response.status }
+        { status: swResponse.status }
       );
     }
 
-    const payload = await response.json();
+    const payload = await swResponse.json();
     const updated = payload?.data ?? payload;
-    return NextResponse.json({
+    const nextResponse = NextResponse.json({
       exists: true,
       conferenceId: updated?.id || conference.id,
       roomName: updated?.name || conference.name || null,
       mode: updated?.meta?.call_mode || (typeof mode === 'string' ? mode.trim() : 'live'),
       meta: updated?.meta || {}
     });
+    nextResponse.headers.set('Cache-Control', 'no-store, max-age=0');
+    nextResponse.headers.set('Pragma', 'no-cache');
+    nextResponse.headers.set('Expires', '0');
+    return nextResponse;
   } catch (error) {
     console.error('Conference mode update API error:', error);
     return NextResponse.json(

@@ -270,11 +270,16 @@ const ConsultPage: React.FC = () => {
       if (localEndRequestedRef.current) return;
 
       try {
-        const response = await fetch(
-          conferenceIdRef.current
-            ? `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceIdRef.current)}`
-            : `/api/signalwire/conference-state?roomName=${encodeURIComponent(roomNameRef.current)}`
-        );
+        const endpoint = conferenceIdRef.current
+          ? `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceIdRef.current)}`
+          : `/api/signalwire/conference-state?roomName=${encodeURIComponent(roomNameRef.current)}`;
+        const response = await fetch(`${endpoint}&_ts=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            'cache-control': 'no-cache',
+            pragma: 'no-cache'
+          }
+        });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) return;
 
@@ -309,7 +314,12 @@ const ConsultPage: React.FC = () => {
           callSidRef.current = conferenceCallSid;
         }
 
-        if (payload?.mode === 'quote' && !isQuoteModeRef.current) {
+        if (
+          (payload?.mode === 'quote' ||
+            payload?.meta?.quote_mode === true ||
+            Boolean(payload?.meta?.quote_started_at)) &&
+          !isQuoteModeRef.current
+        ) {
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);

@@ -374,7 +374,14 @@ const PainterCallCenter: React.FC = () => {
 
       try {
         const conferenceStateResponse = await fetch(
-          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conference.id)}`
+          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conference.id)}&_ts=${Date.now()}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'cache-control': 'no-cache',
+              pragma: 'no-cache'
+            }
+          }
         );
         const conferenceState = await conferenceStateResponse.json().catch(() => ({}));
         if (!conferenceStateResponse.ok) return;
@@ -408,7 +415,12 @@ const PainterCallCenter: React.FC = () => {
           return;
         }
 
-        if (conferenceState?.mode === 'quote' && phase === 'videoInviteSent') {
+        if (
+          (conferenceState?.mode === 'quote' ||
+            conferenceState?.meta?.quote_mode === true ||
+            Boolean(conferenceState?.meta?.quote_started_at)) &&
+          phase === 'videoInviteSent'
+        ) {
           setPhase('quoteDraft');
           setStatus('Quote mode active. Audio call continues.');
           setHasVideoFrame(false);
@@ -738,7 +750,11 @@ const PainterCallCenter: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conferenceId: conference.id,
-          mode: 'quote'
+          mode: 'quote',
+          metaPatch: {
+            quote_mode: true,
+            quote_started_at: new Date().toISOString()
+          }
         })
       });
       await getJsonOrThrow(response, 'Failed to enter quote mode');
