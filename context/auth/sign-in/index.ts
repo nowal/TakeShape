@@ -26,6 +26,7 @@ export const useSignIn = ({
   dispatchAuthLoading,
   onSignOut,
 }: TAuthConfig) => {
+  const AUTH_INIT_TIMEOUT_MS = 8000;
   const { onNavigateScrollTopClick } = useApp();
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -38,16 +39,40 @@ export const useSignIn = ({
   const auth = getAuth(firebase);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const isUser = Boolean(user);
-      dispatchUserSignedIn(isUser);
-      dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
-    });
+    let isMounted = true;
+    const authInitTimeout = setTimeout(() => {
+      if (!isMounted) return;
+      console.warn(
+        'Auth state initialization timed out. Continuing as signed out.'
+      );
+      dispatchUserSignedIn(false);
+      dispatchAuthLoading(false);
+    }, AUTH_INIT_TIMEOUT_MS);
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        if (!isMounted) return;
+        clearTimeout(authInitTimeout);
+        const isUser = Boolean(user);
+        dispatchUserSignedIn(isUser);
+        dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
+      },
+      (error) => {
+        if (!isMounted) return;
+        console.error('Error while initializing auth state:', error);
+        clearTimeout(authInitTimeout);
+        dispatchUserSignedIn(false);
+        dispatchAuthLoading(false);
+      }
+    );
 
     return () => {
+      isMounted = false;
+      clearTimeout(authInitTimeout);
       unsubscribe();
     };
-  }, [auth]);
+  }, [auth, dispatchAuthLoading, dispatchUserSignedIn]);
 
   const handleSignIn = async (
     event: FormEvent<HTMLFormElement>

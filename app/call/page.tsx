@@ -61,6 +61,7 @@ const isQuoteModePayload = (payload: any) => {
 const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
+const AUTH_CHECK_TIMEOUT_MS = 10000;
 
 const PainterCallCenter: React.FC = () => {
   const [status, setStatus] = useState('Ready');
@@ -109,59 +110,108 @@ const PainterCallCenter: React.FC = () => {
   const storage = getStorage(firebase);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        if (activeCallRef.current) {
-          localEndRequestedRef.current = true;
-          activeCallRef.current = false;
-          stopConferenceWatch();
-          await forceEndConference();
-          if (roomSessionRef.current) {
-            try {
-              await roomSessionRef.current.leave();
-            } catch {
-              // no-op
+    let isMounted = true;
+    const authCheckTimeout = window.setTimeout(() => {
+      if (!isMounted) return;
+      console.warn(
+        'Call page auth check timed out. Continuing as signed out.'
+      );
+      setAuthUid(null);
+      setPainterDocId(null);
+      setPainterUser(false);
+      setPainterCallerId('');
+      setCheckingAuth(false);
+    }, AUTH_CHECK_TIMEOUT_MS);
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (user) => {
+        if (!isMounted) return;
+        try {
+          if (!user) {
+            if (activeCallRef.current) {
+              localEndRequestedRef.current = true;
+              activeCallRef.current = false;
+              stopConferenceWatch();
+              await forceEndConference();
+              if (roomSessionRef.current) {
+                try {
+                  await roomSessionRef.current.leave();
+                } catch {
+                  // no-op
+                }
+                roomSessionRef.current = null;
+              }
+              if (!isMounted) return;
+              setPhase('dropped');
+              setStatus('Session expired. Call ended.');
             }
-            roomSessionRef.current = null;
+            setAuthUid(null);
+            setPainterDocId(null);
+            setPainterUser(false);
+            setPainterCallerId('');
+            return;
           }
-          setPhase('dropped');
-          setStatus('Session expired. Call ended.');
+
+          setAuthUid(user.uid);
+          const paintersQuery = query(
+            collection(firestore, 'painters'),
+            where('userId', '==', user.uid)
+          );
+          const snapshot = await getDocs(paintersQuery);
+          if (!isMounted) return;
+
+          if (!snapshot.empty) {
+            const painterDoc = snapshot.docs[0];
+            setPainterDocId(painterDoc.id);
+            const painterData = painterDoc.data() as Record<
+              string,
+              unknown
+            >;
+            const normalizedPhone = normalizeUsPhoneToE164(
+              String(
+                painterData.phoneNumber ||
+                  painterData.phoneNumberRaw ||
+                  ''
+              )
+            );
+            setPainterCallerId(normalizedPhone || '');
+            setPainterUser(true);
+          } else {
+            setPainterDocId(null);
+            setPainterUser(false);
+            setPainterCallerId('');
+          }
+        } catch (error) {
+          console.error('Call page auth check failed:', error);
+          if (!isMounted) return;
+          setAuthUid(null);
+          setPainterDocId(null);
+          setPainterUser(false);
+          setPainterCallerId('');
+        } finally {
+          if (!isMounted) return;
+          window.clearTimeout(authCheckTimeout);
+          setCheckingAuth(false);
         }
+      },
+      (error) => {
+        if (!isMounted) return;
+        console.error('Call page auth listener failed:', error);
+        window.clearTimeout(authCheckTimeout);
         setAuthUid(null);
         setPainterDocId(null);
         setPainterUser(false);
-        setCheckingAuth(false);
-        return;
-      }
-
-      setAuthUid(user.uid);
-      const paintersQuery = query(
-        collection(firestore, 'painters'),
-        where('userId', '==', user.uid)
-      );
-      const snapshot = await getDocs(paintersQuery);
-      if (!snapshot.empty) {
-        const painterDoc = snapshot.docs[0];
-        setPainterDocId(painterDoc.id);
-        const painterData = painterDoc.data() as Record<string, unknown>;
-        const normalizedPhone = normalizeUsPhoneToE164(
-          String(
-            painterData.phoneNumber ||
-              painterData.phoneNumberRaw ||
-              ''
-          )
-        );
-        setPainterCallerId(normalizedPhone || '');
-        setPainterUser(true);
-      } else {
-        setPainterDocId(null);
-        setPainterUser(false);
         setPainterCallerId('');
+        setCheckingAuth(false);
       }
-      setCheckingAuth(false);
-    });
+    );
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      window.clearTimeout(authCheckTimeout);
+      unsubscribe();
+    };
   }, [auth, firestore]);
 
   useEffect(() => {
