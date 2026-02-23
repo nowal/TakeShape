@@ -290,6 +290,23 @@ const PainterCallCenter: React.FC = () => {
     return payload;
   };
 
+  const fetchWithTimeout = async (
+    input: RequestInfo | URL,
+    init: RequestInit,
+    timeoutMs = 20000
+  ) => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(input, {
+        ...init,
+        signal: controller.signal
+      });
+    } finally {
+      window.clearTimeout(timer);
+    }
+  };
+
   const normalizeQuoteRows = (): StoredQuotePricingRow[] =>
     quoteRows
       .filter((row) => row.item.trim() || row.description.trim() || row.price.trim())
@@ -940,7 +957,7 @@ const PainterCallCenter: React.FC = () => {
       }).catch(() => undefined);
 
       setStatus('Creating call room...');
-      const createResponse = await fetch('/api/signalwire/create-conference', {
+      const createResponse = await fetchWithTimeout('/api/signalwire/create-conference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -952,7 +969,7 @@ const PainterCallCenter: React.FC = () => {
             started_at: new Date().toISOString()
           }
         })
-      });
+      }, 22000);
       const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
       setConference(confData);
       activeConferenceIdRef.current = confData.id;
@@ -1034,7 +1051,11 @@ const PainterCallCenter: React.FC = () => {
       watchCallHealth();
     } catch (error) {
       console.error(error);
-      setStatus(`Error: ${(error as Error).message}`);
+      const errorMessage =
+        (error as Error)?.name === 'AbortError'
+          ? 'Timed out while creating call room. Please try again.'
+          : (error as Error).message;
+      setStatus(`Error: ${errorMessage}`);
     } finally {
       setIsStartingCall(false);
     }

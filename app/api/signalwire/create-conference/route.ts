@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+const fetchWithTimeout = async (url: string, init: RequestInit, timeoutMs = 15000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { name, display_name, meta } = await request.json();
@@ -20,7 +33,7 @@ export async function POST(request: NextRequest) {
     const authHeader = Buffer.from(`${projectId}:${apiToken}`).toString('base64');
     
     // Create a Video Conference (room with UI)
-    const response = await fetch(`https://${spaceUrl}/api/video/conferences`, {
+    const response = await fetchWithTimeout(`https://${spaceUrl}/api/video/conferences`, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${authHeader}`,
@@ -41,7 +54,7 @@ export async function POST(request: NextRequest) {
         ...(meta && typeof meta === 'object' ? { meta } : {}),
         record_on_start: false
       })
-    });
+    }, 15000);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -68,7 +81,7 @@ export async function POST(request: NextRequest) {
       )
     ) {
       try {
-        const patchResponse = await fetch(`https://${spaceUrl}/api/video/conferences/${data.id}`, {
+        const patchResponse = await fetchWithTimeout(`https://${spaceUrl}/api/video/conferences/${data.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Basic ${authHeader}`,
@@ -80,7 +93,7 @@ export async function POST(request: NextRequest) {
             user_join_video_off: false,
             room_join_video_off: false
           })
-        });
+        }, 10000);
 
         if (patchResponse.ok) {
           const patched = await patchResponse.json();
@@ -99,9 +112,13 @@ export async function POST(request: NextRequest) {
       space_url: spaceUrl
     });
   } catch (error) {
+    const message =
+      (error as Error)?.name === 'AbortError'
+        ? 'SignalWire request timed out while creating conference'
+        : 'Internal server error';
     console.error('Create conference API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }
