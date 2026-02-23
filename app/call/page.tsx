@@ -52,6 +52,12 @@ type StoredQuotePricingRow = {
   price: number;
 };
 
+type QuoteMetaRow = {
+  item: string;
+  description: string;
+  price: string;
+};
+
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -300,6 +306,13 @@ const PainterCallCenter: React.FC = () => {
     () => normalizeQuoteRows().reduce((sum, row) => sum + row.price, 0),
     [quoteRows]
   );
+
+  const buildQuoteMetaRows = (rows: StoredQuotePricingRow[]): QuoteMetaRow[] =>
+    rows.map((row) => ({
+      item: row.item,
+      description: row.description,
+      price: row.price.toFixed(2)
+    }));
 
   const updateQuoteRow = (id: string, next: Partial<QuotePricingRow>) => {
     setQuoteRows((previous) =>
@@ -694,6 +707,7 @@ const PainterCallCenter: React.FC = () => {
           quote_started_at: new Date().toISOString(),
           quote_id: quoteId,
           quote_total_price: Number(totalPrice.toFixed(2)),
+          quote_pricing_rows_json: JSON.stringify(buildQuoteMetaRows(rows).slice(0, 50)),
           quote_updated_at: new Date().toISOString()
         }
       })
