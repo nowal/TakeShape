@@ -16,7 +16,7 @@ import {
   where
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
@@ -486,7 +486,13 @@ const PainterCallCenter: React.FC = () => {
     try {
       const recording = await session.startRecording();
       signalWireRecordingRef.current = recording;
-      signalWireRecordingIdRef.current = recording?.id || null;
+      signalWireRecordingIdRef.current =
+        String(
+          recording?.id ||
+          recording?.recording_id ||
+          recording?.recordingId ||
+          ''
+        ).trim() || null;
     } catch (error) {
       console.error('SignalWire recording start error:', error);
     }
@@ -795,7 +801,7 @@ const PainterCallCenter: React.FC = () => {
     const recordingId = signalWireRecordingIdRef.current;
     if (recordingId) {
       try {
-        const recordingResponse = await fetch(`/api/signalwire/room-recording?recordingId=${encodeURIComponent(recordingId)}&waitMs=30000`);
+        const recordingResponse = await fetch(`/api/signalwire/room-recording?recordingId=${encodeURIComponent(recordingId)}&waitMs=1000`);
         const recordingPayload = await getJsonOrThrow(
           recordingResponse,
           'Failed to fetch SignalWire recording asset'
@@ -832,7 +838,11 @@ const PainterCallCenter: React.FC = () => {
             const storagePath = `consult-recordings/${painterDocId}/${quoteId}.webm`;
             const fileRef = storageRef(storage, storagePath);
             await uploadBytes(fileRef, blob, { contentType: 'video/webm' });
-            primaryVideo = storagePath;
+            try {
+              primaryVideo = await getDownloadURL(fileRef);
+            } catch {
+              primaryVideo = storagePath;
+            }
             resolve();
           };
         });
@@ -1100,6 +1110,8 @@ const PainterCallCenter: React.FC = () => {
       findVideoTimerRef.current = null;
     }
     stopConferenceWatch();
+    setPhase('ended');
+    setStatus('Ending call...');
 
     try {
       if (activeConferenceIdRef.current) {
@@ -1143,7 +1155,6 @@ const PainterCallCenter: React.FC = () => {
       console.error('End call error:', error);
     }
 
-    setPhase('ended');
     setConference(null);
     activeConferenceIdRef.current = null;
     activeConferenceNameRef.current = null;
@@ -1306,21 +1317,21 @@ const PainterCallCenter: React.FC = () => {
                   ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for homeowner video...')
                   : 'Build quote while audio call remains active.'}
             </div>
-            {phase !== 'quoteDraft' && (
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  background: '#000'
-                }}
-              />
-            )}
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                background: '#000',
+                opacity: phase === 'quoteDraft' ? 0 : 1,
+                pointerEvents: 'none'
+              }}
+            />
             {phase !== 'quoteDraft' && !hasVideoFrame && (
               <div
                 style={{

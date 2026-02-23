@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import firebase from '@/lib/firebase';
 import {
+  collection,
   collectionGroup,
+  doc,
+  getDoc,
   getDocs,
   getFirestore,
   query,
@@ -27,24 +30,71 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const conferenceId = String(searchParams.get('conferenceId') || '').trim();
-    if (!conferenceId) {
+    const painterDocId = String(
+      searchParams.get('painterDocId') ||
+      searchParams.get('painterId') ||
+      ''
+    ).trim();
+    const quoteId = String(searchParams.get('quoteId') || '').trim();
+
+    if (!conferenceId && (!painterDocId || !quoteId)) {
       return NextResponse.json(
-        { error: 'conferenceId is required' },
+        { error: 'conferenceId or painterDocId+quoteId is required' },
         { status: 400 }
       );
     }
 
     const firestore = getFirestore(firebase);
-    const quotesQuery = query(
-      collectionGroup(firestore, 'quotes'),
-      where('signalwireConferenceId', '==', conferenceId)
-    );
-    const snapshot = await getDocs(quotesQuery);
-    if (snapshot.empty) {
+
+    if (painterDocId && quoteId) {
+      const quoteRef = doc(firestore, 'painters', painterDocId, 'quotes', quoteId);
+      const quoteSnap = await getDoc(quoteRef);
+      if (!quoteSnap.exists()) {
+        return NextResponse.json({ found: false });
+      }
+
+      const data = quoteSnap.data() as Record<string, any>;
+      const pricing = data.pricing || {};
+      const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
+      const rows: QuoteRow[] = rowsRaw.map((row: any) => ({
+        item: String(row?.item || ''),
+        description: String(row?.description || ''),
+        price: Number(row?.price) || 0
+      }));
+
+      return NextResponse.json({
+        found: true,
+        quoteId: quoteSnap.id,
+        pricing: {
+          rows,
+          totalPrice: Number(pricing.totalPrice) || 0,
+          updatedAt: pricing.updatedAt || data.updatedAt || data.createdAt || null
+        },
+        updatedAt: data.updatedAt || data.createdAt || null
+      });
+    }
+
+    let docs = [];
+    if (painterDocId && conferenceId) {
+      const painterQuotesQuery = query(
+        collection(firestore, 'painters', painterDocId, 'quotes'),
+        where('signalwireConferenceId', '==', conferenceId)
+      );
+      const snapshot = await getDocs(painterQuotesQuery);
+      docs = snapshot.docs;
+    } else {
+      const quotesQuery = query(
+        collectionGroup(firestore, 'quotes'),
+        where('signalwireConferenceId', '==', conferenceId)
+      );
+      const snapshot = await getDocs(quotesQuery);
+      docs = snapshot.docs;
+    }
+    if (!docs.length) {
       return NextResponse.json({ found: false });
     }
 
-    const sorted = snapshot.docs.sort((a, b) => {
+    const sorted = docs.sort((a, b) => {
       const aData = a.data() as Record<string, any>;
       const bData = b.data() as Record<string, any>;
       return toMillis(bData.updatedAt || bData.createdAt) - toMillis(aData.updatedAt || aData.createdAt);

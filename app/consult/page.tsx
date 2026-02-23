@@ -101,6 +101,8 @@ const ConsultPage: React.FC = () => {
   const tokenRef = useRef<string>('');
   const roomNameRef = useRef<string>('');
   const conferenceIdRef = useRef<string>('');
+  const painterDocIdRef = useRef<string>('');
+  const quoteIdRef = useRef<string>('');
   const callSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
@@ -376,13 +378,30 @@ const ConsultPage: React.FC = () => {
         if (conferenceCallSid) {
           callSidRef.current = conferenceCallSid;
         }
+        const conferencePainterDocId = String(payload?.meta?.painter_doc_id || '').trim();
+        if (conferencePainterDocId) {
+          painterDocIdRef.current = conferencePainterDocId;
+        }
+        const conferenceQuoteId = String(payload?.meta?.quote_id || '').trim();
+        if (conferenceQuoteId) {
+          quoteIdRef.current = conferenceQuoteId;
+        }
 
         const fetchLatestQuoteForConference = async () => {
           if (!conferenceIdRef.current || quoteFetchInFlightRef.current) return;
           quoteFetchInFlightRef.current = true;
           try {
+            const params = new URLSearchParams({
+              conferenceId: conferenceIdRef.current
+            });
+            if (painterDocIdRef.current) {
+              params.set('painterDocId', painterDocIdRef.current);
+            }
+            if (quoteIdRef.current) {
+              params.set('quoteId', quoteIdRef.current);
+            }
             const quoteResponse = await fetch(
-              `/api/quotes/by-conference?conferenceId=${encodeURIComponent(conferenceIdRef.current)}&_ts=${Date.now()}`,
+              `/api/quotes/by-conference?${params.toString()}&_ts=${Date.now()}`,
               {
                 cache: 'no-store',
                 headers: {
