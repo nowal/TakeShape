@@ -4,13 +4,9 @@ import { Video as SWVideo } from '@signalwire/js';
 import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
-  collection,
-  collectionGroup,
   doc,
   getFirestore,
   onSnapshot,
-  query,
-  where
 } from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -198,13 +194,6 @@ const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
   }
 };
 
-const toMillis = (value: any): number => {
-  const seconds = Number(value?.seconds);
-  if (Number.isFinite(seconds) && seconds > 0) return seconds * 1000;
-  const parsed = new Date(String(value || '')).getTime();
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
@@ -321,58 +310,31 @@ const ConsultPage: React.FC = () => {
       pushDebugLog(`Quote loaded from Firestore watcher (${source})`);
     };
 
-    if (painterDocIdRef.current && quoteIdRef.current) {
-      const quoteRef = doc(
-        firestore,
-        'painters',
-        painterDocIdRef.current,
-        'quotes',
-        quoteIdRef.current
-      );
-      quoteWatcherUnsubRef.current = onSnapshot(
-        quoteRef,
-        (snapshot) => {
-          if (!snapshot.exists()) {
-            pushDebugLog('Firestore watcher: quote doc not found yet');
-            return;
-          }
-          applyQuoteFromData(snapshot.data() as Record<string, any>, 'doc');
-        },
-        (error) => {
-          pushDebugLog(`Firestore watcher doc error: ${error.message}`);
-        }
+    if (!painterDocIdRef.current || !quoteIdRef.current) {
+      pushDebugLog(
+        `Watcher waiting for IDs (painter=${painterDocIdRef.current || 'missing'}, quote=${quoteIdRef.current || 'missing'})`
       );
       return;
     }
 
-    const quoteQuery = painterDocIdRef.current
-      ? query(
-          collection(firestore, 'painters', painterDocIdRef.current, 'quotes'),
-          where('signalwireConferenceId', '==', conferenceIdRef.current)
-        )
-      : query(
-          collectionGroup(firestore, 'quotes'),
-          where('signalwireConferenceId', '==', conferenceIdRef.current)
-        );
-
+    const quoteRef = doc(
+      firestore,
+      'painters',
+      painterDocIdRef.current,
+      'quotes',
+      quoteIdRef.current
+    );
     quoteWatcherUnsubRef.current = onSnapshot(
-      quoteQuery,
+      quoteRef,
       (snapshot) => {
-        if (snapshot.empty) {
-          pushDebugLog('Firestore watcher: no quote docs for conference yet');
+        if (!snapshot.exists()) {
+          pushDebugLog('Firestore watcher: quote doc not found yet');
           return;
         }
-        const latestDoc = snapshot.docs
-          .slice()
-          .sort((a, b) => {
-            const aData = a.data() as Record<string, any>;
-            const bData = b.data() as Record<string, any>;
-            return toMillis(bData.updatedAt || bData.createdAt) - toMillis(aData.updatedAt || aData.createdAt);
-          })[0];
-        applyQuoteFromData(latestDoc.data() as Record<string, any>, 'query');
+        applyQuoteFromData(snapshot.data() as Record<string, any>, 'doc');
       },
       (error) => {
-        pushDebugLog(`Firestore watcher query error: ${error.message}`);
+        pushDebugLog(`Firestore watcher doc error: ${error.message}`);
       }
     );
   }, [firestore, pushDebugLog, stopQuoteWatcher]);
@@ -595,11 +557,19 @@ const ConsultPage: React.FC = () => {
         if (conferenceCallSid) {
           callSidRef.current = conferenceCallSid;
         }
-        const conferencePainterDocId = String(payload?.meta?.painter_doc_id || '').trim();
+        const conferencePainterDocId = String(
+          payload?.meta?.painter_doc_id ||
+          payload?.meta?.painterDocId ||
+          ''
+        ).trim();
         if (conferencePainterDocId) {
           painterDocIdRef.current = conferencePainterDocId;
         }
-        const conferenceQuoteId = String(payload?.meta?.quote_id || '').trim();
+        const conferenceQuoteId = String(
+          payload?.meta?.quote_id ||
+          payload?.meta?.quoteId ||
+          ''
+        ).trim();
         if (conferenceQuoteId) {
           quoteIdRef.current = conferenceQuoteId;
         }

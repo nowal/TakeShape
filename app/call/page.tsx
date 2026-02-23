@@ -732,6 +732,7 @@ const PainterCallCenter: React.FC = () => {
         conferenceId: conference.id,
         mode: 'quote',
         metaPatch: {
+          painter_doc_id: painterDocId || undefined,
           quote_ready: true,
           quote_submitted: true,
           quote_submitted_at: new Date().toISOString(),
@@ -756,6 +757,7 @@ const PainterCallCenter: React.FC = () => {
         conferenceId: conference.id,
         mode: 'quote',
         metaPatch: {
+          painter_doc_id: painterDocId || undefined,
           quote_started_at: new Date().toISOString(),
           quote_id: quoteId,
           quote_rows_count: quoteRowsForMeta.length,
@@ -1148,15 +1150,16 @@ const PainterCallCenter: React.FC = () => {
       const response = await fetch('/api/signalwire/conference-state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conferenceId: conference.id,
-          mode: 'quote',
-          metaPatch: {
-            quote_mode: true,
-            quote_started_at: new Date().toISOString(),
-            quote_id: quoteId || undefined,
-            quote_ready: false
-          }
+      body: JSON.stringify({
+        conferenceId: conference.id,
+        mode: 'quote',
+        metaPatch: {
+          painter_doc_id: painterDocId || undefined,
+          quote_mode: true,
+          quote_started_at: new Date().toISOString(),
+          quote_id: quoteId || undefined,
+          quote_ready: false
+        }
         })
       });
       await getJsonOrThrow(response, 'Failed to enter quote mode');
