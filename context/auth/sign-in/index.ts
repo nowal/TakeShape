@@ -26,7 +26,9 @@ export const useSignIn = ({
   dispatchAuthLoading,
   onSignOut,
 }: TAuthConfig) => {
-  const AUTH_INIT_TIMEOUT_MS = 8000;
+  const AUTH_INIT_TIMEOUT_MS = 5000;
+  const SIGN_IN_TIMEOUT_MS = 15000;
+  const FIRESTORE_TIMEOUT_MS = 10000;
   const { onNavigateScrollTopClick } = useApp();
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -37,6 +39,19 @@ export const useSignIn = ({
     string | null
   >(null); // Error message state
   const auth = getAuth(firebase);
+
+  const withTimeout = async <T,>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    message: string
+  ): Promise<T> => {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -83,10 +98,10 @@ export const useSignIn = ({
     const firestore = getFirestore(firebase);
 
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
+      await withTimeout(
+        signInWithEmailAndPassword(auth, email, password),
+        SIGN_IN_TIMEOUT_MS,
+        'Sign-in timed out. Please try again.'
       );
       setShowModal(false);
 
@@ -101,7 +116,11 @@ export const useSignIn = ({
           'reAgents',
           currentUser.uid
         );
-        const agentDoc = await getDoc(agentDocRef);
+        const agentDoc = await withTimeout(
+          getDoc(agentDocRef),
+          FIRESTORE_TIMEOUT_MS,
+          'Account lookup timed out. Please try again.'
+        );
 
         if (agentDoc.exists()) {
           onNavigateScrollTopClick('/agentDashboard');
@@ -112,14 +131,22 @@ export const useSignIn = ({
           if (quoteData) {
             const quote = JSON.parse(quoteData);
 
-            await addDoc(
-              collection(firestore, 'userImages'),
-              {
-                ...quote,
-                userId: currentUser.uid,
-              }
-            );
-            sessionStorage.removeItem('quoteData'); // Clean up
+            try {
+              await withTimeout(
+                addDoc(collection(firestore, 'userImages'), {
+                  ...quote,
+                  userId: currentUser.uid,
+                }),
+                FIRESTORE_TIMEOUT_MS,
+                'Quote link timed out'
+              );
+              sessionStorage.removeItem('quoteData'); // Clean up
+            } catch (quoteSyncError) {
+              console.warn(
+                'Quote sync skipped after sign-in:',
+                quoteSyncError
+              );
+            }
           }
           console.log(' NAV TO DASHBOARD ');
           onNavigateScrollTopClick('/dashboard');
@@ -130,9 +157,22 @@ export const useSignIn = ({
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      setErrorMessage(
-        'Incorrect email or password. Please try again.'
-      ); // Set error message
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to sign in right now. Please try again.';
+      if (
+        message.includes('timed out') ||
+        message.includes('network-request-failed')
+      ) {
+        setErrorMessage(
+          'Sign-in timed out on this browser. Please refresh, then try again.'
+        );
+      } else {
+        setErrorMessage(
+          'Incorrect email or password. Please try again.'
+        );
+      }
     } finally {
       setSignInSubmitting(false); // Reset loading state
     }

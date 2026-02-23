@@ -4,7 +4,6 @@ import { ShellLogo } from '@/components/shell/logo';
 import { HeaderOptions } from '@/components/shell/header/options';
 import { ShellHeaderMobileMenu } from '@/components/shell/header/mobile/menu';
 import { useViewport } from '@/context/viewport';
-import { useAuth } from '@/context/auth/provider';
 import { usePathname } from 'next/navigation';
 import { InView } from '@/components/in-view';
 import { Fragment } from 'react';
@@ -12,7 +11,6 @@ import { AnimationFadeUp } from '@/components/animation/fade-up';
 import { ShellHeaderBackground } from '@/components/shell/header/background';
 
 export const ShellHeader = () => {
-  const { isAuthLoading } = useAuth();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const viewport = useViewport();
@@ -52,17 +50,13 @@ export const ShellHeader = () => {
             >
               <ShellHeaderBackground />
               <ShellLogo backgroundColor={headerBackgroundColor} />
-              {isAuthLoading ? (
-                <Fragment />
-              ) : (
-                <>
-                  {viewport.isDimensions && viewport.isSm ? (
-                    <ShellHeaderMobileMenu />
-                  ) : (
-                    <HeaderOptions />
-                  )}
-                </>
-              )}
+              <Fragment>
+                {viewport.isDimensions && viewport.isSm ? (
+                  <ShellHeaderMobileMenu />
+                ) : (
+                  <HeaderOptions />
+                )}
+              </Fragment>
             </AnimationFadeUp>
           );
         }}
