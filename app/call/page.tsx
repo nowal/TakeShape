@@ -23,7 +23,8 @@ type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended'
 
 interface ConferenceData {
   id: string;
-  name: string;
+  name?: string;
+  room_name?: string;
 }
 
 interface RoomTokenResponse {
@@ -307,6 +308,28 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
+  const promiseWithTimeout = async <T,>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    timeoutMessage: string
+  ): Promise<T> => {
+    let timer: number | null = null;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timer = window.setTimeout(() => {
+            reject(new Error(timeoutMessage));
+          }, timeoutMs);
+        })
+      ]);
+    } finally {
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+    }
+  };
+
   const normalizeQuoteRows = (): StoredQuotePricingRow[] =>
     quoteRows
       .filter((row) => row.item.trim() || row.description.trim() || row.price.trim())
@@ -410,6 +433,9 @@ const PainterCallCenter: React.FC = () => {
     });
     return getJsonOrThrow(response, 'Failed to create room token') as Promise<RoomTokenResponse>;
   };
+
+  const resolveRoomName = (conferenceData: ConferenceData) =>
+    String(conferenceData?.name || conferenceData?.room_name || '').trim();
 
   const setRemoteVideoStream = (stream: MediaStream | null) => {
     const videoEl = remoteVideoRef.current;
@@ -962,32 +988,51 @@ const PainterCallCenter: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: `quote-call-${Date.now()}`,
-          display_name: 'Quote Call with Homeowner',
-          meta: {
+          display_name: 'Quote Call with Homeowner'
+        })
+      }, 22000);
+      const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
+      const conferenceRoomName = resolveRoomName(confData);
+      if (!conferenceRoomName) {
+        throw new Error('Conference created without a room name.');
+      }
+      setConference(confData);
+      activeConferenceIdRef.current = confData.id;
+      activeConferenceNameRef.current = conferenceRoomName;
+
+      await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: confData.id,
+          metaPatch: {
             painter_doc_id: painterDocId,
             call_mode: 'live',
             started_at: new Date().toISOString()
           }
         })
-      }, 22000);
-      const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
-      setConference(confData);
-      activeConferenceIdRef.current = confData.id;
-      activeConferenceNameRef.current = confData.name;
+      }).catch(() => undefined);
+
       setHasVideoFrame(false);
       setPhase('calling');
 
-      const painterToken = await createRoomToken(confData.name, 'Painter', [
-        'room.recording',
-        'room.self.audio_mute',
-        'room.self.audio_unmute'
-      ]);
+      setStatus('Creating room token...');
+      const painterToken = await promiseWithTimeout(
+        createRoomToken(conferenceRoomName, 'Painter', ['room.recording']),
+        20000,
+        'Timed out while creating room token.'
+      );
       painterTokenRef.current = painterToken.token;
-      await joinPainterRoomAudioOnly(painterToken.token);
+      setStatus('Joining call room...');
+      await promiseWithTimeout(
+        joinPainterRoomAudioOnly(painterToken.token),
+        20000,
+        'Timed out while joining call room.'
+      );
 
       const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
       setGuestLink(
-        `${appBase}/consult?room=${encodeURIComponent(confData.name)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId)}`
+        `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId)}`
       );
       activeHomeownerNumberRef.current = normalizedHomeowner;
 
@@ -997,7 +1042,7 @@ const PainterCallCenter: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conference_id: confData.id,
-          room_name: confData.name,
+          room_name: conferenceRoomName,
           to: normalizedHomeowner,
           from: normalizedPainterCallerId
         })

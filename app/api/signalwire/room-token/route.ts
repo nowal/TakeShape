@@ -58,8 +58,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    const data = await response.json().catch(() => ({}));
+    const token =
+      data?.token ||
+      data?.room_token ||
+      data?.jwt ||
+      data?.data?.token ||
+      data?.data?.room_token ||
+      data?.data?.jwt ||
+      null;
+
+    if (!token || typeof token !== 'string') {
+      return NextResponse.json(
+        {
+          error: 'SignalWire token response missing token',
+          details: JSON.stringify(data).slice(0, 500)
+        },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ token });
   } catch (error) {
     console.error('Room token API error:', error);
     return NextResponse.json(
