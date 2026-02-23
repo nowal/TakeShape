@@ -139,6 +139,7 @@ const ConsultPage: React.FC = () => {
   const remoteEndingRef = useRef(false);
   const isEndedRef = useRef(false);
   const isQuoteModeRef = useRef(false);
+  const submittedQuoteRef = useRef<QuoteDisplay | null>(null);
   const quoteFetchInFlightRef = useRef(false);
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -161,6 +162,10 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     isQuoteModeRef.current = isQuoteMode;
   }, [isQuoteMode]);
+
+  useEffect(() => {
+    submittedQuoteRef.current = submittedQuote;
+  }, [submittedQuote]);
 
   const pushDebugLog = useCallback((message: string) => {
     if (!debugEnabled) return;
@@ -469,12 +474,10 @@ const ConsultPage: React.FC = () => {
         };
 
         if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
-          const nextQuote = parseQuoteMeta(payload?.meta || {});
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);
-          setSubmittedQuote(nextQuote);
-          setStatus(nextQuote ? 'Your quote is ready' : 'Your quote is being completed');
+          setStatus('Your quote is being completed');
           const session = sessionRef.current;
           if (session) {
             try {
@@ -484,16 +487,24 @@ const ConsultPage: React.FC = () => {
             }
           }
           await fetchLatestQuoteForConference();
+          if (!submittedQuoteRef.current) {
+            const nextQuote = parseQuoteMeta(payload?.meta || {});
+            if (nextQuote) {
+              setSubmittedQuote(nextQuote);
+              setStatus('Your quote is ready');
+            }
+          }
           return;
         }
 
         if (isQuoteModeRef.current) {
-          const nextQuote = parseQuoteMeta(payload?.meta || {});
-          if (nextQuote) {
-            setSubmittedQuote(nextQuote);
-            setStatus('Your quote is ready');
-          } else {
-            await fetchLatestQuoteForConference();
+          await fetchLatestQuoteForConference();
+          if (!submittedQuoteRef.current) {
+            const nextQuote = parseQuoteMeta(payload?.meta || {});
+            if (nextQuote) {
+              setSubmittedQuote(nextQuote);
+              setStatus('Your quote is ready');
+            }
           }
         }
       } catch (error) {
