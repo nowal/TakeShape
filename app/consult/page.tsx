@@ -66,13 +66,43 @@ type QuoteDisplay = {
 };
 
 const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
-  const serializedRows = String(meta?.quote_pricing_rows_json || '').trim();
-  if (!serializedRows) return null;
+  const rawRows =
+    meta?.quote_pricing_rows ??
+    meta?.quoteRows ??
+    null;
+  const rawRowsJson = meta?.quote_pricing_rows_json ?? meta?.quoteRowsJson ?? null;
+
+  let parsedRows: any[] | null = null;
+
+  if (Array.isArray(rawRows)) {
+    parsedRows = rawRows;
+  } else if (typeof rawRows === 'string' && rawRows.trim()) {
+    try {
+      const maybeParsed = JSON.parse(rawRows);
+      if (Array.isArray(maybeParsed)) {
+        parsedRows = maybeParsed;
+      }
+    } catch {
+      // no-op
+    }
+  }
+
+  if (!parsedRows && rawRowsJson) {
+    const serializedRows = String(rawRowsJson || '').trim();
+    if (!serializedRows) return null;
+    try {
+      const maybeParsed = JSON.parse(serializedRows);
+      if (Array.isArray(maybeParsed)) {
+        parsedRows = maybeParsed;
+      }
+    } catch {
+      parsedRows = null;
+    }
+  }
+
+  if (!parsedRows || !parsedRows.length) return null;
 
   try {
-    const parsedRows = JSON.parse(serializedRows);
-    if (!Array.isArray(parsedRows) || !parsedRows.length) return null;
-
     const rows = parsedRows.map((row) => ({
       item: String(row?.item || ''),
       description: String(row?.description || ''),
