@@ -76,6 +76,11 @@ const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
 
   if (Array.isArray(rawRows)) {
     parsedRows = rawRows;
+  } else if (rawRows && typeof rawRows === 'object') {
+    const values = Object.values(rawRows);
+    if (values.length) {
+      parsedRows = values;
+    }
   } else if (typeof rawRows === 'string' && rawRows.trim()) {
     try {
       const maybeParsed = JSON.parse(rawRows);
@@ -88,16 +93,36 @@ const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
   }
 
   if (!parsedRows && rawRowsJson) {
-    const serializedRows = String(rawRowsJson || '').trim();
-    if (!serializedRows) return null;
-    try {
-      const maybeParsed = JSON.parse(serializedRows);
-      if (Array.isArray(maybeParsed)) {
-        parsedRows = maybeParsed;
+    if (Array.isArray(rawRowsJson)) {
+      parsedRows = rawRowsJson;
+    } else if (rawRowsJson && typeof rawRowsJson === 'object') {
+      const values = Object.values(rawRowsJson);
+      if (values.length) {
+        parsedRows = values;
       }
-    } catch {
-      parsedRows = null;
     }
+    const serializedRows = String(rawRowsJson || '').trim();
+    if (!parsedRows && serializedRows) {
+      try {
+        const maybeParsed = JSON.parse(serializedRows);
+        if (Array.isArray(maybeParsed)) {
+          parsedRows = maybeParsed;
+        }
+      } catch {
+        parsedRows = null;
+      }
+    }
+  }
+
+  if ((!parsedRows || !parsedRows.length) && String(meta?.quote_pricing_lines || '').trim()) {
+    const lines = String(meta.quote_pricing_lines)
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    parsedRows = lines.map((line) => {
+      const [item = '', description = '', price = '0.00'] = line.split('|');
+      return { item, description, price };
+    });
   }
 
   if (!parsedRows || !parsedRows.length) return null;
@@ -168,11 +193,16 @@ const ConsultPage: React.FC = () => {
   }, [submittedQuote]);
 
   const pushDebugLog = useCallback((message: string) => {
-    if (!debugEnabled) return;
     const stamp = new Date().toISOString().slice(11, 23);
     setDebugLogs((prev) => [...prev.slice(-13), `${stamp} ${message}`]);
-    console.log(`[consult-debug] ${message}`);
+    if (debugEnabled) {
+      console.log(`[consult-debug] ${message}`);
+    }
   }, [debugEnabled]);
+
+  useEffect(() => {
+    pushDebugLog(`Status: ${status}`);
+  }, [status, pushDebugLog]);
 
   const cleanupSession = useCallback(async () => {
     pushDebugLog('cleanupSession()');
@@ -466,8 +496,10 @@ const ConsultPage: React.FC = () => {
               updatedAt: String(pricing?.updatedAt || quotePayload?.updatedAt || '')
             });
             setStatus('Your quote is ready');
+            pushDebugLog('Quote loaded from Firestore API');
           } catch (error) {
             console.error('Consult quote fetch error:', error);
+            pushDebugLog(`Quote fetch failed: ${(error as Error)?.message || 'unknown'}`);
           } finally {
             quoteFetchInFlightRef.current = false;
           }
@@ -492,6 +524,7 @@ const ConsultPage: React.FC = () => {
             if (nextQuote) {
               setSubmittedQuote(nextQuote);
               setStatus('Your quote is ready');
+              pushDebugLog('Quote loaded from conference metadata');
             }
           }
           return;
@@ -504,6 +537,7 @@ const ConsultPage: React.FC = () => {
             if (nextQuote) {
               setSubmittedQuote(nextQuote);
               setStatus('Your quote is ready');
+              pushDebugLog('Quote loaded from conference metadata (poll)');
             }
           }
         }
@@ -931,6 +965,27 @@ const ConsultPage: React.FC = () => {
             </div>
           </>
         )}
+      </div>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: MOBILE_FRAME_WIDTH,
+          margin: '0 auto 12px',
+          borderRadius: 12,
+          background: '#0f172a',
+          border: '1px solid #1e293b',
+          color: '#d1e0ff',
+          padding: '10px 12px',
+          fontSize: 11,
+          lineHeight: 1.35
+        }}
+      >
+        <div style={{ color: '#93c5fd', fontWeight: 700, marginBottom: 6 }}>
+          Diagnostics
+        </div>
+        <div style={{ maxHeight: 140, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+          {debugLogs.length ? debugLogs.join('\n') : 'Waiting for events...'}
+        </div>
       </div>
       <style>{`
         @keyframes consult-spin {
