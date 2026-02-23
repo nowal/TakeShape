@@ -12,7 +12,7 @@ import {
   where
 } from 'firebase/firestore';
 import { getDownloadURL, getStorage, ref as storageRef } from 'firebase/storage';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type QuotePricingRow = {
   item: string;
@@ -52,95 +52,120 @@ export default function QuotesPage() {
   const [isLoadingQuotes, setLoadingQuotes] = useState(false);
   const [quotes, setQuotes] = useState<QuoteCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [activePainterId, setActivePainterId] = useState<string | null>(null);
+  const [isRefreshingVideos, setRefreshingVideos] = useState(false);
+
+  const loadQuotes = useCallback(async (
+    painterId: string,
+    options: { skipAutoFinalize?: boolean } = {}
+  ) => {
+    setLoadingQuotes(true);
+    try {
+      const quotesQuery = query(
+        collection(firestore, 'painters', painterId, 'quotes'),
+        orderBy('createdAt', 'desc'),
+        limit(30)
+      );
+      const snapshot = await getDocs(quotesQuery);
+
+      const cards = await Promise.all(
+        snapshot.docs.map(async (quoteDoc) => {
+          const data = quoteDoc.data() as Record<string, any>;
+          const pricing = data.pricing || {};
+          const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
+          const rows: QuotePricingRow[] = rowsRaw.map((row: any) => ({
+            item: String(row?.item || ''),
+            description: String(row?.description || ''),
+            price: Number(row?.price) || 0
+          }));
+
+          const videoEstimate = (data.videoEstimate || {}) as Record<string, any>;
+          const videoStatusRaw = String(videoEstimate.status || '').toLowerCase();
+          const recordingId = String(
+            videoEstimate.recordingId ||
+            data.signalwireRecordingId ||
+            ''
+          ).trim() || null;
+          const storedVideoValue = String(videoEstimate.url || '').trim() || null;
+
+          let videoUrl: string | null = null;
+          if (storedVideoValue) {
+            if (/^https?:\/\//i.test(storedVideoValue)) {
+              videoUrl = storedVideoValue;
+            } else {
+              try {
+                videoUrl = await getDownloadURL(storageRef(storage, storedVideoValue));
+              } catch {
+                videoUrl = null;
+              }
+            }
+          }
+
+          const videoStatus: QuoteCard['videoStatus'] = videoUrl
+            ? 'ready'
+            : videoStatusRaw === 'storing'
+              ? 'storing'
+              : videoStatusRaw === 'error'
+                ? 'error'
+                : 'missing';
+          const videoMessage = videoUrl
+            ? ''
+            : videoStatus === 'storing'
+              ? 'Video is being stored'
+              : videoStatus === 'error'
+                ? 'Video unavailable right now'
+                : 'Video not found';
+
+          return {
+            id: quoteDoc.id,
+            videoUrl,
+            videoStatus,
+            videoMessage,
+            recordingId,
+            rows,
+            totalPrice: Number(pricing.totalPrice) || 0,
+            createdAtLabel: resolveDisplayDate(data.createdAt || pricing.updatedAt || '')
+          } as QuoteCard;
+        })
+      );
+
+      setQuotes(cards);
+
+      if (!options.skipAutoFinalize) {
+        const storingCards = cards.filter(
+          (card) => card.videoStatus === 'storing' && card.recordingId
+        );
+
+        if (storingCards.length > 0) {
+          setRefreshingVideos(true);
+          await Promise.all(
+            storingCards.map((card) =>
+              fetch('/api/quotes/finalize-recording', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  painterDocId: painterId,
+                  quoteId: card.id,
+                  recordingId: card.recordingId,
+                  waitMs: 0
+                })
+              }).catch(() => null)
+            )
+          );
+          await loadQuotes(painterId, { skipAutoFinalize: true });
+        }
+      }
+    } catch (loadError) {
+      console.error('Failed to load quotes:', loadError);
+      setError('Failed to load quotes.');
+    } finally {
+      setLoadingQuotes(false);
+      setRefreshingVideos(false);
+    }
+  }, [firestore, storage]);
 
   useEffect(() => {
     let mounted = true;
-
-    const loadQuotes = async (painterId: string) => {
-      setLoadingQuotes(true);
-      try {
-        const quotesQuery = query(
-          collection(firestore, 'painters', painterId, 'quotes'),
-          orderBy('createdAt', 'desc'),
-          limit(30)
-        );
-        const snapshot = await getDocs(quotesQuery);
-
-        const cards = await Promise.all(
-          snapshot.docs.map(async (quoteDoc) => {
-            const data = quoteDoc.data() as Record<string, any>;
-            const pricing = data.pricing || {};
-            const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
-            const rows: QuotePricingRow[] = rowsRaw.map((row: any) => ({
-              item: String(row?.item || ''),
-              description: String(row?.description || ''),
-              price: Number(row?.price) || 0
-            }));
-
-            const videoEstimate = (data.videoEstimate || {}) as Record<string, any>;
-            const videoStatusRaw = String(videoEstimate.status || '').toLowerCase();
-            const recordingId = String(
-              videoEstimate.recordingId ||
-              data.signalwireRecordingId ||
-              ''
-            ).trim() || null;
-            const storedVideoValue = String(videoEstimate.url || '').trim() || null;
-
-            let videoUrl: string | null = null;
-            if (storedVideoValue) {
-              if (/^https?:\/\//i.test(storedVideoValue)) {
-                videoUrl = storedVideoValue;
-              } else {
-                try {
-                  videoUrl = await getDownloadURL(storageRef(storage, storedVideoValue));
-                } catch {
-                  videoUrl = null;
-                }
-              }
-            }
-
-            const videoStatus: QuoteCard['videoStatus'] = videoUrl
-              ? 'ready'
-              : videoStatusRaw === 'storing'
-                ? 'storing'
-                : videoStatusRaw === 'error'
-                  ? 'error'
-                  : 'missing';
-            const videoMessage = videoUrl
-              ? ''
-              : videoStatus === 'storing'
-                ? 'Video is being stored'
-                : videoStatus === 'error'
-                  ? 'Video unavailable right now'
-                  : 'Video not found';
-
-            return {
-              id: quoteDoc.id,
-              videoUrl,
-              videoStatus,
-              videoMessage,
-              recordingId,
-              rows,
-              totalPrice: Number(pricing.totalPrice) || 0,
-              createdAtLabel: resolveDisplayDate(data.createdAt || pricing.updatedAt || '')
-            } as QuoteCard;
-          })
-        );
-
-        if (mounted) {
-          setQuotes(cards);
-        }
-      } catch (loadError) {
-        console.error('Failed to load quotes:', loadError);
-        if (mounted) {
-          setError('Failed to load quotes.');
-        }
-      } finally {
-        if (mounted) {
-          setLoadingQuotes(false);
-        }
-      }
-    };
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!mounted) return;
@@ -169,6 +194,7 @@ export default function QuotesPage() {
         }
 
         setPainterUser(true);
+        setActivePainterId(snapshot.docs[0].id);
         setCheckingAuth(false);
         await loadQuotes(snapshot.docs[0].id);
       } catch (authError) {
@@ -184,7 +210,7 @@ export default function QuotesPage() {
       mounted = false;
       unsubscribe();
     };
-  }, [auth, firestore, storage]);
+  }, [auth, firestore, loadQuotes]);
 
   if (isCheckingAuth) {
     return <div style={{ padding: 24 }}>Checking account...</div>;
@@ -238,7 +264,26 @@ export default function QuotesPage() {
         </p>
 
         {isLoadingQuotes && <div style={{ color: '#475569' }}>Loading quotes...</div>}
+        {!isLoadingQuotes && isRefreshingVideos && (
+          <div style={{ color: '#475569' }}>Checking latest video processing status...</div>
+        )}
         {!!error && <div style={{ color: '#b91c1c' }}>{error}</div>}
+        {!isLoadingQuotes && !error && !!activePainterId && (
+          <button
+            onClick={() => loadQuotes(activePainterId)}
+            style={{
+              marginBottom: 12,
+              border: '1px solid #dbe3ef',
+              borderRadius: 999,
+              background: '#fff',
+              color: '#0f172a',
+              padding: '8px 14px',
+              fontWeight: 600
+            }}
+          >
+            Refresh
+          </button>
+        )}
         {!isLoadingQuotes && !error && quotes.length === 0 && (
           <div style={{ color: '#475569' }}>No quotes yet.</div>
         )}

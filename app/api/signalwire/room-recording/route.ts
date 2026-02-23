@@ -15,6 +15,7 @@ const extractPlaybackUrl = (payload: any): string | null => {
     payload.recording_url,
     payload.media_url,
     payload.video_url,
+    payload.uri,
     payload?.links?.download,
     payload?.links?.playback,
     payload?.links?.self
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       const payload = await response.json();
       lastPayload = payload?.data || payload;
 
-      const state = String(lastPayload?.state || '').toLowerCase();
+      const state = String(lastPayload?.state || lastPayload?.status || '').toLowerCase();
       const url = extractPlaybackUrl(lastPayload);
       const isReady = state === 'completed' || state === 'finished' || state === 'available';
 
