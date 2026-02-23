@@ -332,6 +332,14 @@ const PainterCallCenter: React.FC = () => {
       })
       .join('\n');
 
+  const buildCompactQuoteJson = (rows: StoredQuotePricingRow[], totalPrice: number, quoteId: string) =>
+    JSON.stringify({
+      quoteId,
+      totalPrice: Number(totalPrice.toFixed(2)),
+      rows: buildCompactQuoteMetaRows(rows),
+      updatedAt: new Date().toISOString()
+    });
+
   const updateQuoteRow = (id: string, next: Partial<QuotePricingRow>) => {
     setQuoteRows((previous) =>
       previous.map((row) => (row.id === id ? { ...row, ...next } : row))
@@ -716,6 +724,7 @@ const PainterCallCenter: React.FC = () => {
     if (!conference?.id) return;
     const quoteRowsForMeta = buildCompactQuoteMetaRows(rows);
     const quoteLinesForMeta = buildCompactQuoteLines(rows);
+    const quoteJsonForMeta = buildCompactQuoteJson(rows, totalPrice, quoteId).slice(0, 3500);
     const response = await fetch('/api/signalwire/conference-state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -725,13 +734,15 @@ const PainterCallCenter: React.FC = () => {
         metaPatch: {
           quote_mode: true,
           quote_ready: true,
+          quote_submitted: true,
+          quote_submitted_at: new Date().toISOString(),
           quote_started_at: new Date().toISOString(),
           quote_id: quoteId,
           quote_total_price: Number(totalPrice.toFixed(2)),
           quote_rows_count: quoteRowsForMeta.length,
-          quote_pricing_rows: quoteRowsForMeta,
           quote_pricing_rows_json: JSON.stringify(quoteRowsForMeta),
           quote_pricing_lines: quoteLinesForMeta,
+          quote_payload_json: quoteJsonForMeta,
           quote_updated_at: new Date().toISOString()
         }
       })

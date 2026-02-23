@@ -53,6 +53,20 @@ const isQuoteModePayload = (payload: any) => {
   return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
 };
 
+const isQuoteSubmittedPayload = (payload: any) => {
+  const meta = payload?.meta || {};
+  const submittedRaw =
+    meta.quote_submitted ??
+    meta.quoteSubmitted ??
+    meta.quote_ready ??
+    meta.quoteReady;
+  return (
+    submittedRaw === true ||
+    String(submittedRaw || '').trim().toLowerCase() === 'true' ||
+    String(submittedRaw || '').trim() === '1'
+  );
+};
+
 type QuoteDisplayRow = {
   item: string;
   description: string;
@@ -66,6 +80,31 @@ type QuoteDisplay = {
 };
 
 const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
+  const payloadJson = String(meta?.quote_payload_json || '').trim();
+  if (payloadJson) {
+    try {
+      const payload = JSON.parse(payloadJson);
+      const rowsRaw = Array.isArray(payload?.rows) ? payload.rows : [];
+      const rows = rowsRaw.map((row: any) => ({
+        item: String(row?.item || ''),
+        description: String(row?.description || ''),
+        price: String(row?.price || '0.00')
+      }));
+      if (rows.length) {
+        const payloadTotal = Number(payload?.totalPrice);
+        return {
+          rows,
+          totalPrice: Number.isFinite(payloadTotal)
+            ? payloadTotal
+            : rows.reduce((sum: number, row: QuoteDisplayRow) => sum + (Number.parseFloat(row.price) || 0), 0),
+          updatedAt: String(payload?.updatedAt || meta?.quote_updated_at || '')
+        };
+      }
+    } catch {
+      // no-op
+    }
+  }
+
   const rawRows =
     meta?.quote_pricing_rows ??
     meta?.quoteRows ??
@@ -166,6 +205,7 @@ const ConsultPage: React.FC = () => {
   const isQuoteModeRef = useRef(false);
   const submittedQuoteRef = useRef<QuoteDisplay | null>(null);
   const quoteFetchInFlightRef = useRef(false);
+  const firestoreFetchDisabledRef = useRef(false);
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -178,6 +218,7 @@ const ConsultPage: React.FC = () => {
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
   const [isQuoteMode, setQuoteMode] = useState(false);
+  const [isQuoteSubmitted, setQuoteSubmitted] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
 
   useEffect(() => {
@@ -343,6 +384,7 @@ const ConsultPage: React.FC = () => {
     await cleanupSession();
     setHasVideoFrame(false);
     setQuoteMode(false);
+    setQuoteSubmitted(false);
     setSubmittedQuote(null);
     pushDebugLog('joinConsult(): begin');
 
@@ -451,9 +493,18 @@ const ConsultPage: React.FC = () => {
         if (conferenceQuoteId) {
           quoteIdRef.current = conferenceQuoteId;
         }
+        if (isQuoteSubmittedPayload(payload)) {
+          setQuoteSubmitted(true);
+          setStatus('Quote Submitted');
+          pushDebugLog('Quote submitted trigger detected');
+        }
 
         const fetchLatestQuoteForConference = async () => {
-          if (!conferenceIdRef.current || quoteFetchInFlightRef.current) return;
+          if (
+            !conferenceIdRef.current ||
+            quoteFetchInFlightRef.current ||
+            firestoreFetchDisabledRef.current
+          ) return;
           quoteFetchInFlightRef.current = true;
           pushDebugLog('Fetching quote from Firestore API...');
           try {
@@ -481,6 +532,10 @@ const ConsultPage: React.FC = () => {
               pushDebugLog(
                 `Quote fetch empty: status=${quoteResponse.status} found=${String(quotePayload?.found)}`
               );
+              if (quoteResponse.status >= 500) {
+                firestoreFetchDisabledRef.current = true;
+                pushDebugLog('Disabling Firestore quote fetch after server error');
+              }
               return;
             }
 
@@ -680,6 +735,7 @@ const ConsultPage: React.FC = () => {
     setEndReason('ended');
     setEnded(true);
     setQuoteMode(false);
+    setQuoteSubmitted(false);
     setSubmittedQuote(null);
     setHasVideoFrame(false);
     setStatus('Call ended.');
@@ -697,6 +753,7 @@ const ConsultPage: React.FC = () => {
       setEnded(false);
       setEndReason('ended');
       setQuoteMode(false);
+      setQuoteSubmitted(false);
       setSubmittedQuote(null);
       setStatus('Connected');
       watchConferenceState();
@@ -802,7 +859,24 @@ const ConsultPage: React.FC = () => {
                   overflowY: 'auto'
                 }}
               >
-                {submittedQuote ? (
+                {isQuoteSubmitted ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      gap: 10,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: 22, fontWeight: 700 }}>Quote Submitted</div>
+                    <div style={{ color: '#9fb0c8', fontSize: 14 }}>
+                      Your painter has sent your quote.
+                    </div>
+                  </div>
+                ) : submittedQuote ? (
                   <>
                     <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Your Quote</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
