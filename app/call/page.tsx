@@ -5,7 +5,6 @@ import { Mic, MicOff, Phone, PhoneOff, Video as VideoIcon } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   addDoc,
-  arrayUnion,
   collection,
   doc,
   getDocs,
@@ -16,7 +15,6 @@ import {
   where
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
@@ -153,7 +151,6 @@ const PainterCallCenter: React.FC = () => {
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
-  const storage = getStorage(firebase);
 
   useEffect(() => {
     let isMounted = true;
@@ -859,106 +856,52 @@ const PainterCallCenter: React.FC = () => {
       return;
     }
     if (!painterDocId) return;
-    if (!recordingStartedRef.current && !signalWireRecordingIdRef.current) {
-      return;
-    }
 
     const quoteId = await ensureQuoteDoc();
     if (!quoteId) return;
+    const recordingId = String(signalWireRecordingIdRef.current || '').trim();
 
-    let primaryVideo = '';
-    const recordingId = signalWireRecordingIdRef.current;
+    await updateDoc(doc(firestore, 'painters', painterDocId, 'quotes', quoteId), {
+      signalwireRecordingId: recordingId || null,
+      videoEstimate: {
+        status: recordingId ? 'storing' : 'missing',
+        message: recordingId
+          ? 'Video is being stored'
+          : 'Video not found',
+        recordingId: recordingId || null,
+        url: null,
+        updatedAt: new Date().toISOString()
+      },
+      updatedAt: serverTimestamp()
+    });
+
     if (recordingId) {
-      try {
-        const recordingResponse = await fetch(`/api/signalwire/room-recording?recordingId=${encodeURIComponent(recordingId)}&waitMs=1000`);
-        const recordingPayload = await getJsonOrThrow(
-          recordingResponse,
-          'Failed to fetch SignalWire recording asset'
-        );
-        if (recordingPayload?.recordingUrl) {
-          primaryVideo = recordingPayload.recordingUrl;
-        }
-      } catch (error) {
-        console.error('SignalWire recording retrieval failed, falling back to local capture:', error);
-      }
-    }
-
-    // Fallback to browser capture only if SignalWire asset is not yet available.
-    if (!primaryVideo) {
-      const recorder = mediaRecorderRef.current;
-      if (recorder) {
-        const stopPromise = new Promise<void>((resolve) => {
-          if (recorder.state === 'inactive') {
-            resolve();
-            return;
-          }
-          recorder.onstop = async () => {
-            if (!recordedChunksRef.current.length) {
-              resolve();
-              return;
-            }
-
-            const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-            if (!blob.size) {
-              resolve();
-              return;
-            }
-
-            const storagePath = `consult-recordings/${painterDocId}/${quoteId}.webm`;
-            const fileRef = storageRef(storage, storagePath);
-            await uploadBytes(fileRef, blob, { contentType: 'video/webm' });
-            try {
-              primaryVideo = await getDownloadURL(fileRef);
-            } catch {
-              primaryVideo = storagePath;
-            }
-            resolve();
-          };
-        });
-
-        recorder.stop();
-        mediaRecorderRef.current = null;
-        await stopPromise;
-      }
-    }
-
-    const estimateEntry = {
-      type: primaryVideo.startsWith('http') ? 'signalwire' : (primaryVideo ? 'local-fallback' : 'pending'),
-      value: primaryVideo || null,
-      signalwireRecordingId: signalWireRecordingIdRef.current || null,
-      createdAt: new Date().toISOString()
-    };
-
-    await updateDoc(
-      doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
-      {
-        videoEstimates: arrayUnion(estimateEntry),
-        updatedAt: serverTimestamp()
-      }
-    );
-
-    if (primaryVideo) {
-      await fetch('/api/signalwire/conference-state', {
+      const finalizeResponse = await fetch('/api/quotes/finalize-recording', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          conferenceId: conference?.id,
-          metaPatch: {
-            quote_video_estimate_ready: true,
-            quote_video_estimate_at: new Date().toISOString()
-          }
+          painterDocId,
+          quoteId,
+          recordingId,
+          waitMs: 7000
         })
-      }).catch(() => undefined);
-    }
-    recordingPersistedRef.current = true;
+      }).catch(() => null);
 
-    if (primaryVideo.startsWith('http')) {
-      setStatus('Call ended. SignalWire recording saved to quote.');
-    } else if (primaryVideo) {
-      setStatus('Call ended. Estimate video saved from local fallback.');
+      if (finalizeResponse?.ok) {
+        const finalizePayload = await finalizeResponse.json().catch(() => ({}));
+        if (finalizePayload?.ready) {
+          setStatus('Call ended. SignalWire recording saved to quote.');
+        } else {
+          setStatus('Call ended. Video is being stored.');
+        }
+      } else {
+        setStatus('Call ended. Video is being stored.');
+      }
     } else {
-      setStatus('Call ended. Quote saved while recording finishes processing.');
+      setStatus('Call ended. Video not found.');
     }
+
+    recordingPersistedRef.current = true;
   };
 
   const startPhoneCall = async () => {

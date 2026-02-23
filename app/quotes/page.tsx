@@ -6,6 +6,7 @@ import {
   collection,
   getDocs,
   getFirestore,
+  limit,
   orderBy,
   query,
   where
@@ -22,6 +23,9 @@ type QuotePricingRow = {
 type QuoteCard = {
   id: string;
   videoUrl: string | null;
+  videoStatus: 'ready' | 'storing' | 'missing' | 'error';
+  videoMessage: string;
+  recordingId: string | null;
   rows: QuotePricingRow[];
   totalPrice: number;
   createdAtLabel: string;
@@ -37,24 +41,6 @@ const resolveDisplayDate = (raw: any) => {
     return parsed.toLocaleString();
   }
   return 'Unknown date';
-};
-
-const resolveVideoEstimateValue = (videoEstimates: any): string | null => {
-  if (!Array.isArray(videoEstimates) || !videoEstimates.length) return null;
-  for (let index = videoEstimates.length - 1; index >= 0; index -= 1) {
-    const value = String(videoEstimates[index]?.value || '').trim();
-    if (value) return value;
-  }
-  return null;
-};
-
-const resolveSignalWireRecordingId = (videoEstimates: any): string | null => {
-  if (!Array.isArray(videoEstimates) || !videoEstimates.length) return null;
-  for (let index = videoEstimates.length - 1; index >= 0; index -= 1) {
-    const recordingId = String(videoEstimates[index]?.signalwireRecordingId || '').trim();
-    if (recordingId) return recordingId;
-  }
-  return null;
 };
 
 export default function QuotesPage() {
@@ -75,7 +61,8 @@ export default function QuotesPage() {
       try {
         const quotesQuery = query(
           collection(firestore, 'painters', painterId, 'quotes'),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(30)
         );
         const snapshot = await getDocs(quotesQuery);
 
@@ -90,8 +77,15 @@ export default function QuotesPage() {
               price: Number(row?.price) || 0
             }));
 
-            const storedVideoValue = resolveVideoEstimateValue(data.videoEstimates);
-            const signalWireRecordingId = resolveSignalWireRecordingId(data.videoEstimates);
+            const videoEstimate = (data.videoEstimate || {}) as Record<string, any>;
+            const videoStatusRaw = String(videoEstimate.status || '').toLowerCase();
+            const recordingId = String(
+              videoEstimate.recordingId ||
+              data.signalwireRecordingId ||
+              ''
+            ).trim() || null;
+            const storedVideoValue = String(videoEstimate.url || '').trim() || null;
+
             let videoUrl: string | null = null;
             if (storedVideoValue) {
               if (/^https?:\/\//i.test(storedVideoValue)) {
@@ -105,24 +99,27 @@ export default function QuotesPage() {
               }
             }
 
-            if (!videoUrl && signalWireRecordingId) {
-              try {
-                const recordingResponse = await fetch(
-                  `/api/signalwire/room-recording?recordingId=${encodeURIComponent(signalWireRecordingId)}&waitMs=30000`,
-                  { cache: 'no-store' }
-                );
-                const recordingPayload = await recordingResponse.json().catch(() => ({}));
-                if (recordingResponse.ok && recordingPayload?.recordingUrl) {
-                  videoUrl = String(recordingPayload.recordingUrl);
-                }
-              } catch {
-                videoUrl = null;
-              }
-            }
+            const videoStatus: QuoteCard['videoStatus'] = videoUrl
+              ? 'ready'
+              : videoStatusRaw === 'storing'
+                ? 'storing'
+                : videoStatusRaw === 'error'
+                  ? 'error'
+                  : 'missing';
+            const videoMessage = videoUrl
+              ? ''
+              : videoStatus === 'storing'
+                ? 'Video is being stored'
+                : videoStatus === 'error'
+                  ? 'Video unavailable right now'
+                  : 'Video not found';
 
             return {
               id: quoteDoc.id,
               videoUrl,
+              videoStatus,
+              videoMessage,
+              recordingId,
               rows,
               totalPrice: Number(pricing.totalPrice) || 0,
               createdAtLabel: resolveDisplayDate(data.createdAt || pricing.updatedAt || '')
@@ -272,14 +269,21 @@ export default function QuotesPage() {
                     borderRadius: 12,
                     marginBottom: 12,
                     background: '#0f131a',
-                    color: '#94a3b8',
+                    color: quote.videoStatus === 'storing' ? '#f8d27a' : '#94a3b8',
                     minHeight: 140,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    gap: 6
                   }}
                 >
-                  No video estimate available
+                  <div>{quote.videoMessage}</div>
+                  {quote.videoStatus === 'storing' && quote.recordingId && (
+                    <div style={{ fontSize: 11, opacity: 0.8 }}>
+                      Recording ID: {quote.recordingId}
+                    </div>
+                  )}
                 </div>
               )}
 
