@@ -2,6 +2,16 @@
 
 import { Video as SWVideo } from '@signalwire/js';
 import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import firebase from '@/lib/firebase';
+import {
+  collection,
+  collectionGroup,
+  doc,
+  getFirestore,
+  onSnapshot,
+  query,
+  where
+} from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 const MOBILE_FRAME_WIDTH = 390;
@@ -188,6 +198,13 @@ const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
   }
 };
 
+const toMillis = (value: any): number => {
+  const seconds = Number(value?.seconds);
+  if (Number.isFinite(seconds) && seconds > 0) return seconds * 1000;
+  const parsed = new Date(String(value || '')).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
@@ -204,9 +221,8 @@ const ConsultPage: React.FC = () => {
   const isEndedRef = useRef(false);
   const isQuoteModeRef = useRef(false);
   const submittedQuoteRef = useRef<QuoteDisplay | null>(null);
-  const quoteFetchInFlightRef = useRef(false);
-  const firestoreFetchDisabledRef = useRef(false);
   const lastSubmissionSignalRef = useRef<string>('');
+  const quoteWatcherUnsubRef = useRef<(() => void) | null>(null);
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -221,6 +237,7 @@ const ConsultPage: React.FC = () => {
   const [isQuoteMode, setQuoteMode] = useState(false);
   const [isQuoteSubmitted, setQuoteSubmitted] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
+  const firestore = getFirestore(firebase);
 
   useEffect(() => {
     isEndedRef.current = isEnded;
@@ -268,6 +285,97 @@ const ConsultPage: React.FC = () => {
       conferenceWatchTimerRef.current = null;
     }
   }, []);
+
+  const stopQuoteWatcher = useCallback(() => {
+    if (quoteWatcherUnsubRef.current) {
+      quoteWatcherUnsubRef.current();
+      quoteWatcherUnsubRef.current = null;
+      pushDebugLog('Stopped Firestore quote watcher');
+    }
+  }, [pushDebugLog]);
+
+  const startQuoteWatcher = useCallback(() => {
+    if (!conferenceIdRef.current) return;
+    stopQuoteWatcher();
+    pushDebugLog('Starting Firestore quote watcher');
+
+    const applyQuoteFromData = (data: Record<string, any>, source: string) => {
+      const pricing = data?.pricing || {};
+      const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
+      const rows = rowsRaw.map((row: any) => ({
+        item: String(row?.item || ''),
+        description: String(row?.description || ''),
+        price: Number(row?.price || 0).toFixed(2)
+      }));
+      if (!rows.length) return;
+      const totalPrice = Number(pricing.totalPrice);
+      setSubmittedQuote({
+        rows,
+        totalPrice: Number.isFinite(totalPrice)
+          ? totalPrice
+          : rows.reduce((sum: number, row: QuoteDisplayRow) => sum + (Number.parseFloat(row.price) || 0), 0),
+        updatedAt: String(pricing.updatedAt || data.updatedAt || data.createdAt || '')
+      });
+      setQuoteSubmitted(true);
+      setStatus('Quote Submitted');
+      pushDebugLog(`Quote loaded from Firestore watcher (${source})`);
+    };
+
+    if (painterDocIdRef.current && quoteIdRef.current) {
+      const quoteRef = doc(
+        firestore,
+        'painters',
+        painterDocIdRef.current,
+        'quotes',
+        quoteIdRef.current
+      );
+      quoteWatcherUnsubRef.current = onSnapshot(
+        quoteRef,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            pushDebugLog('Firestore watcher: quote doc not found yet');
+            return;
+          }
+          applyQuoteFromData(snapshot.data() as Record<string, any>, 'doc');
+        },
+        (error) => {
+          pushDebugLog(`Firestore watcher doc error: ${error.message}`);
+        }
+      );
+      return;
+    }
+
+    const quoteQuery = painterDocIdRef.current
+      ? query(
+          collection(firestore, 'painters', painterDocIdRef.current, 'quotes'),
+          where('signalwireConferenceId', '==', conferenceIdRef.current)
+        )
+      : query(
+          collectionGroup(firestore, 'quotes'),
+          where('signalwireConferenceId', '==', conferenceIdRef.current)
+        );
+
+    quoteWatcherUnsubRef.current = onSnapshot(
+      quoteQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          pushDebugLog('Firestore watcher: no quote docs for conference yet');
+          return;
+        }
+        const latestDoc = snapshot.docs
+          .slice()
+          .sort((a, b) => {
+            const aData = a.data() as Record<string, any>;
+            const bData = b.data() as Record<string, any>;
+            return toMillis(bData.updatedAt || bData.createdAt) - toMillis(aData.updatedAt || aData.createdAt);
+          })[0];
+        applyQuoteFromData(latestDoc.data() as Record<string, any>, 'query');
+      },
+      (error) => {
+        pushDebugLog(`Firestore watcher query error: ${error.message}`);
+      }
+    );
+  }, [firestore, pushDebugLog, stopQuoteWatcher]);
 
   const endConferenceEverywhere = useCallback(async () => {
     if (!roomNameRef.current && !conferenceIdRef.current) return;
@@ -382,6 +490,7 @@ const ConsultPage: React.FC = () => {
   };
 
   const joinConsult = useCallback(async (token: string) => {
+    stopQuoteWatcher();
     await cleanupSession();
     setHasVideoFrame(false);
     setQuoteMode(false);
@@ -434,7 +543,7 @@ const ConsultPage: React.FC = () => {
     }
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-  }, [cleanupSession, getBackCameraStream, pushDebugLog]);
+  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
 
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
@@ -507,80 +616,13 @@ const ConsultPage: React.FC = () => {
           pushDebugLog('Quote submitted trigger detected');
         }
 
-        const fetchLatestQuoteForConference = async () => {
-          if (
-            !conferenceIdRef.current ||
-            quoteFetchInFlightRef.current ||
-            firestoreFetchDisabledRef.current
-          ) return;
-          quoteFetchInFlightRef.current = true;
-          pushDebugLog('Fetching quote from Firestore API...');
-          try {
-            const params = new URLSearchParams({
-              conferenceId: conferenceIdRef.current
-            });
-            if (painterDocIdRef.current) {
-              params.set('painterDocId', painterDocIdRef.current);
-            }
-            if (quoteIdRef.current) {
-              params.set('quoteId', quoteIdRef.current);
-            }
-            const quoteResponse = await fetch(
-              `/api/quotes/by-conference?${params.toString()}&_ts=${Date.now()}`,
-              {
-                cache: 'no-store',
-                headers: {
-                  'cache-control': 'no-cache',
-                  pragma: 'no-cache'
-                }
-              }
-            );
-            const quotePayload = await quoteResponse.json().catch(() => ({}));
-            if (!quoteResponse.ok || !quotePayload?.found) {
-              pushDebugLog(
-                `Quote fetch empty: status=${quoteResponse.status} found=${String(quotePayload?.found)}`
-              );
-              if (quoteResponse.status >= 500) {
-                firestoreFetchDisabledRef.current = true;
-                pushDebugLog('Disabling Firestore quote fetch after server error');
-              }
-              return;
-            }
-
-            const pricing = quotePayload?.pricing || {};
-            const rowsRaw = Array.isArray(pricing?.rows) ? pricing.rows : [];
-            const rows = rowsRaw.map((row: any) => ({
-              item: String(row?.item || ''),
-              description: String(row?.description || ''),
-              price: Number(row?.price || 0).toFixed(2)
-            }));
-            if (!rows.length) return;
-
-            const totalPrice = Number(pricing?.totalPrice);
-            setSubmittedQuote({
-              rows,
-              totalPrice: Number.isFinite(totalPrice)
-                ? totalPrice
-                : rows.reduce((sum: number, row: QuoteDisplayRow) => sum + (Number.parseFloat(row.price) || 0), 0),
-              updatedAt: String(pricing?.updatedAt || quotePayload?.updatedAt || '')
-            });
-            setStatus('Your quote is ready');
-            pushDebugLog('Quote loaded from Firestore API');
-          } catch (error) {
-            console.error('Consult quote fetch error:', error);
-            pushDebugLog(`Quote fetch failed: ${(error as Error)?.message || 'unknown'}`);
-          } finally {
-            quoteFetchInFlightRef.current = false;
-          }
-        };
-
         if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
           isQuoteModeRef.current = true;
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);
           setStatus('Your quote is being completed');
-          await fetchLatestQuoteForConference();
+          startQuoteWatcher();
           const session = sessionRef.current;
           if (session) {
             Promise.resolve(session.stopOutboundVideo?.())
@@ -599,7 +641,6 @@ const ConsultPage: React.FC = () => {
         }
 
         if (isQuoteModeRef.current) {
-          await fetchLatestQuoteForConference();
           if (!submittedQuoteRef.current) {
             const nextQuote = parseQuoteMeta(payload?.meta || {});
             if (nextQuote) {
@@ -608,12 +649,15 @@ const ConsultPage: React.FC = () => {
               pushDebugLog('Quote loaded from conference metadata (poll)');
             }
           }
+          if (!quoteWatcherUnsubRef.current) {
+            startQuoteWatcher();
+          }
         }
       } catch (error) {
         console.error('Consult conference watcher error:', error);
       }
     }, 1000);
-  }, [cleanupSession, pushDebugLog, stopConferenceWatch]);
+  }, [cleanupSession, pushDebugLog, startQuoteWatcher, stopConferenceWatch]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -684,6 +728,7 @@ const ConsultPage: React.FC = () => {
       mounted = false;
       window.removeEventListener('offline', handleOffline);
       stopConferenceWatch();
+      stopQuoteWatcher();
       cleanupSession();
     };
   }, []);
@@ -727,6 +772,7 @@ const ConsultPage: React.FC = () => {
   const endCall = async () => {
     localEndRequestedRef.current = true;
     stopConferenceWatch();
+    stopQuoteWatcher();
     if (conferenceIdRef.current) {
       await fetch('/api/signalwire/conference-state', {
         method: 'POST',
@@ -867,24 +913,7 @@ const ConsultPage: React.FC = () => {
                   overflowY: 'auto'
                 }}
               >
-                {isQuoteSubmitted ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      gap: 10,
-                      textAlign: 'center'
-                    }}
-                  >
-                    <div style={{ fontSize: 22, fontWeight: 700 }}>Quote Submitted</div>
-                    <div style={{ color: '#9fb0c8', fontSize: 14 }}>
-                      Your painter has sent your quote.
-                    </div>
-                  </div>
-                ) : submittedQuote ? (
+                {submittedQuote ? (
                   <>
                     <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Your Quote</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -920,6 +949,23 @@ const ConsultPage: React.FC = () => {
                       Total: ${submittedQuote.totalPrice.toFixed(2)}
                     </div>
                   </>
+                ) : isQuoteSubmitted ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      gap: 10,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: 22, fontWeight: 700 }}>Quote Submitted</div>
+                    <div style={{ color: '#9fb0c8', fontSize: 14 }}>
+                      Your painter has sent your quote.
+                    </div>
+                  </div>
                 ) : (
                   <div
                     style={{

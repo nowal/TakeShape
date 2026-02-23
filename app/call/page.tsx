@@ -1144,6 +1144,7 @@ const PainterCallCenter: React.FC = () => {
     if (!conference?.id) return;
     setSettingQuoteMode(true);
     try {
+      const quoteId = await ensureQuoteDoc();
       const response = await fetch('/api/signalwire/conference-state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1152,7 +1153,9 @@ const PainterCallCenter: React.FC = () => {
           mode: 'quote',
           metaPatch: {
             quote_mode: true,
-            quote_started_at: new Date().toISOString()
+            quote_started_at: new Date().toISOString(),
+            quote_id: quoteId || undefined,
+            quote_ready: false
           }
         })
       });
