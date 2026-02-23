@@ -455,6 +455,7 @@ const ConsultPage: React.FC = () => {
         const fetchLatestQuoteForConference = async () => {
           if (!conferenceIdRef.current || quoteFetchInFlightRef.current) return;
           quoteFetchInFlightRef.current = true;
+          pushDebugLog('Fetching quote from Firestore API...');
           try {
             const params = new URLSearchParams({
               conferenceId: conferenceIdRef.current
@@ -476,7 +477,12 @@ const ConsultPage: React.FC = () => {
               }
             );
             const quotePayload = await quoteResponse.json().catch(() => ({}));
-            if (!quoteResponse.ok || !quotePayload?.found) return;
+            if (!quoteResponse.ok || !quotePayload?.found) {
+              pushDebugLog(
+                `Quote fetch empty: status=${quoteResponse.status} found=${String(quotePayload?.found)}`
+              );
+              return;
+            }
 
             const pricing = quotePayload?.pricing || {};
             const rowsRaw = Array.isArray(pricing?.rows) ? pricing.rows : [];
@@ -506,19 +512,18 @@ const ConsultPage: React.FC = () => {
         };
 
         if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
+          isQuoteModeRef.current = true;
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);
           setStatus('Your quote is being completed');
+          await fetchLatestQuoteForConference();
           const session = sessionRef.current;
           if (session) {
-            try {
-              await session.stopOutboundVideo?.();
-            } catch {
-              // no-op
-            }
+            Promise.resolve(session.stopOutboundVideo?.())
+              .then(() => pushDebugLog('Outbound video stopped in quote mode'))
+              .catch(() => pushDebugLog('Outbound video stop skipped'));
           }
-          await fetchLatestQuoteForConference();
           if (!submittedQuoteRef.current) {
             const nextQuote = parseQuoteMeta(payload?.meta || {});
             if (nextQuote) {
