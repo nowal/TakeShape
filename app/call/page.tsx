@@ -39,6 +39,25 @@ interface DialResponse {
   [key: string]: unknown;
 }
 
+type QuotePricingRow = {
+  id: string;
+  item: string;
+  description: string;
+  price: string;
+};
+
+type StoredQuotePricingRow = {
+  item: string;
+  description: string;
+  price: number;
+};
+
+type QuoteMetaRow = {
+  item: string;
+  description: string;
+  price: string;
+};
+
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -62,6 +81,30 @@ const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 const AUTH_CHECK_TIMEOUT_MS = 10000;
+const createQuoteRow = (): QuotePricingRow => ({
+  id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+  item: '',
+  description: '',
+  price: ''
+});
+
+const sanitizeMoneyInput = (value: string) => {
+  const cleaned = value.replace(/[^0-9.]/g, '');
+  const firstDotIndex = cleaned.indexOf('.');
+  if (firstDotIndex === -1) return cleaned;
+  const beforeDot = cleaned.slice(0, firstDotIndex + 1);
+  const afterDot = cleaned
+    .slice(firstDotIndex + 1)
+    .replace(/\./g, '')
+    .slice(0, 2);
+  return `${beforeDot}${afterDot}`;
+};
+
+const parseMoneyValue = (value: string) => {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(parsed * 100) / 100;
+};
 
 const PainterCallCenter: React.FC = () => {
   const [status, setStatus] = useState('Ready');
@@ -78,8 +121,9 @@ const PainterCallCenter: React.FC = () => {
   const [authUid, setAuthUid] = useState<string | null>(null);
   const [homeownerNumberInput, setHomeownerNumberInput] = useState(DEFAULT_HOMEOWNER_NUMBER);
   const [painterCallerId, setPainterCallerId] = useState('');
-  const [quoteItem, setQuoteItem] = useState('');
-  const [quotePrice, setQuotePrice] = useState('');
+  const [quoteRows, setQuoteRows] = useState<QuotePricingRow[]>([createQuoteRow()]);
+  const [isSavingQuote, setSavingQuote] = useState(false);
+  const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -104,6 +148,8 @@ const PainterCallCenter: React.FC = () => {
   const remoteEndingRef = useRef(false);
   const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
   const memberLeftHandlerRef = useRef<((payload: any) => void) | null>(null);
+  const quoteDocIdRef = useRef<string | null>(null);
+  const recordingPersistedRef = useRef(false);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -247,6 +293,37 @@ const PainterCallCenter: React.FC = () => {
     return payload;
   };
 
+  const normalizeQuoteRows = (): StoredQuotePricingRow[] =>
+    quoteRows
+      .filter((row) => row.item.trim() || row.description.trim() || row.price.trim())
+      .map((row) => ({
+        item: row.item.trim(),
+        description: row.description.trim(),
+        price: parseMoneyValue(row.price)
+      }));
+
+  const quoteTotalPrice = useMemo(
+    () => normalizeQuoteRows().reduce((sum, row) => sum + row.price, 0),
+    [quoteRows]
+  );
+
+  const buildQuoteMetaRows = (rows: StoredQuotePricingRow[]): QuoteMetaRow[] =>
+    rows.map((row) => ({
+      item: row.item,
+      description: row.description,
+      price: row.price.toFixed(2)
+    }));
+
+  const updateQuoteRow = (id: string, next: Partial<QuotePricingRow>) => {
+    setQuoteRows((previous) =>
+      previous.map((row) => (row.id === id ? { ...row, ...next } : row))
+    );
+  };
+
+  const addQuoteRow = () => {
+    setQuoteRows((previous) => [...previous, createQuoteRow()]);
+  };
+
   const stopConferenceWatch = () => {
     if (conferenceWatchTimerRef.current) {
       window.clearInterval(conferenceWatchTimerRef.current);
@@ -373,6 +450,12 @@ const PainterCallCenter: React.FC = () => {
         // no-op
       }
 
+      try {
+        await persistEstimateRecording();
+      } catch (error) {
+        console.error('Persist recording after remote leave failed:', error);
+      }
+
       if (roomSessionRef.current) {
         if (trackHandlerRef.current && roomSessionRef.current.off) {
           roomSessionRef.current.off('track', trackHandlerRef.current);
@@ -401,6 +484,7 @@ const PainterCallCenter: React.FC = () => {
       receiveVideo: true
     });
     roomSessionRef.current = session;
+    await startSignalWireRecording(session);
     setMuted(false);
   };
 
@@ -408,6 +492,17 @@ const PainterCallCenter: React.FC = () => {
     const video = remoteVideoRef.current;
     if (!video) return null;
     return video.readyState >= 2 && video.videoWidth > 0 ? video : null;
+  };
+
+  const startSignalWireRecording = async (session: any) => {
+    if (!session || signalWireRecordingRef.current) return;
+    try {
+      const recording = await session.startRecording();
+      signalWireRecordingRef.current = recording;
+      signalWireRecordingIdRef.current = recording?.id || null;
+    } catch (error) {
+      console.error('SignalWire recording start error:', error);
+    }
   };
 
   const startEstimateRecording = () => {
@@ -418,18 +513,7 @@ const PainterCallCenter: React.FC = () => {
     if (!videoEl) return;
     setHasVideoFrame(true);
 
-    if (roomSessionRef.current && !signalWireRecordingRef.current) {
-      roomSessionRef.current
-        .startRecording()
-        .then((recording: any) => {
-          signalWireRecordingRef.current = recording;
-          signalWireRecordingIdRef.current = recording?.id || null;
-          setStatus('Homeowner video detected. Recording estimate...');
-        })
-        .catch((error: unknown) => {
-          console.error('SignalWire recording start error:', error);
-        });
-    }
+    startSignalWireRecording(roomSessionRef.current).catch(() => undefined);
 
     const captureStream =
       (videoEl as HTMLVideoElement & {
@@ -508,6 +592,7 @@ const PainterCallCenter: React.FC = () => {
         if (!conferenceState?.exists) {
           activeCallRef.current = false;
           stopConferenceWatch();
+          await persistEstimateRecording().catch(() => undefined);
           if (roomSessionRef.current) {
             await roomSessionRef.current.leave().catch(() => undefined);
             roomSessionRef.current = null;
@@ -526,6 +611,7 @@ const PainterCallCenter: React.FC = () => {
           remoteEndingRef.current = true;
           activeCallRef.current = false;
           stopConferenceWatch();
+          await persistEstimateRecording().catch(() => undefined);
           if (roomSessionRef.current) {
             await roomSessionRef.current.leave().catch(() => undefined);
             roomSessionRef.current = null;
@@ -550,6 +636,7 @@ const PainterCallCenter: React.FC = () => {
           if (callStatusResponse.ok && callStatusPayload?.completed) {
             activeCallRef.current = false;
             stopConferenceWatch();
+            await persistEstimateRecording().catch(() => undefined);
             await forceEndConference();
             if (roomSessionRef.current) {
               await roomSessionRef.current.leave().catch(() => undefined);
@@ -593,22 +680,129 @@ const PainterCallCenter: React.FC = () => {
     return { answered: false as const, status: 'timeout' };
   };
 
+  const upsertConferenceQuoteMeta = async ({
+    rows,
+    totalPrice,
+    quoteId
+  }: {
+    rows: StoredQuotePricingRow[];
+    totalPrice: number;
+    quoteId: string;
+  }) => {
+    if (!conference?.id) return;
+    await fetch('/api/signalwire/conference-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conferenceId: conference.id,
+        mode: 'quote',
+        metaPatch: {
+          quote_mode: true,
+          quote_started_at: new Date().toISOString(),
+          quote_id: quoteId,
+          quote_total_price: Number(totalPrice.toFixed(2)),
+          quote_pricing_rows_json: JSON.stringify(buildQuoteMetaRows(rows)),
+          quote_updated_at: new Date().toISOString()
+        }
+      })
+    }).catch(() => undefined);
+  };
+
+  const ensureQuoteDoc = async () => {
+    if (!painterDocId) return null;
+    if (quoteDocIdRef.current) return quoteDocIdRef.current;
+
+    const rows = normalizeQuoteRows();
+    const now = new Date().toISOString();
+    const quoteRef = await addDoc(
+      collection(firestore, 'painters', painterDocId, 'quotes'),
+      {
+        painterId: painterDocId,
+        userId: authUid || null,
+        homeownerPhone: activeHomeownerNumberRef.current || null,
+        signalwireConferenceId: conference?.id || null,
+        signalwireConferenceName: conference?.name || null,
+        pricing: {
+          rows,
+          totalPrice: Number(rows.reduce((sum, row) => sum + row.price, 0).toFixed(2)),
+          submittedAt: null,
+          updatedAt: now
+        },
+        videoEstimates: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+    );
+    quoteDocIdRef.current = quoteRef.id;
+    return quoteRef.id;
+  };
+
+  const submitOrUpdateQuote = async () => {
+    if (!painterDocId) {
+      setStatus('Painter account required to save quotes.');
+      return;
+    }
+    if (!conference?.id) {
+      setStatus('Start a call before submitting quote.');
+      return;
+    }
+
+    const rows = normalizeQuoteRows();
+    if (!rows.length) {
+      setStatus('Add at least one quote row before submitting.');
+      return;
+    }
+
+    setSavingQuote(true);
+    try {
+      const totalPrice = Number(rows.reduce((sum, row) => sum + row.price, 0).toFixed(2));
+      const nowIso = new Date().toISOString();
+      const quoteId = await ensureQuoteDoc();
+      if (!quoteId) {
+        throw new Error('Unable to initialize quote');
+      }
+
+      const isUpdate = hasSubmittedQuote;
+      const pricingPayload = {
+        rows,
+        totalPrice,
+        updatedAt: nowIso,
+        ...(isUpdate ? {} : { submittedAt: nowIso })
+      };
+      await updateDoc(
+        doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
+        {
+          homeownerPhone: activeHomeownerNumberRef.current || null,
+          signalwireConferenceId: conference.id,
+          signalwireConferenceName: conference.name,
+          pricing: pricingPayload,
+          updatedAt: serverTimestamp()
+        }
+      );
+
+      await upsertConferenceQuoteMeta({ rows, totalPrice, quoteId });
+
+      setHasSubmittedQuote(true);
+      setStatus(isUpdate ? 'Quote updated.' : 'Quote submitted.');
+    } catch (error) {
+      console.error('Quote submit error:', error);
+      setStatus(`Error: ${(error as Error).message}`);
+    } finally {
+      setSavingQuote(false);
+    }
+  };
+
   const persistEstimateRecording = async () => {
-    if (!estimateInviteSentRef.current || !recordingStartedRef.current) {
+    if (recordingPersistedRef.current) {
       return;
     }
     if (!painterDocId) return;
+    if (!recordingStartedRef.current && !signalWireRecordingIdRef.current) {
+      return;
+    }
 
-    const userImageRef = await addDoc(collection(firestore, 'userImages'), {
-      address: 'Video Estimate',
-      prices: [],
-      phoneNumber: activeHomeownerNumberRef.current,
-      userId: authUid || undefined,
-      title: `Estimate ${new Date().toLocaleString()}`,
-      signalwireConferenceId: conference?.id || null,
-      signalwireRecordingId: signalWireRecordingIdRef.current,
-      createdAt: serverTimestamp()
-    });
+    const quoteId = await ensureQuoteDoc();
+    if (!quoteId) return;
 
     let primaryVideo = '';
     const recordingId = signalWireRecordingIdRef.current;
@@ -644,7 +838,7 @@ const PainterCallCenter: React.FC = () => {
               return;
             }
 
-            const storagePath = `consult-recordings/${painterDocId}/${userImageRef.id}.webm`;
+            const storagePath = `consult-recordings/${painterDocId}/${quoteId}.webm`;
             const fileRef = storageRef(storage, storagePath);
             await uploadBytes(fileRef, blob, { contentType: 'video/webm' });
             primaryVideo = storagePath;
@@ -660,22 +854,42 @@ const PainterCallCenter: React.FC = () => {
       }
     }
 
-    if (primaryVideo) {
-      await updateDoc(doc(firestore, 'userImages', userImageRef.id), {
-        video: primaryVideo
-      });
-    }
+    const estimateEntry = {
+      type: primaryVideo.startsWith('http') ? 'signalwire' : (primaryVideo ? 'local-fallback' : 'pending'),
+      value: primaryVideo || null,
+      signalwireRecordingId: signalWireRecordingIdRef.current || null,
+      createdAt: new Date().toISOString()
+    };
 
-    await updateDoc(doc(firestore, 'painters', painterDocId), {
-      acceptedQuotes: arrayUnion(userImageRef.id)
-    });
+    await updateDoc(
+      doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
+      {
+        videoEstimates: arrayUnion(estimateEntry),
+        updatedAt: serverTimestamp()
+      }
+    );
+
+    if (primaryVideo) {
+      await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conference?.id,
+          metaPatch: {
+            quote_video_estimate_ready: true,
+            quote_video_estimate_at: new Date().toISOString()
+          }
+        })
+      }).catch(() => undefined);
+    }
+    recordingPersistedRef.current = true;
 
     if (primaryVideo.startsWith('http')) {
-      setStatus('Call ended. SignalWire recording saved to painter dashboard.');
+      setStatus('Call ended. SignalWire recording saved to quote.');
     } else if (primaryVideo) {
       setStatus('Call ended. Estimate video saved from local fallback.');
     } else {
-      setStatus('Call ended, but recording asset is still processing.');
+      setStatus('Call ended. Quote saved while recording finishes processing.');
     }
   };
 
@@ -687,6 +901,10 @@ const PainterCallCenter: React.FC = () => {
 
     setIsStartingCall(true);
     try {
+      setQuoteRows([createQuoteRow()]);
+      setHasSubmittedQuote(false);
+      quoteDocIdRef.current = null;
+      recordingPersistedRef.current = false;
       const normalizedHomeowner = normalizeUsPhoneToE164(homeownerNumberInput);
       if (!normalizedHomeowner) {
         setStatus('Enter a valid US homeowner phone number.');
@@ -959,8 +1177,10 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const callBack = async () => {
-    setQuoteItem('');
-    setQuotePrice('');
+    setQuoteRows([createQuoteRow()]);
+    setHasSubmittedQuote(false);
+    quoteDocIdRef.current = null;
+    recordingPersistedRef.current = false;
     setConference(null);
     setGuestLink('');
     setHasVideoFrame(false);
@@ -1135,40 +1355,85 @@ const PainterCallCenter: React.FC = () => {
                   position: 'absolute',
                   inset: 0,
                   background: '#000',
-                  padding: '72px 16px 96px',
-                  color: '#d7dfeb'
+                  padding: '24px 12px 96px',
+                  color: '#d7dfeb',
+                  overflowY: 'auto'
                 }}
               >
-                <div style={{ marginBottom: 10, fontWeight: 700 }}>Create Quote</div>
-                <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: '#8ea0bb' }}>Item</label>
-                <input
-                  value={quoteItem}
-                  onChange={(event) => setQuoteItem(event.target.value)}
-                  placeholder="Interior Walls"
+                <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Create Quote</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                  <colgroup>
+                    <col style={{ width: '30%' }} />
+                    <col style={{ width: '42%' }} />
+                    <col style={{ width: '28%' }} />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th style={quoteHeaderCellStyle}>Item</th>
+                      <th style={quoteHeaderCellStyle}>Description</th>
+                      <th style={quoteHeaderCellStyle}>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quoteRows.map((row) => (
+                      <tr key={row.id} style={{ borderTop: '1px solid #1f2937' }}>
+                        <td style={quoteCellStyle}>
+                          <input
+                            value={row.item}
+                            onChange={(event) => updateQuoteRow(row.id, { item: event.target.value })}
+                            placeholder="Interior Walls"
+                            style={quoteInputStyle}
+                          />
+                        </td>
+                        <td style={quoteCellStyle}>
+                          <input
+                            value={row.description}
+                            onChange={(event) => updateQuoteRow(row.id, { description: event.target.value })}
+                            placeholder="Paint and prep"
+                            style={quoteInputStyle}
+                          />
+                        </td>
+                        <td style={quoteCellStyle}>
+                          <div style={quotePriceShellStyle}>
+                            <span style={{ color: '#8ea0bb', fontWeight: 600 }}>$</span>
+                            <input
+                              value={row.price}
+                              onChange={(event) =>
+                                updateQuoteRow(row.id, { price: sanitizeMoneyInput(event.target.value) })
+                              }
+                              placeholder="0.00"
+                              inputMode="decimal"
+                              aria-label="Quote row price"
+                              style={quotePriceInputStyle}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button
+                  onClick={addQuoteRow}
                   style={{
-                    width: '100%',
-                    padding: 10,
-                    borderRadius: 10,
-                    border: '1px solid #2a3444',
-                    background: '#0f131a',
+                    marginTop: 14,
+                    height: 40,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 16px',
+                    background: PRIMARY_COLOR_HEX,
                     color: '#fff',
-                    marginBottom: 12
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'block',
+                    marginLeft: 'auto',
+                    marginRight: 'auto'
                   }}
-                />
-                <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: '#8ea0bb' }}>Price</label>
-                <input
-                  value={quotePrice}
-                  onChange={(event) => setQuotePrice(event.target.value)}
-                  placeholder="$2,500"
-                  style={{
-                    width: '100%',
-                    padding: 10,
-                    borderRadius: 10,
-                    border: '1px solid #2a3444',
-                    background: '#0f131a',
-                    color: '#fff'
-                  }}
-                />
+                >
+                  Add Item
+                </button>
+                <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
+                  Total: ${quoteTotalPrice.toFixed(2)}
+                </div>
               </div>
             )}
 
@@ -1247,6 +1512,29 @@ const PainterCallCenter: React.FC = () => {
                   {isSettingQuoteMode ? 'Starting...' : 'Create Quote'}
                 </button>
               )}
+              {phase === 'quoteDraft' && (
+                <button
+                  onClick={submitOrUpdateQuote}
+                  disabled={isSavingQuote}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: isSavingQuote ? disabledPrimaryActionColor : primaryActionColor,
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8
+                  }}
+                >
+                  {isSavingQuote
+                    ? (hasSubmittedQuote ? 'Updating...' : 'Submitting...')
+                    : (hasSubmittedQuote ? 'Update Quote' : 'Submit Quote')}
+                </button>
+              )}
               <button
                 onClick={endCall}
                 style={{
@@ -1311,6 +1599,51 @@ const PainterCallCenter: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const quoteHeaderCellStyle: React.CSSProperties = {
+  textAlign: 'left',
+  color: '#8ea0bb',
+  fontSize: 12,
+  fontWeight: 700,
+  padding: '8px 4px'
+};
+
+const quoteCellStyle: React.CSSProperties = {
+  padding: '8px 4px',
+  verticalAlign: 'middle'
+};
+
+const quoteInputStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #2a3444',
+  borderRadius: 10,
+  background: '#0f131a',
+  color: '#fff',
+  padding: '8px 10px',
+  fontSize: 13
+};
+
+const quotePriceShellStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #2a3444',
+  borderRadius: 10,
+  background: '#0f131a',
+  color: '#fff',
+  padding: '8px 10px',
+  fontSize: 13,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 4
+};
+
+const quotePriceInputStyle: React.CSSProperties = {
+  width: '100%',
+  border: 'none',
+  outline: 'none',
+  background: 'transparent',
+  color: '#fff',
+  fontSize: 13
 };
 
 export default PainterCallCenter;

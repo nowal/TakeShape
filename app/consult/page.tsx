@@ -53,6 +53,47 @@ const isQuoteModePayload = (payload: any) => {
   return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
 };
 
+type QuoteDisplayRow = {
+  item: string;
+  description: string;
+  price: string;
+};
+
+type QuoteDisplay = {
+  rows: QuoteDisplayRow[];
+  totalPrice: number;
+  updatedAt: string;
+};
+
+const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
+  const serializedRows = String(meta?.quote_pricing_rows_json || '').trim();
+  if (!serializedRows) return null;
+
+  try {
+    const parsedRows = JSON.parse(serializedRows);
+    if (!Array.isArray(parsedRows) || !parsedRows.length) return null;
+
+    const rows = parsedRows.map((row) => ({
+      item: String(row?.item || ''),
+      description: String(row?.description || ''),
+      price: String(row?.price || '0.00')
+    }));
+
+    const parsedTotal = Number(meta?.quote_total_price);
+    const totalPrice = Number.isFinite(parsedTotal)
+      ? parsedTotal
+      : rows.reduce((sum, row) => sum + (Number.parseFloat(row.price) || 0), 0);
+
+    return {
+      rows,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      updatedAt: String(meta?.quote_updated_at || '')
+    };
+  } catch {
+    return null;
+  }
+};
+
 const ConsultPage: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
@@ -78,6 +119,7 @@ const ConsultPage: React.FC = () => {
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
   const [isQuoteMode, setQuoteMode] = useState(false);
+  const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
 
   useEffect(() => {
     isEndedRef.current = isEnded;
@@ -233,6 +275,7 @@ const ConsultPage: React.FC = () => {
     await cleanupSession();
     setHasVideoFrame(false);
     setQuoteMode(false);
+    setSubmittedQuote(null);
     pushDebugLog('joinConsult(): begin');
 
     const stream = await getBackCameraStream();
@@ -334,10 +377,12 @@ const ConsultPage: React.FC = () => {
         }
 
         if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
+          const nextQuote = parseQuoteMeta(payload?.meta || {});
           pushDebugLog('Conference mode switched to quote');
           setQuoteMode(true);
           setHasVideoFrame(false);
-          setStatus('Your quote is being completed');
+          setSubmittedQuote(nextQuote);
+          setStatus(nextQuote ? 'Your quote is ready' : 'Your quote is being completed');
           const session = sessionRef.current;
           if (session) {
             try {
@@ -345,6 +390,15 @@ const ConsultPage: React.FC = () => {
             } catch {
               // no-op
             }
+          }
+          return;
+        }
+
+        if (isQuoteModeRef.current) {
+          const nextQuote = parseQuoteMeta(payload?.meta || {});
+          if (nextQuote) {
+            setSubmittedQuote(nextQuote);
+            setStatus('Your quote is ready');
           }
         }
       } catch (error) {
@@ -481,6 +535,7 @@ const ConsultPage: React.FC = () => {
     setEndReason('ended');
     setEnded(true);
     setQuoteMode(false);
+    setSubmittedQuote(null);
     setHasVideoFrame(false);
     setStatus('Call ended.');
   };
@@ -497,6 +552,7 @@ const ConsultPage: React.FC = () => {
       setEnded(false);
       setEndReason('ended');
       setQuoteMode(false);
+      setSubmittedQuote(null);
       setStatus('Connected');
       watchConferenceState();
     } catch (error) {
@@ -596,25 +652,71 @@ const ConsultPage: React.FC = () => {
                   position: 'absolute',
                   inset: 0,
                   background: '#000',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  color: '#d2d7df'
+                  color: '#d2d7df',
+                  padding: '24px 12px 96px',
+                  overflowY: 'auto'
                 }}
               >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    border: '3px solid rgba(255,255,255,0.25)',
-                    borderTopColor: '#fff',
-                    animation: 'consult-spin 1s linear infinite'
-                  }}
-                />
-                <div>Your quote is being completed</div>
+                {submittedQuote ? (
+                  <>
+                    <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Your Quote</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                      <colgroup>
+                        <col style={{ width: '30%' }} />
+                        <col style={{ width: '42%' }} />
+                        <col style={{ width: '28%' }} />
+                      </colgroup>
+                      <thead>
+                        <tr>
+                          <th style={quoteHeaderCellStyle}>Item</th>
+                          <th style={quoteHeaderCellStyle}>Description</th>
+                          <th style={quoteHeaderCellStyle}>Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {submittedQuote.rows.map((row, index) => (
+                          <tr key={`${row.item}-${row.description}-${index}`} style={{ borderTop: '1px solid #1f2937' }}>
+                            <td style={quoteCellStyle}>
+                              <div style={quoteDisplayCellStyle}>{row.item || '-'}</div>
+                            </td>
+                            <td style={quoteCellStyle}>
+                              <div style={quoteDisplayCellStyle}>{row.description || '-'}</div>
+                            </td>
+                            <td style={quoteCellStyle}>
+                              <div style={quoteDisplayCellStyle}>${row.price}</div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
+                      Total: ${submittedQuote.totalPrice.toFixed(2)}
+                    </div>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      gap: 12
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        border: '3px solid rgba(255,255,255,0.25)',
+                        borderTopColor: '#fff',
+                        animation: 'consult-spin 1s linear infinite'
+                      }}
+                    />
+                    <div>Your quote is being completed</div>
+                  </div>
+                )}
               </div>
             )}
             <div
@@ -732,6 +834,32 @@ const ConsultPage: React.FC = () => {
       `}</style>
     </div>
   );
+};
+
+const quoteHeaderCellStyle: React.CSSProperties = {
+  textAlign: 'left',
+  color: '#8ea0bb',
+  fontSize: 12,
+  fontWeight: 700,
+  padding: '8px 4px'
+};
+
+const quoteCellStyle: React.CSSProperties = {
+  padding: '8px 4px',
+  verticalAlign: 'middle'
+};
+
+const quoteDisplayCellStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #2a3444',
+  borderRadius: 10,
+  background: '#0f131a',
+  color: '#fff',
+  padding: '8px 10px',
+  fontSize: 13,
+  minHeight: 34,
+  display: 'flex',
+  alignItems: 'center'
 };
 
 export default ConsultPage;

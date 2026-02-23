@@ -1,9 +1,11 @@
 'use client';
 
 import firebase from '@/lib/firebase';
+import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import React, { useEffect, useMemo, useState } from 'react';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 type PricingRow = {
   id: string;
@@ -28,6 +30,10 @@ export default function PricingPage() {
   const [isCheckingAuth, setCheckingAuth] = useState(true);
   const [isPainterUser, setPainterUser] = useState(false);
   const [rows, setRows] = useState<PricingRow[]>([createRow()]);
+  const [isMuted, setMuted] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
+  const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
+  const [status, setStatus] = useState('Build quote while audio call remains active.');
 
   useEffect(() => {
     let isMounted = true;
@@ -108,6 +114,15 @@ export default function PricingPage() {
     setRows((previous) => [...previous, createRow()]);
   };
 
+  const handleSubmitQuote = async () => {
+    setSubmitting(true);
+    setStatus(hasSubmittedQuote ? 'Updating quote...' : 'Submitting quote...');
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    setHasSubmittedQuote(true);
+    setSubmitting(false);
+    setStatus('Quote ready. Continue reviewing with homeowner.');
+  };
+
   if (isCheckingAuth) {
     return <div style={{ padding: 24 }}>Checking account...</div>;
   }
@@ -170,8 +185,8 @@ export default function PricingPage() {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', margin: '8px 0 12px 0' }}>
           <div style={{ fontSize: 12, color: '#92a0b5', letterSpacing: 1 }}>Create Quote Sandbox</div>
-          <div style={{ marginTop: 6, fontWeight: 600, color: '#1e293b' }}>
-            iPhone-style preview for the quote UI
+          <div style={{ marginTop: 6, fontWeight: 600, color: '#1e293b', fontSize: 14 }}>
+            {status}
           </div>
         </div>
 
@@ -181,7 +196,7 @@ export default function PricingPage() {
               position: 'absolute',
               inset: 0,
               background: '#000',
-              padding: '24px 12px',
+              padding: '24px 12px 108px',
               color: '#d7dfeb',
               overflowY: 'auto'
             }}
@@ -249,7 +264,7 @@ export default function PricingPage() {
                 borderRadius: 999,
                 border: 'none',
                 padding: '0 16px',
-                background: '#0057ff',
+                background: PRIMARY_COLOR_HEX,
                 color: '#fff',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -259,6 +274,80 @@ export default function PricingPage() {
               }}
             >
               Add Item
+            </button>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              padding: '10px 12px 14px',
+              background: 'linear-gradient(to top, rgba(8,10,13,0.92), rgba(8,10,13,0.35), rgba(8,10,13,0))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10
+            }}
+          >
+            <button
+              onClick={() => setMuted((prev) => !prev)}
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                border: 'none',
+                background: isMuted ? '#0f1116' : '#fff',
+                color: isMuted ? '#fff' : '#111',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              aria-label={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
+
+            <button
+              onClick={handleSubmitQuote}
+              disabled={isSubmitting}
+              style={{
+                height: 48,
+                borderRadius: 999,
+                border: 'none',
+                padding: '0 18px',
+                background: isSubmitting ? `${PRIMARY_COLOR_HEX}99` : PRIMARY_COLOR_HEX,
+                color: '#fff',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8
+              }}
+            >
+              {isSubmitting
+                ? (hasSubmittedQuote ? 'Updating...' : 'Submitting...')
+                : (hasSubmittedQuote ? 'Update Quote' : 'Submit Quote')}
+            </button>
+
+            <button
+              onClick={() => setStatus('Sandbox end call tapped.')}
+              style={{
+                width: 58,
+                height: 58,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#e53935',
+                color: '#fff',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              aria-label="End call"
+            >
+              <PhoneOff size={22} />
             </button>
           </div>
         </div>
