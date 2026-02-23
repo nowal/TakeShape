@@ -722,23 +722,42 @@ const PainterCallCenter: React.FC = () => {
     quoteId: string;
   }) => {
     if (!conference?.id) return;
-    const quoteRowsForMeta = buildCompactQuoteMetaRows(rows);
-    const quoteLinesForMeta = buildCompactQuoteLines(rows);
-    const quoteJsonForMeta = buildCompactQuoteJson(rows, totalPrice, quoteId).slice(0, 3500);
-    const response = await fetch('/api/signalwire/conference-state', {
+    const submissionSignal = `${Date.now()}`;
+
+    // First: send a tiny, explicit submit trigger payload.
+    const triggerResponse = await fetch('/api/signalwire/conference-state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conferenceId: conference.id,
         mode: 'quote',
         metaPatch: {
-          quote_mode: true,
           quote_ready: true,
           quote_submitted: true,
           quote_submitted_at: new Date().toISOString(),
-          quote_started_at: new Date().toISOString(),
+          quote_submission_signal: submissionSignal,
+          quote_mode: true,
           quote_id: quoteId,
           quote_total_price: Number(totalPrice.toFixed(2)),
+          quote_updated_at: new Date().toISOString()
+        }
+      })
+    });
+    await getJsonOrThrow(triggerResponse, 'Failed to trigger quote submitted state');
+
+    // Second: best-effort enrichment payload for later display/debug.
+    const quoteRowsForMeta = buildCompactQuoteMetaRows(rows);
+    const quoteLinesForMeta = buildCompactQuoteLines(rows);
+    const quoteJsonForMeta = buildCompactQuoteJson(rows, totalPrice, quoteId).slice(0, 3500);
+    await fetch('/api/signalwire/conference-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conferenceId: conference.id,
+        mode: 'quote',
+        metaPatch: {
+          quote_started_at: new Date().toISOString(),
+          quote_id: quoteId,
           quote_rows_count: quoteRowsForMeta.length,
           quote_pricing_rows_json: JSON.stringify(quoteRowsForMeta),
           quote_pricing_lines: quoteLinesForMeta,
@@ -746,8 +765,7 @@ const PainterCallCenter: React.FC = () => {
           quote_updated_at: new Date().toISOString()
         }
       })
-    });
-    await getJsonOrThrow(response, 'Failed to sync quote state to consult');
+    }).catch(() => undefined);
   };
 
   const ensureQuoteDoc = async () => {

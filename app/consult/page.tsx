@@ -206,6 +206,7 @@ const ConsultPage: React.FC = () => {
   const submittedQuoteRef = useRef<QuoteDisplay | null>(null);
   const quoteFetchInFlightRef = useRef(false);
   const firestoreFetchDisabledRef = useRef(false);
+  const lastSubmissionSignalRef = useRef<string>('');
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -492,6 +493,13 @@ const ConsultPage: React.FC = () => {
         const conferenceQuoteId = String(payload?.meta?.quote_id || '').trim();
         if (conferenceQuoteId) {
           quoteIdRef.current = conferenceQuoteId;
+        }
+        const submissionSignal = String(payload?.meta?.quote_submission_signal || '').trim();
+        if (submissionSignal && submissionSignal !== lastSubmissionSignalRef.current) {
+          lastSubmissionSignalRef.current = submissionSignal;
+          setQuoteSubmitted(true);
+          setStatus('Quote Submitted');
+          pushDebugLog(`Quote submission signal detected: ${submissionSignal}`);
         }
         if (isQuoteSubmittedPayload(payload)) {
           setQuoteSubmitted(true);
