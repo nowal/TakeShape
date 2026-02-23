@@ -52,11 +52,11 @@ export const ShellHeader = () => {
             >
               <ShellHeaderBackground />
               <ShellLogo backgroundColor={headerBackgroundColor} />
-              {isAuthLoading || !viewport.isDimensions ? (
+              {isAuthLoading ? (
                 <Fragment />
               ) : (
                 <>
-                  {viewport.isSm ? (
+                  {viewport.isDimensions && viewport.isSm ? (
                     <ShellHeaderMobileMenu />
                   ) : (
                     <HeaderOptions />

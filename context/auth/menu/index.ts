@@ -20,6 +20,7 @@ import { TAuthConfig } from '@/context/auth/types';
 import { isAgentAtom, isPainterAtom } from '@/atom';
 import { useAtom } from 'jotai';
 import { useApp } from '@/context/app/provider';
+import firebase from '@/lib/firebase';
 
 export const useAuthMenu = (config: TAuthConfig) => {
   const { onNavigateScrollTopClick } = useApp();
@@ -28,9 +29,9 @@ export const useAuthMenu = (config: TAuthConfig) => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [isAgent, setAgent] = useAtom(isAgentAtom);
-  const auth = getAuth();
-  const firestore = getFirestore();
-  const storage = getStorage();
+  const auth = getAuth(firebase);
+  const firestore = getFirestore(firebase);
+  const storage = getStorage(firebase);
   const RETRY_INTERVAL = 2000; // Retry every 2 seconds
   const MAX_RETRIES = 5; // Maximum number of retries
 

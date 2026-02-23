@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuth } from '@/context/auth/provider';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
+import firebase from '@/lib/firebase';
 
 const PRIMARY_COLOR = PRIMARY_COLOR_HEX;
 
@@ -113,7 +114,7 @@ const HeroContent = ({ textColor }: { textColor: string }) => {
 // Custom Button Component for Landing Page
 const LandingButton = () => {
   const auth = useAuth();
-  const firebaseAuth = getAuth();
+  const firebaseAuth = getAuth(firebase);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(

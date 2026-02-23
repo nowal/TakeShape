@@ -6,11 +6,12 @@ import {
   TCvaLinkProps,
 } from '@/components/cva/link';
 import { useAuth } from '@/context/auth/provider';
+import firebase from '@/lib/firebase';
 
 type TProps = Omit<TCvaLinkProps, 'ref' | 'href'> & { href?: string };
 export const QuoteButton: FC<TProps> = ({ ...props }) => {
   const auth = useAuth();
-  const firebaseAuth = getAuth();
+  const firebaseAuth = getAuth(firebase);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -20,7 +21,7 @@ export const QuoteButton: FC<TProps> = ({ ...props }) => {
       }
     );
     return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [firebaseAuth]);
+  }, [firebaseAuth, auth]);
 
   if (auth.isUserSignedIn || auth.isAuthLoading) {
     return null; // Don't render the button if user is not signed in
