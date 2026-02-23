@@ -4,9 +4,12 @@ import { Video as SWVideo } from '@signalwire/js';
 import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
+  collection,
   doc,
   getFirestore,
   onSnapshot,
+  query,
+  where
 } from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -212,6 +215,7 @@ const ConsultPage: React.FC = () => {
   const submittedQuoteRef = useRef<QuoteDisplay | null>(null);
   const lastSubmissionSignalRef = useRef<string>('');
   const quoteWatcherUnsubRef = useRef<(() => void) | null>(null);
+  const watcherWaitingForIdsLoggedRef = useRef(false);
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -281,6 +285,7 @@ const ConsultPage: React.FC = () => {
       quoteWatcherUnsubRef.current = null;
       pushDebugLog('Stopped Firestore quote watcher');
     }
+    watcherWaitingForIdsLoggedRef.current = false;
   }, [pushDebugLog]);
 
   const startQuoteWatcher = useCallback(() => {
@@ -310,31 +315,57 @@ const ConsultPage: React.FC = () => {
       pushDebugLog(`Quote loaded from Firestore watcher (${source})`);
     };
 
-    if (!painterDocIdRef.current || !quoteIdRef.current) {
-      pushDebugLog(
-        `Watcher waiting for IDs (painter=${painterDocIdRef.current || 'missing'}, quote=${quoteIdRef.current || 'missing'})`
+    if (!painterDocIdRef.current) {
+      if (!watcherWaitingForIdsLoggedRef.current) {
+        pushDebugLog('Watcher waiting for IDs (painter=missing, quote=unknown)');
+        watcherWaitingForIdsLoggedRef.current = true;
+      }
+      return;
+    }
+    watcherWaitingForIdsLoggedRef.current = false;
+
+    if (quoteIdRef.current) {
+      const quoteRef = doc(
+        firestore,
+        'painters',
+        painterDocIdRef.current,
+        'quotes',
+        quoteIdRef.current
+      );
+      quoteWatcherUnsubRef.current = onSnapshot(
+        quoteRef,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            pushDebugLog('Firestore watcher: quote doc not found yet');
+            return;
+          }
+          applyQuoteFromData(snapshot.data() as Record<string, any>, 'doc');
+        },
+        (error) => {
+          pushDebugLog(`Firestore watcher doc error: ${error.message}`);
+        }
       );
       return;
     }
 
-    const quoteRef = doc(
-      firestore,
-      'painters',
-      painterDocIdRef.current,
-      'quotes',
-      quoteIdRef.current
+    const fallbackQuery = query(
+      collection(firestore, 'painters', painterDocIdRef.current, 'quotes'),
+      where('signalwireConferenceId', '==', conferenceIdRef.current)
     );
     quoteWatcherUnsubRef.current = onSnapshot(
-      quoteRef,
+      fallbackQuery,
       (snapshot) => {
-        if (!snapshot.exists()) {
-          pushDebugLog('Firestore watcher: quote doc not found yet');
+        if (snapshot.empty) {
+          pushDebugLog('Firestore watcher: waiting for first quote doc');
           return;
         }
-        applyQuoteFromData(snapshot.data() as Record<string, any>, 'doc');
+        const quoteDoc = snapshot.docs[0];
+        quoteIdRef.current = quoteDoc.id;
+        pushDebugLog(`Firestore watcher: resolved quoteId=${quoteDoc.id}`);
+        applyQuoteFromData(quoteDoc.data() as Record<string, any>, 'query');
       },
       (error) => {
-        pushDebugLog(`Firestore watcher doc error: ${error.message}`);
+        pushDebugLog(`Firestore watcher query error: ${error.message}`);
       }
     );
   }, [firestore, pushDebugLog, stopQuoteWatcher]);
@@ -645,8 +676,12 @@ const ConsultPage: React.FC = () => {
         let token = params.get('token');
         const roomName = params.get('room');
         const conferenceId = params.get('conferenceId');
+        const painterDocId = params.get('painterDocId');
+        const quoteId = params.get('quoteId');
         roomNameRef.current = roomName || '';
         conferenceIdRef.current = conferenceId || '';
+        painterDocIdRef.current = String(painterDocId || '').trim();
+        quoteIdRef.current = String(quoteId || '').trim();
         if (!token) {
           if (!roomName) {
             setStatus('Missing token');

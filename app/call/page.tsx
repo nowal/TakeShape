@@ -1026,7 +1026,9 @@ const PainterCallCenter: React.FC = () => {
       await joinPainterRoomAudioOnly(painterToken.token);
 
       const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      setGuestLink(`${appBase}/consult?room=${encodeURIComponent(confData.name)}&conferenceId=${encodeURIComponent(confData.id)}`);
+      setGuestLink(
+        `${appBase}/consult?room=${encodeURIComponent(confData.name)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId)}`
+      );
       activeHomeownerNumberRef.current = normalizedHomeowner;
 
       setStatus('Dialing homeowner...');
@@ -1120,12 +1122,36 @@ const PainterCallCenter: React.FC = () => {
 
     setIsSendingVideoInvite(true);
     try {
+      const quoteId = await ensureQuoteDoc();
+      if (!quoteId) {
+        throw new Error('Unable to initialize quote for consult link');
+      }
+
+      const linkWithQuote = (() => {
+        const url = new URL(guestLink);
+        url.searchParams.set('quoteId', quoteId);
+        return url.toString();
+      })();
+      setGuestLink(linkWithQuote);
+
+      await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conference?.id,
+          metaPatch: {
+            painter_doc_id: painterDocId || undefined,
+            quote_id: quoteId
+          }
+        })
+      }).catch(() => undefined);
+
       const smsResponse = await fetch('/api/signalwire/send-sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: activeHomeownerNumberRef.current,
-          body: `Join your video estimate: ${guestLink}`
+          body: `Join your video estimate: ${linkWithQuote}`
         })
       });
       await getJsonOrThrow(smsResponse, 'Failed to send consult link');
