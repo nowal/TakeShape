@@ -107,6 +107,7 @@ const ConsultPage: React.FC = () => {
   const remoteEndingRef = useRef(false);
   const isEndedRef = useRef(false);
   const isQuoteModeRef = useRef(false);
+  const quoteFetchInFlightRef = useRef(false);
   const didInitRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -376,6 +377,48 @@ const ConsultPage: React.FC = () => {
           callSidRef.current = conferenceCallSid;
         }
 
+        const fetchLatestQuoteForConference = async () => {
+          if (!conferenceIdRef.current || quoteFetchInFlightRef.current) return;
+          quoteFetchInFlightRef.current = true;
+          try {
+            const quoteResponse = await fetch(
+              `/api/quotes/by-conference?conferenceId=${encodeURIComponent(conferenceIdRef.current)}&_ts=${Date.now()}`,
+              {
+                cache: 'no-store',
+                headers: {
+                  'cache-control': 'no-cache',
+                  pragma: 'no-cache'
+                }
+              }
+            );
+            const quotePayload = await quoteResponse.json().catch(() => ({}));
+            if (!quoteResponse.ok || !quotePayload?.found) return;
+
+            const pricing = quotePayload?.pricing || {};
+            const rowsRaw = Array.isArray(pricing?.rows) ? pricing.rows : [];
+            const rows = rowsRaw.map((row: any) => ({
+              item: String(row?.item || ''),
+              description: String(row?.description || ''),
+              price: Number(row?.price || 0).toFixed(2)
+            }));
+            if (!rows.length) return;
+
+            const totalPrice = Number(pricing?.totalPrice);
+            setSubmittedQuote({
+              rows,
+              totalPrice: Number.isFinite(totalPrice)
+                ? totalPrice
+                : rows.reduce((sum: number, row: QuoteDisplayRow) => sum + (Number.parseFloat(row.price) || 0), 0),
+              updatedAt: String(pricing?.updatedAt || quotePayload?.updatedAt || '')
+            });
+            setStatus('Your quote is ready');
+          } catch (error) {
+            console.error('Consult quote fetch error:', error);
+          } finally {
+            quoteFetchInFlightRef.current = false;
+          }
+        };
+
         if (isQuoteModePayload(payload) && !isQuoteModeRef.current) {
           const nextQuote = parseQuoteMeta(payload?.meta || {});
           pushDebugLog('Conference mode switched to quote');
@@ -391,6 +434,7 @@ const ConsultPage: React.FC = () => {
               // no-op
             }
           }
+          await fetchLatestQuoteForConference();
           return;
         }
 
@@ -399,6 +443,8 @@ const ConsultPage: React.FC = () => {
           if (nextQuote) {
             setSubmittedQuote(nextQuote);
             setStatus('Your quote is ready');
+          } else {
+            await fetchLatestQuoteForConference();
           }
         }
       } catch (error) {

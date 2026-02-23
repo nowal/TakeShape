@@ -48,6 +48,15 @@ const resolveVideoEstimateValue = (videoEstimates: any): string | null => {
   return null;
 };
 
+const resolveSignalWireRecordingId = (videoEstimates: any): string | null => {
+  if (!Array.isArray(videoEstimates) || !videoEstimates.length) return null;
+  for (let index = videoEstimates.length - 1; index >= 0; index -= 1) {
+    const recordingId = String(videoEstimates[index]?.signalwireRecordingId || '').trim();
+    if (recordingId) return recordingId;
+  }
+  return null;
+};
+
 export default function QuotesPage() {
   const auth = useMemo(() => getAuth(firebase), []);
   const firestore = useMemo(() => getFirestore(firebase), []);
@@ -82,6 +91,7 @@ export default function QuotesPage() {
             }));
 
             const storedVideoValue = resolveVideoEstimateValue(data.videoEstimates);
+            const signalWireRecordingId = resolveSignalWireRecordingId(data.videoEstimates);
             let videoUrl: string | null = null;
             if (storedVideoValue) {
               if (/^https?:\/\//i.test(storedVideoValue)) {
@@ -92,6 +102,21 @@ export default function QuotesPage() {
                 } catch {
                   videoUrl = null;
                 }
+              }
+            }
+
+            if (!videoUrl && signalWireRecordingId) {
+              try {
+                const recordingResponse = await fetch(
+                  `/api/signalwire/room-recording?recordingId=${encodeURIComponent(signalWireRecordingId)}&waitMs=30000`,
+                  { cache: 'no-store' }
+                );
+                const recordingPayload = await recordingResponse.json().catch(() => ({}));
+                if (recordingResponse.ok && recordingPayload?.recordingUrl) {
+                  videoUrl = String(recordingPayload.recordingUrl);
+                }
+              } catch {
+                videoUrl = null;
               }
             }
 

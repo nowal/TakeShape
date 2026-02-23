@@ -52,12 +52,6 @@ type StoredQuotePricingRow = {
   price: number;
 };
 
-type QuoteMetaRow = {
-  item: string;
-  description: string;
-  price: string;
-};
-
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -306,13 +300,6 @@ const PainterCallCenter: React.FC = () => {
     () => normalizeQuoteRows().reduce((sum, row) => sum + row.price, 0),
     [quoteRows]
   );
-
-  const buildQuoteMetaRows = (rows: StoredQuotePricingRow[]): QuoteMetaRow[] =>
-    rows.map((row) => ({
-      item: row.item,
-      description: row.description,
-      price: row.price.toFixed(2)
-    }));
 
   const updateQuoteRow = (id: string, next: Partial<QuotePricingRow>) => {
     setQuoteRows((previous) =>
@@ -690,7 +677,7 @@ const PainterCallCenter: React.FC = () => {
     quoteId: string;
   }) => {
     if (!conference?.id) return;
-    await fetch('/api/signalwire/conference-state', {
+    const response = await fetch('/api/signalwire/conference-state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -701,11 +688,11 @@ const PainterCallCenter: React.FC = () => {
           quote_started_at: new Date().toISOString(),
           quote_id: quoteId,
           quote_total_price: Number(totalPrice.toFixed(2)),
-          quote_pricing_rows_json: JSON.stringify(buildQuoteMetaRows(rows)),
           quote_updated_at: new Date().toISOString()
         }
       })
-    }).catch(() => undefined);
+    });
+    await getJsonOrThrow(response, 'Failed to sync quote state to consult');
   };
 
   const ensureQuoteDoc = async () => {
@@ -826,6 +813,10 @@ const PainterCallCenter: React.FC = () => {
       const recorder = mediaRecorderRef.current;
       if (recorder) {
         const stopPromise = new Promise<void>((resolve) => {
+          if (recorder.state === 'inactive') {
+            resolve();
+            return;
+          }
           recorder.onstop = async () => {
             if (!recordedChunksRef.current.length) {
               resolve();
@@ -846,9 +837,7 @@ const PainterCallCenter: React.FC = () => {
           };
         });
 
-        if (recorder.state !== 'inactive') {
-          recorder.stop();
-        }
+        recorder.stop();
         mediaRecorderRef.current = null;
         await stopPromise;
       }
