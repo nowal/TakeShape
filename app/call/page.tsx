@@ -518,6 +518,55 @@ const PainterCallCenter: React.FC = () => {
       remoteMemberPresentRef.current = false;
 
       if (isConsultExpected()) {
+        try {
+          const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
+          if (targetConferenceId) {
+            const response = await fetch(
+              `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(targetConferenceId)}&_ts=${Date.now()}`,
+              {
+                cache: 'no-store',
+                headers: {
+                  'cache-control': 'no-cache',
+                  pragma: 'no-cache'
+                }
+              }
+            );
+            const statePayload = await response.json().catch(() => ({}));
+            if (
+              response.ok &&
+              (!statePayload?.exists || statePayload?.mode === 'ending')
+            ) {
+              remoteEndingRef.current = true;
+              activeCallRef.current = false;
+              callAnsweredRef.current = false;
+              stopConferenceWatch();
+              if (findVideoTimerRef.current) {
+                window.clearInterval(findVideoTimerRef.current);
+                findVideoTimerRef.current = null;
+              }
+              await persistEstimateRecording().catch(() => undefined);
+              if (roomSessionRef.current) {
+                if (trackHandlerRef.current && roomSessionRef.current.off) {
+                  roomSessionRef.current.off('track', trackHandlerRef.current);
+                }
+                if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+                  roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+                }
+                if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+                  roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+                }
+                await roomSessionRef.current.leave().catch(() => undefined);
+                roomSessionRef.current = null;
+              }
+              setPhase('ended');
+              setStatus('Call ended by other participant.');
+              setHasVideoFrame(false);
+              return;
+            }
+          }
+        } catch {
+          // no-op
+        }
         transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
         callAnsweredRef.current = false;
         setHasVideoFrame(false);

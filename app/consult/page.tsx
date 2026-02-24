@@ -13,9 +13,6 @@ import {
 } from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-const MOBILE_FRAME_WIDTH = 390;
-const MOBILE_FRAME_HEIGHT = 844;
-
 const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
   const videoInputs = devices.filter((device) => device.kind === 'videoinput');
   if (!videoInputs.length) return null;
@@ -224,6 +221,13 @@ const ConsultPage: React.FC = () => {
   const [isQuoteSubmitted, setQuoteSubmitted] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
   const [blockingError, setBlockingError] = useState<string>('');
+  const [zoomSupported, setZoomSupported] = useState(false);
+  const [zoomValue, setZoomValue] = useState(1);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number }>({
+    min: 1,
+    max: 1,
+    step: 0.1
+  });
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -486,6 +490,53 @@ const ConsultPage: React.FC = () => {
     return waitForLocalVideoFrame(videoEl);
   };
 
+  const configureZoom = useCallback((track: MediaStreamTrack | undefined) => {
+    if (!track) {
+      setZoomSupported(false);
+      return;
+    }
+    const capabilities = (track as any).getCapabilities?.() || {};
+    const zoomCapability = capabilities?.zoom;
+    if (
+      !zoomCapability ||
+      typeof zoomCapability !== 'object' ||
+      typeof zoomCapability.min !== 'number' ||
+      typeof zoomCapability.max !== 'number'
+    ) {
+      setZoomSupported(false);
+      return;
+    }
+    const min = Number(zoomCapability.min);
+    const max = Number(zoomCapability.max);
+    const stepRaw = Number(zoomCapability.step);
+    const step = Number.isFinite(stepRaw) && stepRaw > 0 ? stepRaw : 0.1;
+    const settings = (track as any).getSettings?.() || {};
+    const currentRaw = Number(settings.zoom);
+    const current = Number.isFinite(currentRaw) ? currentRaw : min;
+    setZoomRange({ min, max, step });
+    setZoomValue(Math.min(max, Math.max(min, current)));
+    setZoomSupported(max > min);
+    pushDebugLog(`Zoom capability detected: min=${min}, max=${max}, step=${step}, current=${current}`);
+  }, [pushDebugLog]);
+
+  const applyZoom = useCallback(async (nextZoom: number) => {
+    if (!zoomSupported) return;
+    const track = localStreamRef.current?.getVideoTracks?.()[0];
+    if (!track) return;
+    const { min, max, step } = zoomRange;
+    const clamped = Math.min(max, Math.max(min, nextZoom));
+    const snapped = Math.round((clamped - min) / step) * step + min;
+    const normalized = Number(snapped.toFixed(4));
+    try {
+      await (track as any).applyConstraints?.({
+        advanced: [{ zoom: normalized }]
+      });
+      setZoomValue(normalized);
+    } catch (error) {
+      pushDebugLog(`Zoom apply failed: ${(error as Error).message}`);
+    }
+  }, [pushDebugLog, zoomRange, zoomSupported]);
+
   const joinConsult = useCallback(async (token: string) => {
     stopQuoteWatcher();
     await cleanupSession();
@@ -498,6 +549,7 @@ const ConsultPage: React.FC = () => {
 
     const stream = await getBackCameraStream();
     localStreamRef.current = stream;
+    configureZoom(stream.getVideoTracks()[0]);
     stream.getVideoTracks().forEach((track) => {
       track.enabled = true;
       pushDebugLog(`Local video track enabled=${track.enabled} muted=${track.muted} readyState=${track.readyState}`);
@@ -798,22 +850,9 @@ const ConsultPage: React.FC = () => {
     }
   };
 
-  const frameStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: MOBILE_FRAME_WIDTH,
-    height: `min(100dvh - 20px, ${MOBILE_FRAME_HEIGHT}px)`,
-    margin: '10px auto',
-    borderRadius: 22,
-    overflow: 'hidden',
-    border: '1px solid #21252d',
-    background: '#000',
-    position: 'relative',
-    boxShadow: '0 22px 45px rgba(0,0,0,0.42)'
-  };
-
   return (
-    <div style={{ minHeight: '100dvh', background: 'radial-gradient(circle at 10% 0%, #eaf5ff 0%, #f4f7fb 58%, #eaf0f8 100%)', color: '#fff', padding: '4px' }}>
-      <div style={frameStyle}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff' }}>
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#000' }}>
         {isEnded ? (
           <div
             style={{
@@ -1001,6 +1040,68 @@ const ConsultPage: React.FC = () => {
             >
               {status}
             </div>
+            {!isQuoteMode && zoomSupported && !isEnded && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  right: 10,
+                  bottom: 92,
+                  borderRadius: 12,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.42)',
+                  padding: '8px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
+                }}
+              >
+                <button
+                  onClick={() => applyZoom(zoomValue - zoomRange.step)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    border: 'none',
+                    background: '#fff',
+                    color: '#111',
+                    fontWeight: 700
+                  }}
+                  aria-label="Zoom out"
+                >
+                  -
+                </button>
+                <input
+                  type="range"
+                  min={zoomRange.min}
+                  max={zoomRange.max}
+                  step={zoomRange.step}
+                  value={zoomValue}
+                  onChange={(event) => {
+                    const next = Number(event.target.value);
+                    setZoomValue(next);
+                    applyZoom(next);
+                  }}
+                  style={{ flex: 1 }}
+                  aria-label="Camera zoom"
+                />
+                <button
+                  onClick={() => applyZoom(zoomValue + zoomRange.step)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    border: 'none',
+                    background: '#fff',
+                    color: '#111',
+                    fontWeight: 700
+                  }}
+                  aria-label="Zoom in"
+                >
+                  +
+                </button>
+              </div>
+            )}
             {debugEnabled && (
               <div
                 style={{
@@ -1077,27 +1178,31 @@ const ConsultPage: React.FC = () => {
           </>
         )}
       </div>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: MOBILE_FRAME_WIDTH,
-          margin: '0 auto 12px',
-          borderRadius: 12,
-          background: '#0f172a',
-          border: '1px solid #1e293b',
-          color: '#d1e0ff',
-          padding: '10px 12px',
-          fontSize: 11,
-          lineHeight: 1.35
-        }}
-      >
-        <div style={{ color: '#93c5fd', fontWeight: 700, marginBottom: 6 }}>
-          Diagnostics
+      {debugEnabled && (
+        <div
+          style={{
+            position: 'fixed',
+            left: 10,
+            right: 10,
+            bottom: 166,
+            borderRadius: 12,
+            background: 'rgba(15, 23, 42, 0.88)',
+            border: '1px solid rgba(148, 163, 184, 0.5)',
+            color: '#d1e0ff',
+            padding: '10px 12px',
+            fontSize: 11,
+            lineHeight: 1.35,
+            zIndex: 20
+          }}
+        >
+          <div style={{ color: '#93c5fd', fontWeight: 700, marginBottom: 6 }}>
+            Diagnostics
+          </div>
+          <div style={{ maxHeight: 140, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+            {debugLogs.length ? debugLogs.join('\n') : 'Waiting for events...'}
+          </div>
         </div>
-        <div style={{ maxHeight: 140, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-          {debugLogs.length ? debugLogs.join('\n') : 'Waiting for events...'}
-        </div>
-      </div>
+      )}
       <style>{`
         @keyframes consult-spin {
           from { transform: rotate(0deg); }
