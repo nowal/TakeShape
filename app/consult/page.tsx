@@ -34,7 +34,10 @@ const isLikelyFrontCameraLabel = (label: string) =>
 const isLikelyBackCameraLabel = (label: string) =>
   /back|rear|environment|world/i.test(label);
 
-const getTouchDistance = (first: Touch, second: Touch) =>
+const getTouchDistance = (
+  first: { clientX: number; clientY: number },
+  second: { clientX: number; clientY: number }
+) =>
   Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
 
 const isQuoteModePayload = (payload: any) => {
