@@ -35,12 +35,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const resolvedCallSid = String(
+      (typeof callSid === 'string' && callSid.trim()) ||
+      conference?.meta?.call_sid ||
+      conference?.meta?.callSid ||
+      ''
+    ).trim();
+
     let callEnded = false;
     let callError: string | null = null;
-    if (typeof callSid === 'string' && callSid.trim()) {
+    if (resolvedCallSid) {
       const encodedBody = new URLSearchParams({ Status: 'completed' }).toString();
       const callResponse = await fetch(
-        `https://${config.spaceUrl}/api/laml/2010-04-01/Accounts/${config.projectId}/Calls/${encodeURIComponent(callSid)}.json`,
+        `https://${config.spaceUrl}/api/laml/2010-04-01/Accounts/${config.projectId}/Calls/${encodeURIComponent(resolvedCallSid)}.json`,
         {
           method: 'POST',
           headers: {
@@ -82,4 +89,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

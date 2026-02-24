@@ -236,7 +236,9 @@ const ConsultPage: React.FC = () => {
   });
   const pinchStartDistanceRef = useRef<number | null>(null);
   const pinchStartZoomRef = useRef<number | null>(null);
-  const pinchZoomPreviewRef = useRef<number>(1);
+  const zoomApplyInFlightRef = useRef(false);
+  const queuedZoomValueRef = useRef<number | null>(null);
+  const lastZoomApplyAtRef = useRef(0);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -532,19 +534,45 @@ const ConsultPage: React.FC = () => {
     if (!zoomSupported) return;
     const track = localStreamRef.current?.getVideoTracks?.()[0];
     if (!track) return;
-    const { min, max, step } = zoomRange;
+    const { min, max } = zoomRange;
     const clamped = Math.min(max, Math.max(min, nextZoom));
-    const snapped = Math.round((clamped - min) / step) * step + min;
-    const normalized = Number(snapped.toFixed(4));
+    const normalized = Number(clamped.toFixed(4));
     try {
       await (track as any).applyConstraints?.({
         advanced: [{ zoom: normalized }]
       });
-      setZoomValue(normalized);
     } catch (error) {
       pushDebugLog(`Zoom apply failed: ${(error as Error).message}`);
     }
   }, [pushDebugLog, zoomRange, zoomSupported]);
+
+  const queueZoomApply = useCallback((nextZoom: number) => {
+    const { min, max } = zoomRange;
+    const clamped = Math.min(max, Math.max(min, nextZoom));
+    setZoomValue(clamped);
+    queuedZoomValueRef.current = clamped;
+    if (zoomApplyInFlightRef.current) return;
+
+    const run = async () => {
+      zoomApplyInFlightRef.current = true;
+      try {
+        while (queuedZoomValueRef.current !== null) {
+          const value = queuedZoomValueRef.current;
+          queuedZoomValueRef.current = null;
+          const elapsed = Date.now() - lastZoomApplyAtRef.current;
+          if (elapsed < 24) {
+            await new Promise((resolve) => setTimeout(resolve, 24 - elapsed));
+          }
+          await applyZoom(value);
+          lastZoomApplyAtRef.current = Date.now();
+        }
+      } finally {
+        zoomApplyInFlightRef.current = false;
+      }
+    };
+
+    void run();
+  }, [applyZoom, zoomRange]);
 
   useEffect(() => {
     const preventGesture = (event: Event) => {
@@ -579,7 +607,6 @@ const ConsultPage: React.FC = () => {
     const distance = getTouchDistance(event.touches[0], event.touches[1]);
     pinchStartDistanceRef.current = distance;
     pinchStartZoomRef.current = zoomValue;
-    pinchZoomPreviewRef.current = zoomValue;
   }, [isQuoteMode, zoomSupported, zoomValue]);
 
   const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
@@ -594,10 +621,8 @@ const ConsultPage: React.FC = () => {
     const rawZoom = startZoom * ratio;
     const { min, max } = zoomRange;
     const clamped = Math.min(max, Math.max(min, rawZoom));
-    pinchZoomPreviewRef.current = clamped;
-    setZoomValue(clamped);
-    applyZoom(clamped);
-  }, [applyZoom, isQuoteMode, zoomRange, zoomSupported]);
+    queueZoomApply(clamped);
+  }, [isQuoteMode, queueZoomApply, zoomRange, zoomSupported]);
 
   const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (event.touches.length < 2) {
@@ -1138,7 +1163,7 @@ const ConsultPage: React.FC = () => {
                 }}
               >
                 <button
-                  onClick={() => applyZoom(zoomValue - zoomRange.step)}
+                  onClick={() => queueZoomApply(zoomValue - zoomRange.step)}
                   style={{
                     width: 32,
                     height: 32,
@@ -1160,14 +1185,13 @@ const ConsultPage: React.FC = () => {
                   value={zoomValue}
                   onChange={(event) => {
                     const next = Number(event.target.value);
-                    setZoomValue(next);
-                    applyZoom(next);
+                    queueZoomApply(next);
                   }}
                   style={{ flex: 1 }}
                   aria-label="Camera zoom"
                 />
                 <button
-                  onClick={() => applyZoom(zoomValue + zoomRange.step)}
+                  onClick={() => queueZoomApply(zoomValue + zoomRange.step)}
                   style={{
                     width: 32,
                     height: 32,

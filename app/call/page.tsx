@@ -77,8 +77,6 @@ const isQuoteModePayload = (payload: any) => {
 };
 
 const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
-const MOBILE_FRAME_WIDTH = 390;
-const MOBILE_FRAME_HEIGHT = 844;
 const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
 const CALL_HEALTH_POLL_MS = 1500;
@@ -126,6 +124,7 @@ const PainterCallCenter: React.FC = () => {
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
+  const [painterPreviewZoom, setPainterPreviewZoom] = useState(1);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -150,6 +149,7 @@ const PainterCallCenter: React.FC = () => {
   const remoteMemberPresentRef = useRef(false);
   const transferWaitUntilRef = useRef<number | null>(null);
   const phaseRef = useRef<CallPhase>('idle');
+  const hasVideoFrameRef = useRef(false);
   const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
   const memberLeftHandlerRef = useRef<((payload: any) => void) | null>(null);
   const quoteDocIdRef = useRef<string | null>(null);
@@ -161,6 +161,10 @@ const PainterCallCenter: React.FC = () => {
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
+
+  useEffect(() => {
+    hasVideoFrameRef.current = hasVideoFrame;
+  }, [hasVideoFrame]);
 
   const isConsultExpected = () =>
     estimateInviteSentRef.current ||
@@ -483,6 +487,19 @@ const PainterCallCenter: React.FC = () => {
   const setRemoteVideoStream = (stream: MediaStream | null) => {
     const videoEl = remoteVideoRef.current;
     if (!videoEl) return;
+    if (stream) {
+      videoEl.onloadeddata = () => {
+        setHasVideoFrame(true);
+        if (
+          estimateInviteSentRef.current &&
+          (phaseRef.current === 'videoInviteSent' || phaseRef.current === 'quoteDraft')
+        ) {
+          setStatus('Homeowner video connected.');
+        }
+      };
+    } else {
+      videoEl.onloadeddata = null;
+    }
     videoEl.srcObject = stream;
     if (stream) {
       videoEl
@@ -516,6 +533,12 @@ const PainterCallCenter: React.FC = () => {
       const stream = event.streams?.[0] || new MediaStream([track]);
       setRemoteVideoStream(stream);
       setHasVideoFrame(true);
+      if (
+        estimateInviteSentRef.current &&
+        (phaseRef.current === 'videoInviteSent' || phaseRef.current === 'quoteDraft')
+      ) {
+        setStatus('Homeowner video connected.');
+      }
       startEstimateRecording();
     };
     session.on('track', trackHandler);
@@ -548,6 +571,35 @@ const PainterCallCenter: React.FC = () => {
       remoteMemberPresentRef.current = false;
 
       if (isConsultExpected()) {
+        if (hasVideoFrameRef.current || recordingStartedRef.current) {
+          remoteEndingRef.current = true;
+          activeCallRef.current = false;
+          callAnsweredRef.current = false;
+          stopConferenceWatch();
+          if (findVideoTimerRef.current) {
+            window.clearInterval(findVideoTimerRef.current);
+            findVideoTimerRef.current = null;
+          }
+          await forceEndConference();
+          await persistEstimateRecording().catch(() => undefined);
+          if (roomSessionRef.current) {
+            if (trackHandlerRef.current && roomSessionRef.current.off) {
+              roomSessionRef.current.off('track', trackHandlerRef.current);
+            }
+            if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+              roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+            }
+            if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+              roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+            }
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          setPhase('ended');
+          setStatus('Call ended by other participant.');
+          setHasVideoFrame(false);
+          return;
+        }
         const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
         if (targetConferenceId) {
           const endState = await waitForConferenceToEnd(targetConferenceId);
@@ -1126,6 +1178,7 @@ const PainterCallCenter: React.FC = () => {
       }).catch(() => undefined);
 
       setHasVideoFrame(false);
+      setPainterPreviewZoom(1);
       setPhase('calling');
 
       setStatus('Creating room token...');
@@ -1383,6 +1436,7 @@ const PainterCallCenter: React.FC = () => {
     activeConferenceNameRef.current = null;
     setMuted(false);
     setHasVideoFrame(false);
+    setPainterPreviewZoom(1);
     setGuestLink('');
     painterTokenRef.current = '';
     estimateInviteSentRef.current = false;
@@ -1457,28 +1511,56 @@ const PainterCallCenter: React.FC = () => {
     );
   }
 
-  const phoneFrameStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: MOBILE_FRAME_WIDTH,
-    height: `min(100dvh - 32px, ${MOBILE_FRAME_HEIGHT}px)`,
-    margin: '16px auto',
-    borderRadius: 22,
-    overflow: 'hidden',
-    border: '1px solid #20242b',
-    background: '#000',
-    position: 'relative',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.35)'
-  };
+  const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
+  const phoneFrameStyle: React.CSSProperties = isActiveCallUI
+    ? {
+      position: 'fixed',
+      inset: 0,
+      overflow: 'hidden',
+      background: '#000',
+      zIndex: 10
+    }
+    : {
+      width: '100%',
+      maxWidth: 560,
+      height: 'min(100dvh - 32px, 844px)',
+      margin: '16px auto',
+      borderRadius: 22,
+      overflow: 'hidden',
+      border: '1px solid #20242b',
+      background: '#000',
+      position: 'relative',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.35)'
+    };
   const primaryActionColor = PRIMARY_COLOR_HEX;
   const disabledPrimaryActionColor = `${PRIMARY_COLOR_HEX}99`;
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'radial-gradient(circle at 15% 0%, #edf7ff 0%, #f5f7fb 55%, #eef2f8 100%)', color: '#fff', padding: '8px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', margin: '8px 0 12px 0' }}>
-          <div style={{ fontSize: 12, color: '#92a0b5', letterSpacing: 1 }}>{stageLabel}</div>
-          <div style={{ marginTop: 6, fontWeight: 600 }}>{status}</div>
-        </div>
+    <div style={{ minHeight: '100dvh', background: isActiveCallUI ? '#000' : 'radial-gradient(circle at 15% 0%, #edf7ff 0%, #f5f7fb 55%, #eef2f8 100%)', color: '#fff', padding: isActiveCallUI ? 0 : '8px' }}>
+      <div style={{ maxWidth: isActiveCallUI ? '100%' : 900, margin: '0 auto' }}>
+        {!isActiveCallUI && (
+          <div style={{ textAlign: 'center', margin: '8px 0 12px 0' }}>
+            <div style={{ fontSize: 12, color: '#92a0b5', letterSpacing: 1 }}>{stageLabel}</div>
+            <div style={{ marginTop: 6, fontWeight: 600 }}>{status}</div>
+          </div>
+        )}
+        {isActiveCallUI && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 10,
+              left: 0,
+              right: 0,
+              zIndex: 20,
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#d2d7df',
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)'
+            }}
+          >
+            {status}
+          </div>
+        )}
 
         {phase === 'idle' && (
           <div style={{ maxWidth: 440, margin: '0 auto', background: '#171a20', border: '1px solid #2a2f36', borderRadius: 14, padding: 16 }}>
@@ -1552,9 +1634,70 @@ const PainterCallCenter: React.FC = () => {
                 objectFit: 'cover',
                 background: '#000',
                 opacity: phase === 'quoteDraft' ? 0 : 1,
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                transform: `scale(${painterPreviewZoom})`,
+                transformOrigin: 'center center',
+                transition: 'transform 80ms linear'
               }}
             />
+            {phase !== 'quoteDraft' && hasVideoFrame && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  right: 10,
+                  bottom: 88,
+                  borderRadius: 12,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.42)',
+                  padding: '8px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
+                }}
+              >
+                <button
+                  onClick={() => setPainterPreviewZoom((prev) => Math.max(1, Number((prev - 0.1).toFixed(2))))}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    border: 'none',
+                    background: '#fff',
+                    color: '#111',
+                    fontWeight: 700
+                  }}
+                  aria-label="Zoom out view"
+                >
+                  -
+                </button>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  value={painterPreviewZoom}
+                  onChange={(event) => setPainterPreviewZoom(Number(event.target.value))}
+                  style={{ flex: 1 }}
+                  aria-label="Painter preview zoom"
+                />
+                <button
+                  onClick={() => setPainterPreviewZoom((prev) => Math.min(3, Number((prev + 0.1).toFixed(2))))}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    border: 'none',
+                    background: '#fff',
+                    color: '#111',
+                    fontWeight: 700
+                  }}
+                  aria-label="Zoom in view"
+                >
+                  +
+                </button>
+              </div>
+            )}
             {phase !== 'quoteDraft' && !hasVideoFrame && (
               <div
                 style={{
