@@ -31,6 +31,12 @@ const isEnvironmentFacingTrack = (track: MediaStreamTrack | undefined) => {
   return String(settings?.facingMode || '').toLowerCase() === 'environment';
 };
 
+const isLikelyFrontCameraLabel = (label: string) =>
+  /front|user|facetime/i.test(label);
+
+const isLikelyBackCameraLabel = (label: string) =>
+  /back|rear|environment|world/i.test(label);
+
 const mergeStreamTracks = ({
   audioFrom,
   videoFrom
@@ -230,6 +236,7 @@ const ConsultPage: React.FC = () => {
   const [isQuoteMode, setQuoteMode] = useState(false);
   const [isQuoteSubmitted, setQuoteSubmitted] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
+  const [blockingError, setBlockingError] = useState<string>('');
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -388,11 +395,20 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   const getBackCameraStream = useCallback(async (): Promise<MediaStream> => {
-    pushDebugLog('Requesting initial stream with facingMode=environment (ideal)');
-    const initialStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: { facingMode: { ideal: 'environment' } }
-    });
+    let initialStream: MediaStream;
+    try {
+      pushDebugLog('Requesting initial stream with facingMode=environment (exact)');
+      initialStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { facingMode: { exact: 'environment' } }
+      });
+    } catch {
+      pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
+      initialStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { facingMode: { ideal: 'environment' } }
+      });
+    }
     const initialVideoTrack = initialStream.getVideoTracks()[0];
     pushDebugLog(`Initial video settings: ${JSON.stringify(initialVideoTrack?.getSettings?.() || {})}`);
     if (isEnvironmentFacingTrack(initialVideoTrack)) {
@@ -410,7 +426,7 @@ const ConsultPage: React.FC = () => {
     const candidate = prioritizedBack ||
       videoInputs.find((device) => {
         if (currentDeviceId && device.deviceId === currentDeviceId) return false;
-        return !/front|user|facetime/i.test(device.label);
+        return !isLikelyFrontCameraLabel(device.label);
       });
     if (candidate) {
       try {
@@ -425,7 +441,8 @@ const ConsultPage: React.FC = () => {
         const switchedTrack = switchedStream.getVideoTracks()[0];
         const appearsBackCamera =
           isEnvironmentFacingTrack(switchedTrack) ||
-          /back|rear|environment|world/i.test(candidate.label);
+          isLikelyBackCameraLabel(candidate.label) ||
+          isLikelyBackCameraLabel(switchedTrack?.label || '');
         if (appearsBackCamera) {
           pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
           initialStream.getVideoTracks().forEach((track) => track.stop());
@@ -437,8 +454,11 @@ const ConsultPage: React.FC = () => {
       }
     }
 
-    pushDebugLog('Falling back to initial stream');
-    return initialStream;
+    initialStream.getTracks().forEach((track) => track.stop());
+    pushDebugLog('Hard fail: unable to confirm back camera');
+    throw new Error(
+      'Unable to lock to your back camera. Please allow camera access, close other camera apps, and try again.'
+    );
   }, [pushDebugLog]);
 
   const createTokenForRoom = async (roomName: string) => {
@@ -489,6 +509,7 @@ const ConsultPage: React.FC = () => {
     setQuoteMode(false);
     setQuoteSubmitted(false);
     setSubmittedQuote(null);
+    setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
     const stream = await getBackCameraStream();
@@ -514,26 +535,7 @@ const ConsultPage: React.FC = () => {
       receiveVideo: true
     });
     pushDebugLog('Room joined with sendVideo=true');
-    try {
-      await session.videoUnmute?.();
-      pushDebugLog('session.videoUnmute() called');
-    } catch {
-      // no-op
-    }
-    try {
-      await session.restoreOutboundVideo?.();
-      pushDebugLog('session.restoreOutboundVideo() called');
-    } catch {
-      // no-op
-    }
-    try {
-      await session.stopOutboundVideo?.();
-      await new Promise((resolve) => setTimeout(resolve, 180));
-      await session.restoreOutboundVideo?.();
-      pushDebugLog('Forced outbound video restart after join');
-    } catch {
-      // no-op
-    }
+    pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
@@ -687,9 +689,9 @@ const ConsultPage: React.FC = () => {
             setStatus('Missing token');
             return;
           }
-          setStatus('Preparing secure room access...');
-          token = await createTokenForRoom(roomName);
-        }
+        setStatus('Preparing secure room access...');
+        token = await createTokenForRoom(roomName);
+      }
         if (!token) {
           setStatus('Missing token');
           return;
@@ -700,6 +702,7 @@ const ConsultPage: React.FC = () => {
         await joinConsult(token);
         if (mounted) {
           setStatus('Connected');
+          setBlockingError('');
           pushDebugLog('Status=Connected');
           setEnded(false);
           setEndReason('ended');
@@ -713,7 +716,9 @@ const ConsultPage: React.FC = () => {
         console.error('Consult join error:', error);
         pushDebugLog(`Join error: ${(error as Error).message}`);
         if (mounted) {
-          setStatus(`Failed to join: ${(error as Error).message}`);
+          const message = (error as Error).message;
+          setStatus(`Failed to join: ${message}`);
+          setBlockingError(message);
           setEndReason('dropped');
           setEnded(true);
         }
@@ -814,12 +819,15 @@ const ConsultPage: React.FC = () => {
       setQuoteMode(false);
       setQuoteSubmitted(false);
       setSubmittedQuote(null);
+      setBlockingError('');
       setStatus('Connected');
       watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
-      setStatus(`Rejoin failed: ${(error as Error).message}`);
-      pushDebugLog(`Rejoin error: ${(error as Error).message}`);
+      const message = (error as Error).message;
+      setStatus(`Rejoin failed: ${message}`);
+      setBlockingError(message);
+      pushDebugLog(`Rejoin error: ${message}`);
     } finally {
       setRejoining(false);
     }
@@ -856,6 +864,23 @@ const ConsultPage: React.FC = () => {
             }}
           >
             <div>{endReason === 'dropped' ? 'It looks like your call dropped unexpectedly.' : 'Call ended'}</div>
+            {!!blockingError && (
+              <div
+                style={{
+                  maxWidth: 300,
+                  fontSize: 13,
+                  lineHeight: 1.35,
+                  color: '#ffd7d7',
+                  background: 'rgba(127, 29, 29, 0.45)',
+                  border: '1px solid rgba(248, 113, 113, 0.55)',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                  textAlign: 'left'
+                }}
+              >
+                {blockingError}
+              </div>
+            )}
             {!!tokenRef.current && (
               <button
                 onClick={rejoin}
