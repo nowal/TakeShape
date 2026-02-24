@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import { PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -36,18 +36,6 @@ const isLikelyFrontCameraLabel = (label: string) =>
 
 const isLikelyBackCameraLabel = (label: string) =>
   /back|rear|environment|world/i.test(label);
-
-const mergeStreamTracks = ({
-  audioFrom,
-  videoFrom
-}: {
-  audioFrom: MediaStream;
-  videoFrom: MediaStream;
-}) =>
-  new MediaStream([
-    ...videoFrom.getVideoTracks(),
-    ...audioFrom.getAudioTracks()
-  ]);
 
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
@@ -227,7 +215,6 @@ const ConsultPage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
-  const [isMuted, setMuted] = useState(false);
   const [isVideoOff, setVideoOff] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
@@ -399,13 +386,13 @@ const ConsultPage: React.FC = () => {
     try {
       pushDebugLog('Requesting initial stream with facingMode=environment (exact)');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: { facingMode: { exact: 'environment' } }
       });
     } catch {
       pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: { facingMode: { ideal: 'environment' } }
       });
     }
@@ -434,10 +421,7 @@ const ConsultPage: React.FC = () => {
         const switchedVideoStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: { exact: candidate.deviceId } }
         });
-        const switchedStream = mergeStreamTracks({
-          audioFrom: initialStream,
-          videoFrom: switchedVideoStream
-        });
+        const switchedStream = switchedVideoStream;
         const switchedTrack = switchedStream.getVideoTracks()[0];
         const appearsBackCamera =
           isEnvironmentFacingTrack(switchedTrack) ||
@@ -529,9 +513,9 @@ const ConsultPage: React.FC = () => {
       localStream: stream
     });
     await session.join({
-      sendAudio: true,
+      sendAudio: false,
       sendVideo: true,
-      receiveAudio: true,
+      receiveAudio: false,
       receiveVideo: true
     });
     pushDebugLog('Room joined with sendVideo=true');
@@ -698,17 +682,16 @@ const ConsultPage: React.FC = () => {
         }
         tokenRef.current = token;
 
-        setStatus('Requesting camera and microphone...');
+        setStatus('Requesting back camera...');
         await joinConsult(token);
         if (mounted) {
-          setStatus('Connected');
+          setStatus('Connected. Keep talking on your phone call.');
           setBlockingError('');
           pushDebugLog('Status=Connected');
           setEnded(false);
           setEndReason('ended');
           localEndRequestedRef.current = false;
           remoteEndingRef.current = false;
-          setMuted(false);
           setVideoOff(false);
           watchConferenceState();
         }
@@ -742,24 +725,6 @@ const ConsultPage: React.FC = () => {
       cleanupSession();
     };
   }, []);
-
-  const toggleMute = async () => {
-    const session = sessionRef.current;
-    if (!session) return;
-    try {
-      if (isMuted) {
-        await session.audioUnmute();
-        pushDebugLog('audioUnmute()');
-        setMuted(false);
-      } else {
-        await session.audioMute();
-        pushDebugLog('audioMute()');
-        setMuted(true);
-      }
-    } catch (error) {
-      console.error('Mute error:', error);
-    }
-  };
 
   const toggleVideo = async () => {
     const session = sessionRef.current;
@@ -820,7 +785,7 @@ const ConsultPage: React.FC = () => {
       setQuoteSubmitted(false);
       setSubmittedQuote(null);
       setBlockingError('');
-      setStatus('Connected');
+      setStatus('Connected. Keep talking on your phone call.');
       watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
@@ -1072,23 +1037,6 @@ const ConsultPage: React.FC = () => {
                 gap: 10
               }}
             >
-              <button
-                onClick={toggleMute}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: isMuted ? '#0f1116' : '#fff',
-                  color: isMuted ? '#fff' : '#111',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-              >
-                {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
-              </button>
               {!isQuoteMode && (
                 <button
                   onClick={toggleVideo}
