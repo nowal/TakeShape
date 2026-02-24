@@ -237,7 +237,8 @@ const ConsultPage: React.FC = () => {
   const pinchStartDistanceRef = useRef<number | null>(null);
   const pinchStartZoomRef = useRef<number | null>(null);
   const zoomApplyRafRef = useRef<number | null>(null);
-  const pendingZoomValueRef = useRef<number | null>(null);
+  const targetZoomValueRef = useRef<number | null>(null);
+  const appliedZoomValueRef = useRef<number>(1);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -525,9 +526,19 @@ const ConsultPage: React.FC = () => {
     const current = Number.isFinite(currentRaw) ? currentRaw : min;
     setZoomRange({ min, max, step });
     setZoomValue(Math.min(max, Math.max(min, current)));
+    appliedZoomValueRef.current = Math.min(max, Math.max(min, current));
+    targetZoomValueRef.current = appliedZoomValueRef.current;
     setZoomSupported(max > min);
     pushDebugLog(`Zoom capability detected: min=${min}, max=${max}, step=${step}, current=${current}`);
   }, [pushDebugLog]);
+
+  const snapToZoomStep = useCallback((value: number) => {
+    const { min, max, step } = zoomRange;
+    const clamped = Math.min(max, Math.max(min, value));
+    if (!Number.isFinite(step) || step <= 0) return Number(clamped.toFixed(4));
+    const snapped = Math.round((clamped - min) / step) * step + min;
+    return Number(Math.min(max, Math.max(min, snapped)).toFixed(4));
+  }, [zoomRange]);
 
   const applyZoom = useCallback((nextZoom: number) => {
     if (!zoomSupported) return;
@@ -543,32 +554,60 @@ const ConsultPage: React.FC = () => {
       });
   }, [pushDebugLog, zoomRange, zoomSupported]);
 
-  const queueZoomApply = useCallback((nextZoom: number) => {
-    const { min, max } = zoomRange;
-    const clamped = Math.min(max, Math.max(min, nextZoom));
-    setZoomValue(clamped);
-    pendingZoomValueRef.current = clamped;
+  const queueZoomApply = useCallback((
+    nextZoom: number,
+    opts?: { immediate?: boolean }
+  ) => {
+    const snappedTarget = snapToZoomStep(nextZoom);
+    targetZoomValueRef.current = snappedTarget;
+    setZoomValue(snappedTarget);
+
+    if (opts?.immediate) {
+      appliedZoomValueRef.current = snappedTarget;
+      applyZoom(snappedTarget);
+      return;
+    }
+
     if (zoomApplyRafRef.current !== null) return;
 
     const flush = () => {
-      zoomApplyRafRef.current = null;
-      const value = pendingZoomValueRef.current;
-      pendingZoomValueRef.current = null;
-      if (value === null) return;
-      applyZoom(value);
-      if (pendingZoomValueRef.current !== null) {
-        zoomApplyRafRef.current = window.requestAnimationFrame(flush);
+      const target = targetZoomValueRef.current;
+      if (target === null) {
+        zoomApplyRafRef.current = null;
+        return;
       }
+
+      const current = appliedZoomValueRef.current;
+      const delta = target - current;
+      const nextValue = Math.abs(delta) < 0.003
+        ? target
+        : snapToZoomStep(current + delta * 0.28);
+
+      appliedZoomValueRef.current = nextValue;
+      applyZoom(nextValue);
+
+      if (Math.abs(target - nextValue) < 0.002) {
+        appliedZoomValueRef.current = target;
+        applyZoom(target);
+        if (targetZoomValueRef.current === target) {
+          zoomApplyRafRef.current = null;
+          return;
+        }
+      }
+
+      zoomApplyRafRef.current = window.requestAnimationFrame(flush);
     };
 
     zoomApplyRafRef.current = window.requestAnimationFrame(flush);
-  }, [applyZoom, zoomRange]);
+  }, [applyZoom, snapToZoomStep]);
 
   useEffect(() => {
     return () => {
       if (zoomApplyRafRef.current !== null) {
         window.cancelAnimationFrame(zoomApplyRafRef.current);
       }
+      zoomApplyRafRef.current = null;
+      targetZoomValueRef.current = null;
     };
   }, []);
 
@@ -626,8 +665,11 @@ const ConsultPage: React.FC = () => {
     if (event.touches.length < 2) {
       pinchStartDistanceRef.current = null;
       pinchStartZoomRef.current = null;
+      if (targetZoomValueRef.current !== null) {
+        queueZoomApply(targetZoomValueRef.current, { immediate: true });
+      }
     }
-  }, []);
+  }, [queueZoomApply]);
 
   const joinConsult = useCallback(async (token: string) => {
     stopQuoteWatcher();
