@@ -80,6 +80,7 @@ const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
 const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 const AUTH_CHECK_TIMEOUT_MS = 10000;
+const CONSULT_TRANSFER_GRACE_MS = 90000;
 const createQuoteRow = (): QuotePricingRow => ({
   id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
   item: '',
@@ -145,6 +146,9 @@ const PainterCallCenter: React.FC = () => {
   const activeConferenceNameRef = useRef<string | null>(null);
   const callAnsweredRef = useRef(false);
   const remoteEndingRef = useRef(false);
+  const remoteMemberPresentRef = useRef(false);
+  const transferWaitUntilRef = useRef<number | null>(null);
+  const phaseRef = useRef<CallPhase>('idle');
   const memberJoinedHandlerRef = useRef<((payload: any) => void) | null>(null);
   const memberLeftHandlerRef = useRef<((payload: any) => void) | null>(null);
   const quoteDocIdRef = useRef<string | null>(null);
@@ -152,6 +156,15 @@ const PainterCallCenter: React.FC = () => {
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
+
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+
+  const isConsultExpected = () =>
+    estimateInviteSentRef.current ||
+    phaseRef.current === 'videoInviteSent' ||
+    phaseRef.current === 'quoteDraft';
 
   useEffect(() => {
     let isMounted = true;
@@ -482,6 +495,8 @@ const PainterCallCenter: React.FC = () => {
       const memberId = String(payload?.member?.id || '');
       if (!memberId) return;
       if (memberId === String((session as any)?.memberId || '')) return;
+      remoteMemberPresentRef.current = true;
+      transferWaitUntilRef.current = null;
       callAnsweredRef.current = true;
       if (phase === 'calling' || phase === 'videoInviteSent') {
         setStatus(
@@ -500,6 +515,15 @@ const PainterCallCenter: React.FC = () => {
       if (!memberId) return;
       if (memberId === String((session as any)?.memberId || '')) return;
       if (!activeCallRef.current) return;
+      remoteMemberPresentRef.current = false;
+
+      if (isConsultExpected()) {
+        transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
+        callAnsweredRef.current = false;
+        setHasVideoFrame(false);
+        setStatus('Homeowner left the phone call. Waiting for video link to connect...');
+        return;
+      }
 
       remoteEndingRef.current = true;
       activeCallRef.current = false;
@@ -699,6 +723,26 @@ const PainterCallCenter: React.FC = () => {
           setHasVideoFrame(false);
         }
 
+        if (
+          isConsultExpected() &&
+          transferWaitUntilRef.current &&
+          Date.now() > transferWaitUntilRef.current &&
+          !remoteMemberPresentRef.current
+        ) {
+          activeCallRef.current = false;
+          transferWaitUntilRef.current = null;
+          stopConferenceWatch();
+          await persistEstimateRecording().catch(() => undefined);
+          await forceEndConference();
+          if (roomSessionRef.current) {
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          setPhase('dropped');
+          setStatus('Homeowner did not join the video consult in time. You can call back.');
+          return;
+        }
+
         const callSid = activeCallSidRef.current;
         if (callSid) {
           const callStatusResponse = await fetch(
@@ -706,16 +750,22 @@ const PainterCallCenter: React.FC = () => {
           );
           const callStatusPayload = await callStatusResponse.json().catch(() => ({}));
           if (callStatusResponse.ok && callStatusPayload?.completed) {
-            activeCallRef.current = false;
-            stopConferenceWatch();
-            await persistEstimateRecording().catch(() => undefined);
-            await forceEndConference();
-            if (roomSessionRef.current) {
-              await roomSessionRef.current.leave().catch(() => undefined);
-              roomSessionRef.current = null;
+            if (isConsultExpected()) {
+              activeCallSidRef.current = null;
+              transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
+              setStatus('Phone call ended. Waiting for homeowner video consult to connect...');
+            } else {
+              activeCallRef.current = false;
+              stopConferenceWatch();
+              await persistEstimateRecording().catch(() => undefined);
+              await forceEndConference();
+              if (roomSessionRef.current) {
+                await roomSessionRef.current.leave().catch(() => undefined);
+                roomSessionRef.current = null;
+              }
+              setPhase('ended');
+              setStatus('Call ended by other participant.');
             }
-            setPhase('ended');
-            setStatus('Call ended by other participant.');
           }
         }
       } catch (error) {
@@ -1089,6 +1139,8 @@ const PainterCallCenter: React.FC = () => {
       activeCallRef.current = true;
       localEndRequestedRef.current = false;
       remoteEndingRef.current = false;
+      remoteMemberPresentRef.current = false;
+      transferWaitUntilRef.current = null;
       estimateInviteSentRef.current = false;
       recordingStartedRef.current = false;
       setPhase('calling');
@@ -1166,6 +1218,7 @@ const PainterCallCenter: React.FC = () => {
       await getJsonOrThrow(smsResponse, 'Failed to send consult link');
 
       estimateInviteSentRef.current = true;
+      transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
       setPhase('videoInviteSent');
       setStatus('Consult link sent. Waiting for homeowner video...');
       startWatchingForHomeownerVideo();
