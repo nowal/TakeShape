@@ -124,7 +124,6 @@ const PainterCallCenter: React.FC = () => {
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
-  const [painterPreviewZoom, setPainterPreviewZoom] = useState(1);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -1178,7 +1177,6 @@ const PainterCallCenter: React.FC = () => {
       }).catch(() => undefined);
 
       setHasVideoFrame(false);
-      setPainterPreviewZoom(1);
       setPhase('calling');
 
       setStatus('Creating room token...');
@@ -1436,7 +1434,6 @@ const PainterCallCenter: React.FC = () => {
     activeConferenceNameRef.current = null;
     setMuted(false);
     setHasVideoFrame(false);
-    setPainterPreviewZoom(1);
     setGuestLink('');
     painterTokenRef.current = '';
     estimateInviteSentRef.current = false;
@@ -1634,70 +1631,9 @@ const PainterCallCenter: React.FC = () => {
                 objectFit: 'cover',
                 background: '#000',
                 opacity: phase === 'quoteDraft' ? 0 : 1,
-                pointerEvents: 'none',
-                transform: `scale(${painterPreviewZoom})`,
-                transformOrigin: 'center center',
-                transition: 'transform 80ms linear'
+                pointerEvents: 'none'
               }}
             />
-            {phase !== 'quoteDraft' && hasVideoFrame && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 10,
-                  right: 10,
-                  bottom: 88,
-                  borderRadius: 12,
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  background: 'rgba(0,0,0,0.42)',
-                  padding: '8px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10
-                }}
-              >
-                <button
-                  onClick={() => setPainterPreviewZoom((prev) => Math.max(1, Number((prev - 0.1).toFixed(2))))}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 999,
-                    border: 'none',
-                    background: '#fff',
-                    color: '#111',
-                    fontWeight: 700
-                  }}
-                  aria-label="Zoom out view"
-                >
-                  -
-                </button>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.01}
-                  value={painterPreviewZoom}
-                  onChange={(event) => setPainterPreviewZoom(Number(event.target.value))}
-                  style={{ flex: 1 }}
-                  aria-label="Painter preview zoom"
-                />
-                <button
-                  onClick={() => setPainterPreviewZoom((prev) => Math.min(3, Number((prev + 0.1).toFixed(2))))}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 999,
-                    border: 'none',
-                    background: '#fff',
-                    color: '#111',
-                    fontWeight: 700
-                  }}
-                  aria-label="Zoom in view"
-                >
-                  +
-                </button>
-              </div>
-            )}
             {phase !== 'quoteDraft' && !hasVideoFrame && (
               <div
                 style={{

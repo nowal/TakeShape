@@ -236,9 +236,8 @@ const ConsultPage: React.FC = () => {
   });
   const pinchStartDistanceRef = useRef<number | null>(null);
   const pinchStartZoomRef = useRef<number | null>(null);
-  const zoomApplyInFlightRef = useRef(false);
-  const queuedZoomValueRef = useRef<number | null>(null);
-  const lastZoomApplyAtRef = useRef(0);
+  const zoomApplyRafRef = useRef<number | null>(null);
+  const pendingZoomValueRef = useRef<number | null>(null);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -530,49 +529,48 @@ const ConsultPage: React.FC = () => {
     pushDebugLog(`Zoom capability detected: min=${min}, max=${max}, step=${step}, current=${current}`);
   }, [pushDebugLog]);
 
-  const applyZoom = useCallback(async (nextZoom: number) => {
+  const applyZoom = useCallback((nextZoom: number) => {
     if (!zoomSupported) return;
     const track = localStreamRef.current?.getVideoTracks?.()[0];
     if (!track) return;
     const { min, max } = zoomRange;
     const clamped = Math.min(max, Math.max(min, nextZoom));
     const normalized = Number(clamped.toFixed(4));
-    try {
-      await (track as any).applyConstraints?.({
+    void (track as any).applyConstraints?.({
         advanced: [{ zoom: normalized }]
+      }).catch((error: Error) => {
+        pushDebugLog(`Zoom apply failed: ${error.message}`);
       });
-    } catch (error) {
-      pushDebugLog(`Zoom apply failed: ${(error as Error).message}`);
-    }
   }, [pushDebugLog, zoomRange, zoomSupported]);
 
   const queueZoomApply = useCallback((nextZoom: number) => {
     const { min, max } = zoomRange;
     const clamped = Math.min(max, Math.max(min, nextZoom));
     setZoomValue(clamped);
-    queuedZoomValueRef.current = clamped;
-    if (zoomApplyInFlightRef.current) return;
+    pendingZoomValueRef.current = clamped;
+    if (zoomApplyRafRef.current !== null) return;
 
-    const run = async () => {
-      zoomApplyInFlightRef.current = true;
-      try {
-        while (queuedZoomValueRef.current !== null) {
-          const value = queuedZoomValueRef.current;
-          queuedZoomValueRef.current = null;
-          const elapsed = Date.now() - lastZoomApplyAtRef.current;
-          if (elapsed < 24) {
-            await new Promise((resolve) => setTimeout(resolve, 24 - elapsed));
-          }
-          await applyZoom(value);
-          lastZoomApplyAtRef.current = Date.now();
-        }
-      } finally {
-        zoomApplyInFlightRef.current = false;
+    const flush = () => {
+      zoomApplyRafRef.current = null;
+      const value = pendingZoomValueRef.current;
+      pendingZoomValueRef.current = null;
+      if (value === null) return;
+      applyZoom(value);
+      if (pendingZoomValueRef.current !== null) {
+        zoomApplyRafRef.current = window.requestAnimationFrame(flush);
       }
     };
 
-    void run();
+    zoomApplyRafRef.current = window.requestAnimationFrame(flush);
   }, [applyZoom, zoomRange]);
+
+  useEffect(() => {
+    return () => {
+      if (zoomApplyRafRef.current !== null) {
+        window.cancelAnimationFrame(zoomApplyRafRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const preventGesture = (event: Event) => {
