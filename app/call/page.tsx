@@ -81,6 +81,7 @@ const MOBILE_FRAME_WIDTH = 390;
 const MOBILE_FRAME_HEIGHT = 844;
 const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
+const CALL_HEALTH_POLL_MS = 1500;
 const createQuoteRow = (): QuotePricingRow => ({
   id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
   item: '',
@@ -165,6 +166,35 @@ const PainterCallCenter: React.FC = () => {
     estimateInviteSentRef.current ||
     phaseRef.current === 'videoInviteSent' ||
     phaseRef.current === 'quoteDraft';
+
+  const waitForConferenceToEnd = async (
+    conferenceId: string,
+    timeoutMs = 7000
+  ): Promise<'ended' | 'active'> => {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      try {
+        const response = await fetch(
+          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceId)}&_ts=${Date.now()}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'cache-control': 'no-cache',
+              pragma: 'no-cache'
+            }
+          }
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (response.ok && (!payload?.exists || payload?.mode === 'ending')) {
+          return 'ended';
+        }
+      } catch {
+        // no-op
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    return 'active';
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -518,54 +548,37 @@ const PainterCallCenter: React.FC = () => {
       remoteMemberPresentRef.current = false;
 
       if (isConsultExpected()) {
-        try {
-          const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
-          if (targetConferenceId) {
-            const response = await fetch(
-              `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(targetConferenceId)}&_ts=${Date.now()}`,
-              {
-                cache: 'no-store',
-                headers: {
-                  'cache-control': 'no-cache',
-                  pragma: 'no-cache'
-                }
-              }
-            );
-            const statePayload = await response.json().catch(() => ({}));
-            if (
-              response.ok &&
-              (!statePayload?.exists || statePayload?.mode === 'ending')
-            ) {
-              remoteEndingRef.current = true;
-              activeCallRef.current = false;
-              callAnsweredRef.current = false;
-              stopConferenceWatch();
-              if (findVideoTimerRef.current) {
-                window.clearInterval(findVideoTimerRef.current);
-                findVideoTimerRef.current = null;
-              }
-              await persistEstimateRecording().catch(() => undefined);
-              if (roomSessionRef.current) {
-                if (trackHandlerRef.current && roomSessionRef.current.off) {
-                  roomSessionRef.current.off('track', trackHandlerRef.current);
-                }
-                if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
-                  roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
-                }
-                if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
-                  roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
-                }
-                await roomSessionRef.current.leave().catch(() => undefined);
-                roomSessionRef.current = null;
-              }
-              setPhase('ended');
-              setStatus('Call ended by other participant.');
-              setHasVideoFrame(false);
-              return;
+        const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
+        if (targetConferenceId) {
+          const endState = await waitForConferenceToEnd(targetConferenceId);
+          if (endState === 'ended') {
+            remoteEndingRef.current = true;
+            activeCallRef.current = false;
+            callAnsweredRef.current = false;
+            stopConferenceWatch();
+            if (findVideoTimerRef.current) {
+              window.clearInterval(findVideoTimerRef.current);
+              findVideoTimerRef.current = null;
             }
+            await persistEstimateRecording().catch(() => undefined);
+            if (roomSessionRef.current) {
+              if (trackHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('track', trackHandlerRef.current);
+              }
+              if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+              }
+              if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+              }
+              await roomSessionRef.current.leave().catch(() => undefined);
+              roomSessionRef.current = null;
+            }
+            setPhase('ended');
+            setStatus('Call ended by other participant.');
+            setHasVideoFrame(false);
+            return;
           }
-        } catch {
-          // no-op
         }
         transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
         callAnsweredRef.current = false;
@@ -820,7 +833,7 @@ const PainterCallCenter: React.FC = () => {
       } catch (error) {
         console.error('Call health watcher error:', error);
       }
-    }, 4000);
+    }, CALL_HEALTH_POLL_MS);
   };
 
   const waitForCallAnswer = async (callSid: string, timeoutMs = 45000) => {

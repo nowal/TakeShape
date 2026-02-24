@@ -34,6 +34,9 @@ const isLikelyFrontCameraLabel = (label: string) =>
 const isLikelyBackCameraLabel = (label: string) =>
   /back|rear|environment|world/i.test(label);
 
+const getTouchDistance = (first: Touch, second: Touch) =>
+  Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
+
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -228,6 +231,9 @@ const ConsultPage: React.FC = () => {
     max: 1,
     step: 0.1
   });
+  const pinchStartDistanceRef = useRef<number | null>(null);
+  const pinchStartZoomRef = useRef<number | null>(null);
+  const pinchZoomPreviewRef = useRef<number>(1);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -536,6 +542,66 @@ const ConsultPage: React.FC = () => {
       pushDebugLog(`Zoom apply failed: ${(error as Error).message}`);
     }
   }, [pushDebugLog, zoomRange, zoomSupported]);
+
+  useEffect(() => {
+    const preventGesture = (event: Event) => {
+      if (!isQuoteMode) event.preventDefault();
+    };
+    const preventPinchTouch = (event: TouchEvent) => {
+      if (!isQuoteMode && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener('gesturestart', preventGesture, { passive: false });
+    document.addEventListener('gesturechange', preventGesture, { passive: false });
+    document.addEventListener('gestureend', preventGesture, { passive: false });
+    document.addEventListener('touchmove', preventPinchTouch, { passive: false });
+    return () => {
+      document.removeEventListener('gesturestart', preventGesture);
+      document.removeEventListener('gesturechange', preventGesture);
+      document.removeEventListener('gestureend', preventGesture);
+      document.removeEventListener('touchmove', preventPinchTouch);
+    };
+  }, [isQuoteMode]);
+
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!zoomSupported || isQuoteMode) return;
+    if (event.touches.length !== 2) {
+      pinchStartDistanceRef.current = null;
+      pinchStartZoomRef.current = null;
+      return;
+    }
+    event.preventDefault();
+    const distance = getTouchDistance(event.touches[0], event.touches[1]);
+    pinchStartDistanceRef.current = distance;
+    pinchStartZoomRef.current = zoomValue;
+    pinchZoomPreviewRef.current = zoomValue;
+  }, [isQuoteMode, zoomSupported, zoomValue]);
+
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!zoomSupported || isQuoteMode) return;
+    if (event.touches.length !== 2) return;
+    const startDistance = pinchStartDistanceRef.current;
+    const startZoom = pinchStartZoomRef.current;
+    if (!startDistance || !startZoom) return;
+    event.preventDefault();
+    const nextDistance = getTouchDistance(event.touches[0], event.touches[1]);
+    const ratio = nextDistance / startDistance;
+    const rawZoom = startZoom * ratio;
+    const { min, max } = zoomRange;
+    const clamped = Math.min(max, Math.max(min, rawZoom));
+    pinchZoomPreviewRef.current = clamped;
+    setZoomValue(clamped);
+    applyZoom(clamped);
+  }, [applyZoom, isQuoteMode, zoomRange, zoomSupported]);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length < 2) {
+      pinchStartDistanceRef.current = null;
+      pinchStartZoomRef.current = null;
+    }
+  }, []);
 
   const joinConsult = useCallback(async (token: string) => {
     stopQuoteWatcher();
@@ -851,7 +917,19 @@ const ConsultPage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff' }}>
+    <div
+      style={{
+        minHeight: '100dvh',
+        background: '#000',
+        color: '#fff',
+        touchAction: isQuoteMode ? 'pan-y' : 'none',
+        overscrollBehavior: 'none'
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#000' }}>
         {isEnded ? (
           <div
