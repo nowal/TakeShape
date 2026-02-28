@@ -240,9 +240,9 @@ export default function QuotesPage() {
             textAlign: 'center'
           }}
         >
-          <h2 style={{ margin: '0 0 8px 0' }}>Painter Login Required</h2>
+          <h2 style={{ margin: '0 0 8px 0' }}>Provider Login Required</h2>
           <p style={{ margin: 0, color: '#475569' }}>
-            This quotes screen is restricted to signed-in painter accounts.
+            This quotes screen is restricted to signed-in provider accounts.
           </p>
         </div>
       </div>

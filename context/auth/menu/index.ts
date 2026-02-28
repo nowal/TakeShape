@@ -125,7 +125,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
     if (isAgent) {
       onNavigateScrollTopClick('/agentDashboard');
     } else {
-      onNavigateScrollTopClick('/dashboard');
+      onNavigateScrollTopClick('/quotes');
     }
     window.scrollTo(0, 0);
     handleDropdownClose();
@@ -136,6 +136,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
 
   return {
     isMenuOpen,
+    isAgent,
     isFetchingProfilePicture,
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,

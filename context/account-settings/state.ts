@@ -28,7 +28,11 @@ import { resolveLogosUpload } from '@/utils/logos/upload';
 import { notifyError } from '@/utils/notifications';
 import { TAccountSettingsConfig } from '@/context/account-settings/types';
 import { useApp } from '@/context/app/provider';
-import { useAddressGeocodeHandler } from '@/hooks/address/geocode';
+import {
+  parseCoordsFromAddress,
+  resolveAddressFromCoords,
+  useAddressGeocodeHandler,
+} from '@/hooks/address/geocode';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 
 export const useAccountSettingsState = (
@@ -126,10 +130,29 @@ export const useAccountSettingsState = (
                 setBusinessName(
                   painterData.businessName || ''
                 );
-                dispatchAddressFormatted(
+                const rawPainterAddress = String(
                   painterData.address || ''
                 );
-                dispatchRange(painterData.range || 10);
+                const parsedCoordsAddress =
+                  parseCoordsFromAddress(
+                    rawPainterAddress
+                  );
+                let displayPainterAddress =
+                  rawPainterAddress;
+                if (parsedCoordsAddress) {
+                  const resolvedAddress =
+                    await resolveAddressFromCoords(
+                      parsedCoordsAddress
+                    );
+                  if (resolvedAddress) {
+                    displayPainterAddress =
+                      resolvedAddress;
+                  }
+                }
+                dispatchAddressFormatted(
+                  displayPainterAddress
+                );
+                dispatchRange(painterData.range ?? 0);
                 setInsured(painterData.isInsured || false);
                 setPhoneNumber(
                   painterData.phoneNumberRaw ||
@@ -138,9 +161,14 @@ export const useAccountSettingsState = (
                 );
                 setLogoUrl(painterData.logoUrl || null);
                 // Geocode address to set marker
-                const address = painterData.address;
+                const address =
+                  displayPainterAddress;
                 const nextCoords =
-                  await handleAddressGeocode(address);
+                  (painterData.coords as
+                    | { lat: number; lng: number }
+                    | undefined) ??
+                  parsedCoordsAddress ??
+                  (await handleAddressGeocode(address));
                 if (nextCoords) {
                   onCoordsUpdate(nextCoords);
                 }
@@ -287,7 +315,7 @@ export const useAccountSettingsState = (
           const updatedPainterData = {
             businessName,
             address: addressValue,
-            range,
+            range: 0,
             isInsured,
             logoUrl: updatedLogoUrl,
             phoneNumber: normalizedPhone,
@@ -368,7 +396,7 @@ export const useAccountSettingsState = (
           );
           console.log('DONE - redirect');
 
-          onNavigateScrollTopClick('/dashboard');
+          onNavigateScrollTopClick('/quotes');
         } else {
           setErrorMessage('Painter data not found.');
           return;

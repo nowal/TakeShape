@@ -15,13 +15,14 @@ export const AccountMenu = () => {
   const { menu } = useAuth();
   const {
     isMenuOpen,
+    isAgent,
     outsideClickRef,
     onMenuOpenToggle,
     onDashboardClick,
   } = menu;
   const signInButtonItem = useSignInButton();
   const dashboardItem: TAccountMenuListItem = [
-    'Dashboard',
+    isAgent ? 'Dashboard' : 'Quotes',
     onDashboardClick,
   ];
   const manageAccountItem: TAccountMenuListItem = [

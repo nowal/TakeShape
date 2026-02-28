@@ -48,7 +48,7 @@ export const ShellFooterRow: FC<TProps> = ({
               ],
             },
             {
-              title: 'For Painters',
+              title: 'For Providers',
               items: [
                 {
                   title: 'Partnership Requirements',
@@ -56,7 +56,7 @@ export const ShellFooterRow: FC<TProps> = ({
                 },
                 {
                   title: 'Request to Join',
-                  href: '/painterRegister',
+                  href: '/providerRegister',
                 },
               ],
             },

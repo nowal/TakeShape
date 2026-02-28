@@ -148,8 +148,8 @@ export const useSignIn = ({
               );
             }
           }
-          console.log(' NAV TO DASHBOARD ');
-          onNavigateScrollTopClick('/dashboard');
+          console.log(' NAV TO QUOTES ');
+          onNavigateScrollTopClick('/quotes');
           dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
         }
       } else {

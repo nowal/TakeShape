@@ -3,6 +3,10 @@ import { useAccountSettings } from '@/context/account-settings/provider';
 import { TInputProps } from '@/types/dom/element';
 import { InputsText } from '@/components/inputs/text';
 import { AddressAutocomplete } from '@/components/painter/address/autocomplete';
+import {
+  parseCoordsFromAddress,
+  resolveAddressFromCoords,
+} from '@/hooks/address/geocode';
 
 type TProps = TInputProps;
 export const InputsAddress: FC<TProps> = (props) => {
@@ -19,6 +23,25 @@ export const InputsAddress: FC<TProps> = (props) => {
       dispatchAddress(addressFormatted);
     }
   }, [addressFormatted]);
+
+  useEffect(() => {
+    if (addressFormatted !== null) return;
+    const coords = parseCoordsFromAddress(address);
+    if (!coords) return;
+
+    let isMounted = true;
+    resolveAddressFromCoords(coords).then(
+      (resolvedAddress) => {
+        if (!isMounted || !resolvedAddress) return;
+        dispatchAddressFormatted(resolvedAddress);
+        dispatchAddress(resolvedAddress);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, [address, addressFormatted]);
 
   return (
     <div>

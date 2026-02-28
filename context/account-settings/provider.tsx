@@ -26,7 +26,7 @@ export const useAccountSettings =
 export const AccountSettingsProvider: FC<
   PropsWithChildren
 > = ({ children }) => {
-  const [range, setRange] = useState(10);
+  const [range, setRange] = useState(0);
   const [coords, setCoords] = useState<TCoordsValue>(null);
 
   const accountSettingsAddress =

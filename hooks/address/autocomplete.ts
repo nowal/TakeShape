@@ -29,13 +29,10 @@ export const useAddressAutocomplete = (
   const handleBoundsUpdate = useBoundsUpdate();
 
   const init = async (
-    map: google.maps.Map,
     places: google.maps.PlacesLibrary
   ) => {
     const { Autocomplete } = places;
-    console.log("Here1");
     if (!addressInputRef.current) return null;
-    console.log("Here2");
     const autocomplete = new Autocomplete(
       addressInputRef.current,
       {
@@ -45,7 +42,6 @@ export const useAddressAutocomplete = (
     );
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
-      console.log("Here3");
       if (
         !place.geometry ||
         !place.geometry.location ||
@@ -57,7 +53,6 @@ export const useAddressAutocomplete = (
         return;
       }
 
-      console.log("Here4");
       const formattedAddress = place.formatted_address;
       const location = place.geometry.location;
 
@@ -68,19 +63,19 @@ export const useAddressAutocomplete = (
         lng: location.lng(),
       };
 
-      handleBoundsUpdate(
-        map,
-        nextCoords,
-        currentRef.current.range
-      );
+      if (map !== null) {
+        handleBoundsUpdate(
+          map,
+          nextCoords,
+          currentRef.current.range
+        );
+      }
       onCoordsUpdate(nextCoords);
-      console.log("Here5");
     });
   };
 
   useEffect(() => {
     if (places === null) return;
-    if (map === null) return;
-    init(map, places);
+    init(places);
   }, [map, places]);
 };

@@ -89,7 +89,7 @@ export const usePainterRegisterState = () => {
         businessName,
         address: addressValue,
         ...(coords ? { coords } : {}),
-        range,
+        range: 0,
         isInsured: false,
         logoUrl,
         phoneNumber: normalizedPhone,
@@ -162,7 +162,7 @@ export const usePainterRegisterState = () => {
       }
 
       dispatchPainter(true); // Set the user as a painter
-      onNavigateScrollTopClick('/dashboard');
+      onNavigateScrollTopClick('/quotes');
     } catch (error) {
       console.error('Error registering painter: ', error);
       const errorMessage: null | string = errorAuth(error);

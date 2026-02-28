@@ -18,6 +18,7 @@ export const ShellHeaderMobileMenu = () => {
   const {
     onDashboardClick,
     isMenuOpen,
+    isAgent,
     dispatchMenuOpen,
   } = menu;
   const [title, handler] = useSignInButton();
@@ -34,7 +35,7 @@ export const ShellHeaderMobileMenu = () => {
   }, [viewport.isResizing]);
 
   const dashboardItems = [
-    ['Dashboard', onDashboardClick],
+    [isAgent ? 'Dashboard' : 'Quotes', onDashboardClick],
     [
       'Manage Account',
       () => onNavigateScrollTopClick('/accountSettings'),
