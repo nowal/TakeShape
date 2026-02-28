@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { QuoteButton } from '@/components/buttons/quote/quoteButton';
+import { SignUpButton } from '@/components/buttons/sign-up/signUpButton';
 import { cx } from 'class-variance-authority';
 import { InViewReplacersFadeUp } from '@/components/in-view/replacers/fade-up';
 
@@ -23,7 +23,7 @@ export const LandingDreamRoomText: FC = () => {
         </InViewReplacersFadeUp>
       </h4>
       <div className="h-6" />
-      <QuoteButton />
+      <SignUpButton />
     </div>
   );
 };

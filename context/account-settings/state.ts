@@ -320,83 +320,34 @@ export const useAccountSettingsState = (
             logoUrl: updatedLogoUrl,
             phoneNumber: normalizedPhone,
             phoneNumberRaw: phoneNumber,
+            ...(phoneChanged
+              ? {
+                  signalwireCallerId: {
+                    status: 'unverified',
+                    phoneNumber: normalizedPhone,
+                    alreadyVerified: false,
+                    initiatedAt: null,
+                    id: null,
+                    callSid: null,
+                    error: null,
+                  },
+                }
+              : {}),
           };
 
           await updateDoc(
             painterDocRef,
             updatedPainterData
           );
-          if (phoneChanged) {
-            try {
-              const verifyResponse = await fetch(
-                '/api/signalwire/verify-caller-id',
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type':
-                      'application/json',
-                  },
-                  body: JSON.stringify({
-                    phoneNumber: normalizedPhone,
-                    friendlyName: businessName,
-                  }),
-                }
-              );
-              const verifyPayload =
-                await verifyResponse
-                  .json()
-                  .catch(() => ({}));
-
-              if (verifyResponse.ok) {
-                await updateDoc(painterDocRef, {
-                  signalwireCallerId: {
-                    status:
-                      verifyPayload.status ||
-                      'pending',
-                    id:
-                      verifyPayload.id || null,
-                    callSid:
-                      verifyPayload.callSid ||
-                      null,
-                    phoneNumber:
-                      verifyPayload.phoneNumber ||
-                      normalizedPhone,
-                    alreadyVerified: Boolean(
-                      verifyPayload.alreadyVerified
-                    ),
-                    initiatedAt:
-                      new Date().toISOString(),
-                  },
-                });
-              } else {
-                await updateDoc(painterDocRef, {
-                  signalwireCallerId: {
-                    status:
-                      'verification_failed',
-                    phoneNumber:
-                      normalizedPhone,
-                    error:
-                      verifyPayload?.error ||
-                      'Failed to start caller ID verification',
-                    initiatedAt:
-                      new Date().toISOString(),
-                  },
-                });
-              }
-            } catch (verifyError) {
-              console.error(
-                'Phone change verification error:',
-                verifyError
-              );
-            }
-          }
           console.log(
             'Painter info updated:',
             updatedPainterData
           );
           console.log('DONE - redirect');
 
-          onNavigateScrollTopClick('/quotes');
+          onNavigateScrollTopClick(
+            phoneChanged ? '/call' : '/quotes'
+          );
         } else {
           setErrorMessage('Painter data not found.');
           return;

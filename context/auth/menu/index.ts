@@ -137,6 +137,7 @@ export const useAuthMenu = (config: TAuthConfig) => {
   return {
     isMenuOpen,
     isAgent,
+    isPainter,
     isFetchingProfilePicture,
     outsideClickRef,
     onMenuOpenToggle: handleMenuOpenToggle,

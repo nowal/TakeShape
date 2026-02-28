@@ -16,6 +16,7 @@ export const AccountMenu = () => {
   const {
     isMenuOpen,
     isAgent,
+    isPainter,
     outsideClickRef,
     onMenuOpenToggle,
     onDashboardClick,
@@ -29,8 +30,13 @@ export const AccountMenu = () => {
     'Manage Account',
     () => onNavigateScrollTopClick('/accountSettings'),
   ];
+  const callItem: TAccountMenuListItem = [
+    'Call',
+    () => onNavigateScrollTopClick('/call'),
+  ];
   const items = [
     dashboardItem,
+    ...(isPainter && !isAgent ? [callItem] : []),
     manageAccountItem,
     signInButtonItem,
   ] satisfies TAccountMenuListItem[];

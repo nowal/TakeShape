@@ -12,7 +12,7 @@ import { ShellHeaderBackground } from '@/components/shell/header/background';
 
 export const ShellHeader = () => {
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const isLanding = pathname === '/landing';
   const viewport = useViewport();
   const height = viewport.headerHeight;
   const headerBackgroundColor = '#FFFFFF'
@@ -20,7 +20,7 @@ export const ShellHeader = () => {
   return (
     <header
       className={cx(
-        isHome ? 'fixed' : 'relative',
+        isLanding ? 'fixed' : 'relative',
         'flex justify-center',
         'w-full',
         'top-0 inset-x-0 pt-3.5',

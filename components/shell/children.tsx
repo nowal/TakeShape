@@ -8,13 +8,13 @@ import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 type TProps = TPropsWithChildren;
 export const ShellChildren: FC<TProps> = ({ children }) => {
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const isLanding = pathname === '/landing';
   return (
     <div
       className={cx(
-        'relative min-h-[400px]',
-        isHome ? 'my-0' : 'mt-8 mb-12',
-        isHome ? 'min-h-screen' : 'min-h-[400px]'
+        'relative min-h-[400px] flex-1',
+        isLanding ? 'my-0' : 'mt-8 mb-12',
+        isLanding ? 'min-h-screen' : 'min-h-[400px]'
       )}
     >
       <Suspense fallback={<FallbacksLogoFill />}>

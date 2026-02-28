@@ -18,6 +18,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
+import { InputsText } from '@/components/inputs/text';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended' | 'dropped';
 
@@ -57,6 +59,15 @@ type QuoteMetaRow = {
   price: string;
 };
 
+type CallerIdStatusResponse = {
+  exists?: boolean;
+  verified?: boolean;
+  phoneNumber?: string | null;
+  id?: string | null;
+  status?: string;
+  error?: string;
+};
+
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -76,7 +87,7 @@ const isQuoteModePayload = (payload: any) => {
   return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
 };
 
-const DEFAULT_HOMEOWNER_NUMBER = '+16784471565';
+const DEFAULT_HOMEOWNER_NUMBER = '';
 const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
 const CALL_HEALTH_POLL_MS = 1500;
@@ -105,6 +116,20 @@ const parseMoneyValue = (value: string) => {
   return Math.round(parsed * 100) / 100;
 };
 
+const formatUsPhoneInput = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+
+  if (digits.length === 0) return '';
+  if (digits.length < 4) return `(${digits}`;
+  if (digits.length < 7) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+  return `(${digits.slice(0, 3)}) ${digits.slice(
+    3,
+    6
+  )}-${digits.slice(6)}`;
+};
+
 const PainterCallCenter: React.FC = () => {
   const [status, setStatus] = useState('Ready');
   const [phase, setPhase] = useState<CallPhase>('idle');
@@ -118,12 +143,21 @@ const PainterCallCenter: React.FC = () => {
   const [isPainterUser, setPainterUser] = useState(false);
   const [painterDocId, setPainterDocId] = useState<string | null>(null);
   const [authUid, setAuthUid] = useState<string | null>(null);
+  const [homeownerNameInput, setHomeownerNameInput] = useState('');
+  const [homeownerAddressInput, setHomeownerAddressInput] = useState('');
+  const [homeownerEmailInput, setHomeownerEmailInput] = useState('');
   const [homeownerNumberInput, setHomeownerNumberInput] = useState(DEFAULT_HOMEOWNER_NUMBER);
   const [painterCallerId, setPainterCallerId] = useState('');
   const [quoteRows, setQuoteRows] = useState<QuotePricingRow[]>([createQuoteRow()]);
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
+  const [isCallerIdVerified, setCallerIdVerified] = useState(false);
+  const [isCheckingCallerId, setCheckingCallerId] = useState(false);
+  const [isRequestingCallerIdVerification, setRequestingCallerIdVerification] = useState(false);
+  const [callerIdVerificationError, setCallerIdVerificationError] = useState<string | null>(null);
+  const [storedCallerIdId, setStoredCallerIdId] = useState<string | null>(null);
+  const [requiresCallerIdVerification, setRequiresCallerIdVerification] = useState(false);
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -138,6 +172,11 @@ const PainterCallCenter: React.FC = () => {
   const findVideoTimerRef = useRef<number | null>(null);
   const trackHandlerRef = useRef<((event: RTCTrackEvent) => void) | null>(null);
   const activeHomeownerNumberRef = useRef(DEFAULT_HOMEOWNER_NUMBER);
+  const activeHomeownerNameRef = useRef('');
+  const activeHomeownerAddressRef = useRef('');
+  const activeHomeownerEmailRef = useRef<string | null>(null);
+  const homeownerAddressInputRef =
+    useRef<HTMLInputElement | null>(null);
   const activeCallSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
@@ -153,9 +192,58 @@ const PainterCallCenter: React.FC = () => {
   const memberLeftHandlerRef = useRef<((payload: any) => void) | null>(null);
   const quoteDocIdRef = useRef<string | null>(null);
   const recordingPersistedRef = useRef(false);
+  const callerIdPollTimerRef = useRef<number | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
+  const places = useMapsLibrary('places');
+
+  useEffect(() => {
+    setHomeownerAddressInput('');
+  }, []);
+
+  const stopCallerIdPolling = () => {
+    if (callerIdPollTimerRef.current) {
+      window.clearInterval(callerIdPollTimerRef.current);
+      callerIdPollTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (!places || !homeownerAddressInputRef.current) {
+      return;
+    }
+
+    const { Autocomplete } = places;
+    const autocomplete = new Autocomplete(
+      homeownerAddressInputRef.current,
+      {
+        fields: ['formatted_address'],
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+      }
+    );
+
+    const listener = autocomplete.addListener(
+      'place_changed',
+      () => {
+        const place = autocomplete.getPlace();
+        const formattedAddress = String(
+          place?.formatted_address || ''
+        ).trim();
+
+        if (!formattedAddress) return;
+        setHomeownerAddressInput(formattedAddress);
+      }
+    );
+
+    return () => {
+      google.maps.event.removeListener(listener);
+      google.maps.event.clearInstanceListeners(
+        autocomplete
+      );
+    };
+  }, [places]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -210,6 +298,7 @@ const PainterCallCenter: React.FC = () => {
       setPainterDocId(null);
       setPainterUser(false);
       setPainterCallerId('');
+      setCallerIdVerified(false);
       setCheckingAuth(false);
     }, AUTH_CHECK_TIMEOUT_MS);
 
@@ -240,6 +329,8 @@ const PainterCallCenter: React.FC = () => {
             setPainterDocId(null);
             setPainterUser(false);
             setPainterCallerId('');
+            setCallerIdVerified(false);
+            stopCallerIdPolling();
             return;
           }
 
@@ -266,11 +357,26 @@ const PainterCallCenter: React.FC = () => {
               )
             );
             setPainterCallerId(normalizedPhone || '');
+            const signalwireCallerId = (
+              painterData.signalwireCallerId ||
+              null
+            ) as Record<string, unknown> | null;
+            setStoredCallerIdId(
+              String(signalwireCallerId?.id || '').trim() ||
+                null
+            );
+            setCallerIdVerified(false);
+            setRequiresCallerIdVerification(false);
             setPainterUser(true);
+            setCallerIdVerificationError(null);
           } else {
             setPainterDocId(null);
             setPainterUser(false);
             setPainterCallerId('');
+            setStoredCallerIdId(null);
+            setRequiresCallerIdVerification(false);
+            setCallerIdVerified(false);
+            stopCallerIdPolling();
           }
         } catch (error) {
           console.error('Call page auth check failed:', error);
@@ -279,6 +385,10 @@ const PainterCallCenter: React.FC = () => {
           setPainterDocId(null);
           setPainterUser(false);
           setPainterCallerId('');
+          setStoredCallerIdId(null);
+          setRequiresCallerIdVerification(false);
+          setCallerIdVerified(false);
+          stopCallerIdPolling();
         } finally {
           if (!isMounted) return;
           window.clearTimeout(authCheckTimeout);
@@ -293,6 +403,10 @@ const PainterCallCenter: React.FC = () => {
         setPainterDocId(null);
         setPainterUser(false);
         setPainterCallerId('');
+        setStoredCallerIdId(null);
+        setRequiresCallerIdVerification(false);
+        setCallerIdVerified(false);
+        stopCallerIdPolling();
         setCheckingAuth(false);
       }
     );
@@ -305,7 +419,20 @@ const PainterCallCenter: React.FC = () => {
   }, [auth, firestore]);
 
   useEffect(() => {
+    if (!isPainterUser || !painterCallerId) {
+      setCallerIdVerified(false);
+      setStoredCallerIdId(null);
+      setRequiresCallerIdVerification(false);
+      stopCallerIdPolling();
+      return;
+    }
+
+    checkCallerIdVerification().catch(() => undefined);
+  }, [isPainterUser, painterCallerId, storedCallerIdId]);
+
+  useEffect(() => {
     return () => {
+      stopCallerIdPolling();
       if (findVideoTimerRef.current) {
         window.clearInterval(findVideoTimerRef.current);
       }
@@ -335,6 +462,135 @@ const PainterCallCenter: React.FC = () => {
       throw new Error(detail || fallbackMessage);
     }
     return payload;
+  };
+
+  const checkCallerIdVerification = async () => {
+    const normalizedPainterCallerId =
+      normalizeUsPhoneToE164(painterCallerId);
+    if (!normalizedPainterCallerId) {
+      setCallerIdVerified(false);
+      return false;
+    }
+
+    setCheckingCallerId(true);
+    try {
+      const response = await fetch(
+        `/api/signalwire/verify-caller-id?phoneNumber=${encodeURIComponent(normalizedPainterCallerId)}${
+          storedCallerIdId
+            ? `&callerIdId=${encodeURIComponent(storedCallerIdId)}`
+            : ''
+        }`,
+        { cache: 'no-store' }
+      );
+      const payload =
+        (await response.json().catch(() => ({}))) as CallerIdStatusResponse;
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error ||
+            'Failed to check caller ID verification'
+        );
+      }
+
+      const verified = Boolean(payload.verified);
+      setCallerIdVerified(verified);
+      setStoredCallerIdId(payload.id || null);
+      setRequiresCallerIdVerification(!verified);
+
+      if (verified) {
+        setCallerIdVerificationError(null);
+        stopCallerIdPolling();
+      }
+
+      return verified;
+    } catch (error) {
+      console.error(
+        'Caller ID status check failed:',
+        error
+      );
+      setCallerIdVerified((previous) => previous);
+      setCallerIdVerificationError(
+        (error as Error).message
+      );
+      return false;
+    } finally {
+      setCheckingCallerId(false);
+    }
+  };
+
+  const startCallerIdPolling = () => {
+    stopCallerIdPolling();
+    callerIdPollTimerRef.current =
+      window.setInterval(() => {
+        checkCallerIdVerification().catch(() => undefined);
+      }, 5000);
+  };
+
+  const triggerCallerIdVerification = async () => {
+    const normalizedPainterCallerId =
+      normalizeUsPhoneToE164(painterCallerId);
+
+    if (!normalizedPainterCallerId) {
+      setCallerIdVerificationError(
+        'Your provider phone number is missing or invalid. Update it in your account settings first.'
+      );
+      return;
+    }
+
+    setRequestingCallerIdVerification(true);
+    setCallerIdVerificationError(null);
+
+    try {
+      const response = await fetch(
+        '/api/signalwire/verify-caller-id',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            phoneNumber: normalizedPainterCallerId,
+            friendlyName: 'Painter Caller ID'
+          })
+        }
+      );
+      const payload = await getJsonOrThrow(
+        response,
+        'Failed to start caller ID verification'
+      );
+
+      const verified =
+        Boolean(payload.alreadyVerified) ||
+        String(payload.status || '')
+          .toLowerCase()
+          .includes('verified') ||
+        String(payload.status || '')
+          .toLowerCase() === 'owned';
+
+      setCallerIdVerified(verified);
+      setStoredCallerIdId(payload.id || null);
+      setRequiresCallerIdVerification(!verified);
+
+      if (verified) {
+        setStatus('Phone number verified.');
+        return;
+      }
+
+      setStatus(
+        'Verification call started. Answer your phone to verify your number.'
+      );
+      startCallerIdPolling();
+    } catch (error) {
+      console.error(
+        'Caller ID verification start failed:',
+        error
+      );
+      setCallerIdVerificationError(
+        (error as Error).message
+      );
+    } finally {
+      setRequestingCallerIdVerification(false);
+    }
   };
 
   const fetchWithTimeout = async (
@@ -984,6 +1240,9 @@ const PainterCallCenter: React.FC = () => {
       {
         painterId: painterDocId,
         userId: authUid || null,
+        homeownerName: activeHomeownerNameRef.current || null,
+        homeownerAddress: activeHomeownerAddressRef.current || null,
+        homeownerEmail: activeHomeownerEmailRef.current,
         homeownerPhone: activeHomeownerNumberRef.current || null,
         signalwireConferenceId: conference?.id || null,
         signalwireConferenceName: conference?.name || null,
@@ -1037,6 +1296,9 @@ const PainterCallCenter: React.FC = () => {
       await updateDoc(
         doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
         {
+          homeownerName: activeHomeownerNameRef.current || null,
+          homeownerAddress: activeHomeownerAddressRef.current || null,
+          homeownerEmail: activeHomeownerEmailRef.current,
           homeownerPhone: activeHomeownerNumberRef.current || null,
           signalwireConferenceId: conference.id,
           signalwireConferenceName: conference.name,
@@ -1122,14 +1384,38 @@ const PainterCallCenter: React.FC = () => {
       setHasSubmittedQuote(false);
       quoteDocIdRef.current = null;
       recordingPersistedRef.current = false;
+      const normalizedHomeownerName = homeownerNameInput.trim();
+      const normalizedHomeownerAddress = homeownerAddressInput.trim();
+      const normalizedHomeownerEmail = homeownerEmailInput.trim().toLowerCase();
       const normalizedHomeowner = normalizeUsPhoneToE164(homeownerNumberInput);
+      if (!normalizedHomeownerName) {
+        setStatus('Enter the homeowner name.');
+        return;
+      }
+      if (!normalizedHomeownerAddress) {
+        setStatus('Enter the homeowner address.');
+        return;
+      }
       if (!normalizedHomeowner) {
         setStatus('Enter a valid US homeowner phone number.');
         return;
       }
+      if (
+        normalizedHomeownerEmail &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          normalizedHomeownerEmail
+        )
+      ) {
+        setStatus('Enter a valid homeowner email or leave it blank.');
+        return;
+      }
       const normalizedPainterCallerId = normalizeUsPhoneToE164(painterCallerId);
       if (!normalizedPainterCallerId) {
-        setStatus('Painter caller ID is missing or invalid. Re-register phone verification.');
+        setStatus('Painter caller ID is missing or invalid. Update your account settings.');
+        return;
+      }
+      if (requiresCallerIdVerification && !isCallerIdVerified) {
+        setStatus('Verify your phone number before calling homeowners.');
         return;
       }
 
@@ -1197,6 +1483,10 @@ const PainterCallCenter: React.FC = () => {
       setGuestLink(
         `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId)}`
       );
+      activeHomeownerNameRef.current = normalizedHomeownerName;
+      activeHomeownerAddressRef.current = normalizedHomeownerAddress;
+      activeHomeownerEmailRef.current =
+        normalizedHomeownerEmail || null;
       activeHomeownerNumberRef.current = normalizedHomeowner;
 
       setStatus('Dialing homeowner...');
@@ -1533,12 +1823,91 @@ const PainterCallCenter: React.FC = () => {
   const disabledPrimaryActionColor = `${PRIMARY_COLOR_HEX}99`;
 
   return (
-    <div style={{ minHeight: '100dvh', background: isActiveCallUI ? '#000' : 'radial-gradient(circle at 15% 0%, #edf7ff 0%, #f5f7fb 55%, #eef2f8 100%)', color: '#fff', padding: isActiveCallUI ? 0 : '8px' }}>
+    <div style={{ minHeight: '100dvh', background: isActiveCallUI ? '#000' : 'transparent', color: isActiveCallUI ? '#fff' : '#0f172a', padding: isActiveCallUI ? 0 : '8px' }}>
+      <style jsx global>{`
+        .pac-container {
+          z-index: 99999 !important;
+          border-radius: 12px;
+          border: 1px solid #dbe3ef;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          overflow: hidden;
+        }
+
+        .pac-item {
+          padding: 10px 12px;
+        }
+      `}</style>
       <div style={{ maxWidth: isActiveCallUI ? '100%' : 900, margin: '0 auto' }}>
         {!isActiveCallUI && (
           <div style={{ textAlign: 'center', margin: '8px 0 12px 0' }}>
             <div style={{ fontSize: 12, color: '#92a0b5', letterSpacing: 1 }}>{stageLabel}</div>
-            <div style={{ marginTop: 6, fontWeight: 600 }}>{status}</div>
+            <div style={{ marginTop: 6, fontWeight: 600, color: '#0f172a' }}>{status}</div>
+          </div>
+        )}
+        {!isActiveCallUI && isPainterUser && requiresCallerIdVerification && !isCallerIdVerified && (
+          <div
+            style={{
+              maxWidth: 764,
+              margin: '0 auto 16px',
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: `${PRIMARY_COLOR_HEX}22`,
+              border: `1px solid ${PRIMARY_COLOR_HEX}55`,
+              color: '#0f172a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ flex: '1 1 320px' }}>
+              <div style={{ fontWeight: 600 }}>
+                It looks like you haven&apos;t verified your phone number yet, click the button to get a verification phone call.
+              </div>
+              {(callerIdVerificationError || isCheckingCallerId) && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 13,
+                    opacity: 0.8
+                  }}
+                >
+                  {isCheckingCallerId
+                    ? 'Checking verification status...'
+                    : callerIdVerificationError}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={triggerCallerIdVerification}
+              disabled={
+                isRequestingCallerIdVerification ||
+                isCheckingCallerId
+              }
+              style={{
+                border: 'none',
+                borderRadius: 12,
+                background: PRIMARY_COLOR_HEX,
+                color: '#fff',
+                padding: '12px 18px',
+                fontWeight: 700,
+                cursor:
+                  isRequestingCallerIdVerification ||
+                  isCheckingCallerId
+                    ? 'not-allowed'
+                    : 'pointer',
+                opacity:
+                  isRequestingCallerIdVerification ||
+                  isCheckingCallerId
+                    ? 0.75
+                    : 1
+              }}
+            >
+              {isRequestingCallerIdVerification
+                ? 'Starting...'
+                : 'Verify Number'}
+            </button>
           </div>
         )}
         {isActiveCallUI && (
@@ -1560,41 +1929,100 @@ const PainterCallCenter: React.FC = () => {
         )}
 
         {phase === 'idle' && (
-          <div style={{ maxWidth: 440, margin: '0 auto', background: '#171a20', border: '1px solid #2a2f36', borderRadius: 14, padding: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, color: '#b6c2d4', marginBottom: 8 }}>Call from (verified painter number)</label>
-            <input
-              value={painterCallerId}
-              disabled
-              style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #3a404a', background: '#0f1217', color: '#94a3b8', marginBottom: 10 }}
-            />
-            <label style={{ display: 'block', fontSize: 13, color: '#b6c2d4', marginBottom: 8 }}>Number to call</label>
-            <input
-              value={homeownerNumberInput}
-              onChange={(event) => setHomeownerNumberInput(event.target.value)}
-              style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #3a404a', background: '#0f1217', color: '#fff' }}
-            />
-            <button
-              onClick={startPhoneCall}
-              disabled={isStartingCall}
-              style={{
-                width: '100%',
-                marginTop: 14,
-                padding: 14,
-                border: 'none',
-                borderRadius: 999,
-                background: isStartingCall ? disabledPrimaryActionColor : primaryActionColor,
-                color: '#fff',
-                fontWeight: 700,
-                cursor: isStartingCall ? 'not-allowed' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8
-              }}
+          <div className="relative flex flex-col gap-5 items-center px-4 py-8">
+            <h2
+              className="typography-page-title"
+              style={{ color: '#0f172a' }}
             >
-              <Phone size={18} />
-              Call
-            </button>
+              Start Virtual Estimate
+            </h2>
+            <div className="relative flex flex-col gap-5 items-center w-full sm:w-[382px]">
+              <div className="fill-column-white-sm w-full">
+                <div className="flex flex-col gap-4">
+                  <InputsText
+                    value={homeownerNameInput}
+                    onChange={(event) =>
+                      setHomeownerNameInput(event.target.value)
+                    }
+                    placeholder="Homeowner Name"
+                    required
+                  />
+                  <InputsText
+                    ref={homeownerAddressInputRef}
+                    value={homeownerAddressInput}
+                    onChange={(event) =>
+                      setHomeownerAddressInput(
+                        event.target.value
+                      )
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                      }
+                    }}
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    placeholder="Property Address"
+                    required
+                  />
+                  <InputsText
+                    type="tel"
+                    inputMode="numeric"
+                    value={homeownerNumberInput}
+                    onChange={(event) =>
+                      setHomeownerNumberInput(
+                        formatUsPhoneInput(
+                          event.target.value
+                        )
+                      )
+                    }
+                    placeholder="(555) 123-4567"
+                    required
+                  />
+                  <InputsText
+                    type="email"
+                    value={homeownerEmailInput}
+                    onChange={(event) =>
+                      setHomeownerEmailInput(event.target.value)
+                    }
+                    placeholder="Homeowner Email (Optional)"
+                  />
+                  <button
+                    onClick={startPhoneCall}
+                    disabled={
+                      isStartingCall ||
+                      (requiresCallerIdVerification &&
+                        !isCallerIdVerified)
+                    }
+                    style={{
+                      width: '100%',
+                      padding: 16,
+                      border: 'none',
+                      borderRadius: 12,
+                      background: isStartingCall
+                        || (requiresCallerIdVerification &&
+                          !isCallerIdVerified)
+                        ? disabledPrimaryActionColor
+                        : primaryActionColor,
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: isStartingCall || (requiresCallerIdVerification && !isCallerIdVerified)
+                        ? 'not-allowed'
+                        : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                  >
+                    <Phone size={18} />
+                    {isStartingCall
+                      ? 'Starting...'
+                      : 'Call Homeowner'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

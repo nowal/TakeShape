@@ -224,7 +224,7 @@ export default function QuotesPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'radial-gradient(circle at 20% 0%, #ecf7ff 0%, #f8fafc 55%, #eef2f7 100%)',
+          background: 'transparent',
           color: '#0f172a',
           padding: 24
         }}
@@ -253,7 +253,7 @@ export default function QuotesPage() {
     <div
       style={{
         minHeight: '100dvh',
-        background: 'radial-gradient(circle at 15% 0%, #edf7ff 0%, #f5f7fb 55%, #eef2f8 100%)',
+        background: 'transparent',
         padding: '20px 12px'
       }}
     >

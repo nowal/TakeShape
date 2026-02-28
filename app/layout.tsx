@@ -42,7 +42,7 @@ export default function RootLayout({ children }: TProps) {
       <Provider>
         <body className="font-montserrat">
           <div className="fixed inset-0 bg-white" />
-          <div className="relative flex flex-col items-stretch max-w-shell w-full mx-auto">
+          <div className="relative flex min-h-screen flex-col items-stretch max-w-shell w-full mx-auto">
             <MotionConfig transition={MOTION_CONFIG}>
               <ContextProviders>
                 <ShellHeader />

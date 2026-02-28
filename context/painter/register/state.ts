@@ -8,7 +8,6 @@ import {
   doc,
   setDoc,
   collection,
-  updateDoc,
 } from 'firebase/firestore';
 import {
   getAuth,
@@ -95,8 +94,9 @@ export const usePainterRegisterState = () => {
         phoneNumber: normalizedPhone,
         phoneNumberRaw: phoneNumber,
         signalwireCallerId: {
-          status: 'pending',
-          initiatedAt: new Date().toISOString(),
+          status: 'unverified',
+          phoneNumber: normalizedPhone,
+          initiatedAt: null,
         },
         userId: user.uid, // Link the painter data to the user ID
         sessions: [], // Initialize empty sessions array for storing lead session IDs
@@ -110,59 +110,8 @@ export const usePainterRegisterState = () => {
       await setDoc(painterDocRef, painterData);
       console.log('Painter info saved:', painterData);
 
-      try {
-        const verifyResponse = await fetch(
-          '/api/signalwire/verify-caller-id',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              phoneNumber: normalizedPhone,
-              friendlyName: businessName,
-            }),
-          }
-        );
-        const verifyPayload = await verifyResponse
-          .json()
-          .catch(() => ({}));
-
-        if (verifyResponse.ok) {
-          await updateDoc(painterDocRef, {
-            signalwireCallerId: {
-              status:
-                verifyPayload.status || 'pending',
-              id: verifyPayload.id || null,
-              callSid:
-                verifyPayload.callSid || null,
-              phoneNumber:
-                verifyPayload.phoneNumber ||
-                normalizedPhone,
-              initiatedAt: new Date().toISOString(),
-            },
-          });
-        } else {
-          await updateDoc(painterDocRef, {
-            signalwireCallerId: {
-              status: 'verification_failed',
-              phoneNumber: normalizedPhone,
-              error:
-                verifyPayload?.error ||
-                'Failed to start caller ID verification',
-              initiatedAt: new Date().toISOString(),
-            },
-          });
-        }
-      } catch (verificationError) {
-        console.error(
-          'Failed to auto-start caller ID verification:',
-          verificationError
-        );
-      }
-
       dispatchPainter(true); // Set the user as a painter
-      onNavigateScrollTopClick('/quotes');
+      onNavigateScrollTopClick('/call');
     } catch (error) {
       console.error('Error registering painter: ', error);
       const errorMessage: null | string = errorAuth(error);

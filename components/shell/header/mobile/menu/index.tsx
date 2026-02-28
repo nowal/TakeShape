@@ -19,6 +19,7 @@ export const ShellHeaderMobileMenu = () => {
     onDashboardClick,
     isMenuOpen,
     isAgent,
+    isPainter,
     dispatchMenuOpen,
   } = menu;
   const [title, handler] = useSignInButton();
@@ -36,6 +37,14 @@ export const ShellHeaderMobileMenu = () => {
 
   const dashboardItems = [
     [isAgent ? 'Dashboard' : 'Quotes', onDashboardClick],
+    ...(isPainter && !isAgent
+      ? [
+          [
+            'Call',
+            () => onNavigateScrollTopClick('/call'),
+          ] satisfies TAccountMenuListItem,
+        ]
+      : []),
     [
       'Manage Account',
       () => onNavigateScrollTopClick('/accountSettings'),

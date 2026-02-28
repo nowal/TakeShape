@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { QuoteButton } from '@/components/buttons/quote/quoteButton';
+import { SignUpButton } from '@/components/buttons/sign-up/signUpButton';
 import { TextLayout } from '@/components/text/layout';
 import { cx } from 'class-variance-authority';
 
@@ -32,7 +32,7 @@ export const LandingProblemAndDecisionText: FC = () => {
       />
       <div className="h-8" />
       <div className="hidden xl:flex">
-        <QuoteButton />
+        <SignUpButton />
       </div>
     </div>
   );

@@ -1,9 +1,5 @@
 'use client';
-import { LinesHorizontal } from '@/components/lines/horizontal';
-import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
-import { ShellFooterEmail } from '@/components/shell/footer/email';
 import { cx } from 'class-variance-authority';
-import { ShellFooterRow } from '@/components/shell/footer/row';
 import { ShellFooterLogo } from '@/components/shell/footer/logo';
 
 export const ShellFooter = () => {
@@ -21,11 +17,11 @@ export const ShellFooter = () => {
             'lg:flex-row lg:items-end lg:gap-0'
           )}
         >
-          <div className="flex flex-col items-stretch lg:hidden">
+          {/* <div className="flex flex-col items-stretch lg:hidden">
             <ShellFooterLogo />
             <div className="h-9" />
             <LinesHorizontal colorClass="border-gray-3" />
-            {/* <div className="h-4.5" /> */}
+            <div className="h-4.5" />
           </div>
           <ShellFooterRow
             footerRightMenuLinks={
@@ -41,6 +37,25 @@ export const ShellFooter = () => {
               <ShellFooterEmail />
               <ShellFooterTelephone />
             </div>
+          </div> */}
+          <div className="grid w-full grid-cols-2 gap-x-4 gap-y-3 typography-footer-poppins text-black-1 lg:grid-cols-4 lg:items-center">
+            <div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-start lg:gap-0">
+              <div className="flex items-center justify-center lg:justify-start">
+                <ShellFooterLogo />
+              </div>
+              <span className="text-center lg:hidden">
+                Copyright 2026 TakeShape
+              </span>
+            </div>
+            <a href="tel:+18652429705" className="justify-self-center self-center lg:order-3">
+              (865) 242-9705
+            </a>
+            <span className="hidden justify-self-center lg:block lg:justify-self-end lg:order-4">
+              Copyright 2026 TakeShape
+            </span>
+            <a href="mailto:admin@takeshapehome.com" className="justify-self-center self-center lg:order-2">
+              admin@takeshapehome.com
+            </a>
           </div>
         </div>
       </footer>

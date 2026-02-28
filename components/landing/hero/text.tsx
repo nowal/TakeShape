@@ -1,5 +1,5 @@
 import { AnimationFadeUp } from '@/components/animation/fade-up';
-import { QuoteButton } from '@/components/buttons/quote/quoteButton';
+import { SignUpButton } from '@/components/buttons/sign-up/signUpButton';
 import { cx } from 'class-variance-authority';
 import type { FC } from 'react';
 
@@ -34,9 +34,7 @@ export const LandingHeroText: FC = () => {
         <div className="h-7" />
         <AnimationFadeUp delay={1}>
           <div className="flex justify-start">
-            <QuoteButton className="py-3 px-5 text-xl">
-              Color Me Curious!
-            </QuoteButton>
+            <SignUpButton className="py-3 px-5 text-xl" />
           </div>
         </AnimationFadeUp>
       </div>
