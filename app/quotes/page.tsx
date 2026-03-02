@@ -334,6 +334,9 @@ export default function QuotesPage() {
             <div
               key={quote.id}
               style={{
+                width: '100%',
+                maxWidth: 760,
+                margin: '0 auto',
                 borderRadius: 16,
                 border: '1px solid #dbe3ef',
                 background: '#fff',
@@ -342,37 +345,12 @@ export default function QuotesPage() {
               }}
             >
               {quote.videoUrl ? (
-                <>
-                  <video
-                    src={`${quote.videoUrl}#t=0.001`}
-                    controls
-                    muted
-                    style={{ width: '100%', borderRadius: 12, marginBottom: 12, background: '#0f131a' }}
-                  />
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      marginBottom: 12
-                    }}
-                  >
-                    <button
-                      onClick={() => handleDownloadVideo(quote)}
-                      style={{
-                        border: 'none',
-                        borderRadius: 999,
-                        background: PRIMARY_COLOR_HEX,
-                        color: '#fff',
-                        padding: '10px 20px',
-                        fontWeight: 700,
-                        fontSize: 15,
-                        lineHeight: 1.2
-                      }}
-                    >
-                      Download Video
-                    </button>
-                  </div>
-                </>
+                <video
+                  src={`${quote.videoUrl}#t=0.001`}
+                  controls
+                  muted
+                  style={{ width: '100%', borderRadius: 12, marginBottom: 12, background: '#0f131a' }}
+                />
               ) : (
                 <div
                   style={{
@@ -398,8 +376,36 @@ export default function QuotesPage() {
                 </div>
               )}
 
-              <div style={{ color: '#64748b', fontSize: 12, marginBottom: 10 }}>
-                {quote.createdAtLabel}
+              <div
+                style={{
+                  color: '#64748b',
+                  fontSize: 12,
+                  marginBottom: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <span>{quote.createdAtLabel}</span>
+                {quote.videoUrl && (
+                  <button
+                    onClick={() => handleDownloadVideo(quote)}
+                    style={{
+                      border: 'none',
+                      borderRadius: 999,
+                      background: PRIMARY_COLOR_HEX,
+                      color: '#fff',
+                      padding: '10px 20px',
+                      fontWeight: 700,
+                      fontSize: 15,
+                      lineHeight: 1.2
+                    }}
+                  >
+                    Download Video
+                  </button>
+                )}
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>

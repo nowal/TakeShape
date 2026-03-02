@@ -502,13 +502,13 @@ const ConsultPage: React.FC = () => {
     try {
       pushDebugLog('Requesting initial stream with facingMode=environment (exact)');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: { facingMode: { exact: 'environment' } }
       });
     } catch {
       pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: false,
         video: { facingMode: { ideal: 'environment' } }
       });
     }
@@ -546,14 +546,9 @@ const ConsultPage: React.FC = () => {
           isLikelyBackCameraLabel(switchedTrack?.label || '');
         if (appearsBackCamera) {
           pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
-          const audioTrack = initialStream.getAudioTracks()[0];
-          if (audioTrack) {
-            switchedStream.addTrack(audioTrack);
-          }
           initialStream.getVideoTracks().forEach((track) => track.stop());
           return switchedStream;
         }
-        initialStream.getAudioTracks().forEach((track) => track.stop());
         switchedStream.getVideoTracks().forEach((track) => track.stop());
       } catch {
         pushDebugLog(`Fallback candidate failed: ${candidate.label || candidate.deviceId}`);
@@ -565,6 +560,21 @@ const ConsultPage: React.FC = () => {
     throw new Error(
       'Unable to lock to your back camera. Please allow camera access, close other camera apps, and try again.'
     );
+  }, [pushDebugLog]);
+
+  const getMicrophoneTrack = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+      return stream.getAudioTracks()[0] || null;
+    } catch (error) {
+      pushDebugLog(
+        `Microphone request failed: ${(error as Error).message}`
+      );
+      return null;
+    }
   }, [pushDebugLog]);
 
   const createTokenForRoom = async (roomName: string) => {
@@ -788,12 +798,18 @@ const ConsultPage: React.FC = () => {
     setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
-    const stream = await getBackCameraStream();
+    const videoStream = await getBackCameraStream();
+    const nextTracks: MediaStreamTrack[] = [
+      ...videoStream.getVideoTracks()
+    ];
+    const microphoneTrack = await getMicrophoneTrack();
+    if (microphoneTrack) {
+      microphoneTrack.enabled = true;
+      nextTracks.push(microphoneTrack);
+    }
+    const stream = new MediaStream(nextTracks);
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
-    stream.getAudioTracks().forEach((track) => {
-      track.enabled = true;
-    });
     setAudioMuted(false);
     setQuoteAccepted(false);
     setQuoteSessionClosed(false);
@@ -804,7 +820,9 @@ const ConsultPage: React.FC = () => {
       track.onmute = () => pushDebugLog('Local video track muted');
       track.onunmute = () => pushDebugLog('Local video track unmuted');
     });
-    const previewReady = await attachLocalStreamPreview(stream);
+    const previewReady = await attachLocalStreamPreview(
+      new MediaStream(stream.getVideoTracks())
+    );
     pushDebugLog(`Local preview ready=${previewReady}`);
 
     const session = new SWVideo.RoomSession({
@@ -821,7 +839,13 @@ const ConsultPage: React.FC = () => {
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
+  }, [
+    cleanupSession,
+    getBackCameraStream,
+    getMicrophoneTrack,
+    pushDebugLog,
+    stopQuoteWatcher,
+  ]);
 
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
@@ -1151,6 +1175,7 @@ const ConsultPage: React.FC = () => {
 
   const endCall = async () => {
     if (isQuoteAccepted) {
+      const closedAt = new Date().toISOString();
       if (conferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
           method: 'POST',
@@ -1161,9 +1186,17 @@ const ConsultPage: React.FC = () => {
             metaPatch: {
               quote_accepted: true,
               quote_session_closed: true,
-              quote_call_closed_at: new Date().toISOString()
+              quote_call_closed_at: closedAt
             }
           })
+        }).catch(() => undefined);
+      }
+      const quoteRef = await resolveQuoteDocRef();
+      if (quoteRef) {
+        await updateDoc(quoteRef, {
+          quoteAccepted: true,
+          quoteSessionClosed: true,
+          quoteSessionClosedAt: closedAt
         }).catch(() => undefined);
       }
       await endConferenceEverywhere();

@@ -7,6 +7,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   query,
@@ -1349,6 +1350,40 @@ const PainterCallCenter: React.FC = () => {
         const nextQuoteAccepted = isQuoteAcceptedPayload(conferenceState);
         const nextQuoteSessionClosed = isQuoteSessionClosedPayload(conferenceState);
 
+        if (phase === 'quoteDraft' && painterDocId && quoteDocIdRef.current) {
+          const quoteSnapshot = await getDoc(
+            doc(
+              firestore,
+              'painters',
+              painterDocId,
+              'quotes',
+              quoteDocIdRef.current
+            )
+          ).catch(() => null);
+
+          if (quoteSnapshot?.exists()) {
+            const quoteData = quoteSnapshot.data() as Record<string, any>;
+            const docAccepted = Boolean(
+              quoteData?.quoteAccepted || quoteData?.quoteAcceptedAt
+            );
+            const docClosed = Boolean(
+              quoteData?.quoteSessionClosed || quoteData?.quoteSessionClosedAt
+            );
+
+            if (docAccepted && !quoteAcceptedRef.current) {
+              setQuoteAccepted(true);
+              setStatus(
+                'Congratulations, the homeowner has accepted your quote!'
+              );
+            }
+
+            if (docClosed) {
+              await concludeAcceptedQuoteSession();
+              return;
+            }
+          }
+        }
+
         if (nextQuoteAccepted && !quoteAcceptedRef.current) {
           setQuoteAccepted(true);
           setStatus('Congratulations, the homeowner has accepted your quote!');
@@ -1934,7 +1969,7 @@ const PainterCallCenter: React.FC = () => {
       estimateInviteSentRef.current = true;
       transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
       setPhase('videoInviteSent');
-      setStatus('Video link copied. Waiting for homeowner video...');
+      setStatus('Waiting for Homeowner Video');
       startWatchingForHomeownerVideo();
     } catch (error) {
       console.error('Send video estimate error:', error);
@@ -2510,7 +2545,7 @@ const PainterCallCenter: React.FC = () => {
               {phase === 'calling'
                 ? 'Audio call in progress. Copy the video link when you are ready to transition.'
                 : phase === 'videoInviteSent'
-                  ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for homeowner video...')
+                  ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for Homeowner Video')
                   : 'Build quote while audio call remains active.'}
             </div>
             <video
@@ -2542,7 +2577,7 @@ const PainterCallCenter: React.FC = () => {
                   padding: 16
                 }}
               >
-                {phase === 'calling' ? 'Audio call active' : 'Waiting for homeowner video...'}
+                {phase === 'calling' ? 'Audio call active' : 'Waiting for Homeowner Video'}
               </div>
             )}
             {phase === 'quoteDraft' && (
@@ -2557,17 +2592,6 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Create Quote</div>
-                <div
-                  style={{
-                    marginBottom: 14,
-                    color: '#9fb0c8',
-                    fontSize: 13,
-                    lineHeight: 1.5,
-                    textAlign: 'center'
-                  }}
-                >
-                  If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
-                </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: '30%' }} />
@@ -2657,6 +2681,18 @@ const PainterCallCenter: React.FC = () => {
                     +
                   </button>
                 )}
+                <div
+                  style={{
+                    marginTop: 26,
+                    padding: '0 14px',
+                    color: '#9fb0c8',
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    textAlign: 'center'
+                  }}
+                >
+                  If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
+                </div>
                 {isQuoteAccepted && (
                   <div
                     style={{
