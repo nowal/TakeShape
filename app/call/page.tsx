@@ -130,6 +130,41 @@ const formatUsPhoneInput = (value: string) => {
   )}-${digits.slice(6)}`;
 };
 
+const copyTextWithFallback = async (value: string) => {
+  if (
+    navigator.clipboard &&
+    window.isSecureContext
+  ) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      // Fall through to legacy copy path.
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  textarea.style.pointerEvents = 'none';
+  textarea.style.top = '0';
+  textarea.style.left = '0';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  const didCopy = document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  if (!didCopy) {
+    throw new Error(
+      'Unable to copy the video link on this device.'
+    );
+  }
+};
+
 const PainterCallCenter: React.FC = () => {
   const [status, setStatus] = useState('Ready');
   const [phase, setPhase] = useState<CallPhase>('idle');
@@ -1555,6 +1590,7 @@ const PainterCallCenter: React.FC = () => {
       setPhase('calling');
       setStatus('Phone call connected (audio-only).');
       watchCallHealth();
+      ensureQuoteDoc().catch(() => undefined);
     } catch (error) {
       console.error(error);
       const errorMessage =
@@ -1592,7 +1628,10 @@ const PainterCallCenter: React.FC = () => {
 
     setIsSendingVideoInvite(true);
     try {
-      const quoteId = await ensureQuoteDoc();
+      let quoteId = quoteDocIdRef.current;
+      if (!quoteId) {
+        quoteId = await ensureQuoteDoc();
+      }
       if (!quoteId) {
         throw new Error('Unable to initialize quote for consult link');
       }
@@ -1603,6 +1642,7 @@ const PainterCallCenter: React.FC = () => {
         return url.toString();
       })();
       setGuestLink(linkWithQuote);
+      await copyTextWithFallback(linkWithQuote);
 
       await fetch('/api/signalwire/conference-state', {
         method: 'POST',
@@ -1625,7 +1665,6 @@ const PainterCallCenter: React.FC = () => {
       //   })
       // });
       // await getJsonOrThrow(smsResponse, 'Failed to send consult link');
-      await navigator.clipboard.writeText(linkWithQuote);
       setHasCopiedVideoLink(true);
 
       estimateInviteSentRef.current = true;
