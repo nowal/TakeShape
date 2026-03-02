@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 import { InputsText } from '@/components/inputs/text';
@@ -1627,6 +1628,7 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const submitOrUpdateQuote = async () => {
+    setShowCrmReminder(false);
     if (!painterDocId) {
       setStatus('Painter account required to save quotes.');
       return;
@@ -1644,7 +1646,6 @@ const PainterCallCenter: React.FC = () => {
 
     setSavingQuote(true);
     try {
-      setShowCrmReminder(false);
       const totalPrice = Number(rows.reduce((sum, row) => sum + row.price, 0).toFixed(2));
       const nowIso = new Date().toISOString();
       const quoteId = await ensureQuoteDoc();
@@ -2032,8 +2033,10 @@ const PainterCallCenter: React.FC = () => {
 
   const endCall = async () => {
     if (isQuoteAccepted) {
-      setQuoteSessionClosed(true);
-      setStatus('Quote accepted. Ending call...');
+      flushSync(() => {
+        setQuoteSessionClosed(true);
+        setStatus('Quote accepted. Ending call...');
+      });
       localEndRequestedRef.current = true;
       if (activeConferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
@@ -2477,7 +2480,10 @@ const PainterCallCenter: React.FC = () => {
 
         {(phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft') && (
           <div style={phoneFrameStyle}>
-            {(phase === 'calling' || (phase === 'videoInviteSent' && !hasVideoFrame)) && (
+            {(phase === 'calling' ||
+              ((phase === 'videoInviteSent' ||
+                phase === 'quoteDraft') &&
+                !hasVideoFrame)) && (
               <div
                 style={{
                   position: 'absolute',
@@ -2518,10 +2524,10 @@ const PainterCallCenter: React.FC = () => {
                   />
                   {phase === 'calling'
                     ? (
-                      isHomeownerInCallRoom
-                        ? 'Homeowner is in call room'
-                        : 'Waiting for homeowner to join call room'
-                    )
+                        isHomeownerInCallRoom
+                          ? 'Homeowner is in call room'
+                          : 'Waiting for homeowner to join call room'
+                      )
                     : 'Waiting for video'}
                 </div>
               </div>
@@ -2744,7 +2750,7 @@ const PainterCallCenter: React.FC = () => {
                   position: 'absolute',
                   left: 16,
                   right: 16,
-                  bottom: 86,
+                  bottom: 74,
                   display: 'flex',
                   justifyContent: 'center',
                   pointerEvents: 'none'
