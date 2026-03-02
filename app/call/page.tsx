@@ -1739,6 +1739,163 @@ const PainterCallCenter: React.FC = () => {
     recordingPersistedRef.current = true;
   };
 
+  const prepareProviderCallSession = async ({
+    normalizedHomeownerName,
+    normalizedHomeownerAddress,
+    normalizedHomeownerEmail,
+    normalizedHomeownerNumber,
+  }: {
+    normalizedHomeownerName: string;
+    normalizedHomeownerAddress: string;
+    normalizedHomeownerEmail: string;
+    normalizedHomeownerNumber: string;
+  }) => {
+    setStatus('Requesting microphone permission...');
+    await requestMicPermission();
+
+    await fetch('/api/signalwire/cleanup-painter-calls', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        painterDocId
+      })
+    }).catch(() => undefined);
+
+    setStatus('Creating call room...');
+    const createResponse = await fetchWithTimeout('/api/signalwire/create-conference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: `quote-call-${Date.now()}`,
+        display_name: 'Quote Call with Homeowner'
+      })
+    }, 22000);
+    const confData = (await getJsonOrThrow(
+      createResponse,
+      'Failed to create conference'
+    )) as ConferenceData;
+    const conferenceRoomName = resolveRoomName(confData);
+    if (!conferenceRoomName) {
+      throw new Error('Conference created without a room name.');
+    }
+
+    setConference(confData);
+    activeConferenceIdRef.current = confData.id;
+    activeConferenceNameRef.current = conferenceRoomName;
+
+    await fetch('/api/signalwire/conference-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conferenceId: confData.id,
+        metaPatch: {
+          painter_doc_id: painterDocId,
+          call_mode: 'live',
+          started_at: new Date().toISOString()
+        }
+      })
+    }).catch(() => undefined);
+
+    setHasVideoFrame(false);
+    setPhase('calling');
+
+    setStatus('Creating room token...');
+    const painterToken = await promiseWithTimeout(
+      createRoomToken(
+        conferenceRoomName,
+        'Painter',
+        ['room.recording']
+      ),
+      20000,
+      'Timed out while creating room token.'
+    );
+    painterTokenRef.current = painterToken.token;
+    setStatus('Joining call room...');
+    await promiseWithTimeout(
+      joinPainterRoomAudioOnly(painterToken.token),
+      20000,
+      'Timed out while joining call room.'
+    );
+
+    const appBase =
+      process.env.NEXT_PUBLIC_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      window.location.origin;
+    setGuestLink(
+      `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`
+    );
+    activeHomeownerNameRef.current = normalizedHomeownerName;
+    activeHomeownerAddressRef.current =
+      normalizedHomeownerAddress;
+    activeHomeownerEmailRef.current =
+      normalizedHomeownerEmail || null;
+    activeHomeownerNumberRef.current =
+      normalizedHomeownerNumber;
+    setHomeownerInCallRoom(false);
+    setHasCopiedVideoLink(false);
+    activeCallSidRef.current = null;
+    callAnsweredRef.current = false;
+    activeCallRef.current = true;
+    localEndRequestedRef.current = false;
+    remoteEndingRef.current = false;
+    remoteMemberPresentRef.current = false;
+    transferWaitUntilRef.current = null;
+    estimateInviteSentRef.current = false;
+    recordingStartedRef.current = false;
+
+    return {
+      confData,
+      conferenceRoomName,
+    };
+  };
+
+  const transitionToCopiedVideoLink = async () => {
+    if (!guestLink) {
+      throw new Error('No consult link available yet.');
+    }
+
+    let quoteId = quoteDocIdRef.current;
+    if (!quoteId) {
+      quoteId = await ensureQuoteDoc();
+    }
+    if (!quoteId) {
+      throw new Error(
+        'Unable to initialize quote for consult link'
+      );
+    }
+
+    const linkWithQuote = (() => {
+      const url = new URL(guestLink);
+      url.searchParams.set('quoteId', quoteId);
+      return url.toString();
+    })();
+    setGuestLink(linkWithQuote);
+    await copyTextWithFallback(linkWithQuote);
+
+    await fetch('/api/signalwire/conference-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conferenceId:
+          activeConferenceIdRef.current ||
+          conference?.id,
+        metaPatch: {
+          painter_doc_id: painterDocId || undefined,
+          quote_id: quoteId
+        }
+      })
+    }).catch(() => undefined);
+
+    setHasCopiedVideoLink(true);
+    estimateInviteSentRef.current = true;
+    transferWaitUntilRef.current =
+      Date.now() + CONSULT_TRANSFER_GRACE_MS;
+    setPhase('videoInviteSent');
+    setStatus('Waiting for Homeowner Video');
+    watchCallHealth();
+    startWatchingForHomeownerVideo();
+  };
+
   const startPhoneCall = async () => {
     if (!isPainterUser || !painterDocId) {
       setStatus('Only signed-in painter accounts can start this call flow.');
@@ -1780,78 +1937,13 @@ const PainterCallCenter: React.FC = () => {
         setStatus('Verify your phone number before calling homeowners.');
         return;
       }
-
-      setStatus('Requesting microphone permission...');
-      await requestMicPermission();
-
-      // Ensure stale sessions for this painter are cleaned up before creating a new call.
-      await fetch('/api/signalwire/cleanup-painter-calls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          painterDocId
-        })
-      }).catch(() => undefined);
-
-      setStatus('Creating call room...');
-      const createResponse = await fetchWithTimeout('/api/signalwire/create-conference', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `quote-call-${Date.now()}`,
-          display_name: 'Quote Call with Homeowner'
-        })
-      }, 22000);
-      const confData = (await getJsonOrThrow(createResponse, 'Failed to create conference')) as ConferenceData;
-      const conferenceRoomName = resolveRoomName(confData);
-      if (!conferenceRoomName) {
-        throw new Error('Conference created without a room name.');
-      }
-      setConference(confData);
-      activeConferenceIdRef.current = confData.id;
-      activeConferenceNameRef.current = conferenceRoomName;
-
-      await fetch('/api/signalwire/conference-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conferenceId: confData.id,
-          metaPatch: {
-            painter_doc_id: painterDocId,
-            call_mode: 'live',
-            started_at: new Date().toISOString()
-          }
-        })
-      }).catch(() => undefined);
-
-      setHasVideoFrame(false);
-      setPhase('calling');
-
-      setStatus('Creating room token...');
-      const painterToken = await promiseWithTimeout(
-        createRoomToken(conferenceRoomName, 'Painter', ['room.recording']),
-        20000,
-        'Timed out while creating room token.'
-      );
-      painterTokenRef.current = painterToken.token;
-      setStatus('Joining call room...');
-      await promiseWithTimeout(
-        joinPainterRoomAudioOnly(painterToken.token),
-        20000,
-        'Timed out while joining call room.'
-      );
-
-      const appBase = process.env.NEXT_PUBLIC_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      setGuestLink(
-        `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId)}`
-      );
-      activeHomeownerNameRef.current = normalizedHomeownerName;
-      activeHomeownerAddressRef.current = normalizedHomeownerAddress;
-      activeHomeownerEmailRef.current =
-        normalizedHomeownerEmail || null;
-      activeHomeownerNumberRef.current = normalizedHomeowner;
-      setHomeownerInCallRoom(false);
-      setHasCopiedVideoLink(false);
+      const { confData, conferenceRoomName } =
+        await prepareProviderCallSession({
+          normalizedHomeownerName,
+          normalizedHomeownerAddress,
+          normalizedHomeownerEmail,
+          normalizedHomeownerNumber: normalizedHomeowner
+        });
 
       setStatus('Dialing homeowner...');
       const dialResponse = await fetch('/api/signalwire/dial', {
@@ -1926,6 +2018,56 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
+  const createVideoLinkAndCopy = async () => {
+    if (!isPainterUser || !painterDocId) {
+      setStatus('Only signed-in painter accounts can start this call flow.');
+      return;
+    }
+
+    setIsSendingVideoInvite(true);
+    try {
+      setQuoteRows([createQuoteRow()]);
+      setHasSubmittedQuote(false);
+      setShowCrmReminder(true);
+      setQuoteAccepted(false);
+      setQuoteSessionClosed(false);
+      quoteDocIdRef.current = null;
+      recordingPersistedRef.current = false;
+
+      const normalizedHomeownerName = homeownerNameInput.trim();
+      const normalizedHomeownerAddress =
+        homeownerAddressInput.trim();
+      const normalizedHomeownerEmail =
+        homeownerEmailInput.trim().toLowerCase();
+
+      if (
+        normalizedHomeownerEmail &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          normalizedHomeownerEmail
+        )
+      ) {
+        setStatus(
+          'Enter a valid homeowner email or leave it blank.'
+        );
+        return;
+      }
+
+      await prepareProviderCallSession({
+        normalizedHomeownerName,
+        normalizedHomeownerAddress,
+        normalizedHomeownerEmail,
+        normalizedHomeownerNumber: ''
+      });
+
+      await transitionToCopiedVideoLink();
+    } catch (error) {
+      console.error('Create video link error:', error);
+      setStatus(`Error: ${(error as Error).message}`);
+    } finally {
+      setIsSendingVideoInvite(false);
+    }
+  };
+
   const toggleMute = async () => {
     const session = roomSessionRef.current;
     if (!session) return;
@@ -1947,50 +2089,7 @@ const PainterCallCenter: React.FC = () => {
 
     setIsSendingVideoInvite(true);
     try {
-      let quoteId = quoteDocIdRef.current;
-      if (!quoteId) {
-        quoteId = await ensureQuoteDoc();
-      }
-      if (!quoteId) {
-        throw new Error('Unable to initialize quote for consult link');
-      }
-
-      const linkWithQuote = (() => {
-        const url = new URL(guestLink);
-        url.searchParams.set('quoteId', quoteId);
-        return url.toString();
-      })();
-      setGuestLink(linkWithQuote);
-      await copyTextWithFallback(linkWithQuote);
-
-      await fetch('/api/signalwire/conference-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conferenceId: conference?.id,
-          metaPatch: {
-            painter_doc_id: painterDocId || undefined,
-            quote_id: quoteId
-          }
-        })
-      }).catch(() => undefined);
-
-      // const smsResponse = await fetch('/api/signalwire/send-sms', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     to: activeHomeownerNumberRef.current,
-      //     body: `Join your video estimate: ${linkWithQuote}`
-      //   })
-      // });
-      // await getJsonOrThrow(smsResponse, 'Failed to send consult link');
-      setHasCopiedVideoLink(true);
-
-      estimateInviteSentRef.current = true;
-      transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
-      setPhase('videoInviteSent');
-      setStatus('Waiting for Homeowner Video');
-      startWatchingForHomeownerVideo();
+      await transitionToCopiedVideoLink();
     } catch (error) {
       console.error('Send video estimate error:', error);
       setStatus(`Error: ${(error as Error).message}`);
@@ -2443,6 +2542,7 @@ const PainterCallCenter: React.FC = () => {
                     onClick={startPhoneCall}
                     disabled={
                       isStartingCall ||
+                      isSendingVideoInvite ||
                       (requiresCallerIdVerification &&
                         !isCallerIdVerified)
                     }
@@ -2452,13 +2552,14 @@ const PainterCallCenter: React.FC = () => {
                       border: 'none',
                       borderRadius: 12,
                       background: isStartingCall
+                        || isSendingVideoInvite
                         || (requiresCallerIdVerification &&
                           !isCallerIdVerified)
                         ? disabledPrimaryActionColor
                         : primaryActionColor,
                       color: '#fff',
                       fontWeight: 700,
-                      cursor: isStartingCall || (requiresCallerIdVerification && !isCallerIdVerified)
+                      cursor: isStartingCall || isSendingVideoInvite || (requiresCallerIdVerification && !isCallerIdVerified)
                         ? 'not-allowed'
                         : 'pointer',
                       display: 'inline-flex',
@@ -2470,7 +2571,36 @@ const PainterCallCenter: React.FC = () => {
                     <Phone size={18} />
                     {isStartingCall
                       ? 'Starting...'
-                      : 'Call Homeowner'}
+                      : 'Start Audio Call'}
+                  </button>
+                  <button
+                    onClick={createVideoLinkAndCopy}
+                    disabled={isStartingCall || isSendingVideoInvite}
+                    style={{
+                      width: '100%',
+                      padding: 16,
+                      border: 'none',
+                      borderRadius: 12,
+                      background:
+                        isStartingCall || isSendingVideoInvite
+                          ? disabledPrimaryActionColor
+                          : primaryActionColor,
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor:
+                        isStartingCall || isSendingVideoInvite
+                          ? 'not-allowed'
+                          : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                  >
+                    <VideoIcon size={18} />
+                    {isSendingVideoInvite
+                      ? 'Creating...'
+                      : 'Create Video Link and Copy'}
                   </button>
                 </div>
               </div>
@@ -2724,10 +2854,13 @@ const PainterCallCenter: React.FC = () => {
                     +
                   </button>
                 )}
+                <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
+                  Total: ${quoteTotalPrice.toFixed(2)}
+                </div>
                 {isQuoteAccepted && (
                   <div
                     style={{
-                      marginTop: 14,
+                      marginTop: 18,
                       textAlign: 'center',
                       color: '#86efac',
                       fontWeight: 700,
@@ -2737,9 +2870,6 @@ const PainterCallCenter: React.FC = () => {
                     Congratulations, the homeowner has accepted your quote!
                   </div>
                 )}
-                <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
-                  Total: ${quoteTotalPrice.toFixed(2)}
-                </div>
                 </div>
               </div>
             )}
@@ -2750,7 +2880,7 @@ const PainterCallCenter: React.FC = () => {
                   position: 'absolute',
                   left: 16,
                   right: 16,
-                  bottom: 74,
+                  bottom: 92,
                   display: 'flex',
                   justifyContent: 'center',
                   pointerEvents: 'none'
