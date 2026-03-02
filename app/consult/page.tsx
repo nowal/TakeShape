@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import { PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -264,10 +264,6 @@ const ConsultPage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
-  const [isMicMuted, setMicMuted] = useState(false);
-  const [hasMicEnabled, setHasMicEnabled] = useState(false);
-  const [needsManualMicEnable, setNeedsManualMicEnable] = useState(false);
-  const [isEnablingMic, setEnablingMic] = useState(false);
   const [isVideoOff, setVideoOff] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
@@ -292,7 +288,6 @@ const ConsultPage: React.FC = () => {
   const targetZoomValueRef = useRef<number | null>(null);
   const appliedZoomValueRef = useRef<number>(1);
   const quoteAcceptedRef = useRef(false);
-  const micAttachedRef = useRef(false);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -337,92 +332,7 @@ const ConsultPage: React.FC = () => {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
     }
-    micAttachedRef.current = false;
-    setMicMuted(false);
-    setHasMicEnabled(false);
-    setNeedsManualMicEnable(false);
-    setEnablingMic(false);
   }, [pushDebugLog]);
-
-  const enableBrowserMic = useCallback(async (
-    targetSession?: any,
-    trigger: 'auto' | 'manual' = 'manual'
-  ) => {
-    const session = targetSession || sessionRef.current;
-    if (
-      !session ||
-      micAttachedRef.current ||
-      hasMicEnabled ||
-      isEnablingMic
-    ) {
-      return;
-    }
-
-    setEnablingMic(true);
-    pushDebugLog(`Attempting ${trigger} microphone enable`);
-    try {
-      await session.addMicrophone({
-        autoJoin: true,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true
-      });
-      micAttachedRef.current = true;
-      setHasMicEnabled(true);
-      setMicMuted(false);
-      setNeedsManualMicEnable(false);
-      pushDebugLog('Browser microphone enabled');
-      if (!isQuoteModeRef.current && !isEndedRef.current) {
-        setStatus('Connected. Browser audio enabled.');
-      }
-    } catch (error) {
-      console.error('Consult mic enable error:', error);
-      pushDebugLog(
-        `Microphone enable failed (${trigger}): ${
-          (error as Error).message
-        }`
-      );
-      if (!micAttachedRef.current) {
-        setNeedsManualMicEnable(true);
-        if (!isQuoteModeRef.current && !isEndedRef.current) {
-          setStatus(
-            trigger === 'auto'
-              ? 'Connected. Tap Enable Mic for browser audio, or keep talking on your phone call.'
-              : 'Microphone unavailable. Continue on your phone call or try again.'
-          );
-        }
-      }
-    } finally {
-      setEnablingMic(false);
-    }
-  }, [hasMicEnabled, isEnablingMic, pushDebugLog]);
-
-  const toggleMute = async () => {
-    const session = sessionRef.current;
-    if (!session || !hasMicEnabled) return;
-
-    try {
-      const nextMuted = !isMicMuted;
-      if (nextMuted) {
-        if (typeof session.stopOutboundAudio === 'function') {
-          session.stopOutboundAudio();
-        } else if (typeof session.audioMute === 'function') {
-          await session.audioMute();
-        }
-      } else if (typeof session.restoreOutboundAudio === 'function') {
-        session.restoreOutboundAudio();
-      } else if (typeof session.audioUnmute === 'function') {
-        await session.audioUnmute();
-      }
-      setMicMuted(nextMuted);
-      pushDebugLog(`Consult mic muted=${nextMuted}`);
-    } catch (error) {
-      console.error('Consult mute toggle error:', error);
-      pushDebugLog(
-        `Consult mute toggle failed: ${(error as Error).message}`
-      );
-    }
-  };
 
   const stopConferenceWatch = useCallback(() => {
     if (conferenceWatchTimerRef.current) {
@@ -888,11 +798,6 @@ const ConsultPage: React.FC = () => {
     stopQuoteWatcher();
     await cleanupSession();
     setHasVideoFrame(false);
-    setMicMuted(false);
-    setHasMicEnabled(false);
-    setNeedsManualMicEnable(false);
-    setEnablingMic(false);
-    micAttachedRef.current = false;
     setQuoteMode(false);
     setQuoteSubmitted(false);
     setSubmittedQuote(null);
@@ -928,8 +833,7 @@ const ConsultPage: React.FC = () => {
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-    void enableBrowserMic(session, 'auto');
-  }, [cleanupSession, enableBrowserMic, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
+  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
 
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
@@ -1648,45 +1552,6 @@ const ConsultPage: React.FC = () => {
                   gap: 10
                 }}
               >
-              {!isQuoteMode && hasMicEnabled && (
-                <button
-                  onClick={toggleMute}
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: isMicMuted ? '#0f1116' : '#fff',
-                    color: isMicMuted ? '#fff' : '#111',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  aria-label={isMicMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMicMuted ? <MicOff size={20} /> : <Mic size={20} />}
-                </button>
-              )}
-              {!isQuoteMode && !hasMicEnabled && needsManualMicEnable && (
-                <button
-                  onClick={() => void enableBrowserMic(undefined, 'manual')}
-                  disabled={isEnablingMic}
-                  style={{
-                    height: 48,
-                    borderRadius: 999,
-                    border: 'none',
-                    padding: '0 18px',
-                    background: isEnablingMic ? '#334155' : '#fff',
-                    color: isEnablingMic ? '#cbd5e1' : '#111',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {isEnablingMic ? 'Enabling...' : 'Enable Mic'}
-                </button>
-              )}
               {!isQuoteMode && (
                 <button
                   onClick={toggleVideo}
