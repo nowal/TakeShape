@@ -19,7 +19,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 import { InputsText } from '@/components/inputs/text';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
+import { MapsLoaded } from '@/components/maps/loaded';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended' | 'dropped';
 
@@ -165,6 +166,51 @@ const copyTextWithFallback = async (value: string) => {
   }
 };
 
+type TCallAddressFieldProps = {
+  value: string;
+  onChange(value: string): void;
+};
+
+const CallAddressField: React.FC<TCallAddressFieldProps> = ({
+  value,
+  onChange,
+}) => {
+  const addressInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+  useGoogleAddressAutocomplete(
+    addressInputRef,
+    {
+      onPlaceChange: (place) => {
+        const formattedAddress = String(
+          place.formatted_address || ''
+        ).trim();
+
+        if (!formattedAddress) return;
+        onChange(formattedAddress);
+      },
+    }
+  );
+
+  return (
+    <InputsText
+      ref={addressInputRef}
+      value={value}
+      onChange={(event) =>
+        onChange(event.target.value)
+      }
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      }}
+      autoComplete="off"
+      spellCheck={false}
+      placeholder="Property Address (Optional)"
+    />
+  );
+};
+
 const PainterCallCenter: React.FC = () => {
   const [status, setStatus] = useState('Ready');
   const [phase, setPhase] = useState<CallPhase>('idle');
@@ -215,8 +261,6 @@ const PainterCallCenter: React.FC = () => {
   const activeHomeownerNameRef = useRef('');
   const activeHomeownerAddressRef = useRef('');
   const activeHomeownerEmailRef = useRef<string | null>(null);
-  const homeownerAddressInputRef =
-    useRef<HTMLInputElement | null>(null);
   const activeCallSidRef = useRef<string | null>(null);
   const localEndRequestedRef = useRef(false);
   const conferenceWatchTimerRef = useRef<number | null>(null);
@@ -236,7 +280,6 @@ const PainterCallCenter: React.FC = () => {
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
-  const places = useMapsLibrary('places');
 
   useEffect(() => {
     setHomeownerAddressInput('');
@@ -248,42 +291,6 @@ const PainterCallCenter: React.FC = () => {
       callerIdPollTimerRef.current = null;
     }
   };
-
-  useEffect(() => {
-    if (!places || !homeownerAddressInputRef.current) {
-      return;
-    }
-
-    const { Autocomplete } = places;
-    const autocomplete = new Autocomplete(
-      homeownerAddressInputRef.current,
-      {
-        fields: ['formatted_address'],
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-      }
-    );
-
-    const listener = autocomplete.addListener(
-      'place_changed',
-      () => {
-        const place = autocomplete.getPlace();
-        const formattedAddress = String(
-          place?.formatted_address || ''
-        ).trim();
-
-        if (!formattedAddress) return;
-        setHomeownerAddressInput(formattedAddress);
-      }
-    );
-
-    return () => {
-      google.maps.event.removeListener(listener);
-      google.maps.event.clearInstanceListeners(
-        autocomplete
-      );
-    };
-  }, [places]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -1520,14 +1527,6 @@ const PainterCallCenter: React.FC = () => {
       const normalizedHomeownerAddress = homeownerAddressInput.trim();
       const normalizedHomeownerEmail = homeownerEmailInput.trim().toLowerCase();
       const normalizedHomeowner = normalizeUsPhoneToE164(homeownerNumberInput);
-      if (!normalizedHomeownerName) {
-        setStatus('Enter the homeowner name.');
-        return;
-      }
-      if (!normalizedHomeownerAddress) {
-        setStatus('Enter the homeowner address.');
-        return;
-      }
       if (!normalizedHomeowner) {
         setStatus('Enter a valid US homeowner phone number.');
         return;
@@ -2149,32 +2148,6 @@ const PainterCallCenter: React.FC = () => {
               <div className="fill-column-white-sm w-full">
                 <div className="flex flex-col gap-4">
                   <InputsText
-                    value={homeownerNameInput}
-                    onChange={(event) =>
-                      setHomeownerNameInput(event.target.value)
-                    }
-                    placeholder="Homeowner Name"
-                    required
-                  />
-                  <InputsText
-                    ref={homeownerAddressInputRef}
-                    value={homeownerAddressInput}
-                    onChange={(event) =>
-                      setHomeownerAddressInput(
-                        event.target.value
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                      }
-                    }}
-                    autoComplete="new-password"
-                    spellCheck={false}
-                    placeholder="Property Address"
-                    required
-                  />
-                  <InputsText
                     type="tel"
                     inputMode="numeric"
                     value={homeownerNumberInput}
@@ -2188,6 +2161,19 @@ const PainterCallCenter: React.FC = () => {
                     placeholder="(555) 123-4567"
                     required
                   />
+                  <InputsText
+                    value={homeownerNameInput}
+                    onChange={(event) =>
+                      setHomeownerNameInput(event.target.value)
+                    }
+                    placeholder="Homeowner Name (Optional)"
+                  />
+                  <MapsLoaded>
+                    <CallAddressField
+                      value={homeownerAddressInput}
+                      onChange={setHomeownerAddressInput}
+                    />
+                  </MapsLoaded>
                   <InputsText
                     type="email"
                     value={homeownerEmailInput}

@@ -1,19 +1,18 @@
-import { MutableRefObject, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useBoundsUpdate } from '@/hooks/maps/bounds';
+import { useMap } from '@vis.gl/react-google-maps';
 import {
-  useMap,
-  useMapsLibrary,
-} from '@vis.gl/react-google-maps';
+  TAddressInputRef,
+  useGoogleAddressAutocomplete,
+} from '@/hooks/address/google-autocomplete';
 
-export type TAddressAutocompleteRef =
-  MutableRefObject<HTMLInputElement | null>;
+export type TAddressAutocompleteRef = TAddressInputRef;
 
 export const useAddressAutocomplete = (
   addressInputRef: TAddressAutocompleteRef
 ) => {
   const map = useMap();
-  const places = useMapsLibrary('places');
   const accountSettings = useAccountSettings();
   const {
     range,
@@ -28,20 +27,8 @@ export const useAddressAutocomplete = (
   currentRef.current = current;
   const handleBoundsUpdate = useBoundsUpdate();
 
-  const init = async (
-    places: google.maps.PlacesLibrary
-  ) => {
-    const { Autocomplete } = places;
-    if (!addressInputRef.current) return null;
-    const autocomplete = new Autocomplete(
-      addressInputRef.current,
-      {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-      }
-    );
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
+  useGoogleAddressAutocomplete(addressInputRef, {
+    onPlaceChange: (place) => {
       if (
         !place.geometry ||
         !place.geometry.location ||
@@ -71,11 +58,6 @@ export const useAddressAutocomplete = (
         );
       }
       onCoordsUpdate(nextCoords);
-    });
-  };
-
-  useEffect(() => {
-    if (places === null) return;
-    init(places);
-  }, [map, places]);
+    },
+  });
 };
