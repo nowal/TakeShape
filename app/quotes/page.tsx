@@ -12,7 +12,9 @@ import {
   where
 } from 'firebase/firestore';
 import { getDownloadURL, getStorage, ref as storageRef } from 'firebase/storage';
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 type QuotePricingRow = {
   item: string;
@@ -44,6 +46,7 @@ const resolveDisplayDate = (raw: any) => {
 };
 
 export default function QuotesPage() {
+  const router = useRouter();
   const auth = useMemo(() => getAuth(firebase), []);
   const firestore = useMemo(() => getFirestore(firebase), []);
   const storage = useMemo(() => getStorage(firebase), []);
@@ -258,32 +261,45 @@ export default function QuotesPage() {
       }}
     >
       <div style={{ maxWidth: 980, margin: '0 auto' }}>
-        <h1 style={{ margin: 0, color: '#0f172a', fontSize: 28 }}>Quotes</h1>
-        <p style={{ margin: '8px 0 18px 0', color: '#475569' }}>
-          Completed quote summaries with estimate videos.
-        </p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 18,
+            marginBottom: 26
+          }}
+        >
+          <h1
+            className="typography-page-title"
+            style={{ margin: 0, color: '#0f172a', fontSize: 38 }}
+          >
+            Quotes History
+          </h1>
+          {!isLoadingQuotes && !error && !!activePainterId && (
+            <button
+              onClick={() => router.push('/call')}
+              style={{
+                border: 'none',
+                borderRadius: 999,
+                background: PRIMARY_COLOR_HEX,
+                color: '#fff',
+                padding: '10px 20px',
+                fontWeight: 700,
+                fontSize: 15,
+                lineHeight: 1.2
+              }}
+            >
+              New Call
+            </button>
+          )}
+        </div>
 
         {isLoadingQuotes && <div style={{ color: '#475569' }}>Loading quotes...</div>}
         {!isLoadingQuotes && isRefreshingVideos && (
           <div style={{ color: '#475569' }}>Checking latest video processing status...</div>
         )}
         {!!error && <div style={{ color: '#b91c1c' }}>{error}</div>}
-        {!isLoadingQuotes && !error && !!activePainterId && (
-          <button
-            onClick={() => loadQuotes(activePainterId)}
-            style={{
-              marginBottom: 12,
-              border: '1px solid #dbe3ef',
-              borderRadius: 999,
-              background: '#fff',
-              color: '#0f172a',
-              padding: '8px 14px',
-              fontWeight: 600
-            }}
-          >
-            Refresh
-          </button>
-        )}
         {!isLoadingQuotes && !error && quotes.length === 0 && (
           <div style={{ color: '#475569' }}>No quotes yet.</div>
         )}
@@ -333,7 +349,7 @@ export default function QuotesPage() {
               )}
 
               <div style={{ color: '#64748b', fontSize: 12, marginBottom: 10 }}>
-                Quote ID: {quote.id} · {quote.createdAtLabel}
+                {quote.createdAtLabel}
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -366,8 +382,20 @@ export default function QuotesPage() {
                 </tbody>
               </table>
 
-              <div style={{ marginTop: 12, color: '#334155', fontWeight: 700 }}>
-                Total: ${quote.totalPrice.toFixed(2)}
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'grid',
+                  gridTemplateColumns: '30% 42% 28%',
+                  color: '#334155',
+                  fontWeight: 700
+                }}
+              >
+                <div />
+                <div />
+                <div style={{ textAlign: 'left', padding: '0 4px' }}>
+                  Total: ${quote.totalPrice.toFixed(2)}
+                </div>
               </div>
             </div>
           ))}

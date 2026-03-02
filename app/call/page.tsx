@@ -152,6 +152,8 @@ const PainterCallCenter: React.FC = () => {
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
+  const [isHomeownerInCallRoom, setHomeownerInCallRoom] = useState(false);
+  const [hasCopiedVideoLink, setHasCopiedVideoLink] = useState(false);
   const [isCallerIdVerified, setCallerIdVerified] = useState(false);
   const [isCheckingCallerId, setCheckingCallerId] = useState(false);
   const [isRequestingCallerIdVerification, setRequestingCallerIdVerification] = useState(false);
@@ -804,6 +806,7 @@ const PainterCallCenter: React.FC = () => {
       if (!memberId) return;
       if (memberId === String((session as any)?.memberId || '')) return;
       remoteMemberPresentRef.current = true;
+      setHomeownerInCallRoom(true);
       transferWaitUntilRef.current = null;
       callAnsweredRef.current = true;
       if (phase === 'calling' || phase === 'videoInviteSent') {
@@ -824,6 +827,7 @@ const PainterCallCenter: React.FC = () => {
       if (memberId === String((session as any)?.memberId || '')) return;
       if (!activeCallRef.current) return;
       remoteMemberPresentRef.current = false;
+      setHomeownerInCallRoom(false);
 
       if (isConsultExpected()) {
         if (hasVideoFrameRef.current || recordingStartedRef.current) {
@@ -1488,6 +1492,8 @@ const PainterCallCenter: React.FC = () => {
       activeHomeownerEmailRef.current =
         normalizedHomeownerEmail || null;
       activeHomeownerNumberRef.current = normalizedHomeowner;
+      setHomeownerInCallRoom(false);
+      setHasCopiedVideoLink(false);
 
       setStatus('Dialing homeowner...');
       const dialResponse = await fetch('/api/signalwire/dial', {
@@ -1610,20 +1616,22 @@ const PainterCallCenter: React.FC = () => {
         })
       }).catch(() => undefined);
 
-      const smsResponse = await fetch('/api/signalwire/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: activeHomeownerNumberRef.current,
-          body: `Join your video estimate: ${linkWithQuote}`
-        })
-      });
-      await getJsonOrThrow(smsResponse, 'Failed to send consult link');
+      // const smsResponse = await fetch('/api/signalwire/send-sms', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     to: activeHomeownerNumberRef.current,
+      //     body: `Join your video estimate: ${linkWithQuote}`
+      //   })
+      // });
+      // await getJsonOrThrow(smsResponse, 'Failed to send consult link');
+      await navigator.clipboard.writeText(linkWithQuote);
+      setHasCopiedVideoLink(true);
 
       estimateInviteSentRef.current = true;
       transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
       setPhase('videoInviteSent');
-      setStatus('Consult link sent. Waiting for homeowner video...');
+      setStatus('Video link copied. Waiting for homeowner video...');
       startWatchingForHomeownerVideo();
     } catch (error) {
       console.error('Send video estimate error:', error);
@@ -1722,6 +1730,8 @@ const PainterCallCenter: React.FC = () => {
     setConference(null);
     activeConferenceIdRef.current = null;
     activeConferenceNameRef.current = null;
+    setHomeownerInCallRoom(false);
+    setHasCopiedVideoLink(false);
     setMuted(false);
     setHasVideoFrame(false);
     setGuestLink('');
@@ -2028,6 +2038,81 @@ const PainterCallCenter: React.FC = () => {
 
         {(phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft') && (
           <div style={phoneFrameStyle}>
+            {phase === 'calling' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  left: 16,
+                  right: 16,
+                  zIndex: 2,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 12px',
+                    borderRadius: 999,
+                    background: 'rgba(15,17,22,0.72)',
+                    color: '#e2e8f0',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    border: '1px solid rgba(148,163,184,0.22)'
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: isHomeownerInCallRoom
+                        ? '#22c55e'
+                        : '#64748b',
+                      boxShadow: isHomeownerInCallRoom
+                        ? '0 0 0 4px rgba(34,197,94,0.18)'
+                        : 'none'
+                    }}
+                  />
+                  {isHomeownerInCallRoom
+                    ? 'Homeowner is in call room'
+                    : 'Waiting for homeowner to join call room'}
+                </div>
+              </div>
+            )}
+            {phase === 'calling' && hasCopiedVideoLink && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 64,
+                  left: 16,
+                  right: 16,
+                  zIndex: 2,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 12px',
+                    borderRadius: 999,
+                    background: 'rgba(8,10,13,0.68)',
+                    color: '#cbd5e1',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: '1px solid rgba(148,163,184,0.18)'
+                  }}
+                >
+                  Copied. You can text the video link now.
+                </div>
+              </div>
+            )}
             <div
               style={{
                 position: 'absolute',
@@ -2042,7 +2127,7 @@ const PainterCallCenter: React.FC = () => {
               }}
             >
               {phase === 'calling'
-                ? 'Audio call in progress. Send video estimate when ready.'
+                ? 'Audio call in progress. Copy the video link when you are ready to transition.'
                 : phase === 'videoInviteSent'
                   ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for homeowner video...')
                   : 'Build quote while audio call remains active.'}
@@ -2218,7 +2303,7 @@ const PainterCallCenter: React.FC = () => {
                   }}
                 >
                   <VideoIcon size={16} />
-                  Send Video Estimate
+                  Copy Video Link
                 </button>
               )}
               {phase === 'videoInviteSent' && (
