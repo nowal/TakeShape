@@ -43,6 +43,13 @@ const getTouchDistance = (
 ) =>
   Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
 
+const HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS: MediaTrackConstraints = {
+  width: { ideal: 1920 },
+  height: { ideal: 1080 },
+  aspectRatio: { ideal: 16 / 9 },
+  frameRate: { ideal: 30, max: 30 }
+};
+
 const isQuoteModePayload = (payload: any) => {
   const mode = String(payload?.mode || '').trim().toLowerCase();
   const meta = payload?.meta || {};
@@ -502,16 +509,25 @@ const ConsultPage: React.FC = () => {
       pushDebugLog('Requesting initial stream with facingMode=environment (exact)');
       initialStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: { exact: 'environment' } }
+        video: {
+          ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+          facingMode: { exact: 'environment' }
+        }
       });
     } catch {
       pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
       initialStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: { ideal: 'environment' } }
+        video: {
+          ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+          facingMode: { ideal: 'environment' }
+        }
       });
     }
     const initialVideoTrack = initialStream.getVideoTracks()[0];
+    if (initialVideoTrack && 'contentHint' in initialVideoTrack) {
+      initialVideoTrack.contentHint = 'detail';
+    }
     pushDebugLog(`Initial video settings: ${JSON.stringify(initialVideoTrack?.getSettings?.() || {})}`);
     if (isEnvironmentFacingTrack(initialVideoTrack)) {
       pushDebugLog('Initial stream already environment-facing');
@@ -535,10 +551,16 @@ const ConsultPage: React.FC = () => {
         pushDebugLog(`Trying fallback camera: ${candidate.label || candidate.deviceId}`);
         const switchedVideoStream = await navigator.mediaDevices.getUserMedia({
           audio: false,
-          video: { deviceId: { exact: candidate.deviceId } }
+          video: {
+            ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+            deviceId: { exact: candidate.deviceId }
+          }
         });
         const switchedStream = switchedVideoStream;
         const switchedTrack = switchedStream.getVideoTracks()[0];
+        if (switchedTrack && 'contentHint' in switchedTrack) {
+          switchedTrack.contentHint = 'detail';
+        }
         const appearsBackCamera =
           isEnvironmentFacingTrack(switchedTrack) ||
           isLikelyBackCameraLabel(candidate.label) ||
