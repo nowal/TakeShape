@@ -328,6 +328,7 @@ const PainterCallCenter: React.FC = () => {
   const [quoteRows, setQuoteRows] = useState<QuotePricingRow[]>([createQuoteRow()]);
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
+  const [showCrmReminder, setShowCrmReminder] = useState(true);
   const [isQuoteAccepted, setQuoteAccepted] = useState(false);
   const [isQuoteSessionClosed, setQuoteSessionClosed] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
@@ -926,6 +927,7 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const addQuoteRow = () => {
+    setShowCrmReminder(false);
     setQuoteRows((previous) => [...previous, createQuoteRow()]);
   };
 
@@ -1642,6 +1644,7 @@ const PainterCallCenter: React.FC = () => {
 
     setSavingQuote(true);
     try {
+      setShowCrmReminder(false);
       const totalPrice = Number(rows.reduce((sum, row) => sum + row.price, 0).toFixed(2));
       const nowIso = new Date().toISOString();
       const quoteId = await ensureQuoteDoc();
@@ -1745,6 +1748,7 @@ const PainterCallCenter: React.FC = () => {
     try {
       setQuoteRows([createQuoteRow()]);
       setHasSubmittedQuote(false);
+      setShowCrmReminder(true);
       setQuoteAccepted(false);
       setQuoteSessionClosed(false);
       quoteDocIdRef.current = null;
@@ -2028,6 +2032,9 @@ const PainterCallCenter: React.FC = () => {
 
   const endCall = async () => {
     if (isQuoteAccepted) {
+      setQuoteSessionClosed(true);
+      setStatus('Quote accepted. Ending call...');
+      localEndRequestedRef.current = true;
       if (activeConferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
           method: 'POST',
@@ -2127,6 +2134,7 @@ const PainterCallCenter: React.FC = () => {
   const callBack = async () => {
     setQuoteRows([createQuoteRow()]);
     setHasSubmittedQuote(false);
+    setShowCrmReminder(true);
     setQuoteAccepted(false);
     setQuoteSessionClosed(false);
     quoteDocIdRef.current = null;
@@ -2469,7 +2477,7 @@ const PainterCallCenter: React.FC = () => {
 
         {(phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft') && (
           <div style={phoneFrameStyle}>
-            {phase === 'calling' && (
+            {(phase === 'calling' || (phase === 'videoInviteSent' && !hasVideoFrame)) && (
               <div
                 style={{
                   position: 'absolute',
@@ -2508,9 +2516,13 @@ const PainterCallCenter: React.FC = () => {
                         : 'none'
                     }}
                   />
-                  {isHomeownerInCallRoom
-                    ? 'Homeowner is in call room'
-                    : 'Waiting for homeowner to join call room'}
+                  {phase === 'calling'
+                    ? (
+                      isHomeownerInCallRoom
+                        ? 'Homeowner is in call room'
+                        : 'Waiting for homeowner to join call room'
+                    )
+                    : 'Waiting for video'}
                 </div>
               </div>
             )}
@@ -2593,44 +2605,6 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 {phase === 'calling' ? 'Audio call active' : 'Waiting for Homeowner Video'}
-              </div>
-            )}
-            {phase === 'videoInviteSent' && !hasVideoFrame && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 20,
-                  left: 16,
-                  right: 16,
-                  zIndex: 2,
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 12px',
-                    borderRadius: 999,
-                    background: 'rgba(15,17,22,0.72)',
-                    color: '#e2e8f0',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    border: '1px solid rgba(148,163,184,0.22)'
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      background: '#64748b'
-                    }}
-                  />
-                  Waiting for video
-                </div>
               </div>
             )}
             {phase === 'quoteDraft' && (
@@ -2760,14 +2734,30 @@ const PainterCallCenter: React.FC = () => {
                 <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
                   Total: ${quoteTotalPrice.toFixed(2)}
                 </div>
+                </div>
+              </div>
+            )}
+
+            {phase === 'quoteDraft' && showCrmReminder && !isQuoteSessionClosed && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 16,
+                  right: 16,
+                  bottom: 86,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}
+              >
                 <div
                   style={{
-                    marginTop: 72,
-                    marginBottom: 96,
-                    padding: '0 18px',
-                    maxWidth: 540,
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
+                    width: '100%',
+                    maxWidth: 560,
+                    padding: '14px 18px',
+                    borderRadius: 16,
+                    background: 'rgba(15,17,22,0.78)',
+                    border: '1px solid rgba(148,163,184,0.18)',
                     color: '#9fb0c8',
                     fontSize: 13,
                     lineHeight: 1.7,
@@ -2775,7 +2765,6 @@ const PainterCallCenter: React.FC = () => {
                   }}
                 >
                   If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
-                </div>
                 </div>
               </div>
             )}
