@@ -1330,8 +1330,10 @@ const PainterCallCenter: React.FC = () => {
   const watchCallHealth = () => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
+      const conferenceId =
+        activeConferenceIdRef.current || conference?.id || null;
       if (
-        !conference?.id ||
+        !conferenceId ||
         (!activeCallRef.current &&
           phaseRef.current !== 'quoteDraft')
       ) {
@@ -1341,7 +1343,7 @@ const PainterCallCenter: React.FC = () => {
 
       try {
         const conferenceStateResponse = await fetch(
-          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conference.id)}&_ts=${Date.now()}`,
+          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceId)}&_ts=${Date.now()}`,
           {
             cache: 'no-store',
             headers: {
@@ -2542,25 +2544,25 @@ const PainterCallCenter: React.FC = () => {
                 </div>
               </div>
             )}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#c6ced9',
-                background: '#000',
-                textAlign: 'center',
-                padding: 18
-              }}
-            >
-              {phase === 'calling'
-                ? 'Audio call in progress. Copy the video link when you are ready to transition.'
-                : phase === 'videoInviteSent'
-                  ? (hasVideoFrame ? 'Homeowner video connected.' : 'Waiting for Homeowner Video')
+            {(phase === 'calling' || phase === 'quoteDraft') && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#c6ced9',
+                  background: '#000',
+                  textAlign: 'center',
+                  padding: 18
+                }}
+              >
+                {phase === 'calling'
+                  ? 'Audio call in progress. Copy the video link when you are ready to transition.'
                   : 'Build quote while audio call remains active.'}
-            </div>
+              </div>
+            )}
             <video
               ref={remoteVideoRef}
               autoPlay
@@ -2591,6 +2593,44 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 {phase === 'calling' ? 'Audio call active' : 'Waiting for Homeowner Video'}
+              </div>
+            )}
+            {phase === 'videoInviteSent' && !hasVideoFrame && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  left: 16,
+                  right: 16,
+                  zIndex: 2,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 12px',
+                    borderRadius: 999,
+                    background: 'rgba(15,17,22,0.72)',
+                    color: '#e2e8f0',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    border: '1px solid rgba(148,163,184,0.22)'
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: '#64748b'
+                    }}
+                  />
+                  Waiting for video
+                </div>
               </div>
             )}
             {phase === 'quoteDraft' && (
@@ -2722,7 +2762,8 @@ const PainterCallCenter: React.FC = () => {
                 </div>
                 <div
                   style={{
-                    marginTop: 52,
+                    marginTop: 72,
+                    marginBottom: 96,
                     padding: '0 18px',
                     maxWidth: 540,
                     marginLeft: 'auto',
