@@ -3,133 +3,114 @@ import { normalizeUsPhoneToE164 } from '@/utils/phone';
 
 export const dynamic = 'force-dynamic';
 
+class VerifiedCallerIdRequestError extends Error {
+  status: number;
+  basePath: string;
+  responseBody: string;
+  requestMethod: string;
+  requestPath: string;
+  requestBody: string | null;
+
+  constructor({
+    message,
+    status,
+    basePath,
+    responseBody,
+    requestMethod,
+    requestPath,
+    requestBody,
+  }: {
+    message: string;
+    status: number;
+    basePath: string;
+    responseBody: string;
+    requestMethod: string;
+    requestPath: string;
+    requestBody: string | null;
+  }) {
+    super(message);
+    this.name = 'VerifiedCallerIdRequestError';
+    this.status = status;
+    this.basePath = basePath;
+    this.responseBody = responseBody;
+    this.requestMethod = requestMethod;
+    this.requestPath = requestPath;
+    this.requestBody = requestBody;
+  }
+}
+
+const VERIFIED_CALLER_ID_PATHS = [
+  '/verified_caller_ids',
+  '/api/verified_caller_ids',
+  '/api/relay/rest/verified_caller_ids',
+];
+
 const getSignalWireConfig = () => {
-  const projectId = process.env.SIGNALWIRE_PROJECT_ID?.trim();
-  const apiToken = (process.env.SIGNALWIRE_API_TOKEN || process.env.SIGNALWIRE_TOKEN)?.trim();
-  const spaceUrl = process.env.SIGNALWIRE_SPACE_URL?.trim().replace(/^https?:\/\//, '');
+  const projectId =
+    process.env.SIGNALWIRE_PROJECT_ID?.trim();
+  const apiToken = (
+    process.env.SIGNALWIRE_API_TOKEN ||
+    process.env.SIGNALWIRE_TOKEN
+  )?.trim();
+  const spaceUrl = process.env.SIGNALWIRE_SPACE_URL
+    ?.trim()
+    .replace(/^https?:\/\//, '');
 
   if (!projectId || !apiToken || !spaceUrl) {
     return null;
   }
 
-  const authHeader = Buffer.from(`${projectId}:${apiToken}`).toString('base64');
+  const authHeader = Buffer.from(
+    `${projectId}:${apiToken}`
+  ).toString('base64');
+
   return { projectId, apiToken, spaceUrl, authHeader };
 };
 
-const isCallerIdVerified = (callerId: any): boolean => {
-  const status = String(
-    callerId?.validation_status ||
-      callerId?.status ||
-      ''
-  ).toLowerCase();
-
-  if (
-    status.includes('validated') ||
-    status === 'complete' ||
-    status === 'verified' ||
-    status === 'active'
-  ) {
-    return true;
-  }
-
-  return Boolean(
-    callerId?.validated ||
-      callerId?.is_verified
+const getIncomingPhoneNumber = (phone: any): string | null => {
+  const raw = String(
+    phone?.phone_number || phone?.phoneNumber || ''
   );
+  return normalizeUsPhoneToE164(raw);
 };
 
-const getCallerIdPhone = (callerId: any): string | null => {
+const getVerifiedCallerIdPhone = (
+  callerId: any
+): string | null => {
   const raw = String(
-    callerId?.phone_number ||
+    callerId?.number ||
+      callerId?.phone_number ||
       callerId?.phoneNumber ||
       ''
   );
   return normalizeUsPhoneToE164(raw);
 };
 
-const getIncomingPhoneNumber = (phone: any): string | null => {
-  const raw = String(
-    phone?.phone_number ||
-      phone?.phoneNumber ||
-      ''
+const isVerifiedCallerId = (callerId: any): boolean => {
+  const status = String(
+    callerId?.status || ''
+  ).toLowerCase();
+
+  return (
+    Boolean(
+      callerId?.verified ||
+        callerId?.is_verified ||
+        callerId?.validated ||
+        callerId?.verified_at
+    ) ||
+    status === 'verified' ||
+    status === 'active' ||
+    status === 'complete'
   );
-  return normalizeUsPhoneToE164(raw);
 };
 
-const getCallerIdById = async (
-  sid: string,
-  spaceUrl: string,
-  projectId: string,
-  authHeader: string
-) => {
-  const response = await fetch(
-    `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/OutgoingCallerIds/${sid}.json`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Basic ${authHeader}`,
-        Accept: 'application/json',
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to load caller ID: ${errorText}`
-    );
-  }
-
-  return response.json();
-};
-
-const listOutgoingCallerIds = async (
-  spaceUrl: string,
-  projectId: string,
-  authHeader: string
-) => {
-  const allCallerIds: any[] = [];
-  let nextUrl =
-    `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/OutgoingCallerIds.json?PageSize=100`;
-
-  while (nextUrl) {
-    const response = await fetch(nextUrl, {
-      method: 'GET',
-      headers: {
-        Authorization: `Basic ${authHeader}`,
-        Accept: 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Failed to list caller IDs: ${errorText}`
-      );
-    }
-
-    const data = await response.json();
-    const list =
-      data?.outgoing_caller_ids ||
-      data?.data ||
-      [];
-
-    if (Array.isArray(list)) {
-      allCallerIds.push(...list);
-    }
-
-    const nextPageUri = String(
-      data?.next_page_uri || ''
-    ).trim();
-    nextUrl = nextPageUri
-      ? new URL(
-          nextPageUri,
-          `https://${spaceUrl}`
-        ).toString()
-      : '';
-  }
-
-  return allCallerIds;
+const parseVerifiedCallerIdList = (data: any) => {
+  const list =
+    data?.data ||
+    data?.verified_caller_ids ||
+    data?.verifiedCallerIds ||
+    [];
+  return Array.isArray(list) ? list : [];
 };
 
 const listIncomingPhoneNumbers = async (
@@ -138,8 +119,7 @@ const listIncomingPhoneNumbers = async (
   authHeader: string
 ) => {
   const allPhoneNumbers: any[] = [];
-  let nextUrl =
-    `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/IncomingPhoneNumbers.json?PageSize=100`;
+  let nextUrl = `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/IncomingPhoneNumbers.json?PageSize=100`;
 
   while (nextUrl) {
     const response = await fetch(nextUrl, {
@@ -181,62 +161,223 @@ const listIncomingPhoneNumbers = async (
   return allPhoneNumbers;
 };
 
-const triggerExistingCallerIdVerification = async (
-  sid: string,
+const requestVerifiedCallerIds = async (
   spaceUrl: string,
-  projectId: string,
   authHeader: string,
-  friendlyName: string
+  path: string,
+  init: RequestInit
 ) => {
-  const body = new URLSearchParams({
-    FriendlyName: friendlyName,
-  }).toString();
+  let lastError: Error | null = null;
+  const requestMethod = String(
+    init.method || 'GET'
+  ).toUpperCase();
+  const requestBody =
+    typeof init.body === 'string'
+      ? init.body
+      : init.body
+        ? '[non-string body]'
+        : null;
 
-  const response = await fetch(
-    `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/OutgoingCallerIds/${sid}/ValidationRequests.json`,
+  for (const basePath of VERIFIED_CALLER_ID_PATHS) {
+    const url = `https://${spaceUrl}${basePath}${path}`;
+    try {
+      const response = await fetch(url, {
+        ...init,
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          Accept: 'application/json',
+          ...(init.headers || {}),
+        },
+      });
+
+      if (response.status === 404) {
+        lastError = new Error(
+          `Verified Caller IDs endpoint not found at ${basePath}${path}`
+        );
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new VerifiedCallerIdRequestError({
+          message:
+            `Verified Caller IDs ${requestMethod} failed at ${basePath}${path}`,
+          status: response.status,
+          basePath,
+          responseBody:
+            errorText || `Request failed with status ${response.status}`,
+          requestMethod,
+          requestPath: `${basePath}${path}`,
+          requestBody,
+        });
+      }
+
+      const contentType = String(
+        response.headers.get('content-type') || ''
+      ).toLowerCase();
+      const bodyText = await response.text();
+      const trimmedBody = bodyText.trim();
+
+      if (
+        !contentType.includes('application/json') &&
+        trimmedBody.startsWith('<!doctype')
+      ) {
+        lastError = new Error(
+          `Verified Caller IDs endpoint returned HTML at ${basePath}${path}`
+        );
+        continue;
+      }
+
+      try {
+        const data = trimmedBody
+          ? JSON.parse(trimmedBody)
+          : {};
+
+        return {
+          data,
+          basePath,
+        };
+      } catch {
+        lastError = new VerifiedCallerIdRequestError({
+          message: `Verified Caller IDs endpoint returned non-JSON data at ${basePath}${path}`,
+          status: response.status,
+          basePath,
+          responseBody: trimmedBody.slice(0, 1000),
+          requestMethod,
+          requestPath: `${basePath}${path}`,
+          requestBody,
+        });
+        continue;
+      }
+    } catch (error) {
+      lastError =
+        error instanceof Error
+          ? error
+          : new Error('Unknown SignalWire request error');
+    }
+  }
+
+  throw (
+    lastError ||
+    new Error('Verified Caller IDs endpoint not available')
+  );
+};
+
+const listVerifiedCallerIds = async (
+  spaceUrl: string,
+  authHeader: string
+) => {
+  const result = await requestVerifiedCallerIds(
+    spaceUrl,
+    authHeader,
+    '',
+    {
+      method: 'GET',
+    }
+  );
+  return parseVerifiedCallerIdList(result.data);
+};
+
+const getVerifiedCallerIdById = async (
+  id: string,
+  spaceUrl: string,
+  authHeader: string
+) => {
+  const result = await requestVerifiedCallerIds(
+    spaceUrl,
+    authHeader,
+    `/${id}`,
+    {
+      method: 'GET',
+    }
+  );
+  return result.data;
+};
+
+const createVerifiedCallerId = async (
+  phoneNumber: string,
+  friendlyName: string,
+  spaceUrl: string,
+  authHeader: string
+) => {
+  const result = await requestVerifiedCallerIds(
+    spaceUrl,
+    authHeader,
+    '',
     {
       method: 'POST',
       headers: {
-        Authorization: `Basic ${authHeader}`,
-        'Content-Type':
-          'application/x-www-form-urlencoded',
-        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
-      body,
+      body: JSON.stringify({
+        number: phoneNumber,
+        name: friendlyName,
+        friendly_name: friendlyName,
+      }),
     }
   );
+  return result.data;
+};
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to trigger validation request: ${errorText}`
-    );
-  }
+const redialVerifiedCallerId = async (
+  id: string,
+  spaceUrl: string,
+  authHeader: string
+) => {
+  const result = await requestVerifiedCallerIds(
+    spaceUrl,
+    authHeader,
+    `/${id}/verification`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    }
+  );
+  return result.data;
+};
 
-  return response.json();
+const submitVerifiedCallerIdCode = async (
+  id: string,
+  code: string,
+  spaceUrl: string,
+  authHeader: string
+) => {
+  const result = await requestVerifiedCallerIds(
+    spaceUrl,
+    authHeader,
+    `/${id}/verification`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        verification_code: code,
+        code,
+        token: code,
+      }),
+    }
+  );
+  return result.data;
 };
 
 export async function GET(request: NextRequest) {
   try {
+    const listAll =
+      request.nextUrl.searchParams.get('list') === '1';
     const normalizedPhone = normalizeUsPhoneToE164(
       String(
-        request.nextUrl.searchParams.get(
-          'phoneNumber'
-        ) || ''
+        request.nextUrl.searchParams.get('phoneNumber') ||
+          ''
       )
     );
     const callerIdId = String(
-      request.nextUrl.searchParams.get(
-        'callerIdId'
-      ) || ''
+      request.nextUrl.searchParams.get('callerIdId') ||
+        ''
     ).trim();
-
-    if (!normalizedPhone) {
-      return NextResponse.json(
-        { error: 'Invalid US phone number' },
-        { status: 400 }
-      );
-    }
 
     const config = getSignalWireConfig();
     if (!config) {
@@ -246,34 +387,88 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const {
-      projectId,
-      spaceUrl,
-      authHeader,
-    } = config;
+    const { projectId, spaceUrl, authHeader } = config;
 
-    let existingMatch: any = null;
-    let ownedPhoneMatch: any = null;
+    if (listAll) {
+      let incomingPhoneNumbers: any[] = [];
+      let verifiedCallerIds: any[] = [];
+      let incomingError: string | null = null;
+      let verifiedError: string | null = null;
 
-    try {
-      const incomingPhoneNumbers =
-        await listIncomingPhoneNumbers(
+      try {
+        incomingPhoneNumbers = await listIncomingPhoneNumbers(
           spaceUrl,
           projectId,
           authHeader
         );
-      ownedPhoneMatch =
-        incomingPhoneNumbers.find(
-          (phone: any) =>
-            getIncomingPhoneNumber(phone) ===
-            normalizedPhone
-        ) || null;
-    } catch (incomingError) {
-      console.warn(
-        'Incoming phone number lookup failed:',
-        incomingError
+      } catch (error) {
+        incomingError =
+          error instanceof Error
+            ? error.message
+            : 'Failed to list incoming phone numbers';
+      }
+
+      try {
+        verifiedCallerIds = await listVerifiedCallerIds(
+          spaceUrl,
+          authHeader
+        );
+      } catch (error) {
+        verifiedError =
+          error instanceof Error
+            ? error.message
+            : 'Failed to list verified caller IDs';
+      }
+
+      return NextResponse.json({
+        incomingPhoneNumbers: incomingPhoneNumbers.map(
+          (phone: any) => ({
+            id: phone?.sid || phone?.id || null,
+            phoneNumber:
+              getIncomingPhoneNumber(phone),
+            rawStatus: phone?.status || null,
+            source: 'incoming',
+          })
+        ),
+        verifiedCallerIds: verifiedCallerIds.map(
+          (callerId: any) => ({
+            id:
+              callerId?.id ||
+              callerId?.sid ||
+              null,
+            phoneNumber:
+              getVerifiedCallerIdPhone(callerId),
+            rawStatus:
+              callerId?.status || null,
+            verified:
+              isVerifiedCallerId(callerId),
+            source: 'verified-caller-id',
+            raw: callerId,
+          })
+        ),
+        errors: {
+          incomingPhoneNumbers: incomingError,
+          verifiedCallerIds: verifiedError,
+        },
+      });
+    }
+
+    if (!normalizedPhone) {
+      return NextResponse.json(
+        { error: 'Invalid US phone number' },
+        { status: 400 }
       );
     }
+
+    const incomingPhoneNumbers = await listIncomingPhoneNumbers(
+      spaceUrl,
+      projectId,
+      authHeader
+    ).catch(() => []);
+    const ownedPhoneMatch = incomingPhoneNumbers.find(
+      (phone: any) =>
+        getIncomingPhoneNumber(phone) === normalizedPhone
+    );
 
     if (ownedPhoneMatch) {
       return NextResponse.json({
@@ -289,38 +484,34 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    let existingMatch: any = null;
+
     if (callerIdId) {
       try {
-        const callerId = await getCallerIdById(
+        const callerId = await getVerifiedCallerIdById(
           callerIdId,
           spaceUrl,
-          projectId,
           authHeader
         );
         if (
-          getCallerIdPhone(callerId) ===
+          getVerifiedCallerIdPhone(callerId) ===
           normalizedPhone
         ) {
           existingMatch = callerId;
         }
-      } catch (directLoadError) {
-        console.warn(
-          'Direct caller-id lookup failed, falling back to list lookup:',
-          directLoadError
-        );
+      } catch {
+        // Fall through to list lookup.
       }
     }
 
     if (!existingMatch) {
-      const existingCallerIds =
-        await listOutgoingCallerIds(
-          spaceUrl,
-          projectId,
-          authHeader
-        );
-      existingMatch = existingCallerIds.find(
+      const verifiedCallerIds = await listVerifiedCallerIds(
+        spaceUrl,
+        authHeader
+      );
+      existingMatch = verifiedCallerIds.find(
         (callerId: any) =>
-          getCallerIdPhone(callerId) ===
+          getVerifiedCallerIdPhone(callerId) ===
           normalizedPhone
       );
     }
@@ -334,22 +525,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const verified = isCallerIdVerified(existingMatch);
+    const verified = isVerifiedCallerId(existingMatch);
 
     return NextResponse.json({
       exists: true,
       verified,
       phoneNumber: normalizedPhone,
       id:
-        existingMatch.sid ||
         existingMatch.id ||
+        existingMatch.sid ||
         null,
       status: verified
         ? 'verified'
         : String(
-            existingMatch.validation_status ||
-              existingMatch.status ||
-              'pending'
+            existingMatch.status || 'pending'
           ).toLowerCase(),
       raw: existingMatch,
     });
@@ -358,12 +547,24 @@ export async function GET(request: NextRequest) {
       'Verify caller-id status API error:',
       error
     );
+    const details =
+      error instanceof VerifiedCallerIdRequestError
+        ? {
+            status: error.status,
+            basePath: error.basePath,
+            responseBody: error.responseBody,
+            requestMethod: error.requestMethod,
+            requestPath: error.requestPath,
+            requestBody: error.requestBody,
+          }
+        : undefined;
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
             : 'Internal server error',
+        details,
       },
       { status: 500 }
     );
@@ -373,7 +574,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { phoneNumber, friendlyName } = await request.json();
-    const normalizedPhone = normalizeUsPhoneToE164(String(phoneNumber || ''));
+    const normalizedPhone = normalizeUsPhoneToE164(
+      String(phoneNumber || '')
+    );
 
     if (!normalizedPhone) {
       return NextResponse.json(
@@ -392,159 +595,220 @@ export async function POST(request: NextRequest) {
 
     const { projectId, spaceUrl, authHeader } = config;
 
-    let existingMatch: any = null;
+    const incomingPhoneNumbers = await listIncomingPhoneNumbers(
+      spaceUrl,
+      projectId,
+      authHeader
+    ).catch(() => []);
+    const ownedPhoneMatch = incomingPhoneNumbers.find(
+      (phone: any) =>
+        getIncomingPhoneNumber(phone) === normalizedPhone
+    );
 
-    try {
-      const incomingPhoneNumbers =
-        await listIncomingPhoneNumbers(
-          spaceUrl,
-          projectId,
-          authHeader
-        );
-      const ownedPhoneMatch =
-        incomingPhoneNumbers.find(
-          (phone: any) =>
-            getIncomingPhoneNumber(phone) ===
-            normalizedPhone
-        ) || null;
-
-      if (ownedPhoneMatch) {
-        return NextResponse.json({
-          id:
-            ownedPhoneMatch.sid ||
-            ownedPhoneMatch.id ||
-            null,
-          phoneNumber: normalizedPhone,
-          status: 'owned',
-          callSid: null,
-          alreadyVerified: true,
-          ownedByProject: true,
-          raw: ownedPhoneMatch,
-        });
-      }
-    } catch (incomingError) {
-      console.warn(
-        'Incoming phone number lookup failed during verification start:',
-        incomingError
-      );
-    }
-    try {
-      const existingCallerIds =
-        await listOutgoingCallerIds(
-          spaceUrl,
-          projectId,
-          authHeader
-        );
-      existingMatch = existingCallerIds.find(
-        (callerId: any) =>
-          getCallerIdPhone(callerId) ===
-          normalizedPhone
-      );
-    } catch (listError) {
-      console.warn(
-        'Caller-id list lookup failed during verification start, continuing with create flow:',
-        listError
-      );
-    }
-
-    if (existingMatch && isCallerIdVerified(existingMatch)) {
+    if (ownedPhoneMatch) {
       return NextResponse.json({
         id:
-          existingMatch.sid ||
+          ownedPhoneMatch.sid ||
+          ownedPhoneMatch.id ||
+          null,
+        phoneNumber: normalizedPhone,
+        status: 'owned',
+        alreadyVerified: true,
+        raw: ownedPhoneMatch,
+      });
+    }
+
+    const verifiedCallerIds = await listVerifiedCallerIds(
+      spaceUrl,
+      authHeader
+    ).catch(() => []);
+    const existingMatch = verifiedCallerIds.find(
+      (callerId: any) =>
+        getVerifiedCallerIdPhone(callerId) ===
+        normalizedPhone
+    );
+
+    if (existingMatch && isVerifiedCallerId(existingMatch)) {
+      return NextResponse.json({
+        id:
           existingMatch.id ||
+          existingMatch.sid ||
           null,
         phoneNumber: normalizedPhone,
         status: 'verified',
-        callSid: null,
         alreadyVerified: true,
         raw: existingMatch,
       });
     }
 
-    if (existingMatch?.sid) {
-      try {
-        const validationData =
-          await triggerExistingCallerIdVerification(
-            existingMatch.sid,
-            spaceUrl,
-            projectId,
-            authHeader,
-            String(
-              friendlyName ||
-                'Painter Caller ID'
-            )
-          );
-        return NextResponse.json({
-          id:
-            existingMatch.sid ||
-            existingMatch.id ||
-            null,
-          phoneNumber: normalizedPhone,
-          status: 'pending',
-          callSid:
-            validationData?.call_sid || null,
-          alreadyVerified: false,
-          reusedExisting: true,
-          raw: validationData,
-        });
-      } catch (reuseError) {
-        console.error(
-          'SignalWire existing caller-id re-verify error:',
-          reuseError
-        );
-      }
+    if (existingMatch) {
+      const redialData = await redialVerifiedCallerId(
+        String(
+          existingMatch.id || existingMatch.sid || ''
+        ),
+        spaceUrl,
+        authHeader
+      );
+
+      return NextResponse.json({
+        id:
+          existingMatch.id ||
+          existingMatch.sid ||
+          null,
+        phoneNumber: normalizedPhone,
+        status: 'pending',
+        alreadyVerified: false,
+        reusedExisting: true,
+        raw: redialData,
+      });
     }
 
-    // Verified caller-id flow uses voice-call verification.
-    // Create caller-id and trigger verification call through the Compatibility API.
-    const form = new URLSearchParams({
-      PhoneNumber: normalizedPhone,
-      FriendlyName: String(friendlyName || 'Painter Caller ID')
-    }).toString();
-
-    const response = await fetch(
-      `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/OutgoingCallerIds.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${authHeader}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        body: form
-      }
+    const created = await createVerifiedCallerId(
+      normalizedPhone,
+      String(friendlyName || 'Painter Caller ID'),
+      spaceUrl,
+      authHeader
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('SignalWire verify caller-id error:', errorText);
-      return NextResponse.json(
-        {
-          error: 'Failed to start caller ID verification',
-          details: errorText
-        },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
     return NextResponse.json({
-      id: data.sid || data.id || null,
-      phoneNumber: data.phone_number || normalizedPhone,
-      status: data.validation_status || data.status || 'pending',
-      callSid: data.call_sid || null,
+      id: created?.id || created?.sid || null,
+      phoneNumber:
+        getVerifiedCallerIdPhone(created) ||
+        normalizedPhone,
+      status: String(created?.status || 'pending').toLowerCase(),
       alreadyVerified: false,
       reusedExisting: false,
-      raw: data
+      raw: created,
     });
   } catch (error) {
     console.error('Verify caller-id API error:', error);
+    const details =
+      error instanceof VerifiedCallerIdRequestError
+        ? {
+            status: error.status,
+            basePath: error.basePath,
+            responseBody: error.responseBody,
+            requestMethod: error.requestMethod,
+            requestPath: error.requestPath,
+            requestBody: error.requestBody,
+          }
+        : undefined;
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
             : 'Internal server error',
+        details,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const {
+      id,
+      phoneNumber,
+      verificationCode,
+      code,
+    } = await request.json();
+    const resolvedCode = String(
+      verificationCode || code || ''
+    )
+      .trim()
+      .replace(/\D/g, '');
+
+    if (resolvedCode.length !== 6) {
+      return NextResponse.json(
+        { error: 'Enter a valid 6 digit code' },
+        { status: 400 }
+      );
+    }
+
+    const config = getSignalWireConfig();
+    if (!config) {
+      return NextResponse.json(
+        { error: 'SignalWire credentials not configured' },
+        { status: 500 }
+      );
+    }
+
+    const { spaceUrl, authHeader } = config;
+    let resolvedId = String(id || '').trim();
+
+    if (!resolvedId) {
+      const normalizedPhone = normalizeUsPhoneToE164(
+        String(phoneNumber || '')
+      );
+
+      if (!normalizedPhone) {
+        return NextResponse.json(
+          { error: 'Verification ID or phone number is required' },
+          { status: 400 }
+        );
+      }
+
+      const verifiedCallerIds = await listVerifiedCallerIds(
+        spaceUrl,
+        authHeader
+      );
+      const existingMatch = verifiedCallerIds.find(
+        (callerId: any) =>
+          getVerifiedCallerIdPhone(callerId) ===
+          normalizedPhone
+      );
+      resolvedId = String(
+        existingMatch?.id || existingMatch?.sid || ''
+      ).trim();
+
+      if (!resolvedId) {
+        return NextResponse.json(
+          { error: 'No verification request found for this number' },
+          { status: 404 }
+        );
+      }
+    }
+
+    const verified = await submitVerifiedCallerIdCode(
+      resolvedId,
+      resolvedCode,
+      spaceUrl,
+      authHeader
+    );
+
+    return NextResponse.json({
+      id: verified?.id || verified?.sid || resolvedId,
+      phoneNumber:
+        getVerifiedCallerIdPhone(verified),
+      status: String(verified?.status || 'verified').toLowerCase(),
+      verified: isVerifiedCallerId(verified) || true,
+      raw: verified,
+    });
+  } catch (error) {
+    console.error(
+      'Validate caller-id API error:',
+      error
+    );
+    const details =
+      error instanceof VerifiedCallerIdRequestError
+        ? {
+            status: error.status,
+            basePath: error.basePath,
+            responseBody: error.responseBody,
+            requestMethod: error.requestMethod,
+            requestPath: error.requestPath,
+            requestBody: error.requestBody,
+          }
+        : undefined;
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Internal server error',
+        details,
       },
       { status: 500 }
     );

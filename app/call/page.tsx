@@ -192,9 +192,12 @@ const PainterCallCenter: React.FC = () => {
   const [isCallerIdVerified, setCallerIdVerified] = useState(false);
   const [isCheckingCallerId, setCheckingCallerId] = useState(false);
   const [isRequestingCallerIdVerification, setRequestingCallerIdVerification] = useState(false);
+  const [isSubmittingCallerIdCode, setSubmittingCallerIdCode] = useState(false);
   const [callerIdVerificationError, setCallerIdVerificationError] = useState<string | null>(null);
   const [storedCallerIdId, setStoredCallerIdId] = useState<string | null>(null);
   const [requiresCallerIdVerification, setRequiresCallerIdVerification] = useState(false);
+  const [callerIdVerificationStep, setCallerIdVerificationStep] = useState<'request' | 'code'>('request');
+  const [callerIdVerificationCode, setCallerIdVerificationCode] = useState('');
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const roomSessionRef = useRef<any>(null);
@@ -336,6 +339,8 @@ const PainterCallCenter: React.FC = () => {
       setPainterUser(false);
       setPainterCallerId('');
       setCallerIdVerified(false);
+      setCallerIdVerificationStep('request');
+      setCallerIdVerificationCode('');
       setCheckingAuth(false);
     }, AUTH_CHECK_TIMEOUT_MS);
 
@@ -367,6 +372,8 @@ const PainterCallCenter: React.FC = () => {
             setPainterUser(false);
             setPainterCallerId('');
             setCallerIdVerified(false);
+            setCallerIdVerificationStep('request');
+            setCallerIdVerificationCode('');
             stopCallerIdPolling();
             return;
           }
@@ -404,6 +411,8 @@ const PainterCallCenter: React.FC = () => {
             );
             setCallerIdVerified(false);
             setRequiresCallerIdVerification(false);
+            setCallerIdVerificationStep('request');
+            setCallerIdVerificationCode('');
             setPainterUser(true);
             setCallerIdVerificationError(null);
           } else {
@@ -413,6 +422,8 @@ const PainterCallCenter: React.FC = () => {
             setStoredCallerIdId(null);
             setRequiresCallerIdVerification(false);
             setCallerIdVerified(false);
+            setCallerIdVerificationStep('request');
+            setCallerIdVerificationCode('');
             stopCallerIdPolling();
           }
         } catch (error) {
@@ -425,6 +436,8 @@ const PainterCallCenter: React.FC = () => {
           setStoredCallerIdId(null);
           setRequiresCallerIdVerification(false);
           setCallerIdVerified(false);
+          setCallerIdVerificationStep('request');
+          setCallerIdVerificationCode('');
           stopCallerIdPolling();
         } finally {
           if (!isMounted) return;
@@ -443,6 +456,8 @@ const PainterCallCenter: React.FC = () => {
         setStoredCallerIdId(null);
         setRequiresCallerIdVerification(false);
         setCallerIdVerified(false);
+        setCallerIdVerificationStep('request');
+        setCallerIdVerificationCode('');
         stopCallerIdPolling();
         setCheckingAuth(false);
       }
@@ -460,6 +475,8 @@ const PainterCallCenter: React.FC = () => {
       setCallerIdVerified(false);
       setStoredCallerIdId(null);
       setRequiresCallerIdVerification(false);
+      setCallerIdVerificationStep('request');
+      setCallerIdVerificationCode('');
       stopCallerIdPolling();
       return;
     }
@@ -536,7 +553,13 @@ const PainterCallCenter: React.FC = () => {
 
       if (verified) {
         setCallerIdVerificationError(null);
+        setCallerIdVerificationStep('request');
+        setCallerIdVerificationCode('');
         stopCallerIdPolling();
+      } else {
+        setCallerIdVerificationStep(
+          payload.id ? 'code' : 'request'
+        );
       }
 
       return verified;
@@ -553,14 +576,6 @@ const PainterCallCenter: React.FC = () => {
     } finally {
       setCheckingCallerId(false);
     }
-  };
-
-  const startCallerIdPolling = () => {
-    stopCallerIdPolling();
-    callerIdPollTimerRef.current =
-      window.setInterval(() => {
-        checkCallerIdVerification().catch(() => undefined);
-      }, 5000);
   };
 
   const triggerCallerIdVerification = async () => {
@@ -610,13 +625,16 @@ const PainterCallCenter: React.FC = () => {
 
       if (verified) {
         setStatus('Phone number verified.');
+        setCallerIdVerificationStep('request');
+        setCallerIdVerificationCode('');
         return;
       }
 
+      setCallerIdVerificationStep('code');
+      setCallerIdVerificationCode('');
       setStatus(
-        'Verification call started. Answer your phone to verify your number.'
+        'Verification call started. Answer your phone and enter the 6 digit code below.'
       );
-      startCallerIdPolling();
     } catch (error) {
       console.error(
         'Caller ID verification start failed:',
@@ -627,6 +645,81 @@ const PainterCallCenter: React.FC = () => {
       );
     } finally {
       setRequestingCallerIdVerification(false);
+    }
+  };
+
+  const submitCallerIdVerificationCode = async () => {
+    const normalizedPainterCallerId =
+      normalizeUsPhoneToE164(painterCallerId);
+    const normalizedCode = callerIdVerificationCode
+      .replace(/\D/g, '')
+      .slice(0, 6);
+
+    if (!normalizedPainterCallerId) {
+      setCallerIdVerificationError(
+        'Your provider phone number is missing or invalid. Update it in your account settings first.'
+      );
+      return;
+    }
+
+    if (normalizedCode.length !== 6) {
+      setCallerIdVerificationError(
+        'Please enter the 6 digit verification code.'
+      );
+      return;
+    }
+
+    setSubmittingCallerIdCode(true);
+    setCallerIdVerificationError(null);
+
+    try {
+      const response = await fetch(
+        '/api/signalwire/verify-caller-id',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: storedCallerIdId || undefined,
+            phoneNumber: normalizedPainterCallerId,
+            verificationCode: normalizedCode
+          })
+        }
+      );
+      const payload = await getJsonOrThrow(
+        response,
+        'Failed to verify caller ID code'
+      );
+
+      const verified =
+        Boolean(payload.verified) ||
+        String(payload.status || '')
+          .toLowerCase()
+          .includes('verified');
+
+      if (!verified) {
+        throw new Error(
+          'SignalWire did not confirm the number as verified.'
+        );
+      }
+
+      setCallerIdVerified(true);
+      setRequiresCallerIdVerification(false);
+      setStoredCallerIdId(payload.id || storedCallerIdId);
+      setCallerIdVerificationStep('request');
+      setCallerIdVerificationCode('');
+      setStatus('Phone number verified.');
+    } catch (error) {
+      console.error(
+        'Caller ID code verification failed:',
+        error
+      );
+      setCallerIdVerificationError(
+        (error as Error).message
+      );
+    } finally {
+      setSubmittingCallerIdCode(false);
     }
   };
 
@@ -1912,7 +2005,9 @@ const PainterCallCenter: React.FC = () => {
           >
             <div style={{ flex: '1 1 320px' }}>
               <div style={{ fontWeight: 600 }}>
-                It looks like you haven&apos;t verified your phone number yet, click the button to get a verification phone call.
+                {callerIdVerificationStep === 'code'
+                  ? 'Please enter your 6 digit code.'
+                  : 'It looks like you haven&apos;t verified your phone number yet, click the button to get a verification phone call.'}
               </div>
               {(callerIdVerificationError || isCheckingCallerId) && (
                 <div
@@ -1928,35 +2023,100 @@ const PainterCallCenter: React.FC = () => {
                 </div>
               )}
             </div>
-            <button
-              onClick={triggerCallerIdVerification}
-              disabled={
-                isRequestingCallerIdVerification ||
-                isCheckingCallerId
-              }
-              style={{
-                border: 'none',
-                borderRadius: 12,
-                background: PRIMARY_COLOR_HEX,
-                color: '#fff',
-                padding: '12px 18px',
-                fontWeight: 700,
-                cursor:
+            {callerIdVerificationStep === 'code' ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-end'
+                }}
+              >
+                <input
+                  value={callerIdVerificationCode}
+                  onChange={(event) =>
+                    setCallerIdVerificationCode(
+                      event.target.value
+                        .replace(/\D/g, '')
+                        .slice(0, 6)
+                    )
+                  }
+                  inputMode="numeric"
+                  placeholder="123456"
+                  style={{
+                    width: 120,
+                    borderRadius: 12,
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#0f172a',
+                    padding: '12px 14px',
+                    fontWeight: 600,
+                    letterSpacing: 2,
+                    textAlign: 'center'
+                  }}
+                />
+                <button
+                  onClick={submitCallerIdVerificationCode}
+                  disabled={
+                    isSubmittingCallerIdCode ||
+                    isCheckingCallerId
+                  }
+                  style={{
+                    border: 'none',
+                    borderRadius: 12,
+                    background: PRIMARY_COLOR_HEX,
+                    color: '#fff',
+                    padding: '12px 18px',
+                    fontWeight: 700,
+                    cursor:
+                      isSubmittingCallerIdCode ||
+                      isCheckingCallerId
+                        ? 'not-allowed'
+                        : 'pointer',
+                    opacity:
+                      isSubmittingCallerIdCode ||
+                      isCheckingCallerId
+                        ? 0.75
+                        : 1
+                  }}
+                >
+                  {isSubmittingCallerIdCode
+                    ? 'Submitting...'
+                    : 'Submit Code'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={triggerCallerIdVerification}
+                disabled={
                   isRequestingCallerIdVerification ||
                   isCheckingCallerId
-                    ? 'not-allowed'
-                    : 'pointer',
-                opacity:
-                  isRequestingCallerIdVerification ||
-                  isCheckingCallerId
-                    ? 0.75
-                    : 1
-              }}
-            >
-              {isRequestingCallerIdVerification
-                ? 'Starting...'
-                : 'Verify Number'}
-            </button>
+                }
+                style={{
+                  border: 'none',
+                  borderRadius: 12,
+                  background: PRIMARY_COLOR_HEX,
+                  color: '#fff',
+                  padding: '12px 18px',
+                  fontWeight: 700,
+                  cursor:
+                    isRequestingCallerIdVerification ||
+                    isCheckingCallerId
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    isRequestingCallerIdVerification ||
+                    isCheckingCallerId
+                      ? 0.75
+                      : 1
+                }}
+              >
+                {isRequestingCallerIdVerification
+                  ? 'Starting...'
+                  : 'Verify Number'}
+              </button>
+            )}
           </div>
         )}
         {isActiveCallUI && (
