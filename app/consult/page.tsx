@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import { PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -257,7 +257,6 @@ const ConsultPage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
-  const [isAudioMuted, setAudioMuted] = useState(false);
   const [isVideoOff, setVideoOff] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
@@ -562,21 +561,6 @@ const ConsultPage: React.FC = () => {
     );
   }, [pushDebugLog]);
 
-  const getMicrophoneTrack = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false
-      });
-      return stream.getAudioTracks()[0] || null;
-    } catch (error) {
-      pushDebugLog(
-        `Microphone request failed: ${(error as Error).message}`
-      );
-      return null;
-    }
-  }, [pushDebugLog]);
-
   const createTokenForRoom = async (roomName: string) => {
     const response = await fetch('/api/signalwire/room-token', {
       method: 'POST',
@@ -798,19 +782,9 @@ const ConsultPage: React.FC = () => {
     setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
-    const videoStream = await getBackCameraStream();
-    const nextTracks: MediaStreamTrack[] = [
-      ...videoStream.getVideoTracks()
-    ];
-    const microphoneTrack = await getMicrophoneTrack();
-    if (microphoneTrack) {
-      microphoneTrack.enabled = true;
-      nextTracks.push(microphoneTrack);
-    }
-    const stream = new MediaStream(nextTracks);
+    const stream = await getBackCameraStream();
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
-    setAudioMuted(false);
     setQuoteAccepted(false);
     setQuoteSessionClosed(false);
     stream.getVideoTracks().forEach((track) => {
@@ -820,9 +794,7 @@ const ConsultPage: React.FC = () => {
       track.onmute = () => pushDebugLog('Local video track muted');
       track.onunmute = () => pushDebugLog('Local video track unmuted');
     });
-    const previewReady = await attachLocalStreamPreview(
-      new MediaStream(stream.getVideoTracks())
-    );
+    const previewReady = await attachLocalStreamPreview(stream);
     pushDebugLog(`Local preview ready=${previewReady}`);
 
     const session = new SWVideo.RoomSession({
@@ -830,22 +802,16 @@ const ConsultPage: React.FC = () => {
       localStream: stream
     });
     await session.join({
-      sendAudio: true,
+      sendAudio: false,
       sendVideo: true,
-      receiveAudio: true,
+      receiveAudio: false,
       receiveVideo: true
     });
     pushDebugLog('Room joined with sendVideo=true');
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-  }, [
-    cleanupSession,
-    getBackCameraStream,
-    getMicrophoneTrack,
-    pushDebugLog,
-    stopQuoteWatcher,
-  ]);
+  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
 
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
@@ -1091,48 +1057,6 @@ const ConsultPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Video toggle error:', error);
-    }
-  };
-
-  const toggleAudio = async () => {
-    const session = sessionRef.current;
-    const stream = localStreamRef.current;
-    if (!session || !stream) return;
-
-    try {
-      const nextMuted = !isAudioMuted;
-      const methodName = nextMuted
-        ? session.audioMute
-          ? 'audioMute'
-          : session.stopOutboundAudio
-            ? 'stopOutboundAudio'
-            : null
-        : session.audioUnmute
-          ? 'audioUnmute'
-          : session.restoreOutboundAudio
-            ? 'restoreOutboundAudio'
-            : null;
-
-      if (methodName) {
-        try {
-          await session[methodName]();
-        } catch {
-          // Fall through to direct track control.
-        }
-      }
-
-      stream.getAudioTracks().forEach((track) => {
-        track.enabled = !nextMuted;
-      });
-      pushDebugLog(
-        `Consult audio ${nextMuted ? 'muted' : 'unmuted'}`
-      );
-      setAudioMuted(nextMuted);
-    } catch (error) {
-      console.error('Audio toggle error:', error);
-      pushDebugLog(
-        `Audio toggle error: ${(error as Error).message}`
-      );
     }
   };
 
@@ -1606,23 +1530,6 @@ const ConsultPage: React.FC = () => {
                   gap: 10
                 }}
               >
-              <button
-                onClick={toggleAudio}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: isAudioMuted ? '#0f1116' : '#fff',
-                  color: isAudioMuted ? '#fff' : '#111',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                aria-label={isAudioMuted ? 'Unmute microphone' : 'Mute microphone'}
-              >
-                {isAudioMuted ? <MicOff size={20} /> : <Mic size={20} />}
-              </button>
               {!isQuoteMode && (
                 <button
                   onClick={toggleVideo}
