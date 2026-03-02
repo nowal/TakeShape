@@ -2625,60 +2625,7 @@ const PainterCallCenter: React.FC = () => {
 
         {(phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft') && (
           <div style={phoneFrameStyle}>
-            {(phase === 'calling' ||
-              ((phase === 'videoInviteSent' ||
-                phase === 'quoteDraft') &&
-                !hasVideoFrame)) && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 20,
-                  left: 16,
-                  right: 16,
-                  zIndex: 2,
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 12px',
-                    borderRadius: 999,
-                    background: 'rgba(15,17,22,0.72)',
-                    color: '#e2e8f0',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    border: '1px solid rgba(148,163,184,0.22)'
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      background: isHomeownerInCallRoom
-                        ? '#22c55e'
-                        : '#64748b',
-                      boxShadow: isHomeownerInCallRoom
-                        ? '0 0 0 4px rgba(34,197,94,0.18)'
-                        : 'none'
-                    }}
-                  />
-                  {phase === 'calling'
-                    ? (
-                        isHomeownerInCallRoom
-                          ? 'Homeowner is in call room'
-                          : activeHomeownerNumberRef.current
-                            ? 'Waiting for homeowner to join call room'
-                            : 'Video room ready'
-                      )
-                    : 'Waiting for video'}
-                </div>
-              </div>
-            )}
+            {/* Waiting-status pill temporarily disabled. */}
             {phase === 'calling' && hasCopiedVideoLink && (
               <div
                 style={{
