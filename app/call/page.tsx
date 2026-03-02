@@ -1330,7 +1330,13 @@ const PainterCallCenter: React.FC = () => {
   const watchCallHealth = () => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
-      if (!conference?.id || !activeCallRef.current) return;
+      if (
+        !conference?.id ||
+        (!activeCallRef.current &&
+          phaseRef.current !== 'quoteDraft')
+      ) {
+        return;
+      }
       if (localEndRequestedRef.current) return;
 
       try {
@@ -1350,7 +1356,11 @@ const PainterCallCenter: React.FC = () => {
         const nextQuoteAccepted = isQuoteAcceptedPayload(conferenceState);
         const nextQuoteSessionClosed = isQuoteSessionClosedPayload(conferenceState);
 
-        if (phase === 'quoteDraft' && painterDocId && quoteDocIdRef.current) {
+        if (
+          phaseRef.current === 'quoteDraft' &&
+          painterDocId &&
+          quoteDocIdRef.current
+        ) {
           const quoteSnapshot = await getDoc(
             doc(
               firestore,
@@ -1434,7 +1444,10 @@ const PainterCallCenter: React.FC = () => {
           return;
         }
 
-        if (isQuoteModePayload(conferenceState) && phase === 'videoInviteSent') {
+        if (
+          isQuoteModePayload(conferenceState) &&
+          phaseRef.current === 'videoInviteSent'
+        ) {
           setPhase('quoteDraft');
           setStatus('Quote mode active. Audio call continues.');
           setHasVideoFrame(false);
@@ -2591,6 +2604,16 @@ const PainterCallCenter: React.FC = () => {
                   overflowY: 'auto'
                 }}
               >
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth:
+                      viewport.isDimensions && !viewport.isSm
+                        ? 640
+                        : '100%',
+                    margin: '0 auto'
+                  }}
+                >
                 <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Create Quote</div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
@@ -2681,18 +2704,6 @@ const PainterCallCenter: React.FC = () => {
                     +
                   </button>
                 )}
-                <div
-                  style={{
-                    marginTop: 26,
-                    padding: '0 14px',
-                    color: '#9fb0c8',
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    textAlign: 'center'
-                  }}
-                >
-                  If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
-                </div>
                 {isQuoteAccepted && (
                   <div
                     style={{
@@ -2708,6 +2719,22 @@ const PainterCallCenter: React.FC = () => {
                 )}
                 <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
                   Total: ${quoteTotalPrice.toFixed(2)}
+                </div>
+                <div
+                  style={{
+                    marginTop: 52,
+                    padding: '0 18px',
+                    maxWidth: 540,
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    color: '#9fb0c8',
+                    fontSize: 13,
+                    lineHeight: 1.7,
+                    textAlign: 'center'
+                  }}
+                >
+                  If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
+                </div>
                 </div>
               </div>
             )}
