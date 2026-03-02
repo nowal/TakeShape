@@ -58,6 +58,31 @@ export default function QuotesPage() {
   const [activePainterId, setActivePainterId] = useState<string | null>(null);
   const [isRefreshingVideos, setRefreshingVideos] = useState(false);
 
+  const handleDownloadVideo = useCallback(async (
+    quote: QuoteCard
+  ) => {
+    if (!quote.videoUrl) return;
+
+    try {
+      const response = await fetch(quote.videoUrl);
+      if (!response.ok) {
+        throw new Error('Download request failed');
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `quote-video-${quote.id}.webm`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (downloadError) {
+      console.error('Failed to download video:', downloadError);
+      setError('Failed to download video.');
+    }
+  }, []);
+
   const loadQuotes = useCallback(async (
     painterId: string,
     options: { skipAutoFinalize?: boolean } = {}
@@ -317,12 +342,37 @@ export default function QuotesPage() {
               }}
             >
               {quote.videoUrl ? (
-                <video
-                  src={`${quote.videoUrl}#t=0.001`}
-                  controls
-                  muted
-                  style={{ width: '100%', borderRadius: 12, marginBottom: 12, background: '#0f131a' }}
-                />
+                <>
+                  <video
+                    src={`${quote.videoUrl}#t=0.001`}
+                    controls
+                    muted
+                    style={{ width: '100%', borderRadius: 12, marginBottom: 12, background: '#0f131a' }}
+                  />
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      marginBottom: 12
+                    }}
+                  >
+                    <button
+                      onClick={() => handleDownloadVideo(quote)}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        background: PRIMARY_COLOR_HEX,
+                        color: '#fff',
+                        padding: '10px 20px',
+                        fontWeight: 700,
+                        fontSize: 15,
+                        lineHeight: 1.2
+                      }}
+                    >
+                      Download Video
+                    </button>
+                  </div>
+                </>
               ) : (
                 <div
                   style={{

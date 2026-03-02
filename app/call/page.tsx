@@ -21,6 +21,7 @@ import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 import { InputsText } from '@/components/inputs/text';
 import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
 import { MapsLoaded } from '@/components/maps/loaded';
+import { useViewport } from '@/context/viewport';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended' | 'dropped';
 
@@ -86,6 +87,41 @@ const isQuoteModePayload = (payload: any) => {
     String(quoteFlagRaw || '').trim().toLowerCase() === 'true' ||
     String(quoteFlagRaw || '').trim() === '1';
   return mode === 'quote' || quoteFlag || Boolean(quoteStartedRaw);
+};
+
+const isQuoteAcceptedPayload = (payload: any) => {
+  const meta = payload?.meta || {};
+  const acceptedRaw =
+    meta.quote_accepted ??
+    meta.quoteAccepted ??
+    meta.quote_accepted_at ??
+    meta.quoteAcceptedAt;
+  return (
+    acceptedRaw === true ||
+    String(acceptedRaw || '').trim().toLowerCase() === 'true' ||
+    String(acceptedRaw || '').trim() === '1' ||
+    Boolean(
+      String(
+        meta.quote_accepted_at ??
+        meta.quoteAcceptedAt ??
+        ''
+      ).trim()
+    )
+  );
+};
+
+const isQuoteSessionClosedPayload = (payload: any) => {
+  const meta = payload?.meta || {};
+  const closedRaw =
+    meta.quote_session_closed ??
+    meta.quoteSessionClosed ??
+    meta.quote_call_closed ??
+    meta.quoteCallClosed;
+  return (
+    closedRaw === true ||
+    String(closedRaw || '').trim().toLowerCase() === 'true' ||
+    String(closedRaw || '').trim() === '1'
+  );
 };
 
 const DEFAULT_HOMEOWNER_NUMBER = '';
@@ -166,6 +202,64 @@ const copyTextWithFallback = async (value: string) => {
   }
 };
 
+const setSessionAudioMuted = async (
+  session: any,
+  muted: boolean
+) => {
+  if (!session) return;
+
+  const methodName = muted
+    ? session.audioMute
+      ? 'audioMute'
+      : session.stopOutboundAudio
+        ? 'stopOutboundAudio'
+        : null
+    : session.audioUnmute
+      ? 'audioUnmute'
+      : session.restoreOutboundAudio
+        ? 'restoreOutboundAudio'
+        : null;
+
+  if (methodName) {
+    try {
+      await session[methodName]();
+    } catch {
+      // Fall through to direct track control.
+    }
+  }
+
+  const audioTracks = new Set<MediaStreamTrack>();
+  const localStream = session.localStream;
+  if (localStream?.getAudioTracks) {
+    localStream.getAudioTracks().forEach(
+      (track: MediaStreamTrack) => {
+        audioTracks.add(track);
+      }
+    );
+  }
+
+  const peerConnection =
+    session.peerConnection ||
+    session._peerConnection ||
+    session.publisher?.peerConnection ||
+    null;
+
+  if (peerConnection?.getSenders) {
+    peerConnection.getSenders().forEach(
+      (sender: RTCRtpSender) => {
+        const track = sender.track;
+        if (track?.kind === 'audio') {
+          audioTracks.add(track);
+        }
+      }
+    );
+  }
+
+  audioTracks.forEach((track) => {
+    track.enabled = !muted;
+  });
+};
+
 type TCallAddressFieldProps = {
   value: string;
   onChange(value: string): void;
@@ -212,6 +306,7 @@ const CallAddressField: React.FC<TCallAddressFieldProps> = ({
 };
 
 const PainterCallCenter: React.FC = () => {
+  const viewport = useViewport();
   const [status, setStatus] = useState('Ready');
   const [phase, setPhase] = useState<CallPhase>('idle');
   const [conference, setConference] = useState<ConferenceData | null>(null);
@@ -232,6 +327,8 @@ const PainterCallCenter: React.FC = () => {
   const [quoteRows, setQuoteRows] = useState<QuotePricingRow[]>([createQuoteRow()]);
   const [isSavingQuote, setSavingQuote] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
+  const [isQuoteAccepted, setQuoteAccepted] = useState(false);
+  const [isQuoteSessionClosed, setQuoteSessionClosed] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
   const [isHomeownerInCallRoom, setHomeownerInCallRoom] = useState(false);
   const [hasCopiedVideoLink, setHasCopiedVideoLink] = useState(false);
@@ -277,6 +374,7 @@ const PainterCallCenter: React.FC = () => {
   const quoteDocIdRef = useRef<string | null>(null);
   const recordingPersistedRef = useRef(false);
   const callerIdPollTimerRef = useRef<number | null>(null);
+  const quoteAcceptedRef = useRef(false);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -299,6 +397,10 @@ const PainterCallCenter: React.FC = () => {
   useEffect(() => {
     hasVideoFrameRef.current = hasVideoFrame;
   }, [hasVideoFrame]);
+
+  useEffect(() => {
+    quoteAcceptedRef.current = isQuoteAccepted;
+  }, [isQuoteAccepted]);
 
   const isConsultExpected = () =>
     estimateInviteSentRef.current ||
@@ -1083,6 +1185,7 @@ const PainterCallCenter: React.FC = () => {
     });
     roomSessionRef.current = session;
     await startSignalWireRecording(session);
+    await setSessionAudioMuted(session, false);
     setMuted(false);
   };
 
@@ -1173,6 +1276,56 @@ const PainterCallCenter: React.FC = () => {
     }, 1000);
   };
 
+  const concludeAcceptedQuoteSession = async (
+    nextStatus = 'Quote accepted. Call ended.'
+  ) => {
+    activeCallRef.current = false;
+    localEndRequestedRef.current = true;
+    callAnsweredRef.current = false;
+    remoteEndingRef.current = true;
+    stopConferenceWatch();
+    if (findVideoTimerRef.current) {
+      window.clearInterval(findVideoTimerRef.current);
+      findVideoTimerRef.current = null;
+    }
+    if (signalWireRecordingRef.current) {
+      try {
+        await signalWireRecordingRef.current.stop();
+      } catch {
+        // no-op
+      }
+      signalWireRecordingRef.current = null;
+    }
+    await persistEstimateRecording().catch(() => undefined);
+    if (roomSessionRef.current) {
+      await roomSessionRef.current.leave().catch(() => undefined);
+      roomSessionRef.current = null;
+    }
+    setHomeownerInCallRoom(false);
+    setHasCopiedVideoLink(false);
+    setMuted(false);
+    setHasVideoFrame(false);
+    setGuestLink('');
+    painterTokenRef.current = '';
+    estimateInviteSentRef.current = false;
+    recordingStartedRef.current = false;
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    signalWireRecordingIdRef.current = null;
+    trackHandlerRef.current = null;
+    memberJoinedHandlerRef.current = null;
+    memberLeftHandlerRef.current = null;
+    setConference(null);
+    activeConferenceIdRef.current = null;
+    activeConferenceNameRef.current = null;
+    activeCallSidRef.current = null;
+    setRemoteVideoStream(null);
+    setQuoteAccepted(true);
+    setQuoteSessionClosed(true);
+    setPhase('quoteDraft');
+    setStatus(nextStatus);
+  };
+
   const watchCallHealth = () => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
@@ -1193,7 +1346,24 @@ const PainterCallCenter: React.FC = () => {
         const conferenceState = await conferenceStateResponse.json().catch(() => ({}));
         if (!conferenceStateResponse.ok) return;
 
+        const nextQuoteAccepted = isQuoteAcceptedPayload(conferenceState);
+        const nextQuoteSessionClosed = isQuoteSessionClosedPayload(conferenceState);
+
+        if (nextQuoteAccepted && !quoteAcceptedRef.current) {
+          setQuoteAccepted(true);
+          setStatus('Congratulations, the homeowner has accepted your quote!');
+        }
+
+        if (nextQuoteSessionClosed) {
+          await concludeAcceptedQuoteSession();
+          return;
+        }
+
         if (!conferenceState?.exists) {
+          if (quoteAcceptedRef.current) {
+            await concludeAcceptedQuoteSession();
+            return;
+          }
           activeCallRef.current = false;
           stopConferenceWatch();
           await persistEstimateRecording().catch(() => undefined);
@@ -1212,6 +1382,10 @@ const PainterCallCenter: React.FC = () => {
         }
 
         if (conferenceState?.mode === 'ending' && !localEndRequestedRef.current) {
+          if (nextQuoteAccepted || quoteAcceptedRef.current) {
+            await concludeAcceptedQuoteSession();
+            return;
+          }
           remoteEndingRef.current = true;
           activeCallRef.current = false;
           stopConferenceWatch();
@@ -1521,6 +1695,8 @@ const PainterCallCenter: React.FC = () => {
     try {
       setQuoteRows([createQuoteRow()]);
       setHasSubmittedQuote(false);
+      setQuoteAccepted(false);
+      setQuoteSessionClosed(false);
       quoteDocIdRef.current = null;
       recordingPersistedRef.current = false;
       const normalizedHomeownerName = homeownerNameInput.trim();
@@ -1700,13 +1876,9 @@ const PainterCallCenter: React.FC = () => {
     if (!session) return;
 
     try {
-      if (isMuted) {
-        await session.audioUnmute();
-        setMuted(false);
-      } else {
-        await session.audioMute();
-        setMuted(true);
-      }
+      const nextMuted = !isMuted;
+      await setSessionAudioMuted(session, nextMuted);
+      setMuted(nextMuted);
     } catch (error) {
       console.error('Mute toggle error:', error);
     }
@@ -1805,6 +1977,27 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const endCall = async () => {
+    if (isQuoteAccepted) {
+      if (activeConferenceIdRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: activeConferenceIdRef.current,
+            mode: 'quote',
+            metaPatch: {
+              quote_accepted: true,
+              quote_session_closed: true,
+              quote_call_closed_at: new Date().toISOString()
+            }
+          })
+        }).catch(() => undefined);
+      }
+      await forceEndConference();
+      await concludeAcceptedQuoteSession();
+      return;
+    }
+
     localEndRequestedRef.current = true;
     activeCallRef.current = false;
     callAnsweredRef.current = false;
@@ -1884,6 +2077,8 @@ const PainterCallCenter: React.FC = () => {
   const callBack = async () => {
     setQuoteRows([createQuoteRow()]);
     setHasSubmittedQuote(false);
+    setQuoteAccepted(false);
+    setQuoteSessionClosed(false);
     quoteDocIdRef.current = null;
     recordingPersistedRef.current = false;
     setConference(null);
@@ -1946,7 +2141,8 @@ const PainterCallCenter: React.FC = () => {
       inset: 0,
       overflow: 'hidden',
       background: '#000',
-      zIndex: 10
+      zIndex:
+        viewport.isDimensions && viewport.isSm ? 30 : 10
     }
     : {
       width: '100%',
@@ -2006,7 +2202,7 @@ const PainterCallCenter: React.FC = () => {
               <div style={{ fontWeight: 600 }}>
                 {callerIdVerificationStep === 'code'
                   ? 'Please enter your 6 digit code.'
-                  : 'It looks like you haven&apos;t verified your phone number yet, click the button to get a verification phone call.'}
+                  : "It looks like you haven't verified your phone number yet, click the button to get a verification phone call."}
               </div>
               {(callerIdVerificationError || isCheckingCallerId) && (
                 <div
@@ -2361,6 +2557,17 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Create Quote</div>
+                <div
+                  style={{
+                    marginBottom: 14,
+                    color: '#9fb0c8',
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    textAlign: 'center'
+                  }}
+                >
+                  If creating the quote in a CRM, please leave this page open and then end the call after you are done speaking with the homeowner.
+                </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: '30%' }} />
@@ -2380,17 +2587,25 @@ const PainterCallCenter: React.FC = () => {
                         <td style={quoteCellStyle}>
                           <input
                             value={row.item}
+                            disabled={isQuoteSessionClosed}
                             onChange={(event) => updateQuoteRow(row.id, { item: event.target.value })}
                             placeholder="Interior Walls"
-                            style={quoteInputStyle}
+                            style={{
+                              ...quoteInputStyle,
+                              opacity: isQuoteSessionClosed ? 0.75 : 1
+                            }}
                           />
                         </td>
                         <td style={quoteCellStyle}>
                           <input
                             value={row.description}
+                            disabled={isQuoteSessionClosed}
                             onChange={(event) => updateQuoteRow(row.id, { description: event.target.value })}
                             placeholder="Paint and prep"
-                            style={quoteInputStyle}
+                            style={{
+                              ...quoteInputStyle,
+                              opacity: isQuoteSessionClosed ? 0.75 : 1
+                            }}
                           />
                         </td>
                         <td style={quoteCellStyle}>
@@ -2398,13 +2613,17 @@ const PainterCallCenter: React.FC = () => {
                             <span style={{ color: '#8ea0bb', fontWeight: 600 }}>$</span>
                             <input
                               value={row.price}
+                              disabled={isQuoteSessionClosed}
                               onChange={(event) =>
                                 updateQuoteRow(row.id, { price: sanitizeMoneyInput(event.target.value) })
                               }
                               placeholder="0.00"
                               inputMode="decimal"
                               aria-label="Quote row price"
-                              style={quotePriceInputStyle}
+                              style={{
+                                ...quotePriceInputStyle,
+                                opacity: isQuoteSessionClosed ? 0.75 : 1
+                              }}
                             />
                           </div>
                         </td>
@@ -2412,45 +2631,66 @@ const PainterCallCenter: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                <button
-                  onClick={addQuoteRow}
-                  style={{
-                    marginTop: 14,
-                    height: 40,
-                    borderRadius: 999,
-                    border: 'none',
-                    padding: '0 16px',
-                    background: PRIMARY_COLOR_HEX,
-                    color: '#fff',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'block',
-                    marginLeft: 'auto',
-                    marginRight: 'auto'
-                  }}
-                >
-                  Add Item
-                </button>
+                {!isQuoteSessionClosed && (
+                  <button
+                    onClick={addQuoteRow}
+                    style={{
+                      marginTop: 14,
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: PRIMARY_COLOR_HEX,
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 24,
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginLeft: 'auto',
+                      marginRight: 'auto'
+                    }}
+                    aria-label="Add quote item"
+                  >
+                    +
+                  </button>
+                )}
+                {isQuoteAccepted && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      textAlign: 'center',
+                      color: '#86efac',
+                      fontWeight: 700,
+                      fontSize: 15
+                    }}
+                  >
+                    Congratulations, the homeowner has accepted your quote!
+                  </div>
+                )}
                 <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
                   Total: ${quoteTotalPrice.toFixed(2)}
                 </div>
               </div>
             )}
 
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                padding: '10px 12px 14px',
-                background: 'linear-gradient(to top, rgba(8,10,13,0.92), rgba(8,10,13,0.35), rgba(8,10,13,0))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10
-              }}
-            >
+            {!isQuoteSessionClosed && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  padding: '10px 12px 14px',
+                  background: 'linear-gradient(to top, rgba(8,10,13,0.92), rgba(8,10,13,0.35), rgba(8,10,13,0))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10
+                }}
+              >
               <button
                 onClick={toggleMute}
                 style={{
@@ -2535,25 +2775,46 @@ const PainterCallCenter: React.FC = () => {
                     : (hasSubmittedQuote ? 'Update Quote' : 'Submit Quote')}
                 </button>
               )}
-              <button
-                onClick={endCall}
-                style={{
-                  width: 58,
-                  height: 58,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#e53935',
-                  color: '#fff',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                aria-label="End call"
-              >
-                <PhoneOff size={22} />
-              </button>
-            </div>
+              {isQuoteAccepted && phase === 'quoteDraft' ? (
+                <button
+                  onClick={endCall}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: '#e53935',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  End Call
+                </button>
+              ) : (
+                <button
+                  onClick={endCall}
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: '#e53935',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  aria-label="End call"
+                >
+                  <PhoneOff size={22} />
+                </button>
+              )}
+              </div>
+            )}
           </div>
         )}
 

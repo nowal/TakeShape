@@ -1,17 +1,20 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   collection,
   doc,
+  getDocs,
   getFirestore,
   onSnapshot,
   query,
+  updateDoc,
   where
 } from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useViewport } from '@/context/viewport';
 
 const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
   const videoInputs = devices.filter((device) => device.kind === 'videoinput');
@@ -70,6 +73,41 @@ const isQuoteSubmittedPayload = (payload: any) => {
     submittedRaw === true ||
     String(submittedRaw || '').trim().toLowerCase() === 'true' ||
     String(submittedRaw || '').trim() === '1'
+  );
+};
+
+const isQuoteAcceptedPayload = (payload: any) => {
+  const meta = payload?.meta || {};
+  const acceptedRaw =
+    meta.quote_accepted ??
+    meta.quoteAccepted ??
+    meta.quote_accepted_at ??
+    meta.quoteAcceptedAt;
+  return (
+    acceptedRaw === true ||
+    String(acceptedRaw || '').trim().toLowerCase() === 'true' ||
+    String(acceptedRaw || '').trim() === '1' ||
+    Boolean(
+      String(
+        meta.quote_accepted_at ??
+        meta.quoteAcceptedAt ??
+        ''
+      ).trim()
+    )
+  );
+};
+
+const isQuoteSessionClosedPayload = (payload: any) => {
+  const meta = payload?.meta || {};
+  const closedRaw =
+    meta.quote_session_closed ??
+    meta.quoteSessionClosed ??
+    meta.quote_call_closed ??
+    meta.quoteCallClosed;
+  return (
+    closedRaw === true ||
+    String(closedRaw || '').trim().toLowerCase() === 'true' ||
+    String(closedRaw || '').trim() === '1'
   );
 };
 
@@ -195,6 +233,7 @@ const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
 };
 
 const ConsultPage: React.FC = () => {
+  const viewport = useViewport();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<any>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -218,6 +257,7 @@ const ConsultPage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
+  const [isAudioMuted, setAudioMuted] = useState(false);
   const [isVideoOff, setVideoOff] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
@@ -225,6 +265,8 @@ const ConsultPage: React.FC = () => {
   const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
   const [isQuoteMode, setQuoteMode] = useState(false);
   const [isQuoteSubmitted, setQuoteSubmitted] = useState(false);
+  const [isQuoteAccepted, setQuoteAccepted] = useState(false);
+  const [isQuoteSessionClosed, setQuoteSessionClosed] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
   const [blockingError, setBlockingError] = useState<string>('');
   const [zoomSupported, setZoomSupported] = useState(false);
@@ -239,6 +281,7 @@ const ConsultPage: React.FC = () => {
   const zoomApplyRafRef = useRef<number | null>(null);
   const targetZoomValueRef = useRef<number | null>(null);
   const appliedZoomValueRef = useRef<number>(1);
+  const quoteAcceptedRef = useRef(false);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -252,6 +295,10 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     submittedQuoteRef.current = submittedQuote;
   }, [submittedQuote]);
+
+  useEffect(() => {
+    quoteAcceptedRef.current = isQuoteAccepted;
+  }, [isQuoteAccepted]);
 
   const pushDebugLog = useCallback((message: string) => {
     const stamp = new Date().toISOString().slice(11, 23);
@@ -320,7 +367,15 @@ const ConsultPage: React.FC = () => {
         updatedAt: String(pricing.updatedAt || data.updatedAt || data.createdAt || '')
       });
       setQuoteSubmitted(true);
-      setStatus('Quote Submitted');
+      const nextAccepted = Boolean(
+        data?.quoteAccepted || data?.quoteAcceptedAt
+      );
+      setQuoteAccepted(nextAccepted);
+      if (nextAccepted) {
+        setStatus('Congratulations on Accepting Your Quote!');
+      } else {
+        setStatus('Quote Submitted');
+      }
       pushDebugLog(`Quote loaded from Firestore watcher (${source})`);
     };
 
@@ -379,6 +434,52 @@ const ConsultPage: React.FC = () => {
     );
   }, [firestore, pushDebugLog, stopQuoteWatcher]);
 
+  const resolveQuoteDocRef = useCallback(async () => {
+    const painterDocId = painterDocIdRef.current;
+    if (!painterDocId) return null;
+
+    if (quoteIdRef.current) {
+      return doc(
+        firestore,
+        'painters',
+        painterDocId,
+        'quotes',
+        quoteIdRef.current
+      );
+    }
+
+    if (!conferenceIdRef.current) return null;
+
+    const snapshot = await getDocs(
+      query(
+        collection(firestore, 'painters', painterDocId, 'quotes'),
+        where(
+          'signalwireConferenceId',
+          '==',
+          conferenceIdRef.current
+        )
+      )
+    );
+    if (snapshot.empty) return null;
+
+    quoteIdRef.current = snapshot.docs[0].id;
+    return snapshot.docs[0].ref;
+  }, [firestore]);
+
+  const concludeAcceptedQuoteSession = useCallback(async () => {
+    localEndRequestedRef.current = true;
+    stopConferenceWatch();
+    stopQuoteWatcher();
+    await cleanupSession();
+    setEnded(false);
+    setQuoteMode(true);
+    setQuoteSubmitted(true);
+    setQuoteAccepted(true);
+    setQuoteSessionClosed(true);
+    setHasVideoFrame(false);
+    setStatus('Quote accepted. Call ended.');
+  }, [cleanupSession, stopConferenceWatch, stopQuoteWatcher]);
+
   const endConferenceEverywhere = useCallback(async () => {
     if (!roomNameRef.current && !conferenceIdRef.current) return;
     try {
@@ -401,13 +502,13 @@ const ConsultPage: React.FC = () => {
     try {
       pushDebugLog('Requesting initial stream with facingMode=environment (exact)');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
+        audio: true,
         video: { facingMode: { exact: 'environment' } }
       });
     } catch {
       pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
       initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
+        audio: true,
         video: { facingMode: { ideal: 'environment' } }
       });
     }
@@ -434,6 +535,7 @@ const ConsultPage: React.FC = () => {
       try {
         pushDebugLog(`Trying fallback camera: ${candidate.label || candidate.deviceId}`);
         const switchedVideoStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
           video: { deviceId: { exact: candidate.deviceId } }
         });
         const switchedStream = switchedVideoStream;
@@ -444,9 +546,14 @@ const ConsultPage: React.FC = () => {
           isLikelyBackCameraLabel(switchedTrack?.label || '');
         if (appearsBackCamera) {
           pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
+          const audioTrack = initialStream.getAudioTracks()[0];
+          if (audioTrack) {
+            switchedStream.addTrack(audioTrack);
+          }
           initialStream.getVideoTracks().forEach((track) => track.stop());
           return switchedStream;
         }
+        initialStream.getAudioTracks().forEach((track) => track.stop());
         switchedStream.getVideoTracks().forEach((track) => track.stop());
       } catch {
         pushDebugLog(`Fallback candidate failed: ${candidate.label || candidate.deviceId}`);
@@ -684,6 +791,12 @@ const ConsultPage: React.FC = () => {
     const stream = await getBackCameraStream();
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
+    stream.getAudioTracks().forEach((track) => {
+      track.enabled = true;
+    });
+    setAudioMuted(false);
+    setQuoteAccepted(false);
+    setQuoteSessionClosed(false);
     stream.getVideoTracks().forEach((track) => {
       track.enabled = true;
       pushDebugLog(`Local video track enabled=${track.enabled} muted=${track.muted} readyState=${track.readyState}`);
@@ -699,9 +812,9 @@ const ConsultPage: React.FC = () => {
       localStream: stream
     });
     await session.join({
-      sendAudio: false,
+      sendAudio: true,
       sendVideo: true,
-      receiveAudio: false,
+      receiveAudio: true,
       receiveVideo: true
     });
     pushDebugLog('Room joined with sendVideo=true');
@@ -730,22 +843,30 @@ const ConsultPage: React.FC = () => {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) return;
 
+        const nextQuoteAccepted = isQuoteAcceptedPayload(payload);
+        const nextQuoteSessionClosed =
+          isQuoteSessionClosedPayload(payload);
+
         if (!payload?.exists) {
-          pushDebugLog('Conference missing while active -> dropped');
+          pushDebugLog('Conference missing while active -> ended');
+          if (quoteAcceptedRef.current) {
+            await concludeAcceptedQuoteSession();
+            return;
+          }
           await cleanupSession();
-          setEndReason(remoteEndingRef.current ? 'ended' : 'dropped');
+          setEndReason('ended');
           setEnded(true);
           setHasVideoFrame(false);
-          setStatus(
-            remoteEndingRef.current
-              ? 'Call ended.'
-              : 'It looks like your call dropped unexpectedly.'
-          );
+          setStatus('Call ended.');
           stopConferenceWatch();
           return;
         }
 
         if (payload?.mode === 'ending' && !localEndRequestedRef.current) {
+          if (nextQuoteAccepted || quoteAcceptedRef.current) {
+            await concludeAcceptedQuoteSession();
+            return;
+          }
           remoteEndingRef.current = true;
           await cleanupSession();
           setEndReason('ended');
@@ -776,16 +897,29 @@ const ConsultPage: React.FC = () => {
         if (conferenceQuoteId) {
           quoteIdRef.current = conferenceQuoteId;
         }
+        if (nextQuoteAccepted && !quoteAcceptedRef.current) {
+          setQuoteAccepted(true);
+          setStatus('Congratulations on Accepting Your Quote!');
+          pushDebugLog('Quote accepted signal detected');
+        }
+        if (nextQuoteSessionClosed) {
+          await concludeAcceptedQuoteSession();
+          return;
+        }
         const submissionSignal = String(payload?.meta?.quote_submission_signal || '').trim();
         if (submissionSignal && submissionSignal !== lastSubmissionSignalRef.current) {
           lastSubmissionSignalRef.current = submissionSignal;
           setQuoteSubmitted(true);
-          setStatus('Quote Submitted');
+          if (!quoteAcceptedRef.current) {
+            setStatus('Quote Submitted');
+          }
           pushDebugLog(`Quote submission signal detected: ${submissionSignal}`);
         }
         if (isQuoteSubmittedPayload(payload)) {
           setQuoteSubmitted(true);
-          setStatus('Quote Submitted');
+          if (!quoteAcceptedRef.current) {
+            setStatus('Quote Submitted');
+          }
           pushDebugLog('Quote submitted trigger detected');
         }
 
@@ -830,7 +964,13 @@ const ConsultPage: React.FC = () => {
         console.error('Consult conference watcher error:', error);
       }
     }, 1000);
-  }, [cleanupSession, pushDebugLog, startQuoteWatcher, stopConferenceWatch]);
+  }, [
+    cleanupSession,
+    concludeAcceptedQuoteSession,
+    pushDebugLog,
+    startQuoteWatcher,
+    stopConferenceWatch,
+  ]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -888,7 +1028,7 @@ const ConsultPage: React.FC = () => {
           const message = (error as Error).message;
           setStatus(`Failed to join: ${message}`);
           setBlockingError(message);
-          setEndReason('dropped');
+          setEndReason('ended');
           setEnded(true);
         }
       }
@@ -930,7 +1070,107 @@ const ConsultPage: React.FC = () => {
     }
   };
 
+  const toggleAudio = async () => {
+    const session = sessionRef.current;
+    const stream = localStreamRef.current;
+    if (!session || !stream) return;
+
+    try {
+      const nextMuted = !isAudioMuted;
+      const methodName = nextMuted
+        ? session.audioMute
+          ? 'audioMute'
+          : session.stopOutboundAudio
+            ? 'stopOutboundAudio'
+            : null
+        : session.audioUnmute
+          ? 'audioUnmute'
+          : session.restoreOutboundAudio
+            ? 'restoreOutboundAudio'
+            : null;
+
+      if (methodName) {
+        try {
+          await session[methodName]();
+        } catch {
+          // Fall through to direct track control.
+        }
+      }
+
+      stream.getAudioTracks().forEach((track) => {
+        track.enabled = !nextMuted;
+      });
+      pushDebugLog(
+        `Consult audio ${nextMuted ? 'muted' : 'unmuted'}`
+      );
+      setAudioMuted(nextMuted);
+    } catch (error) {
+      console.error('Audio toggle error:', error);
+      pushDebugLog(
+        `Audio toggle error: ${(error as Error).message}`
+      );
+    }
+  };
+
+  const acceptQuote = async () => {
+    try {
+      const acceptedAt = new Date().toISOString();
+      if (conferenceIdRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: conferenceIdRef.current,
+            mode: 'quote',
+            metaPatch: {
+              quote_accepted: true,
+              quote_accepted_at: acceptedAt
+            }
+          })
+        }).catch(() => undefined);
+      }
+
+      const quoteRef = await resolveQuoteDocRef();
+      if (quoteRef) {
+        await updateDoc(quoteRef, {
+          quoteAccepted: true,
+          quoteAcceptedAt: acceptedAt
+        }).catch(() => undefined);
+      }
+
+      setQuoteAccepted(true);
+      setStatus('Congratulations on Accepting Your Quote!');
+      pushDebugLog('Quote accepted by homeowner');
+    } catch (error) {
+      console.error('Accept quote error:', error);
+      pushDebugLog(
+        `Accept quote error: ${(error as Error).message}`
+      );
+    }
+  };
+
   const endCall = async () => {
+    if (isQuoteAccepted) {
+      if (conferenceIdRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: conferenceIdRef.current,
+            mode: 'quote',
+            metaPatch: {
+              quote_accepted: true,
+              quote_session_closed: true,
+              quote_call_closed_at: new Date().toISOString()
+            }
+          })
+        }).catch(() => undefined);
+      }
+      await endConferenceEverywhere();
+      await concludeAcceptedQuoteSession();
+      return;
+    }
+
     localEndRequestedRef.current = true;
     stopConferenceWatch();
     stopQuoteWatcher();
@@ -969,6 +1209,8 @@ const ConsultPage: React.FC = () => {
       setEndReason('ended');
       setQuoteMode(false);
       setQuoteSubmitted(false);
+      setQuoteAccepted(false);
+      setQuoteSessionClosed(false);
       setSubmittedQuote(null);
       setBlockingError('');
       setStatus('Connected. Keep talking on your phone call.');
@@ -998,7 +1240,18 @@ const ConsultPage: React.FC = () => {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#000' }}>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          overflow: 'hidden',
+          background: '#000',
+          zIndex:
+            viewport.isDimensions && viewport.isSm
+              ? 30
+              : 10
+        }}
+      >
         {isEnded ? (
           <div
             style={{
@@ -1013,7 +1266,7 @@ const ConsultPage: React.FC = () => {
               gap: 14
             }}
           >
-            <div>{endReason === 'dropped' ? 'It looks like your call dropped unexpectedly.' : 'Call ended'}</div>
+            <div>Call ended</div>
             {!!blockingError && (
               <div
                 style={{
@@ -1128,6 +1381,42 @@ const ConsultPage: React.FC = () => {
                     <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
                       Total: ${submittedQuote.totalPrice.toFixed(2)}
                     </div>
+                    {isQuoteAccepted && (
+                      <div
+                        style={{
+                          marginTop: 18,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 10,
+                          textAlign: 'center'
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <span style={confettiDotStyle('#f472b6')} />
+                          <span style={confettiDotStyle('#facc15')} />
+                          <span style={confettiDotStyle('#60a5fa')} />
+                          <span style={confettiDotStyle('#34d399')} />
+                          <span style={confettiDotStyle('#fb7185')} />
+                        </div>
+                        <div
+                          style={{
+                            color: '#86efac',
+                            fontWeight: 700,
+                            fontSize: 16
+                          }}
+                        >
+                          Congratulations on Accepting Your Quote!
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : isQuoteSubmitted ? (
                   <div
@@ -1269,20 +1558,38 @@ const ConsultPage: React.FC = () => {
                 {debugLogs.length ? debugLogs.join('\n') : 'Debug log enabled...'}
               </div>
             )}
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                padding: '10px 12px 14px',
-                background: 'linear-gradient(to top, rgba(8,10,13,0.95), rgba(8,10,13,0.35), rgba(8,10,13,0))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10
-              }}
-            >
+            {!isQuoteSessionClosed && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  padding: '10px 12px 14px',
+                  background: 'linear-gradient(to top, rgba(8,10,13,0.95), rgba(8,10,13,0.35), rgba(8,10,13,0))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10
+                }}
+              >
+              <button
+                onClick={toggleAudio}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: isAudioMuted ? '#0f1116' : '#fff',
+                  color: isAudioMuted ? '#fff' : '#111',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                aria-label={isAudioMuted ? 'Unmute microphone' : 'Mute microphone'}
+              >
+                {isAudioMuted ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
               {!isQuoteMode && (
                 <button
                   onClick={toggleVideo}
@@ -1302,24 +1609,64 @@ const ConsultPage: React.FC = () => {
                   {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
                 </button>
               )}
-              <button
-                onClick={endCall}
-                style={{
-                  width: 62,
-                  height: 62,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#e53935',
-                  color: '#fff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                aria-label="End call"
-              >
-                <PhoneOff size={22} />
-              </button>
-            </div>
+              {isQuoteMode && submittedQuote && !isQuoteAccepted && (
+                <button
+                  onClick={acceptQuote}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: '#16a34a',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Accept Quote
+                </button>
+              )}
+              {isQuoteAccepted && isQuoteMode ? (
+                <button
+                  onClick={endCall}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: '#e53935',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  End Call
+                </button>
+              ) : (
+                <button
+                  onClick={endCall}
+                  style={{
+                    width: 62,
+                    height: 62,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: '#e53935',
+                    color: '#fff',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  aria-label="End call"
+                >
+                  <PhoneOff size={22} />
+                </button>
+              )}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -1365,6 +1712,16 @@ const quoteHeaderCellStyle: React.CSSProperties = {
   fontWeight: 700,
   padding: '8px 4px'
 };
+
+const confettiDotStyle = (
+  background: string
+): React.CSSProperties => ({
+  width: 10,
+  height: 10,
+  borderRadius: '50%',
+  display: 'inline-block',
+  background
+});
 
 const quoteCellStyle: React.CSSProperties = {
   padding: '8px 4px',
