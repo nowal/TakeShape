@@ -1821,9 +1821,9 @@ const PainterCallCenter: React.FC = () => {
       process.env.NEXT_PUBLIC_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_BASE_URL ||
       window.location.origin;
-    setGuestLink(
-      `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`
-    );
+    const nextGuestLink =
+      `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`;
+    setGuestLink(nextGuestLink);
     activeHomeownerNameRef.current = normalizedHomeownerName;
     activeHomeownerAddressRef.current =
       normalizedHomeownerAddress;
@@ -1846,11 +1846,15 @@ const PainterCallCenter: React.FC = () => {
     return {
       confData,
       conferenceRoomName,
+      guestLink: nextGuestLink,
     };
   };
 
-  const transitionToCopiedVideoLink = async () => {
-    if (!guestLink) {
+  const transitionToCopiedVideoLink = async (
+    currentGuestLink?: string
+  ) => {
+    const consultLink = currentGuestLink || guestLink;
+    if (!consultLink) {
       throw new Error('No consult link available yet.');
     }
 
@@ -1865,7 +1869,7 @@ const PainterCallCenter: React.FC = () => {
     }
 
     const linkWithQuote = (() => {
-      const url = new URL(guestLink);
+      const url = new URL(consultLink);
       url.searchParams.set('quoteId', quoteId);
       return url.toString();
     })();
@@ -2052,14 +2056,15 @@ const PainterCallCenter: React.FC = () => {
         return;
       }
 
-      await prepareProviderCallSession({
+      const { guestLink: nextGuestLink } =
+        await prepareProviderCallSession({
         normalizedHomeownerName,
         normalizedHomeownerAddress,
         normalizedHomeownerEmail,
         normalizedHomeownerNumber: ''
       });
 
-      await transitionToCopiedVideoLink();
+      await transitionToCopiedVideoLink(nextGuestLink);
     } catch (error) {
       console.error('Create video link error:', error);
       setStatus(`Error: ${(error as Error).message}`);
