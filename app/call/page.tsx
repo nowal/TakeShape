@@ -1874,7 +1874,12 @@ const PainterCallCenter: React.FC = () => {
       return url.toString();
     })();
     setGuestLink(linkWithQuote);
-    await copyTextWithFallback(linkWithQuote);
+    let didCopy = true;
+    try {
+      await copyTextWithFallback(linkWithQuote);
+    } catch {
+      didCopy = false;
+    }
 
     await fetch('/api/signalwire/conference-state', {
       method: 'POST',
@@ -1890,12 +1895,16 @@ const PainterCallCenter: React.FC = () => {
       })
     }).catch(() => undefined);
 
-    setHasCopiedVideoLink(true);
+    setHasCopiedVideoLink(didCopy);
     estimateInviteSentRef.current = true;
     transferWaitUntilRef.current =
       Date.now() + CONSULT_TRANSFER_GRACE_MS;
     setPhase('videoInviteSent');
-    setStatus('Waiting for Homeowner Video');
+    setStatus(
+      didCopy
+        ? 'Waiting for Homeowner Video'
+        : 'Waiting for Homeowner Video. Auto-copy failed, use the consult link below.'
+    );
     watchCallHealth();
     startWatchingForHomeownerVideo();
   };
@@ -2056,17 +2065,18 @@ const PainterCallCenter: React.FC = () => {
         return;
       }
 
-      const { guestLink: nextGuestLink } =
-        await prepareProviderCallSession({
+      await prepareProviderCallSession({
         normalizedHomeownerName,
         normalizedHomeownerAddress,
         normalizedHomeownerEmail,
         normalizedHomeownerNumber: ''
       });
-
-      await transitionToCopiedVideoLink(nextGuestLink);
+      await ensureQuoteDoc();
+      setStatus(
+        'Video room ready. Copy the video link to invite the homeowner.'
+      );
     } catch (error) {
-      console.error('Create video link error:', error);
+      console.error('Create video room error:', error);
       setStatus(`Error: ${(error as Error).message}`);
     } finally {
       setIsSendingVideoInvite(false);
@@ -2605,7 +2615,7 @@ const PainterCallCenter: React.FC = () => {
                     <VideoIcon size={18} />
                     {isSendingVideoInvite
                       ? 'Creating...'
-                      : 'Create Video Link and Copy'}
+                      : 'Create Video Room'}
                   </button>
                 </div>
               </div>
@@ -2661,7 +2671,9 @@ const PainterCallCenter: React.FC = () => {
                     ? (
                         isHomeownerInCallRoom
                           ? 'Homeowner is in call room'
-                          : 'Waiting for homeowner to join call room'
+                          : activeHomeownerNumberRef.current
+                            ? 'Waiting for homeowner to join call room'
+                            : 'Video room ready'
                       )
                     : 'Waiting for video'}
                 </div>
@@ -2712,7 +2724,11 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 {phase === 'calling'
-                  ? 'Audio call in progress. Copy the video link when you are ready to transition.'
+                  ? (
+                      activeHomeownerNumberRef.current
+                        ? 'Audio call in progress. Copy the video link when you are ready to transition.'
+                        : 'Video room ready. Copy the video link to invite the homeowner.'
+                    )
                   : 'Build quote while audio call remains active.'}
               </div>
             )}
@@ -2745,7 +2761,13 @@ const PainterCallCenter: React.FC = () => {
                   padding: 16
                 }}
               >
-                {phase === 'calling' ? 'Audio call active' : 'Waiting for Homeowner Video'}
+                {phase === 'calling'
+                  ? (
+                      activeHomeownerNumberRef.current
+                        ? 'Audio call active'
+                        : 'Video room ready'
+                    )
+                  : 'Waiting for Homeowner Video'}
               </div>
             )}
             {phase === 'quoteDraft' && (
