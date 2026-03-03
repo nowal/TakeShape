@@ -52,13 +52,13 @@ export const ShellHeaderMobileMenu = () => {
   ] satisfies TAccountMenuListItem[];
 
   const quoteItems = [
-    ['Quote', () => onNavigateScrollTopClick('/quote')],
+    ['Signup', () => onNavigateScrollTopClick('/providerRegister')],
   ] satisfies TAccountMenuListItem[];
 
   const items = [
     ...(isUserSignedIn
       ? dashboardItems
-      : pathname === '/quote'
+      : pathname === '/providerRegister'
       ? []
       : quoteItems),
     [title, handler],

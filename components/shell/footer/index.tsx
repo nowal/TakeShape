@@ -1,6 +1,8 @@
 'use client';
 import { cx } from 'class-variance-authority';
 import { ShellFooterLogo } from '@/components/shell/footer/logo';
+import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
+import { ShellFooterEmail } from '@/components/shell/footer/email';
 
 export const ShellFooter = () => {
   return (
@@ -39,23 +41,18 @@ export const ShellFooter = () => {
             </div>
           </div> */}
           <div className="grid w-full grid-cols-2 gap-x-4 gap-y-3 typography-footer-poppins text-black-1 lg:grid-cols-4 lg:items-center">
-            <div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-start lg:gap-0">
-              <div className="flex items-center justify-center lg:justify-start">
-                <ShellFooterLogo />
-              </div>
-              <span className="text-center lg:hidden">
-                Copyright 2026 TakeShape
-              </span>
+            <div className="flex items-center justify-center lg:justify-start lg:order-1">
+              <ShellFooterLogo />
             </div>
-            <a href="tel:+18652429705" className="justify-self-center self-center lg:order-3">
-              (865) 242-9705
-            </a>
-            <span className="hidden justify-self-center lg:block lg:justify-self-end lg:order-4">
+            <div className="justify-self-center self-center text-center lg:order-3">
+              <ShellFooterTelephone />
+            </div>
+            <span className="justify-self-center self-center text-center lg:justify-self-start lg:text-left lg:order-4">
               Copyright 2026 TakeShape
             </span>
-            <a href="mailto:admin@takeshapehome.com" className="justify-self-center self-center lg:order-2">
-              admin@takeshapehome.com
-            </a>
+            <div className="justify-self-center self-center text-center lg:justify-self-end lg:text-right lg:order-2">
+              <ShellFooterEmail />
+            </div>
           </div>
         </div>
       </footer>
