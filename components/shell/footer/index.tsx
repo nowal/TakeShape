@@ -47,7 +47,7 @@ export const ShellFooter = () => {
             <div className="justify-self-center self-center text-center lg:order-3">
               <ShellFooterTelephone />
             </div>
-            <span className="justify-self-center self-center text-center lg:justify-self-start lg:text-left lg:order-4">
+            <span className="justify-self-start self-center pl-1 text-left lg:justify-self-start lg:pl-0 lg:text-left lg:order-4">
               Copyright 2026 TakeShape
             </span>
             <div className="justify-self-center self-center text-center lg:justify-self-end lg:text-right lg:order-2">
