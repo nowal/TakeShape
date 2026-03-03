@@ -44,6 +44,20 @@ interface DialResponse {
   [key: string]: unknown;
 }
 
+type WaitForCallAnswerResult =
+  | {
+      answered: true;
+      status: string;
+      voicemailDetected: boolean;
+      answeredBy: string | null;
+    }
+  | {
+      answered: false;
+      status: string;
+      voicemailDetected: false;
+      answeredBy: string | null;
+    };
+
 type QuotePricingRow = {
   id: string;
   item: string;
@@ -130,6 +144,7 @@ const DEFAULT_HOMEOWNER_NUMBER = '';
 const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
 const CALL_HEALTH_POLL_MS = 1500;
+const AMD_SETTLE_GRACE_MS = 8000;
 const createQuoteRow = (): QuotePricingRow => ({
   id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
   item: '',
@@ -147,6 +162,58 @@ const sanitizeMoneyInput = (value: string) => {
     .replace(/\./g, '')
     .slice(0, 2);
   return `${beforeDot}${afterDot}`;
+};
+
+const isVoicemailAnsweredBy = (value: string | null | undefined) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  return (
+    normalized.startsWith('machine') ||
+    normalized.includes('voicemail')
+  );
+};
+
+const readConferenceAnsweredBy = (payload: any) =>
+  String(
+    payload?.meta?.call_answered_by ??
+      payload?.meta?.callAnsweredBy ??
+      ''
+  )
+    .trim()
+    .toLowerCase() || null;
+
+const readConferencePstnStatus = (payload: any) =>
+  String(
+    payload?.meta?.pstn_call_status ??
+      payload?.meta?.pstnCallStatus ??
+      ''
+  )
+    .trim()
+    .toLowerCase() || null;
+
+const getMissedCallStatusMessage = (
+  status: string,
+  answeredBy?: string | null
+) => {
+  const normalizedStatus = String(status || '').trim().toLowerCase();
+  if (isVoicemailAnsweredBy(answeredBy)) {
+    return 'Call sent to voicemail. Leave your message after the tone.';
+  }
+  if (normalizedStatus === 'busy') {
+    return 'Homeowner declined or is busy. If their carrier forwards to voicemail, you can leave a message. Otherwise, try calling back.';
+  }
+  if (
+    normalizedStatus === 'no-answer' ||
+    normalizedStatus === 'timeout'
+  ) {
+    return 'Homeowner did not answer. If their carrier forwards to voicemail, you can leave a message. Otherwise, try calling back.';
+  }
+  if (
+    normalizedStatus === 'canceled' ||
+    normalizedStatus === 'cancelled'
+  ) {
+    return 'The call was canceled before the homeowner answered. If their carrier forwards to voicemail, you can leave a message. Otherwise, try calling back.';
+  }
+  return 'Homeowner did not answer. You can call back.';
 };
 
 const parseMoneyValue = (value: string) => {
@@ -1360,6 +1427,10 @@ const PainterCallCenter: React.FC = () => {
 
         const nextQuoteAccepted = isQuoteAcceptedPayload(conferenceState);
         const nextQuoteSessionClosed = isQuoteSessionClosedPayload(conferenceState);
+        const callbackAnsweredBy =
+          readConferenceAnsweredBy(conferenceState);
+        const callbackPstnStatus =
+          readConferencePstnStatus(conferenceState);
 
         if (
           phaseRef.current === 'quoteDraft' &&
@@ -1407,6 +1478,16 @@ const PainterCallCenter: React.FC = () => {
         if (nextQuoteSessionClosed) {
           await concludeAcceptedQuoteSession();
           return;
+        }
+
+        if (
+          phaseRef.current === 'calling' &&
+          !estimateInviteSentRef.current &&
+          isVoicemailAnsweredBy(callbackAnsweredBy)
+        ) {
+          setStatus(
+            'Call sent to voicemail. Leave your message after the tone.'
+          );
         }
 
         if (!conferenceState?.exists) {
@@ -1478,12 +1559,60 @@ const PainterCallCenter: React.FC = () => {
           return;
         }
 
+        if (
+          phaseRef.current === 'calling' &&
+          !callAnsweredRef.current &&
+          callbackPstnStatus &&
+          ['busy', 'no-answer', 'no_answer', 'failed', 'canceled', 'cancelled', 'completed'].includes(
+            callbackPstnStatus
+          )
+        ) {
+          activeCallRef.current = false;
+          stopConferenceWatch();
+          await persistEstimateRecording().catch(() => undefined);
+          await forceEndConference();
+          if (roomSessionRef.current) {
+            await roomSessionRef.current.leave().catch(() => undefined);
+            roomSessionRef.current = null;
+          }
+          setPhase('dropped');
+          setStatus(
+            getMissedCallStatusMessage(
+              callbackPstnStatus,
+              callbackAnsweredBy
+            )
+          );
+          return;
+        }
+
         const callSid = activeCallSidRef.current;
         if (callSid) {
-          const callStatusResponse = await fetch(
-            `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`
-          );
-          const callStatusPayload = await callStatusResponse.json().catch(() => ({}));
+        const callStatusResponse = await fetch(
+          `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`
+        );
+        const callStatusPayload = await callStatusResponse.json().catch(() => ({}));
+        if (callStatusResponse.ok) {
+          console.log('call health status', {
+            callSid,
+            status: callStatusPayload?.status || null,
+            answeredBy: callStatusPayload?.answeredBy || null,
+            completed: Boolean(callStatusPayload?.completed),
+            raw: callStatusPayload?.raw || null
+          });
+        }
+        const answeredBy = String(
+          callStatusPayload?.answeredBy || ''
+        ).trim().toLowerCase() || null;
+          if (
+            callStatusResponse.ok &&
+            isVoicemailAnsweredBy(answeredBy) &&
+            phaseRef.current === 'calling' &&
+            !estimateInviteSentRef.current
+          ) {
+            setStatus(
+              'Call sent to voicemail. Leave your message after the tone.'
+            );
+          }
           if (callStatusResponse.ok && callStatusPayload?.completed) {
             if (isConsultExpected()) {
               activeCallSidRef.current = null;
@@ -1509,32 +1638,81 @@ const PainterCallCenter: React.FC = () => {
     }, CALL_HEALTH_POLL_MS);
   };
 
-  const waitForCallAnswer = async (callSid: string, timeoutMs = 45000) => {
+  const waitForCallAnswer = async (
+    callSid: string,
+    timeoutMs = 45000
+  ): Promise<WaitForCallAnswerResult> => {
     const startedAt = Date.now();
+    let connectedAt: number | null = null;
     while (Date.now() - startedAt < timeoutMs) {
       if (localEndRequestedRef.current) {
-        return { answered: false as const, status: 'cancelled' };
+        return {
+          answered: false,
+          status: 'cancelled',
+          voicemailDetected: false,
+          answeredBy: null
+        };
       }
       if (callAnsweredRef.current) {
-        return { answered: true as const, status: 'member_joined' };
+        return {
+          answered: true,
+          status: 'member_joined',
+          voicemailDetected: false,
+          answeredBy: null
+        };
       }
       const response = await fetch(`/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`);
       const payload = await response.json().catch(() => ({}));
 
       if (response.ok) {
+        console.log('waitForCallAnswer poll', {
+          callSid,
+          status: payload?.status || null,
+          answeredBy: payload?.answeredBy || null,
+          completed: Boolean(payload?.completed),
+          callAnsweredRef: callAnsweredRef.current,
+          raw: payload?.raw || null
+        });
         const currentStatus = String(payload?.status || '').toLowerCase();
+        const answeredBy = String(
+          payload?.answeredBy || ''
+        ).trim().toLowerCase() || null;
         if (currentStatus === 'in-progress' || currentStatus === 'in_progress' || currentStatus === 'answered') {
-          return { answered: true as const, status: currentStatus };
+          connectedAt = connectedAt || Date.now();
+          if (
+            !answeredBy &&
+            connectedAt &&
+            Date.now() - connectedAt < AMD_SETTLE_GRACE_MS
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+            continue;
+          }
+          return {
+            answered: true,
+            status: currentStatus,
+            voicemailDetected: isVoicemailAnsweredBy(answeredBy),
+            answeredBy
+          };
         }
         if (payload?.completed) {
-          return { answered: false as const, status: currentStatus || 'completed' };
+          return {
+            answered: isVoicemailAnsweredBy(answeredBy),
+            status: currentStatus || 'completed',
+            voicemailDetected: isVoicemailAnsweredBy(answeredBy),
+            answeredBy
+          };
         }
       }
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    return { answered: false as const, status: 'timeout' };
+    return {
+      answered: false,
+      status: 'timeout',
+      voicemailDetected: false,
+      answeredBy: null
+    };
   };
 
   const upsertConferenceQuoteMeta = async ({
@@ -1966,7 +2144,8 @@ const PainterCallCenter: React.FC = () => {
           conference_id: confData.id,
           room_name: conferenceRoomName,
           to: normalizedHomeowner,
-          from: normalizedPainterCallerId
+          from: normalizedPainterCallerId,
+          machine_detection: true
         })
       });
       const dialData = (await getJsonOrThrow(dialResponse, 'Failed to dial homeowner')) as DialResponse;
@@ -1977,6 +2156,7 @@ const PainterCallCenter: React.FC = () => {
         ''
       ) || null;
       callAnsweredRef.current = false;
+      let answerState: WaitForCallAnswerResult | null = null;
 
       if (activeCallSidRef.current) {
         await fetch('/api/signalwire/conference-state', {
@@ -1991,7 +2171,7 @@ const PainterCallCenter: React.FC = () => {
         }).catch(() => undefined);
 
         setStatus('Ringing homeowner...');
-        const answerState = await waitForCallAnswer(activeCallSidRef.current);
+        answerState = await waitForCallAnswer(activeCallSidRef.current);
         if (localEndRequestedRef.current) {
           return;
         }
@@ -2003,8 +2183,19 @@ const PainterCallCenter: React.FC = () => {
           }
           activeCallRef.current = false;
           setPhase('dropped');
-          setStatus('Homeowner did not answer. You can call back.');
+          setStatus(
+            getMissedCallStatusMessage(
+              answerState.status,
+              answerState.answeredBy
+            )
+          );
           return;
+        }
+
+        if (answerState.voicemailDetected) {
+          setStatus(
+            'Call sent to voicemail. Leave your message after the tone.'
+          );
         }
       }
 
@@ -2016,7 +2207,11 @@ const PainterCallCenter: React.FC = () => {
       estimateInviteSentRef.current = false;
       recordingStartedRef.current = false;
       setPhase('calling');
-      setStatus('Phone call connected (audio-only).');
+      setStatus(
+        answerState?.voicemailDetected
+          ? 'Call sent to voicemail. Leave your message after the tone.'
+          : 'Phone call connected (audio-only).'
+      );
       watchCallHealth();
       ensureQuoteDoc().catch(() => undefined);
     } catch (error) {

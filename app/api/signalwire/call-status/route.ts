@@ -52,7 +52,21 @@ export async function GET(request: NextRequest) {
     }
 
     const payload = await response.json();
+    console.log('signalwire call-status payload', {
+      callSid,
+      status: payload?.status || null,
+      answered_by:
+        payload?.answered_by ??
+        payload?.AnsweredBy ??
+        null,
+      raw: payload
+    });
     const status = String(payload?.status || '').toLowerCase();
+    const answeredBy = String(
+      payload?.answered_by ??
+      payload?.AnsweredBy ??
+      ''
+    ).trim().toLowerCase();
     const completedStates = new Set([
       'completed',
       'busy',
@@ -65,6 +79,7 @@ export async function GET(request: NextRequest) {
       exists: true,
       callSid: payload?.sid || callSid,
       status: status || 'unknown',
+      answeredBy: answeredBy || null,
       completed: completedStates.has(status),
       raw: payload
     });
@@ -76,4 +91,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

@@ -4,7 +4,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { conference_id, room_name, to, from } = await request.json();
+    const {
+      conference_id,
+      room_name,
+      to,
+      from,
+      machine_detection
+    } = await request.json();
 
     const projectId = process.env.SIGNALWIRE_PROJECT_ID?.trim();
     const apiToken = (process.env.SIGNALWIRE_API_TOKEN || process.env.SIGNALWIRE_TOKEN)?.trim();
@@ -18,75 +24,12 @@ export async function POST(request: NextRequest) {
     }
 
     const authHeader = Buffer.from(`${projectId}:${apiToken}`).toString('base64');
-    let targetConferenceId = conference_id as string | undefined;
-
-    if (!targetConferenceId && room_name) {
-      // Backward-compatible fallback when only room_name is provided.
-      const listResponse = await fetch(`https://${spaceUrl}/api/video/conferences`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${authHeader}`,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!listResponse.ok) {
-        const errorText = await listResponse.text();
-        console.error('SignalWire list conferences error:', errorText);
-        return NextResponse.json(
-          { error: 'Failed to list conferences', details: errorText },
-          { status: listResponse.status }
-        );
-      }
-
-      const conferences = await listResponse.json();
-      const conferenceList = conferences.data || conferences;
-      const targetConference = conferenceList.find((c: any) => c.name === room_name);
-
-      if (!targetConference) {
-        return NextResponse.json(
-          { error: `Conference "${room_name}" not found` },
-          { status: 404 }
-        );
-      }
-
-      targetConferenceId = targetConference.id;
-    }
-
-    if (!targetConferenceId) {
-      return NextResponse.json(
-        { error: 'conference_id or room_name is required' },
-        { status: 400 }
-      );
-    }
-
-    // Try native Video API dial first (not available in all SignalWire environments).
-    const dialResponse = await fetch(`https://${spaceUrl}/api/video/conferences/${targetConferenceId}/dial`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${authHeader}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        to: to,
-        from: from
-      })
-    });
-
-    if (dialResponse.ok) {
-      const data = await dialResponse.json();
-      return NextResponse.json(data);
-    }
-
-    const dialErrorText = await dialResponse.text();
-    if (dialResponse.status !== 404) {
-      console.error('SignalWire dial error:', dialErrorText);
-      return NextResponse.json(
-        { error: 'Failed to dial', details: dialErrorText },
-        { status: dialResponse.status }
-      );
-    }
+    const useMachineDetection = machine_detection !== false;
+    const requestUrl = new URL(request.url);
+    const appBase =
+      process.env.NEXT_PUBLIC_PUBLIC_APP_URL?.trim() ||
+      process.env.NEXT_PUBLIC_BASE_URL?.trim() ||
+      `${requestUrl.protocol}//${requestUrl.host}`;
 
     if (!room_name) {
       return NextResponse.json(
@@ -99,11 +42,32 @@ export async function POST(request: NextRequest) {
     const twiml =
       `<?xml version="1.0" encoding="UTF-8"?>` +
       `<Response><Connect><Room>${room_name}</Room></Connect></Response>`;
-    const fallbackBody = new URLSearchParams({
+    const callbackUrl = new URL('/api/signalwire/call-events', appBase);
+    if (conference_id) {
+      callbackUrl.searchParams.set(
+        'conferenceId',
+        String(conference_id)
+      );
+    }
+    if (room_name) {
+      callbackUrl.searchParams.set('roomName', String(room_name));
+    }
+
+    const requestBody = new URLSearchParams({
       To: to,
       From: from,
-      Twiml: twiml
-    }).toString();
+      Twiml: twiml,
+      StatusCallback: callbackUrl.toString(),
+      StatusCallbackEvent: 'completed'
+    });
+    if (useMachineDetection) {
+      requestBody.set('MachineDetection', 'DetectMessageEnd');
+      requestBody.set('AsyncAmd', 'true');
+      requestBody.set(
+        'AsyncAmdStatusCallback',
+        callbackUrl.toString()
+      );
+    }
 
     const fallbackResponse = await fetch(
       `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/Calls.json`,
@@ -114,7 +78,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Accept': 'application/json'
         },
-        body: fallbackBody
+        body: requestBody.toString()
       }
     );
 
@@ -134,7 +98,8 @@ export async function POST(request: NextRequest) {
     const fallbackData = await fallbackResponse.json();
     return NextResponse.json({
       ...fallbackData,
-      fallback: 'laml-connect-room'
+      fallback: 'laml-connect-room',
+      machineDetection: useMachineDetection ? 'DetectMessageEnd' : 'disabled'
     });
   } catch (error) {
     console.error('Dial API error:', error);
