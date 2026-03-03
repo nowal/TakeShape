@@ -2791,9 +2791,9 @@ const PainterCallCenter: React.FC = () => {
                     <Phone size={18} />
                     {isStartingCall
                       ? 'Starting...'
-                      : 'Start Audio Call'}
+                      : 'Call Homeowner'}
                   </button>
-                  <button
+                  {/* <button
                     onClick={createVideoLinkAndCopy}
                     disabled={isStartingCall || isSendingVideoInvite}
                     style={{
@@ -2821,7 +2821,7 @@ const PainterCallCenter: React.FC = () => {
                     {isSendingVideoInvite
                       ? 'Creating...'
                       : 'Create Video Room'}
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
