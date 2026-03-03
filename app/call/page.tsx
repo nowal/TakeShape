@@ -1695,10 +1695,20 @@ const PainterCallCenter: React.FC = () => {
           };
         }
         if (payload?.completed) {
+          const voicemailDetected =
+            isVoicemailAnsweredBy(answeredBy);
+          if (voicemailDetected) {
+            return {
+              answered: true,
+              status: currentStatus || 'completed',
+              voicemailDetected: true,
+              answeredBy
+            };
+          }
           return {
-            answered: isVoicemailAnsweredBy(answeredBy),
+            answered: false,
             status: currentStatus || 'completed',
-            voicemailDetected: isVoicemailAnsweredBy(answeredBy),
+            voicemailDetected: false,
             answeredBy
           };
         }
