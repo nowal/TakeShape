@@ -13,24 +13,43 @@ export const dynamic = 'force-dynamic';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const isApiRoomRecordingUrl = (value: string) =>
+  /\/api\/video\/room_recordings\//i.test(value);
+
+const isLikelyPlayableMediaUrl = (value: string) =>
+  /\.(mp4|webm|mov|m3u8)(\?|$)/i.test(value) ||
+  /\/playback\//i.test(value) ||
+  /\/download\//i.test(value);
+
 const extractPlaybackUrl = (payload: any): string | null => {
   if (!payload || typeof payload !== 'object') return null;
 
+  const pickFirstValid = (values: any[]) =>
+    values
+      .filter((value) => typeof value === 'string' && /^https?:\/\//.test(value))
+      .find((value) => !isApiRoomRecordingUrl(value)) || null;
+
+  // Prefer explicitly playable fields first.
   const candidates = [
-    payload.url,
     payload.mp4_url,
-    payload.playback_url,
     payload.download_url,
+    payload.playback_url,
     payload.recording_url,
     payload.media_url,
     payload.video_url,
-    payload.uri,
     payload?.links?.download,
     payload?.links?.playback,
+    payload.url,
+    payload.uri,
     payload?.links?.self
   ];
-  const firstUrl = candidates.find((value) => typeof value === 'string' && /^https?:\/\//.test(value));
-  return firstUrl || null;
+
+  const directPlayable = candidates
+    .filter((value) => typeof value === 'string' && /^https?:\/\//.test(value))
+    .find((value) => !isApiRoomRecordingUrl(value) && isLikelyPlayableMediaUrl(value));
+  if (directPlayable) return directPlayable;
+
+  return pickFirstValid(candidates);
 };
 
 const fetchRecordingUntilReady = async ({

@@ -4,17 +4,22 @@ import firebase from '@/lib/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   collection,
+  doc,
   getDocs,
   getFirestore,
   limit,
   orderBy,
   query,
+  serverTimestamp,
+  updateDoc,
   where
 } from 'firebase/firestore';
 import { getDownloadURL, getStorage, ref as storageRef } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
+import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
+import { MapsLoaded } from '@/components/maps/loaded';
 
 type QuotePricingRow = {
   item: string;
@@ -31,6 +36,12 @@ type QuoteCard = {
   rows: QuotePricingRow[];
   totalPrice: number;
   createdAtLabel: string;
+  homeownerName: string | null;
+  homeownerEmail: string | null;
+  homeownerPhone: string | null;
+  homeownerAddress: string | null;
+  isLocked: boolean;
+  missingFields: string[];
 };
 
 const resolveDisplayDate = (raw: any) => {
@@ -45,6 +56,70 @@ const resolveDisplayDate = (raw: any) => {
   return 'Unknown date';
 };
 
+const normalizeOptionalField = (raw: any): string | null => {
+  const value = String(raw || '').trim();
+  return value ? value : null;
+};
+
+const extractLegacyVideoUrl = (rawVideoEstimates: any): string | null => {
+  if (!Array.isArray(rawVideoEstimates)) return null;
+  for (const estimate of rawVideoEstimates) {
+    const value = normalizeOptionalField(estimate?.value);
+    if (value) return value;
+    const url = normalizeOptionalField(estimate?.url);
+    if (url) return url;
+  }
+  return null;
+};
+
+const extractLegacyRecordingId = (rawVideoEstimates: any): string | null => {
+  if (!Array.isArray(rawVideoEstimates)) return null;
+  for (const estimate of rawVideoEstimates) {
+    const recordingId = normalizeOptionalField(
+      estimate?.signalwireRecordingId || estimate?.recordingId
+    );
+    if (recordingId) return recordingId;
+  }
+  return null;
+};
+
+type TQuoteAddressFieldProps = {
+  value: string;
+  onChange(value: string): void;
+};
+
+const QuoteAddressField: React.FC<TQuoteAddressFieldProps> = ({
+  value,
+  onChange
+}) => {
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
+
+  useGoogleAddressAutocomplete(addressInputRef, {
+    onPlaceChange: (place) => {
+      const formattedAddress = String(place.formatted_address || '').trim();
+      if (!formattedAddress) return;
+      onChange(formattedAddress);
+    }
+  });
+
+  return (
+    <input
+      ref={addressInputRef}
+      placeholder="Property Address (Optional)"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      }}
+      autoComplete="off"
+      spellCheck={false}
+      style={modalInputStyle}
+    />
+  );
+};
+
 export default function QuotesPage() {
   const router = useRouter();
   const auth = useMemo(() => getAuth(firebase), []);
@@ -57,6 +132,16 @@ export default function QuotesPage() {
   const [error, setError] = useState<string | null>(null);
   const [activePainterId, setActivePainterId] = useState<string | null>(null);
   const [isRefreshingVideos, setRefreshingVideos] = useState(false);
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+  const [isSavingCustomerInfo, setSavingCustomerInfo] = useState(false);
+  const [customerInfoError, setCustomerInfoError] = useState<string | null>(null);
+  const videoRetryAttemptedRef = useRef<Set<string>>(new Set());
+  const [customerInfoForm, setCustomerInfoForm] = useState({
+    homeownerName: '',
+    homeownerEmail: '',
+    homeownerPhone: '',
+    homeownerAddress: ''
+  });
 
   const handleDownloadVideo = useCallback(async (
     quote: QuoteCard
@@ -100,6 +185,14 @@ export default function QuotesPage() {
         snapshot.docs.map(async (quoteDoc) => {
           const data = quoteDoc.data() as Record<string, any>;
           const pricing = data.pricing || {};
+          const homeownerName = normalizeOptionalField(data.homeownerName);
+          const homeownerEmail = normalizeOptionalField(data.homeownerEmail);
+          const homeownerPhone = normalizeOptionalField(data.homeownerPhone);
+          const homeownerAddress = normalizeOptionalField(data.homeownerAddress);
+          const missingFields: string[] = [];
+          if (!homeownerName) missingFields.push('Name');
+          if (!homeownerEmail) missingFields.push('Email');
+          if (!homeownerAddress) missingFields.push('Address');
           const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
           const rows: QuotePricingRow[] = rowsRaw.map((row: any) => ({
             item: String(row?.item || ''),
@@ -109,20 +202,23 @@ export default function QuotesPage() {
 
           const videoEstimate = (data.videoEstimate || {}) as Record<string, any>;
           const videoStatusRaw = String(videoEstimate.status || '').toLowerCase();
+          const legacyVideoUrl = extractLegacyVideoUrl(data.videoEstimates);
           const recordingId = String(
             videoEstimate.recordingId ||
             data.signalwireRecordingId ||
+            extractLegacyRecordingId(data.videoEstimates) ||
             ''
           ).trim() || null;
           const storedVideoValue = String(videoEstimate.url || '').trim() || null;
+          const resolvedStoredVideoValue = storedVideoValue || legacyVideoUrl;
 
           let videoUrl: string | null = null;
-          if (storedVideoValue) {
-            if (/^https?:\/\//i.test(storedVideoValue)) {
-              videoUrl = storedVideoValue;
+          if (resolvedStoredVideoValue) {
+            if (/^https?:\/\//i.test(resolvedStoredVideoValue)) {
+              videoUrl = resolvedStoredVideoValue;
             } else {
               try {
-                videoUrl = await getDownloadURL(storageRef(storage, storedVideoValue));
+                videoUrl = await getDownloadURL(storageRef(storage, resolvedStoredVideoValue));
               } catch {
                 videoUrl = null;
               }
@@ -152,7 +248,13 @@ export default function QuotesPage() {
             recordingId,
             rows,
             totalPrice: Number(pricing.totalPrice) || 0,
-            createdAtLabel: resolveDisplayDate(data.createdAt || pricing.updatedAt || '')
+            createdAtLabel: resolveDisplayDate(data.createdAt || pricing.updatedAt || ''),
+            homeownerName,
+            homeownerEmail,
+            homeownerPhone,
+            homeownerAddress,
+            isLocked: missingFields.length > 0,
+            missingFields
           } as QuoteCard;
         })
       );
@@ -160,14 +262,14 @@ export default function QuotesPage() {
       setQuotes(cards);
 
       if (!options.skipAutoFinalize) {
-        const storingCards = cards.filter(
-          (card) => card.videoStatus === 'storing' && card.recordingId
+        const cardsNeedingVideoRefresh = cards.filter(
+          (card) => !card.videoUrl && !!card.recordingId
         );
 
-        if (storingCards.length > 0) {
+        if (cardsNeedingVideoRefresh.length > 0) {
           setRefreshingVideos(true);
           await Promise.all(
-            storingCards.map((card) =>
+            cardsNeedingVideoRefresh.map((card) =>
               fetch('/api/quotes/finalize-recording', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -191,6 +293,106 @@ export default function QuotesPage() {
       setRefreshingVideos(false);
     }
   }, [firestore, storage]);
+
+  const openCustomerInfoModal = useCallback((quote: QuoteCard) => {
+    setEditingQuoteId(quote.id);
+    setCustomerInfoError(null);
+    setCustomerInfoForm({
+      homeownerName: quote.homeownerName || '',
+      homeownerEmail: quote.homeownerEmail || '',
+      homeownerPhone: quote.homeownerPhone || '',
+      homeownerAddress: quote.homeownerAddress || ''
+    });
+  }, []);
+
+  const closeCustomerInfoModal = useCallback(() => {
+    if (isSavingCustomerInfo) return;
+    setEditingQuoteId(null);
+    setCustomerInfoError(null);
+  }, [isSavingCustomerInfo]);
+
+  const refreshQuoteVideo = useCallback(async (quote: QuoteCard) => {
+    if (!activePainterId || !quote.recordingId) return;
+    if (videoRetryAttemptedRef.current.has(quote.id)) return;
+
+    videoRetryAttemptedRef.current.add(quote.id);
+    try {
+      setRefreshingVideos(true);
+      await fetch('/api/quotes/finalize-recording', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          painterDocId: activePainterId,
+          quoteId: quote.id,
+          recordingId: quote.recordingId,
+          waitMs: 0
+        })
+      });
+      await loadQuotes(activePainterId, { skipAutoFinalize: true });
+    } catch (refreshError) {
+      console.error('Video refresh failed:', refreshError);
+    } finally {
+      setRefreshingVideos(false);
+    }
+  }, [activePainterId, loadQuotes]);
+
+  const handleCustomerInfoSubmit = useCallback(async () => {
+    if (!activePainterId || !editingQuoteId) return;
+
+    const homeownerName = customerInfoForm.homeownerName.trim();
+    const homeownerEmail = customerInfoForm.homeownerEmail.trim().toLowerCase();
+    const homeownerPhone = customerInfoForm.homeownerPhone.trim();
+    const homeownerAddress = customerInfoForm.homeownerAddress.trim();
+
+    if (!homeownerName || !homeownerEmail || !homeownerAddress) {
+      setCustomerInfoError('Name, email, and address are required.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(homeownerEmail)) {
+      setCustomerInfoError('Enter a valid homeowner email.');
+      return;
+    }
+
+    setSavingCustomerInfo(true);
+    setCustomerInfoError(null);
+    try {
+      await updateDoc(
+        doc(firestore, 'painters', activePainterId, 'quotes', editingQuoteId),
+        {
+          homeownerName,
+          homeownerEmail,
+          homeownerPhone: homeownerPhone || null,
+          homeownerAddress,
+          updatedAt: serverTimestamp()
+        }
+      );
+
+      setQuotes((prevQuotes) => prevQuotes.map((quote) => {
+        if (quote.id !== editingQuoteId) return quote;
+        const missingFields: string[] = [];
+        if (!homeownerName) missingFields.push('Name');
+        if (!homeownerEmail) missingFields.push('Email');
+        if (!homeownerAddress) missingFields.push('Address');
+
+        return {
+          ...quote,
+          homeownerName,
+          homeownerEmail,
+          homeownerPhone: homeownerPhone || null,
+          homeownerAddress,
+          missingFields,
+          isLocked: missingFields.length > 0
+        };
+      }));
+      setEditingQuoteId(null);
+    } catch (submitError) {
+      console.error('Failed to save customer info:', submitError);
+      setCustomerInfoError('Failed to save customer info.');
+    } finally {
+      setSavingCustomerInfo(false);
+    }
+  }, [activePainterId, customerInfoForm, editingQuoteId, firestore]);
 
   useEffect(() => {
     let mounted = true;
@@ -344,37 +546,88 @@ export default function QuotesPage() {
                 padding: 16
               }}
             >
-              {quote.videoUrl ? (
-                <video
-                  src={`${quote.videoUrl}#t=0.001`}
-                  controls
-                  muted
-                  style={{ width: '100%', borderRadius: 12, marginBottom: 12, background: '#0f131a' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    borderRadius: 12,
-                    marginBottom: 12,
-                    background: '#0f131a',
-                    color: quote.videoStatus === 'storing' ? '#f8d27a' : '#94a3b8',
-                    minHeight: 140,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6
-                  }}
-                >
-                  <div>{quote.videoMessage}</div>
-                  {quote.videoStatus === 'storing' && quote.recordingId && (
-                    <div style={{ fontSize: 11, opacity: 0.8 }}>
-                      Recording ID: {quote.recordingId}
-                    </div>
-                  )}
-                </div>
-              )}
+              <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+                {quote.videoUrl ? (
+                  <video
+                    src={`${quote.videoUrl}#t=0.001`}
+                    controls={!quote.isLocked}
+                    muted
+                    onError={() => {
+                      setQuotes((prevQuotes) => prevQuotes.map((item) =>
+                        item.id === quote.id
+                          ? {
+                            ...item,
+                            videoUrl: null,
+                            videoStatus: 'error',
+                            videoMessage: 'Video unavailable right now'
+                          }
+                          : item
+                      ));
+                      refreshQuoteVideo(quote).catch(() => undefined);
+                    }}
+                    style={{
+                      width: '100%',
+                      borderRadius: 12,
+                      background: '#0f131a',
+                      filter: quote.isLocked ? 'grayscale(1)' : 'none',
+                      opacity: quote.isLocked ? 0.55 : 1
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      borderRadius: 12,
+                      background: '#0f131a',
+                      color: quote.videoStatus === 'storing' ? '#f8d27a' : '#94a3b8',
+                      minHeight: 140,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      filter: quote.isLocked ? 'grayscale(1)' : 'none',
+                      opacity: quote.isLocked ? 0.55 : 1
+                    }}
+                  >
+                    <div>{quote.videoMessage}</div>
+                    {quote.videoStatus === 'storing' && quote.recordingId && (
+                      <div style={{ fontSize: 11, opacity: 0.8 }}>
+                        Recording ID: {quote.recordingId}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {quote.isLocked && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(15, 23, 42, 0.42)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: 16
+                    }}
+                  >
+                    <button
+                      onClick={() => openCustomerInfoModal(quote)}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        background: PRIMARY_COLOR_HEX,
+                        color: '#fff',
+                        padding: '12px 22px',
+                        fontWeight: 700,
+                        fontSize: 14,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Complete Customer Info to Access Video
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div
                 style={{
@@ -391,16 +644,23 @@ export default function QuotesPage() {
                 <span>{quote.createdAtLabel}</span>
                 {quote.videoUrl && (
                   <button
-                    onClick={() => handleDownloadVideo(quote)}
+                    onClick={() => {
+                      if (!quote.isLocked) {
+                        handleDownloadVideo(quote);
+                      }
+                    }}
+                    disabled={quote.isLocked}
                     style={{
                       border: 'none',
                       borderRadius: 999,
-                      background: PRIMARY_COLOR_HEX,
+                      background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
                       color: '#fff',
                       padding: '10px 20px',
                       fontWeight: 700,
                       fontSize: 15,
-                      lineHeight: 1.2
+                      lineHeight: 1.2,
+                      cursor: quote.isLocked ? 'not-allowed' : 'pointer',
+                      opacity: quote.isLocked ? 0.7 : 1
                     }}
                   >
                     Download Video
@@ -453,10 +713,161 @@ export default function QuotesPage() {
                   Total: ${quote.totalPrice.toFixed(2)}
                 </div>
               </div>
+
+              <div
+                style={{
+                  border: '1px solid #dbe3ef',
+                  borderRadius: 12,
+                  background: '#f8fafc',
+                  padding: 12,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: 8,
+                  marginTop: 12
+                }}
+              >
+                <div style={customerInfoItemStyle}>
+                  <span style={customerInfoLabelStyle}>Homeowner</span>
+                  <span>{quote.homeownerName || 'Not provided'}</span>
+                </div>
+                <div style={customerInfoItemStyle}>
+                  <span style={customerInfoLabelStyle}>Email</span>
+                  <span>{quote.homeownerEmail || 'Not provided'}</span>
+                </div>
+                <div style={customerInfoItemStyle}>
+                  <span style={customerInfoLabelStyle}>Phone</span>
+                  <span>{quote.homeownerPhone || 'Not provided'}</span>
+                </div>
+                <div style={customerInfoItemStyle}>
+                  <span style={customerInfoLabelStyle}>Address</span>
+                  <span>{quote.homeownerAddress || 'Not provided'}</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      {editingQuoteId && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={closeCustomerInfoModal}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 420,
+              background: '#fff',
+              borderRadius: 16,
+              border: '1px solid #dbe3ef',
+              boxShadow: '0 18px 40px rgba(15,23,42,0.24)',
+              padding: 16
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div style={{ marginBottom: 12, color: '#0f172a', fontWeight: 700, fontSize: 18 }}>
+              Complete Customer Info
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <input
+                type="tel"
+                inputMode="numeric"
+                placeholder="(555) 123-4567"
+                value={customerInfoForm.homeownerPhone}
+                onChange={(event) => setCustomerInfoForm((prev) => ({
+                  ...prev,
+                  homeownerPhone: event.target.value
+                }))}
+                style={modalInputStyle}
+              />
+              <input
+                placeholder="Homeowner Name (Optional)"
+                value={customerInfoForm.homeownerName}
+                onChange={(event) => setCustomerInfoForm((prev) => ({
+                  ...prev,
+                  homeownerName: event.target.value
+                }))}
+                style={modalInputStyle}
+              />
+              <MapsLoaded>
+                <QuoteAddressField
+                  value={customerInfoForm.homeownerAddress}
+                  onChange={(value) => setCustomerInfoForm((prev) => ({
+                    ...prev,
+                    homeownerAddress: value
+                  }))}
+                />
+              </MapsLoaded>
+              <input
+                type="email"
+                placeholder="Homeowner Email (Optional)"
+                value={customerInfoForm.homeownerEmail}
+                onChange={(event) => setCustomerInfoForm((prev) => ({
+                  ...prev,
+                  homeownerEmail: event.target.value
+                }))}
+                style={modalInputStyle}
+              />
+            </div>
+            {customerInfoError && (
+              <div style={{ marginTop: 10, color: '#b91c1c', fontSize: 13 }}>
+                {customerInfoError}
+              </div>
+            )}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginTop: 14
+              }}
+            >
+              <button
+                onClick={closeCustomerInfoModal}
+                disabled={isSavingCustomerInfo}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 10,
+                  background: '#fff',
+                  color: '#334155',
+                  padding: '8px 12px',
+                  fontWeight: 600,
+                  cursor: isSavingCustomerInfo ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCustomerInfoSubmit}
+                disabled={isSavingCustomerInfo}
+                style={{
+                  border: 'none',
+                  borderRadius: 10,
+                  background: PRIMARY_COLOR_HEX,
+                  color: '#fff',
+                  padding: '8px 14px',
+                  fontWeight: 700,
+                  cursor: isSavingCustomerInfo ? 'not-allowed' : 'pointer',
+                  opacity: isSavingCustomerInfo ? 0.75 : 1
+                }}
+              >
+                {isSavingCustomerInfo ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -485,4 +896,31 @@ const valueCellStyle: React.CSSProperties = {
   minHeight: 34,
   display: 'flex',
   alignItems: 'center'
+};
+
+const customerInfoItemStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  color: '#0f172a',
+  fontSize: 13
+};
+
+const customerInfoLabelStyle: React.CSSProperties = {
+  color: '#64748b',
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: 0.4
+};
+
+const modalInputStyle: React.CSSProperties = {
+  width: '100%',
+  height: 44,
+  borderRadius: 10,
+  border: '1px solid #dbe3ef',
+  background: '#fff',
+  color: '#0f172a',
+  padding: '0 12px',
+  fontSize: 14
 };
