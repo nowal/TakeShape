@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+const ALLOWED_ROOM_QUALITIES = new Set(['720p', '1080p']);
+const ALLOWED_ROOM_SIZES = new Set(['small', 'medium', 'large']);
+
+const normalizeRoomQuality = (value: unknown) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (ALLOWED_ROOM_QUALITIES.has(normalized)) return normalized;
+  return null;
+};
+
+const normalizeRoomSize = (value: unknown) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (ALLOWED_ROOM_SIZES.has(normalized)) return normalized;
+  return null;
+};
+
 const fetchWithTimeout = async (url: string, init: RequestInit, timeoutMs = 15000) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -17,7 +32,7 @@ const fetchWithTimeout = async (url: string, init: RequestInit, timeoutMs = 1500
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, display_name, meta } = await request.json();
+    const { name, display_name, meta, quality, size } = await request.json();
 
     const projectId = process.env.SIGNALWIRE_PROJECT_ID?.trim();
     const apiToken = (process.env.SIGNALWIRE_API_TOKEN || process.env.SIGNALWIRE_TOKEN)?.trim();
@@ -31,6 +46,12 @@ export async function POST(request: NextRequest) {
     }
 
     const authHeader = Buffer.from(`${projectId}:${apiToken}`).toString('base64');
+    const defaultQuality =
+      normalizeRoomQuality(process.env.SIGNALWIRE_DEFAULT_VIDEO_QUALITY) || '1080p';
+    const defaultSize =
+      normalizeRoomSize(process.env.SIGNALWIRE_DEFAULT_ROOM_SIZE) || 'medium';
+    const roomQuality = normalizeRoomQuality(quality) || defaultQuality;
+    const roomSize = normalizeRoomSize(size) || defaultSize;
     
     // Create a Video Conference (room with UI)
     const response = await fetchWithTimeout(`https://${spaceUrl}/api/video/conferences`, {
@@ -43,8 +64,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         name: name || `quote-session-${Date.now()}`,
         display_name: display_name || 'Quote Call',
-        size: 'small',
-        quality: '720p',
+        size: roomSize,
+        quality: roomQuality,
         layout: 'grid-responsive',
         enable_room_previews: true,
         enable_chat: true,

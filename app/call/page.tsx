@@ -1955,7 +1955,9 @@ const PainterCallCenter: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: `quote-call-${Date.now()}`,
-        display_name: 'Quote Call with Homeowner'
+        display_name: 'Quote Call with Homeowner',
+        quality: '1080p',
+        size: 'medium'
       })
     }, 22000);
     const confData = (await getJsonOrThrow(
