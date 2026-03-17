@@ -44,9 +44,16 @@ const getTouchDistance = (
   Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
 
 const HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS: MediaTrackConstraints = {
+  // Bias capture toward detail-rich HD for estimate walkthroughs.
+  width: { min: 1280, ideal: 1920 },
+  height: { min: 720, ideal: 1080 },
+  frameRate: { min: 24, ideal: 30, max: 30 },
+  aspectRatio: { ideal: 16 / 9 }
+};
+
+const FALLBACK_BACK_CAMERA_CONSTRAINTS: MediaTrackConstraints = {
   width: { ideal: 1920 },
   height: { ideal: 1080 },
-  aspectRatio: { ideal: 16 / 9 },
   frameRate: { ideal: 30, max: 30 }
 };
 
@@ -516,13 +523,24 @@ const ConsultPage: React.FC = () => {
       });
     } catch {
       pushDebugLog('Exact environment camera request failed; retrying with ideal environment');
-      initialStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
-          facingMode: { ideal: 'environment' }
-        }
-      });
+      try {
+        initialStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+            facingMode: { ideal: 'environment' }
+          }
+        });
+      } catch {
+        pushDebugLog('Strict HD constraints failed; retrying with relaxed HD constraints');
+        initialStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            ...FALLBACK_BACK_CAMERA_CONSTRAINTS,
+            facingMode: { ideal: 'environment' }
+          }
+        });
+      }
     }
     const initialVideoTrack = initialStream.getVideoTracks()[0];
     if (initialVideoTrack && 'contentHint' in initialVideoTrack) {
@@ -580,6 +598,45 @@ const ConsultPage: React.FC = () => {
     pushDebugLog('Hard fail: unable to confirm back camera');
     throw new Error(
       'Unable to lock to your back camera. Please allow camera access, close other camera apps, and try again.'
+    );
+  }, [pushDebugLog]);
+
+  const tuneOutboundVideoSender = useCallback(async (session: any) => {
+    const peerConnection =
+      session?.peerConnection ||
+      session?._peerConnection ||
+      session?.publisher?.peerConnection ||
+      null;
+    if (!peerConnection?.getSenders) return;
+
+    const videoSenders: RTCRtpSender[] = peerConnection
+      .getSenders()
+      .filter((sender: RTCRtpSender) => sender?.track?.kind === 'video');
+
+    await Promise.all(
+      videoSenders.map(async (sender) => {
+        try {
+          const params = sender.getParameters?.() || {};
+          const encodings = Array.isArray((params as any).encodings) && (params as any).encodings.length
+            ? (params as any).encodings
+            : [{}];
+
+          (params as any).encodings = encodings.map((encoding: Record<string, unknown>) => ({
+            ...encoding,
+            maxBitrate: 2_500_000,
+            maxFramerate: 30,
+            scaleResolutionDownBy: 1
+          }));
+          (params as any).degradationPreference = 'maintain-resolution';
+
+          if (sender.setParameters) {
+            await sender.setParameters(params as RTCRtpSendParameters);
+            pushDebugLog('Applied outbound video sender quality hints');
+          }
+        } catch (error) {
+          pushDebugLog(`Video sender tuning skipped: ${(error as Error).message}`);
+        }
+      })
     );
   }, [pushDebugLog]);
 
@@ -829,11 +886,12 @@ const ConsultPage: React.FC = () => {
       receiveAudio: false,
       receiveVideo: true
     });
+    await tuneOutboundVideoSender(session);
     pushDebugLog('Room joined with sendVideo=true');
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
-  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher]);
+  }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher, tuneOutboundVideoSender]);
 
   const watchConferenceState = useCallback(() => {
     stopConferenceWatch();
