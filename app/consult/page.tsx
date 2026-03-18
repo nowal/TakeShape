@@ -267,6 +267,7 @@ const ConsultPage: React.FC = () => {
   const quoteWatcherUnsubRef = useRef<(() => void) | null>(null);
   const watcherWaitingForIdsLoggedRef = useRef(false);
   const didInitRef = useRef(false);
+  const roomAudioEnabledRef = useRef(true);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -861,7 +862,34 @@ const ConsultPage: React.FC = () => {
     setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
-    const stream = await getBackCameraStream();
+    const roomAudioEnabled = roomAudioEnabledRef.current;
+    const cameraStream = await getBackCameraStream();
+    let stream: MediaStream | null = null;
+    try {
+      const tracks: MediaStreamTrack[] = [
+        ...cameraStream.getVideoTracks()
+      ];
+
+      if (roomAudioEnabled) {
+        setStatus('Requesting microphone...');
+        pushDebugLog('Requesting microphone stream');
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false
+        });
+        const micTrack = micStream.getAudioTracks()[0];
+        if (!micTrack) {
+          throw new Error('Unable to acquire microphone audio.');
+        }
+        tracks.push(micTrack);
+      }
+
+      stream = new MediaStream(tracks);
+    } catch (error) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      throw error;
+    }
+
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
     setQuoteAccepted(false);
@@ -881,9 +909,9 @@ const ConsultPage: React.FC = () => {
       localStream: stream
     });
     await session.join({
-      sendAudio: false,
+      sendAudio: roomAudioEnabled,
       sendVideo: true,
-      receiveAudio: false,
+      receiveAudio: roomAudioEnabled,
       receiveVideo: true
     });
     await tuneOutboundVideoSender(session);
@@ -1045,6 +1073,7 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get('debug') === '1');
+    roomAudioEnabledRef.current = params.get('audio') !== '0';
   }, []);
 
   useEffect(() => {
@@ -1081,7 +1110,11 @@ const ConsultPage: React.FC = () => {
         setStatus('Requesting back camera...');
         await joinConsult(token);
         if (mounted) {
-          setStatus('Connected. Keep talking on your phone call.');
+          setStatus(
+            roomAudioEnabledRef.current
+              ? 'Connected. If video/audio is live here, hang up the phone call.'
+              : 'Connected. Keep talking on your phone call.'
+          );
           setBlockingError('');
           pushDebugLog('Status=Connected');
           setEnded(false);
@@ -1123,18 +1156,17 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   const toggleVideo = async () => {
-    const session = sessionRef.current;
-    if (!session) return;
+    const track = localStreamRef.current?.getVideoTracks?.()[0];
+    if (!track) return;
     try {
-      if (isVideoOff) {
-        await session.restoreOutboundVideo();
-        pushDebugLog('restoreOutboundVideo() from button');
-        setVideoOff(false);
-      } else {
-        await session.stopOutboundVideo();
-        pushDebugLog('stopOutboundVideo() from button');
-        setVideoOff(true);
-      }
+      const nextVideoOff = !isVideoOff;
+      track.enabled = !nextVideoOff;
+      pushDebugLog(
+        nextVideoOff
+          ? 'Local video track disabled from button'
+          : 'Local video track enabled from button'
+      );
+      setVideoOff(nextVideoOff);
     } catch (error) {
       console.error('Video toggle error:', error);
     }
@@ -1250,7 +1282,11 @@ const ConsultPage: React.FC = () => {
       setQuoteSessionClosed(false);
       setSubmittedQuote(null);
       setBlockingError('');
-      setStatus('Connected. Keep talking on your phone call.');
+      setStatus(
+        roomAudioEnabledRef.current
+          ? 'Connected. If video/audio is live here, hang up the phone call.'
+          : 'Connected. Keep talking on your phone call.'
+      );
       watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
