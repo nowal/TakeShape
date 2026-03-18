@@ -862,7 +862,23 @@ const ConsultPage: React.FC = () => {
     setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
-    const roomAudioEnabled = roomAudioEnabledRef.current;
+    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number) => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => {
+              reject(new Error('Timed out while requesting microphone permission.'));
+            }, timeoutMs);
+          })
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+
+    let roomAudioEnabled = roomAudioEnabledRef.current;
     const cameraStream = await getBackCameraStream();
     let stream: MediaStream | null = null;
     try {
@@ -873,15 +889,29 @@ const ConsultPage: React.FC = () => {
       if (roomAudioEnabled) {
         setStatus('Requesting microphone...');
         pushDebugLog('Requesting microphone stream');
-        const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: false
-        });
-        const micTrack = micStream.getAudioTracks()[0];
-        if (!micTrack) {
-          throw new Error('Unable to acquire microphone audio.');
+        try {
+          const micStream = await withTimeout(
+            navigator.mediaDevices.getUserMedia({
+              audio: true,
+              video: false
+            }),
+            12000
+          );
+          const micTrack = micStream.getAudioTracks()[0];
+          if (!micTrack) {
+            throw new Error('Unable to acquire microphone audio.');
+          }
+          tracks.push(micTrack);
+        } catch (error) {
+          roomAudioEnabled = false;
+          roomAudioEnabledRef.current = false;
+          pushDebugLog(
+            `Microphone request failed; continuing video-only: ${(error as Error).message}`
+          );
+          setStatus(
+            'Microphone unavailable while on phone call. Continuing video-only. Hang up and tap Call Back to retry audio.'
+          );
         }
-        tracks.push(micTrack);
       }
 
       stream = new MediaStream(tracks);
