@@ -881,6 +881,7 @@ const ConsultPage: React.FC = () => {
     let roomAudioEnabled = roomAudioEnabledRef.current;
     const cameraStream = await getBackCameraStream();
     let stream: MediaStream | null = null;
+    let micTrack: MediaStreamTrack | null = null;
     try {
       const tracks: MediaStreamTrack[] = [
         ...cameraStream.getVideoTracks()
@@ -897,7 +898,7 @@ const ConsultPage: React.FC = () => {
             }),
             12000
           );
-          const micTrack = micStream.getAudioTracks()[0];
+          micTrack = micStream.getAudioTracks()[0] || null;
           if (!micTrack) {
             throw new Error('Unable to acquire microphone audio.');
           }
@@ -934,18 +935,83 @@ const ConsultPage: React.FC = () => {
     const previewReady = await attachLocalStreamPreview(stream);
     pushDebugLog(`Local preview ready=${previewReady}`);
 
-    const session = new SWVideo.RoomSession({
-      token,
-      localStream: stream
-    });
-    await session.join({
-      sendAudio: roomAudioEnabled,
-      sendVideo: true,
-      receiveAudio: roomAudioEnabled,
-      receiveVideo: true
-    });
+    setStatus('Joining room...');
+    const joinSession = async (opts: {
+      sendAudio: boolean;
+      receiveAudio: boolean;
+      localStream: MediaStream;
+      timeoutMs: number;
+    }) => {
+      const session = new SWVideo.RoomSession({
+        token,
+        localStream: opts.localStream
+      });
+
+      try {
+        await withTimeout(
+          session.join({
+            sendAudio: opts.sendAudio,
+            sendVideo: true,
+            receiveAudio: opts.receiveAudio,
+            receiveVideo: true
+          }),
+          opts.timeoutMs
+        );
+        return session;
+      } catch (error) {
+        try {
+          await session.leave();
+        } catch {
+          // no-op
+        }
+        throw error;
+      }
+    };
+
+    let session: any = null;
+    try {
+      session = await joinSession({
+        sendAudio: roomAudioEnabled,
+        receiveAudio: roomAudioEnabled,
+        localStream: stream,
+        timeoutMs: roomAudioEnabled ? 15000 : 12000
+      });
+    } catch (error) {
+      if (!roomAudioEnabled) {
+        throw error;
+      }
+
+      pushDebugLog(
+        `Audio room join failed; retrying video-only: ${(error as Error).message}`
+      );
+      setStatus(
+        'Audio room join failed while phone call is active. Retrying video-only...'
+      );
+      roomAudioEnabled = false;
+      roomAudioEnabledRef.current = false;
+      if (micTrack) {
+        micTrack.stop();
+        micTrack = null;
+      }
+      const retryStream = new MediaStream([
+        ...cameraStream.getVideoTracks()
+      ]);
+      localStreamRef.current = retryStream;
+      session = await joinSession({
+        sendAudio: false,
+        receiveAudio: false,
+        localStream: retryStream,
+        timeoutMs: 12000
+      });
+    }
+
     await tuneOutboundVideoSender(session);
     pushDebugLog('Room joined with sendVideo=true');
+    pushDebugLog(
+      roomAudioEnabled
+        ? 'Room joined with sendAudio=true'
+        : 'Room joined with sendAudio=false (fallback)'
+    );
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
     setHasVideoFrame(Boolean(previewReady));
