@@ -2092,7 +2092,8 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const transitionToCopiedVideoLink = async (
-    currentGuestLink?: string
+    currentGuestLink?: string,
+    options?: { skipCopy?: boolean }
   ) => {
     const consultLink = currentGuestLink || guestLink;
     if (!consultLink) {
@@ -2115,15 +2116,18 @@ const PainterCallCenter: React.FC = () => {
       return url.toString();
     })();
     setGuestLink(linkWithQuote);
-    let didCopy = true;
-    try {
-      await copyTextWithFallback(linkWithQuote);
-    } catch {
-      didCopy = false;
-      window.prompt(
-        'Copy this /tested link and send to the homeowner:',
-        linkWithQuote
-      );
+    let didCopy = false;
+    if (!options?.skipCopy) {
+      try {
+        await copyTextWithFallback(linkWithQuote);
+        didCopy = true;
+      } catch {
+        didCopy = false;
+        window.prompt(
+          'Copy this /tested link and send to the homeowner:',
+          linkWithQuote
+        );
+      }
     }
 
     await fetch('/api/signalwire/conference-state', {
@@ -2148,7 +2152,9 @@ const PainterCallCenter: React.FC = () => {
       Date.now() + CONSULT_TRANSFER_GRACE_MS;
     setPhase('videoInviteSent');
     setStatus(
-      didCopy
+      options?.skipCopy
+        ? 'Room ready. Tap Copy Link to send the /tested URL.'
+        : didCopy
         ? 'Waiting for Homeowner Video. Room audio will auto-enable after the phone call ends.'
         : 'Waiting for Homeowner Video. Auto-copy failed, use the consult link below.'
     );
@@ -2295,7 +2301,7 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
-  const createVideoLinkAndCopy = async () => {
+  const createVideoRoom = async () => {
     if (!isPainterUser || !painterDocId) {
       setStatus('Only signed-in painter accounts can start this call flow.');
       return;
@@ -2336,7 +2342,9 @@ const PainterCallCenter: React.FC = () => {
         normalizedHomeownerNumber: ''
       });
       await ensureQuoteDoc();
-      await transitionToCopiedVideoLink(prepared.guestLink);
+      await transitionToCopiedVideoLink(prepared.guestLink, {
+        skipCopy: true
+      });
     } catch (error) {
       console.error('Create video room error:', error);
       setStatus(`Error: ${(error as Error).message}`);
@@ -3009,12 +3017,10 @@ const PainterCallCenter: React.FC = () => {
                         : 'Call Homeowner'}
                     </button>
                     <button
-                      onClick={createVideoLinkAndCopy}
+                      onClick={createVideoRoom}
                       disabled={
                         isStartingCall ||
-                        isSendingVideoInvite ||
-                        (requiresCallerIdVerification &&
-                          !isCallerIdVerified)
+                        isSendingVideoInvite
                       }
                       style={{
                         flex: 1,
@@ -3022,13 +3028,13 @@ const PainterCallCenter: React.FC = () => {
                         border: 'none',
                         borderRadius: 12,
                         background:
-                          isStartingCall || isSendingVideoInvite || (requiresCallerIdVerification && !isCallerIdVerified)
+                          isStartingCall || isSendingVideoInvite
                             ? disabledPrimaryActionColor
                             : primaryActionColor,
                         color: '#fff',
                         fontWeight: 700,
                         cursor:
-                          isStartingCall || isSendingVideoInvite || (requiresCallerIdVerification && !isCallerIdVerified)
+                          isStartingCall || isSendingVideoInvite
                             ? 'not-allowed'
                             : 'pointer',
                         display: 'inline-flex',
@@ -3040,7 +3046,7 @@ const PainterCallCenter: React.FC = () => {
                       <VideoIcon size={18} />
                       {isSendingVideoInvite
                         ? 'Creating...'
-                        : 'Copy Video Link'}
+                        : 'Create Room'}
                     </button>
                   </div>
                 </div>
@@ -3378,7 +3384,7 @@ const PainterCallCenter: React.FC = () => {
                       gap: 8
                     }}
                   >
-                    Copy Video Link
+                    Copy Link
                   </button>
                   {!isRoomAudioEnabled && needsManualAudioEnable && (
                     <button
