@@ -2120,6 +2120,10 @@ const PainterCallCenter: React.FC = () => {
       await copyTextWithFallback(linkWithQuote);
     } catch {
       didCopy = false;
+      window.prompt(
+        'Copy this /tested link and send to the homeowner:',
+        linkWithQuote
+      );
     }
 
     await fetch('/api/signalwire/conference-state', {
@@ -2368,6 +2372,29 @@ const PainterCallCenter: React.FC = () => {
       setStatus(`Error: ${(error as Error).message}`);
     } finally {
       setIsSendingVideoInvite(false);
+    }
+  };
+
+  const copyConsultLinkNow = async () => {
+    if (!guestLink) {
+      setStatus('No consult link available yet.');
+      return;
+    }
+    try {
+      await copyTextWithFallback(guestLink);
+      setHasCopiedVideoLink(true);
+      setStatus(
+        'Copied. Send the link to the homeowner so they open /tested.'
+      );
+    } catch {
+      const promptResult = window.prompt(
+        'Copy this /tested link and send to the homeowner:',
+        guestLink
+      );
+      setHasCopiedVideoLink(Boolean(promptResult && promptResult.trim()));
+      setStatus(
+        'Auto-copy was blocked on this device. Copy the link from the prompt.'
+      );
     }
   };
 
@@ -3335,6 +3362,24 @@ const PainterCallCenter: React.FC = () => {
               )}
               {phase === 'videoInviteSent' && (
                 <>
+                  <button
+                    onClick={copyConsultLinkNow}
+                    style={{
+                      height: 48,
+                      borderRadius: 999,
+                      border: 'none',
+                      padding: '0 18px',
+                      background: primaryActionColor,
+                      color: '#fff',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                  >
+                    Copy Video Link
+                  </button>
                   {!isRoomAudioEnabled && needsManualAudioEnable && (
                     <button
                       onClick={() => enableRoomAudio()}
