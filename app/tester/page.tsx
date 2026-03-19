@@ -404,6 +404,7 @@ const PainterCallCenter: React.FC = () => {
   const [hasCopiedVideoLink, setHasCopiedVideoLink] = useState(false);
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
   const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
+  const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
   const [isCallerIdVerified, setCallerIdVerified] = useState(false);
   const [isCheckingCallerId, setCheckingCallerId] = useState(false);
   const [isRequestingCallerIdVerification, setRequestingCallerIdVerification] = useState(false);
@@ -447,6 +448,8 @@ const PainterCallCenter: React.FC = () => {
   const recordingPersistedRef = useRef(false);
   const providerAudioStreamRef = useRef<MediaStream | null>(null);
   const roomAudioEnabledRef = useRef(false);
+  const autoAudioPollingRef = useRef(false);
+  const autoAudioAttemptInFlightRef = useRef(false);
   const callerIdPollTimerRef = useRef<number | null>(null);
   const quoteAcceptedRef = useRef(false);
 
@@ -1039,7 +1042,10 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
-  const requestProviderRoomMic = async () => {
+  const requestProviderRoomMic = async (
+    timeoutMs = 12000,
+    timeoutMessage = 'Timed out while requesting microphone. End the phone call and try again.'
+  ) => {
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error('Browser does not support microphone access');
     }
@@ -1048,8 +1054,8 @@ const PainterCallCenter: React.FC = () => {
         audio: true,
         video: false
       }),
-      12000,
-      'Timed out while requesting microphone. End the phone call and try again.'
+      timeoutMs,
+      timeoutMessage
     );
   };
 
@@ -2066,6 +2072,7 @@ const PainterCallCenter: React.FC = () => {
     setHomeownerInCallRoom(false);
     setHasCopiedVideoLink(false);
     setRoomAudioEnabled(false);
+    setNeedsManualAudioEnable(false);
     providerAudioStreamRef.current = null;
     activeCallSidRef.current = null;
     callAnsweredRef.current = false;
@@ -2131,13 +2138,14 @@ const PainterCallCenter: React.FC = () => {
     }).catch(() => undefined);
 
     setHasCopiedVideoLink(didCopy);
+    setNeedsManualAudioEnable(false);
     estimateInviteSentRef.current = true;
     transferWaitUntilRef.current =
       Date.now() + CONSULT_TRANSFER_GRACE_MS;
     setPhase('videoInviteSent');
     setStatus(
       didCopy
-        ? 'Waiting for Homeowner Video. Keep the phone call active until both of you enable room audio.'
+        ? 'Waiting for Homeowner Video. Room audio will auto-enable after the phone call ends.'
         : 'Waiting for Homeowner Video. Auto-copy failed, use the consult link below.'
     );
     watchCallHealth();
@@ -2363,7 +2371,10 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
-  const enableRoomAudio = async () => {
+  const enableRoomAudio = async (options?: {
+    auto?: boolean;
+    preloadedMicStream?: MediaStream | null;
+  }) => {
     if (roomAudioEnabledRef.current) {
       setStatus('Room audio is already enabled.');
       return;
@@ -2373,6 +2384,7 @@ const PainterCallCenter: React.FC = () => {
       return;
     }
 
+    const isAuto = Boolean(options?.auto);
     setEnablingRoomAudio(true);
     try {
       if (activeConferenceIdRef.current) {
@@ -2389,8 +2401,12 @@ const PainterCallCenter: React.FC = () => {
         }).catch(() => undefined);
       }
 
-      setStatus('Requesting microphone...');
-      providerAudioStreamRef.current = await requestProviderRoomMic();
+      if (!isAuto) {
+        setStatus('Requesting microphone...');
+      }
+      providerAudioStreamRef.current =
+        options?.preloadedMicStream ||
+        (await requestProviderRoomMic());
       setStatus('Switching to room audio...');
       await joinPainterRoomAudioOnly(painterTokenRef.current, {
         audioEnabled: true
@@ -2411,14 +2427,74 @@ const PainterCallCenter: React.FC = () => {
       }
 
       setStatus('Room audio enabled. Ask homeowner to tap Enable Audio.');
+      setNeedsManualAudioEnable(false);
       startEstimateRecording();
     } catch (error) {
       console.error('Enable room audio error:', error);
-      setStatus(`Error: ${(error as Error).message}`);
+      if (isAuto) {
+        setNeedsManualAudioEnable(true);
+        setStatus(
+          'Auto-enable audio did not complete. Tap Enable Room Audio after ending the phone call.'
+        );
+      } else {
+        setStatus(`Error: ${(error as Error).message}`);
+      }
     } finally {
       setEnablingRoomAudio(false);
     }
   };
+
+  useEffect(() => {
+    const shouldPoll =
+      phase === 'videoInviteSent' &&
+      isHomeownerInCallRoom &&
+      !isRoomAudioEnabled &&
+      !isEnablingRoomAudio;
+
+    if (!shouldPoll) {
+      autoAudioPollingRef.current = false;
+      return;
+    }
+
+    autoAudioPollingRef.current = true;
+    const timer = window.setInterval(async () => {
+      if (
+        !autoAudioPollingRef.current ||
+        autoAudioAttemptInFlightRef.current ||
+        roomAudioEnabledRef.current ||
+        localEndRequestedRef.current
+      ) {
+        return;
+      }
+
+      autoAudioAttemptInFlightRef.current = true;
+      try {
+        const stream = await requestProviderRoomMic(
+          3500,
+          'Microphone is still busy with phone call.'
+        );
+        await enableRoomAudio({
+          auto: true,
+          preloadedMicStream: stream
+        });
+      } catch {
+        // Keep polling until PSTN releases the microphone.
+      } finally {
+        autoAudioAttemptInFlightRef.current = false;
+      }
+    }, 2500);
+
+    return () => {
+      autoAudioPollingRef.current = false;
+      window.clearInterval(timer);
+    };
+  }, [
+    enableRoomAudio,
+    isEnablingRoomAudio,
+    isHomeownerInCallRoom,
+    isRoomAudioEnabled,
+    phase
+  ]);
 
   const enterQuoteMode = async () => {
     if (!conference?.id) return;
@@ -2544,6 +2620,7 @@ const PainterCallCenter: React.FC = () => {
     setHomeownerInCallRoom(false);
     setHasCopiedVideoLink(false);
     setRoomAudioEnabled(false);
+    setNeedsManualAudioEnable(false);
     setMuted(false);
     setHasVideoFrame(false);
     setGuestLink('');
@@ -2573,6 +2650,7 @@ const PainterCallCenter: React.FC = () => {
     setConference(null);
     setGuestLink('');
     setHasVideoFrame(false);
+    setNeedsManualAudioEnable(false);
     setPhase('idle');
     await startPhoneCall();
   };
@@ -3257,9 +3335,9 @@ const PainterCallCenter: React.FC = () => {
               )}
               {phase === 'videoInviteSent' && (
                 <>
-                  {!isRoomAudioEnabled && (
+                  {!isRoomAudioEnabled && needsManualAudioEnable && (
                     <button
-                      onClick={enableRoomAudio}
+                      onClick={() => enableRoomAudio()}
                       disabled={isEnablingRoomAudio}
                       style={{
                         height: 48,

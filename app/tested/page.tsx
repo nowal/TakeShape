@@ -276,6 +276,7 @@ const ConsultPage: React.FC = () => {
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
   const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
   const [isRoomAudioRequested, setRoomAudioRequested] = useState(false);
+  const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
@@ -299,6 +300,7 @@ const ConsultPage: React.FC = () => {
   const targetZoomValueRef = useRef<number | null>(null);
   const appliedZoomValueRef = useRef<number>(1);
   const quoteAcceptedRef = useRef(false);
+  const autoAudioAttemptedRef = useRef(false);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -1124,11 +1126,14 @@ const ConsultPage: React.FC = () => {
           !isQuoteModeRef.current
         ) {
           setRoomAudioRequested(true);
+          setNeedsManualAudioEnable(false);
           setStatus(
-            'Provider is switching off the phone call. Tap Enable Audio to continue in this room.'
+            'Provider is switching off the phone call. Enabling room audio...'
           );
         } else if (roomAudioStage === 'video_only' && !roomAudioEnabledRef.current) {
           setRoomAudioRequested(false);
+          setNeedsManualAudioEnable(false);
+          autoAudioAttemptedRef.current = false;
         }
         const submissionSignal = String(payload?.meta?.quote_submission_signal || '').trim();
         if (submissionSignal && submissionSignal !== lastSubmissionSignalRef.current) {
@@ -1300,7 +1305,7 @@ const ConsultPage: React.FC = () => {
     }
   };
 
-  const enableRoomAudio = async () => {
+  const enableRoomAudio = async (options?: { auto?: boolean }) => {
     if (isEnablingRoomAudio) return;
     if (isRoomAudioEnabled) {
       setStatus('Room audio is already enabled.');
@@ -1312,12 +1317,15 @@ const ConsultPage: React.FC = () => {
     }
 
     setEnablingRoomAudio(true);
+    const isAuto = Boolean(options?.auto);
     roomAudioEnabledRef.current = true;
     try {
       setStatus('Requesting microphone...');
       await joinConsult(tokenRef.current);
       setRoomAudioEnabled(true);
       setRoomAudioRequested(false);
+      setNeedsManualAudioEnable(false);
+      autoAudioAttemptedRef.current = false;
       if (conferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
           method: 'POST',
@@ -1336,11 +1344,32 @@ const ConsultPage: React.FC = () => {
       roomAudioEnabledRef.current = false;
       setRoomAudioEnabled(false);
       console.error('Enable consult audio error:', error);
-      setStatus(`Unable to enable audio: ${(error as Error).message}`);
+      if (isAuto) {
+        setNeedsManualAudioEnable(true);
+        setStatus(
+          'Unable to auto-enable audio. Tap Enable Audio after ending the phone call.'
+        );
+      } else {
+        setStatus(`Unable to enable audio: ${(error as Error).message}`);
+      }
     } finally {
       setEnablingRoomAudio(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      !isRoomAudioRequested ||
+      isRoomAudioEnabled ||
+      isEnablingRoomAudio ||
+      autoAudioAttemptedRef.current
+    ) {
+      return;
+    }
+
+    autoAudioAttemptedRef.current = true;
+    void enableRoomAudio({ auto: true });
+  }, [enableRoomAudio, isEnablingRoomAudio, isRoomAudioEnabled, isRoomAudioRequested]);
 
   const acceptQuote = async () => {
     try {
@@ -1835,9 +1864,9 @@ const ConsultPage: React.FC = () => {
                   {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
                 </button>
               )}
-              {!isQuoteMode && !isRoomAudioEnabled && (
+              {!isQuoteMode && !isRoomAudioEnabled && needsManualAudioEnable && (
                 <button
-                  onClick={enableRoomAudio}
+                  onClick={() => enableRoomAudio()}
                   disabled={isEnablingRoomAudio}
                   style={{
                     height: 48,
@@ -1854,9 +1883,7 @@ const ConsultPage: React.FC = () => {
                 >
                   {isEnablingRoomAudio
                     ? 'Enabling Audio...'
-                    : isRoomAudioRequested
-                      ? 'Enable Audio Now'
-                      : 'Enable Audio'}
+                    : 'Enable Audio'}
                 </button>
               )}
               {isQuoteMode && submittedQuote && !isQuoteAccepted && (
