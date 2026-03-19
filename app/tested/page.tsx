@@ -267,11 +267,15 @@ const ConsultPage: React.FC = () => {
   const quoteWatcherUnsubRef = useRef<(() => void) | null>(null);
   const watcherWaitingForIdsLoggedRef = useRef(false);
   const didInitRef = useRef(false);
+  const roomAudioEnabledRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [status, setStatus] = useState('Preparing...');
   const [isVideoOff, setVideoOff] = useState(false);
+  const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
+  const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
+  const [isRoomAudioRequested, setRoomAudioRequested] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
@@ -312,6 +316,10 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     quoteAcceptedRef.current = isQuoteAccepted;
   }, [isQuoteAccepted]);
+
+  useEffect(() => {
+    roomAudioEnabledRef.current = isRoomAudioEnabled;
+  }, [isRoomAudioEnabled]);
 
   const pushDebugLog = useCallback((message: string) => {
     const stamp = new Date().toISOString().slice(11, 23);
@@ -861,7 +869,65 @@ const ConsultPage: React.FC = () => {
     setBlockingError('');
     pushDebugLog('joinConsult(): begin');
 
-    const stream = await getBackCameraStream();
+    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number) => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => {
+              reject(new Error('Timed out while requesting microphone permission.'));
+            }, timeoutMs);
+          })
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+
+    let roomAudioEnabled = roomAudioEnabledRef.current;
+    const cameraStream = await getBackCameraStream();
+    let stream: MediaStream | null = null;
+    let micTrack: MediaStreamTrack | null = null;
+    try {
+      const tracks: MediaStreamTrack[] = [
+        ...cameraStream.getVideoTracks()
+      ];
+
+      if (roomAudioEnabled) {
+        setStatus('Requesting microphone...');
+        pushDebugLog('Requesting microphone stream');
+        try {
+          const micStream = await withTimeout(
+            navigator.mediaDevices.getUserMedia({
+              audio: true,
+              video: false
+            }),
+            12000
+          );
+          micTrack = micStream.getAudioTracks()[0] || null;
+          if (!micTrack) {
+            throw new Error('Unable to acquire microphone audio.');
+          }
+          tracks.push(micTrack);
+        } catch (error) {
+          roomAudioEnabled = false;
+          roomAudioEnabledRef.current = false;
+          pushDebugLog(
+            `Microphone request failed; continuing video-only: ${(error as Error).message}`
+          );
+          setStatus(
+            'Microphone unavailable while on phone call. Continuing video-only. Hang up and tap Call Back to retry audio.'
+          );
+        }
+      }
+
+      stream = new MediaStream(tracks);
+    } catch (error) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      throw error;
+    }
+
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
     setQuoteAccepted(false);
@@ -876,20 +942,89 @@ const ConsultPage: React.FC = () => {
     const previewReady = await attachLocalStreamPreview(stream);
     pushDebugLog(`Local preview ready=${previewReady}`);
 
-    const session = new SWVideo.RoomSession({
-      token,
-      localStream: stream
-    });
-    await session.join({
-      sendAudio: false,
-      sendVideo: true,
-      receiveAudio: false,
-      receiveVideo: true
-    });
+    setStatus('Joining room...');
+    const joinSession = async (opts: {
+      sendAudio: boolean;
+      receiveAudio: boolean;
+      localStream: MediaStream;
+      timeoutMs: number;
+    }) => {
+      const session = new SWVideo.RoomSession({
+        token,
+        localStream: opts.localStream
+      });
+
+      try {
+        await withTimeout(
+          session.join({
+            sendAudio: opts.sendAudio,
+            sendVideo: true,
+            receiveAudio: opts.receiveAudio,
+            receiveVideo: true
+          }),
+          opts.timeoutMs
+        );
+        return session;
+      } catch (error) {
+        try {
+          await session.leave();
+        } catch {
+          // no-op
+        }
+        throw error;
+      }
+    };
+
+    let session: any = null;
+    try {
+      session = await joinSession({
+        sendAudio: roomAudioEnabled,
+        receiveAudio: roomAudioEnabled,
+        localStream: stream,
+        timeoutMs: roomAudioEnabled ? 15000 : 12000
+      });
+    } catch (error) {
+      if (!roomAudioEnabled) {
+        throw error;
+      }
+
+      pushDebugLog(
+        `Audio room join failed; retrying video-only: ${(error as Error).message}`
+      );
+      setStatus(
+        'Audio room join failed while phone call is active. Retrying video-only...'
+      );
+      roomAudioEnabled = false;
+      roomAudioEnabledRef.current = false;
+      if (micTrack) {
+        micTrack.stop();
+        micTrack = null;
+      }
+      const retryStream = new MediaStream([
+        ...cameraStream.getVideoTracks()
+      ]);
+      localStreamRef.current = retryStream;
+      session = await joinSession({
+        sendAudio: false,
+        receiveAudio: false,
+        localStream: retryStream,
+        timeoutMs: 12000
+      });
+    }
+
     await tuneOutboundVideoSender(session);
     pushDebugLog('Room joined with sendVideo=true');
+    pushDebugLog(
+      roomAudioEnabled
+        ? 'Room joined with sendAudio=true'
+        : 'Room joined with sendAudio=false (fallback)'
+    );
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
+    setRoomAudioEnabled(roomAudioEnabled);
+    if (roomAudioEnabled) {
+      setRoomAudioRequested(false);
+    }
     setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher, tuneOutboundVideoSender]);
 
@@ -916,6 +1051,13 @@ const ConsultPage: React.FC = () => {
         const nextQuoteAccepted = isQuoteAcceptedPayload(payload);
         const nextQuoteSessionClosed =
           isQuoteSessionClosedPayload(payload);
+        const roomAudioStage = String(
+          payload?.meta?.room_audio_stage ||
+          payload?.meta?.roomAudioStage ||
+          ''
+        )
+          .trim()
+          .toLowerCase();
 
         if (!payload?.exists) {
           pushDebugLog('Conference missing while active -> ended');
@@ -975,6 +1117,18 @@ const ConsultPage: React.FC = () => {
         if (nextQuoteSessionClosed) {
           await concludeAcceptedQuoteSession();
           return;
+        }
+        if (
+          (roomAudioStage === 'request' || roomAudioStage === 'enabled') &&
+          !roomAudioEnabledRef.current &&
+          !isQuoteModeRef.current
+        ) {
+          setRoomAudioRequested(true);
+          setStatus(
+            'Provider is switching off the phone call. Tap Enable Audio to continue in this room.'
+          );
+        } else if (roomAudioStage === 'video_only' && !roomAudioEnabledRef.current) {
+          setRoomAudioRequested(false);
         }
         const submissionSignal = String(payload?.meta?.quote_submission_signal || '').trim();
         if (submissionSignal && submissionSignal !== lastSubmissionSignalRef.current) {
@@ -1045,6 +1199,9 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get('debug') === '1');
+    const startWithAudio = params.get('audio') === '1';
+    roomAudioEnabledRef.current = startWithAudio;
+    setRoomAudioEnabled(startWithAudio);
   }, []);
 
   useEffect(() => {
@@ -1081,7 +1238,11 @@ const ConsultPage: React.FC = () => {
         setStatus('Requesting back camera...');
         await joinConsult(token);
         if (mounted) {
-          setStatus('Connected. Keep talking on your phone call.');
+          setStatus(
+            roomAudioEnabledRef.current
+              ? 'Connected. If video/audio is live here, hang up the phone call.'
+              : 'Connected with video only. Keep talking on your phone call until prompted to Enable Audio.'
+          );
           setBlockingError('');
           pushDebugLog('Status=Connected');
           setEnded(false);
@@ -1123,20 +1284,61 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   const toggleVideo = async () => {
-    const session = sessionRef.current;
-    if (!session) return;
+    const track = localStreamRef.current?.getVideoTracks?.()[0];
+    if (!track) return;
     try {
-      if (isVideoOff) {
-        await session.restoreOutboundVideo();
-        pushDebugLog('restoreOutboundVideo() from button');
-        setVideoOff(false);
-      } else {
-        await session.stopOutboundVideo();
-        pushDebugLog('stopOutboundVideo() from button');
-        setVideoOff(true);
-      }
+      const nextVideoOff = !isVideoOff;
+      track.enabled = !nextVideoOff;
+      pushDebugLog(
+        nextVideoOff
+          ? 'Local video track disabled from button'
+          : 'Local video track enabled from button'
+      );
+      setVideoOff(nextVideoOff);
     } catch (error) {
       console.error('Video toggle error:', error);
+    }
+  };
+
+  const enableRoomAudio = async () => {
+    if (isEnablingRoomAudio) return;
+    if (isRoomAudioEnabled) {
+      setStatus('Room audio is already enabled.');
+      return;
+    }
+    if (!tokenRef.current) {
+      setStatus('Room token missing. Rejoin the consult.');
+      return;
+    }
+
+    setEnablingRoomAudio(true);
+    roomAudioEnabledRef.current = true;
+    try {
+      setStatus('Requesting microphone...');
+      await joinConsult(tokenRef.current);
+      setRoomAudioEnabled(true);
+      setRoomAudioRequested(false);
+      if (conferenceIdRef.current) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId: conferenceIdRef.current,
+            metaPatch: {
+              room_audio_stage: 'enabled',
+              homeowner_audio_enabled_at: new Date().toISOString()
+            }
+          })
+        }).catch(() => undefined);
+      }
+      setStatus('Audio connected. Continue your estimate.');
+    } catch (error) {
+      roomAudioEnabledRef.current = false;
+      setRoomAudioEnabled(false);
+      console.error('Enable consult audio error:', error);
+      setStatus(`Unable to enable audio: ${(error as Error).message}`);
+    } finally {
+      setEnablingRoomAudio(false);
     }
   };
 
@@ -1250,7 +1452,11 @@ const ConsultPage: React.FC = () => {
       setQuoteSessionClosed(false);
       setSubmittedQuote(null);
       setBlockingError('');
-      setStatus('Connected. Keep talking on your phone call.');
+      setStatus(
+        roomAudioEnabledRef.current
+          ? 'Connected. If video/audio is live here, hang up the phone call.'
+          : 'Connected with video only. Keep talking on your phone call until prompted to Enable Audio.'
+      );
       watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
@@ -1627,6 +1833,30 @@ const ConsultPage: React.FC = () => {
                   aria-label={isVideoOff ? 'Turn video on' : 'Turn video off'}
                 >
                   {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
+                </button>
+              )}
+              {!isQuoteMode && !isRoomAudioEnabled && (
+                <button
+                  onClick={enableRoomAudio}
+                  disabled={isEnablingRoomAudio}
+                  style={{
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: isEnablingRoomAudio ? '#334155' : '#16a34a',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {isEnablingRoomAudio
+                    ? 'Enabling Audio...'
+                    : isRoomAudioRequested
+                      ? 'Enable Audio Now'
+                      : 'Enable Audio'}
                 </button>
               )}
               {isQuoteMode && submittedQuote && !isQuoteAccepted && (
