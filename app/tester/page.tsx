@@ -405,6 +405,8 @@ const PainterCallCenter: React.FC = () => {
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
   const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
   const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
+  const [isCopyLinkHovered, setCopyLinkHovered] = useState(false);
+  const [isCreateQuoteHovered, setCreateQuoteHovered] = useState(false);
   const [isCallerIdVerified, setCallerIdVerified] = useState(false);
   const [isCheckingCallerId, setCheckingCallerId] = useState(false);
   const [isRequestingCallerIdVerification, setRequestingCallerIdVerification] = useState(false);
@@ -447,6 +449,7 @@ const PainterCallCenter: React.FC = () => {
   const quoteDocIdRef = useRef<string | null>(null);
   const recordingPersistedRef = useRef(false);
   const providerAudioStreamRef = useRef<MediaStream | null>(null);
+  const providerVideoSeedStreamRef = useRef<MediaStream | null>(null);
   const roomAudioEnabledRef = useRef(false);
   const autoAudioPollingRef = useRef(false);
   const autoAudioAttemptInFlightRef = useRef(false);
@@ -482,6 +485,29 @@ const PainterCallCenter: React.FC = () => {
   useEffect(() => {
     roomAudioEnabledRef.current = isRoomAudioEnabled;
   }, [isRoomAudioEnabled]);
+
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      const message =
+        reason instanceof Error
+          ? reason.message
+          : typeof reason === 'string'
+            ? reason
+            : '';
+      if (
+        message.includes('createDeviceWatcher()') &&
+        message.includes('ask the user for permissions')
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
 
   const isConsultExpected = () =>
     estimateInviteSentRef.current ||
@@ -701,6 +727,12 @@ const PainterCallCenter: React.FC = () => {
           .getTracks()
           .forEach((track) => track.stop());
         providerAudioStreamRef.current = null;
+      }
+      if (providerVideoSeedStreamRef.current) {
+        providerVideoSeedStreamRef.current
+          .getTracks()
+          .forEach((track) => track.stop());
+        providerVideoSeedStreamRef.current = null;
       }
     };
   }, []);
@@ -1059,6 +1091,32 @@ const PainterCallCenter: React.FC = () => {
     );
   };
 
+  const warmSignalWireDevicePermissions = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) return;
+    try {
+      if (providerVideoSeedStreamRef.current) {
+        return;
+      }
+      const stream = await promiseWithTimeout(
+        navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        }),
+        10000,
+        'Timed out while requesting camera permission.'
+      );
+      stream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
+      providerVideoSeedStreamRef.current = stream;
+    } catch (error) {
+      console.warn(
+        'SignalWire device permission warmup failed:',
+        (error as Error).message
+      );
+    }
+  };
+
   const createRoomToken = async (roomName: string, userName: string, permissions?: string[]) => {
     const response = await fetch('/api/signalwire/room-token', {
       method: 'POST',
@@ -1125,6 +1183,8 @@ const PainterCallCenter: React.FC = () => {
         providerAudioStreamRef.current ||
         (await requestProviderRoomMic());
       providerAudioStreamRef.current = localStream;
+    } else if (providerVideoSeedStreamRef.current) {
+      localStream = providerVideoSeedStreamRef.current;
     }
 
     const session = new SWVideo.RoomSession({
@@ -1328,8 +1388,6 @@ const PainterCallCenter: React.FC = () => {
   const startEstimateRecording = () => {
     if (recordingStartedRef.current || mediaRecorderRef.current) return;
     if (!activeCallRef.current || !estimateInviteSentRef.current) return;
-    if (!roomAudioEnabledRef.current) return;
-
     const videoEl = findPlayableVideoElement();
     if (!videoEl) return;
     setHasVideoFrame(true);
@@ -2048,6 +2106,8 @@ const PainterCallCenter: React.FC = () => {
       'Timed out while creating room token.'
     );
     painterTokenRef.current = painterToken.token;
+    setStatus('Checking camera access...');
+    await warmSignalWireDevicePermissions();
     setStatus('Joining call room...');
     await promiseWithTimeout(
       joinPainterRoomAudioOnly(painterToken.token),
@@ -2074,6 +2134,7 @@ const PainterCallCenter: React.FC = () => {
     setRoomAudioEnabled(false);
     setNeedsManualAudioEnable(false);
     providerAudioStreamRef.current = null;
+    providerVideoSeedStreamRef.current = null;
     activeCallSidRef.current = null;
     callAnsweredRef.current = false;
     activeCallRef.current = true;
@@ -2155,7 +2216,7 @@ const PainterCallCenter: React.FC = () => {
       options?.skipCopy
         ? 'Room ready. Tap Copy Link to send the /tested URL.'
         : didCopy
-        ? 'Waiting for Homeowner Video. Room audio will auto-enable after the phone call ends.'
+        ? 'Waiting for Homeowner Video.'
         : 'Waiting for Homeowner Video. Auto-copy failed, use the consult link below.'
     );
     watchCallHealth();
@@ -2406,131 +2467,6 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
-  const enableRoomAudio = async (options?: {
-    auto?: boolean;
-    preloadedMicStream?: MediaStream | null;
-  }) => {
-    if (roomAudioEnabledRef.current) {
-      setStatus('Room audio is already enabled.');
-      return;
-    }
-    if (!painterTokenRef.current) {
-      setStatus('Room token missing. Start a new call and try again.');
-      return;
-    }
-
-    const isAuto = Boolean(options?.auto);
-    setEnablingRoomAudio(true);
-    try {
-      if (activeConferenceIdRef.current) {
-        await fetch('/api/signalwire/conference-state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conferenceId: activeConferenceIdRef.current,
-            metaPatch: {
-              room_audio_stage: 'request',
-              room_audio_requested_at: new Date().toISOString()
-            }
-          })
-        }).catch(() => undefined);
-      }
-
-      if (!isAuto) {
-        setStatus('Requesting microphone...');
-      }
-      providerAudioStreamRef.current =
-        options?.preloadedMicStream ||
-        (await requestProviderRoomMic());
-      setStatus('Switching to room audio...');
-      await joinPainterRoomAudioOnly(painterTokenRef.current, {
-        audioEnabled: true
-      });
-
-      if (activeConferenceIdRef.current) {
-        await fetch('/api/signalwire/conference-state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conferenceId: activeConferenceIdRef.current,
-            metaPatch: {
-              room_audio_stage: 'enabled',
-              provider_audio_enabled_at: new Date().toISOString()
-            }
-          })
-        }).catch(() => undefined);
-      }
-
-      setStatus('Room audio enabled. Ask homeowner to tap Enable Audio.');
-      setNeedsManualAudioEnable(false);
-      startEstimateRecording();
-    } catch (error) {
-      console.error('Enable room audio error:', error);
-      if (isAuto) {
-        setNeedsManualAudioEnable(true);
-        setStatus(
-          'Auto-enable audio did not complete. Tap Enable Room Audio after ending the phone call.'
-        );
-      } else {
-        setStatus(`Error: ${(error as Error).message}`);
-      }
-    } finally {
-      setEnablingRoomAudio(false);
-    }
-  };
-
-  useEffect(() => {
-    const shouldPoll =
-      phase === 'videoInviteSent' &&
-      isHomeownerInCallRoom &&
-      !isRoomAudioEnabled &&
-      !isEnablingRoomAudio;
-
-    if (!shouldPoll) {
-      autoAudioPollingRef.current = false;
-      return;
-    }
-
-    autoAudioPollingRef.current = true;
-    const timer = window.setInterval(async () => {
-      if (
-        !autoAudioPollingRef.current ||
-        autoAudioAttemptInFlightRef.current ||
-        roomAudioEnabledRef.current ||
-        localEndRequestedRef.current
-      ) {
-        return;
-      }
-
-      autoAudioAttemptInFlightRef.current = true;
-      try {
-        const stream = await requestProviderRoomMic(
-          3500,
-          'Microphone is still busy with phone call.'
-        );
-        await enableRoomAudio({
-          auto: true,
-          preloadedMicStream: stream
-        });
-      } catch {
-        // Keep polling until PSTN releases the microphone.
-      } finally {
-        autoAudioAttemptInFlightRef.current = false;
-      }
-    }, 2500);
-
-    return () => {
-      autoAudioPollingRef.current = false;
-      window.clearInterval(timer);
-    };
-  }, [
-    enableRoomAudio,
-    isEnablingRoomAudio,
-    isHomeownerInCallRoom,
-    isRoomAudioEnabled,
-    phase
-  ]);
-
   const enterQuoteMode = async () => {
     if (!conference?.id) return;
     setSettingQuoteMode(true);
@@ -2645,6 +2581,12 @@ const PainterCallCenter: React.FC = () => {
           .forEach((track) => track.stop());
         providerAudioStreamRef.current = null;
       }
+      if (providerVideoSeedStreamRef.current) {
+        providerVideoSeedStreamRef.current
+          .getTracks()
+          .forEach((track) => track.stop());
+        providerVideoSeedStreamRef.current = null;
+      }
     } catch (error) {
       console.error('End call error:', error);
     }
@@ -2686,6 +2628,12 @@ const PainterCallCenter: React.FC = () => {
     setGuestLink('');
     setHasVideoFrame(false);
     setNeedsManualAudioEnable(false);
+    if (providerVideoSeedStreamRef.current) {
+      providerVideoSeedStreamRef.current
+        .getTracks()
+        .forEach((track) => track.stop());
+      providerVideoSeedStreamRef.current = null;
+    }
     setPhase('idle');
     await startPhoneCall();
   };
@@ -3370,12 +3318,14 @@ const PainterCallCenter: React.FC = () => {
                 <>
                   <button
                     onClick={copyConsultLinkNow}
+                    onMouseEnter={() => setCopyLinkHovered(true)}
+                    onMouseLeave={() => setCopyLinkHovered(false)}
                     style={{
                       height: 48,
                       borderRadius: 999,
                       border: 'none',
                       padding: '0 18px',
-                      background: primaryActionColor,
+                      background: isCopyLinkHovered ? '#1470d6' : primaryActionColor,
                       color: '#fff',
                       fontWeight: 700,
                       display: 'inline-flex',
@@ -3386,36 +3336,21 @@ const PainterCallCenter: React.FC = () => {
                   >
                     Copy Link
                   </button>
-                  {!isRoomAudioEnabled && needsManualAudioEnable && (
-                    <button
-                      onClick={() => enableRoomAudio()}
-                      disabled={isEnablingRoomAudio}
-                      style={{
-                        height: 48,
-                        borderRadius: 999,
-                        border: 'none',
-                        padding: '0 18px',
-                        background: isEnablingRoomAudio ? disabledPrimaryActionColor : primaryActionColor,
-                        color: '#fff',
-                        fontWeight: 700,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8
-                      }}
-                    >
-                      {isEnablingRoomAudio ? 'Starting...' : 'Enable Room Audio'}
-                    </button>
-                  )}
                   <button
                     onClick={enterQuoteMode}
                     disabled={isSettingQuoteMode}
+                    onMouseEnter={() => setCreateQuoteHovered(true)}
+                    onMouseLeave={() => setCreateQuoteHovered(false)}
                     style={{
                       height: 48,
                       borderRadius: 999,
                       border: 'none',
                       padding: '0 18px',
-                      background: isSettingQuoteMode ? disabledPrimaryActionColor : primaryActionColor,
+                      background: isSettingQuoteMode
+                        ? disabledPrimaryActionColor
+                        : isCreateQuoteHovered
+                          ? '#1470d6'
+                          : primaryActionColor,
                       color: '#fff',
                       fontWeight: 700,
                       display: 'inline-flex',
@@ -3523,6 +3458,21 @@ const PainterCallCenter: React.FC = () => {
                 }}
               >
                 {isStartingCall ? 'Calling...' : 'Call Back'}
+              </button>
+              <button
+                onClick={() => {
+                  window.location.href = '/call';
+                }}
+                style={{
+                  border: 'none',
+                  borderRadius: 999,
+                  padding: '10px 18px',
+                  color: '#fff',
+                  background: primaryActionColor,
+                  fontWeight: 700
+                }}
+              >
+                Home
               </button>
             </div>
           </div>

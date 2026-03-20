@@ -273,10 +273,6 @@ const ConsultPage: React.FC = () => {
 
   const [status, setStatus] = useState('Preparing...');
   const [isVideoOff, setVideoOff] = useState(false);
-  const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
-  const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
-  const [isRoomAudioRequested, setRoomAudioRequested] = useState(false);
-  const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
   const [isEnded, setEnded] = useState(false);
   const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
@@ -300,7 +296,6 @@ const ConsultPage: React.FC = () => {
   const targetZoomValueRef = useRef<number | null>(null);
   const appliedZoomValueRef = useRef<number>(1);
   const quoteAcceptedRef = useRef(false);
-  const autoAudioAttemptedRef = useRef(false);
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
@@ -318,10 +313,6 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     quoteAcceptedRef.current = isQuoteAccepted;
   }, [isQuoteAccepted]);
-
-  useEffect(() => {
-    roomAudioEnabledRef.current = isRoomAudioEnabled;
-  }, [isRoomAudioEnabled]);
 
   const pushDebugLog = useCallback((message: string) => {
     const stamp = new Date().toISOString().slice(11, 23);
@@ -887,7 +878,7 @@ const ConsultPage: React.FC = () => {
       }
     };
 
-    let roomAudioEnabled = roomAudioEnabledRef.current;
+    let roomAudioEnabled = false;
     const cameraStream = await getBackCameraStream();
     let stream: MediaStream | null = null;
     let micTrack: MediaStreamTrack | null = null;
@@ -1023,10 +1014,6 @@ const ConsultPage: React.FC = () => {
     );
     pushDebugLog('Using preselected local stream without outbound video restart');
     sessionRef.current = session;
-    setRoomAudioEnabled(roomAudioEnabled);
-    if (roomAudioEnabled) {
-      setRoomAudioRequested(false);
-    }
     setHasVideoFrame(Boolean(previewReady));
   }, [cleanupSession, getBackCameraStream, pushDebugLog, stopQuoteWatcher, tuneOutboundVideoSender]);
 
@@ -1053,13 +1040,6 @@ const ConsultPage: React.FC = () => {
         const nextQuoteAccepted = isQuoteAcceptedPayload(payload);
         const nextQuoteSessionClosed =
           isQuoteSessionClosedPayload(payload);
-        const roomAudioStage = String(
-          payload?.meta?.room_audio_stage ||
-          payload?.meta?.roomAudioStage ||
-          ''
-        )
-          .trim()
-          .toLowerCase();
 
         if (!payload?.exists) {
           pushDebugLog('Conference missing while active -> ended');
@@ -1119,21 +1099,6 @@ const ConsultPage: React.FC = () => {
         if (nextQuoteSessionClosed) {
           await concludeAcceptedQuoteSession();
           return;
-        }
-        if (
-          (roomAudioStage === 'request' || roomAudioStage === 'enabled') &&
-          !roomAudioEnabledRef.current &&
-          !isQuoteModeRef.current
-        ) {
-          setRoomAudioRequested(true);
-          setNeedsManualAudioEnable(false);
-          setStatus(
-            'Provider is switching off the phone call. Enabling room audio...'
-          );
-        } else if (roomAudioStage === 'video_only' && !roomAudioEnabledRef.current) {
-          setRoomAudioRequested(false);
-          setNeedsManualAudioEnable(false);
-          autoAudioAttemptedRef.current = false;
         }
         const submissionSignal = String(payload?.meta?.quote_submission_signal || '').trim();
         if (submissionSignal && submissionSignal !== lastSubmissionSignalRef.current) {
@@ -1204,9 +1169,30 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get('debug') === '1');
-    const startWithAudio = params.get('audio') === '1';
-    roomAudioEnabledRef.current = startWithAudio;
-    setRoomAudioEnabled(startWithAudio);
+    roomAudioEnabledRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      const message =
+        reason instanceof Error
+          ? reason.message
+          : typeof reason === 'string'
+            ? reason
+            : '';
+      if (
+        message.includes('createDeviceWatcher()') &&
+        message.includes('ask the user for permissions')
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
   }, []);
 
   useEffect(() => {
@@ -1243,11 +1229,7 @@ const ConsultPage: React.FC = () => {
         setStatus('Requesting back camera...');
         await joinConsult(token);
         if (mounted) {
-          setStatus(
-            roomAudioEnabledRef.current
-              ? 'Connected. If video/audio is live here, hang up the phone call.'
-              : 'Connected with video only. Keep talking on your phone call until prompted to Enable Audio.'
-          );
+          setStatus('Connected with video only.');
           setBlockingError('');
           pushDebugLog('Status=Connected');
           setEnded(false);
@@ -1304,72 +1286,6 @@ const ConsultPage: React.FC = () => {
       console.error('Video toggle error:', error);
     }
   };
-
-  const enableRoomAudio = async (options?: { auto?: boolean }) => {
-    if (isEnablingRoomAudio) return;
-    if (isRoomAudioEnabled) {
-      setStatus('Room audio is already enabled.');
-      return;
-    }
-    if (!tokenRef.current) {
-      setStatus('Room token missing. Rejoin the consult.');
-      return;
-    }
-
-    setEnablingRoomAudio(true);
-    const isAuto = Boolean(options?.auto);
-    roomAudioEnabledRef.current = true;
-    try {
-      setStatus('Requesting microphone...');
-      await joinConsult(tokenRef.current);
-      setRoomAudioEnabled(true);
-      setRoomAudioRequested(false);
-      setNeedsManualAudioEnable(false);
-      autoAudioAttemptedRef.current = false;
-      if (conferenceIdRef.current) {
-        await fetch('/api/signalwire/conference-state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conferenceId: conferenceIdRef.current,
-            metaPatch: {
-              room_audio_stage: 'enabled',
-              homeowner_audio_enabled_at: new Date().toISOString()
-            }
-          })
-        }).catch(() => undefined);
-      }
-      setStatus('Audio connected. Continue your estimate.');
-    } catch (error) {
-      roomAudioEnabledRef.current = false;
-      setRoomAudioEnabled(false);
-      console.error('Enable consult audio error:', error);
-      if (isAuto) {
-        setNeedsManualAudioEnable(true);
-        setStatus(
-          'Unable to auto-enable audio. Tap Enable Audio after ending the phone call.'
-        );
-      } else {
-        setStatus(`Unable to enable audio: ${(error as Error).message}`);
-      }
-    } finally {
-      setEnablingRoomAudio(false);
-    }
-  };
-
-  useEffect(() => {
-    if (
-      !isRoomAudioRequested ||
-      isRoomAudioEnabled ||
-      isEnablingRoomAudio ||
-      autoAudioAttemptedRef.current
-    ) {
-      return;
-    }
-
-    autoAudioAttemptedRef.current = true;
-    void enableRoomAudio({ auto: true });
-  }, [enableRoomAudio, isEnablingRoomAudio, isRoomAudioEnabled, isRoomAudioRequested]);
 
   const acceptQuote = async () => {
     try {
@@ -1481,11 +1397,7 @@ const ConsultPage: React.FC = () => {
       setQuoteSessionClosed(false);
       setSubmittedQuote(null);
       setBlockingError('');
-      setStatus(
-        roomAudioEnabledRef.current
-          ? 'Connected. If video/audio is live here, hang up the phone call.'
-          : 'Connected with video only. Keep talking on your phone call until prompted to Enable Audio.'
-      );
+      setStatus('Connected with video only.');
       watchConferenceState();
     } catch (error) {
       console.error('Rejoin error:', error);
@@ -1862,28 +1774,6 @@ const ConsultPage: React.FC = () => {
                   aria-label={isVideoOff ? 'Turn video on' : 'Turn video off'}
                 >
                   {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
-                </button>
-              )}
-              {!isQuoteMode && !isRoomAudioEnabled && needsManualAudioEnable && (
-                <button
-                  onClick={() => enableRoomAudio()}
-                  disabled={isEnablingRoomAudio}
-                  style={{
-                    height: 48,
-                    borderRadius: 999,
-                    border: 'none',
-                    padding: '0 18px',
-                    background: isEnablingRoomAudio ? '#334155' : '#16a34a',
-                    color: '#fff',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {isEnablingRoomAudio
-                    ? 'Enabling Audio...'
-                    : 'Enable Audio'}
                 </button>
               )}
               {isQuoteMode && submittedQuote && !isQuoteAccepted && (
