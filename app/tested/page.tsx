@@ -606,66 +606,6 @@ const ConsultPage: React.FC = () => {
     );
   }, [pushDebugLog]);
 
-  const restoreBackCameraVideoTrack = useCallback(async () => {
-    const currentStream = localStreamRef.current;
-    const currentAudioTracks = currentStream?.getAudioTracks?.() || [];
-    const nextCameraStream = await getBackCameraStream();
-    const nextVideoTrack = nextCameraStream.getVideoTracks()[0];
-
-    if (!nextVideoTrack) {
-      nextCameraStream.getTracks().forEach((track) => track.stop());
-      throw new Error('Unable to restore the back camera.');
-    }
-
-    if ('contentHint' in nextVideoTrack) {
-      nextVideoTrack.contentHint = 'detail';
-    }
-
-    const nextStream = new MediaStream([
-      nextVideoTrack,
-      ...currentAudioTracks
-    ]);
-
-    const session = sessionRef.current;
-    if (session?.setLocalStream) {
-      await session.setLocalStream(nextStream);
-      pushDebugLog('setLocalStream() applied while restoring back camera');
-    } else if (session?.updateCamera && preferredBackCameraDeviceIdRef.current) {
-      await session.updateCamera({
-        ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
-        deviceId: { exact: preferredBackCameraDeviceIdRef.current }
-      });
-      pushDebugLog('updateCamera() applied while restoring back camera');
-    } else {
-      const peerConnection =
-        session?.peerConnection ||
-        session?._peerConnection ||
-        session?.publisher?.peerConnection ||
-        null;
-      const videoSender = peerConnection?.getSenders?.()
-        ?.find((sender: RTCRtpSender) => sender?.track?.kind === 'video');
-      if (videoSender?.replaceTrack) {
-        await videoSender.replaceTrack(nextVideoTrack);
-        pushDebugLog('replaceTrack() applied while restoring back camera');
-      }
-    }
-
-    localStreamRef.current = nextStream;
-    configureZoom(nextVideoTrack);
-    nextVideoTrack.enabled = true;
-    nextVideoTrack.onended = () => pushDebugLog('Local video track ended');
-    nextVideoTrack.onmute = () => pushDebugLog('Local video track muted');
-    nextVideoTrack.onunmute = () => pushDebugLog('Local video track unmuted');
-    await attachLocalStreamPreview(nextStream);
-
-    currentStream?.getVideoTracks?.().forEach((track) => {
-      if (track !== nextVideoTrack) {
-        track.stop();
-      }
-    });
-    nextCameraStream.getAudioTracks().forEach((track) => track.stop());
-  }, [attachLocalStreamPreview, configureZoom, getBackCameraStream, pushDebugLog]);
-
   const tuneOutboundVideoSender = useCallback(async (session: any) => {
     const peerConnection =
       session?.peerConnection ||
@@ -776,6 +716,66 @@ const ConsultPage: React.FC = () => {
     setZoomSupported(max > min);
     pushDebugLog(`Zoom capability detected: min=${min}, max=${max}, step=${step}, current=${current}`);
   }, [pushDebugLog]);
+
+  const restoreBackCameraVideoTrack = useCallback(async () => {
+    const currentStream = localStreamRef.current;
+    const currentAudioTracks = currentStream?.getAudioTracks?.() || [];
+    const nextCameraStream = await getBackCameraStream();
+    const nextVideoTrack = nextCameraStream.getVideoTracks()[0];
+
+    if (!nextVideoTrack) {
+      nextCameraStream.getTracks().forEach((track) => track.stop());
+      throw new Error('Unable to restore the back camera.');
+    }
+
+    if ('contentHint' in nextVideoTrack) {
+      nextVideoTrack.contentHint = 'detail';
+    }
+
+    const nextStream = new MediaStream([
+      nextVideoTrack,
+      ...currentAudioTracks
+    ]);
+
+    const session = sessionRef.current;
+    if (session?.setLocalStream) {
+      await session.setLocalStream(nextStream);
+      pushDebugLog('setLocalStream() applied while restoring back camera');
+    } else if (session?.updateCamera && preferredBackCameraDeviceIdRef.current) {
+      await session.updateCamera({
+        ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+        deviceId: { exact: preferredBackCameraDeviceIdRef.current }
+      });
+      pushDebugLog('updateCamera() applied while restoring back camera');
+    } else {
+      const peerConnection =
+        session?.peerConnection ||
+        session?._peerConnection ||
+        session?.publisher?.peerConnection ||
+        null;
+      const videoSender = peerConnection?.getSenders?.()
+        ?.find((sender: RTCRtpSender) => sender?.track?.kind === 'video');
+      if (videoSender?.replaceTrack) {
+        await videoSender.replaceTrack(nextVideoTrack);
+        pushDebugLog('replaceTrack() applied while restoring back camera');
+      }
+    }
+
+    localStreamRef.current = nextStream;
+    configureZoom(nextVideoTrack);
+    nextVideoTrack.enabled = true;
+    nextVideoTrack.onended = () => pushDebugLog('Local video track ended');
+    nextVideoTrack.onmute = () => pushDebugLog('Local video track muted');
+    nextVideoTrack.onunmute = () => pushDebugLog('Local video track unmuted');
+    await attachLocalStreamPreview(nextStream);
+
+    currentStream?.getVideoTracks?.().forEach((track) => {
+      if (track !== nextVideoTrack) {
+        track.stop();
+      }
+    });
+    nextCameraStream.getAudioTracks().forEach((track) => track.stop());
+  }, [attachLocalStreamPreview, configureZoom, getBackCameraStream, pushDebugLog]);
 
   const snapToZoomStep = useCallback((value: number) => {
     const { min, max, step } = zoomRange;
