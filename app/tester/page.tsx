@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { Mic, MicOff, Phone, PhoneOff, Video as VideoIcon } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Volume2, Video as VideoIcon } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   addDoc,
@@ -43,6 +43,11 @@ interface DialResponse {
   callSid?: string;
   [key: string]: unknown;
 }
+
+type AudioOutputOption = {
+  deviceId: string;
+  label: string;
+};
 
 type WaitForCallAnswerResult =
   | {
@@ -145,6 +150,8 @@ const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
 const CALL_HEALTH_POLL_MS = 1500;
 const AMD_SETTLE_GRACE_MS = 8000;
+const RINGBACK_ON_MS = 2000;
+const RINGBACK_OFF_MS = 4000;
 const createQuoteRow = (): QuotePricingRow => ({
   id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
   item: '',
@@ -405,6 +412,11 @@ const PainterCallCenter: React.FC = () => {
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
   const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
   const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
+  const [audioOutputOptions, setAudioOutputOptions] = useState<AudioOutputOption[]>([]);
+  const [selectedAudioOutputId, setSelectedAudioOutputId] = useState('default');
+  const [isAudioOutputMenuOpen, setAudioOutputMenuOpen] = useState(false);
+  const [isLoadingAudioOutputs, setLoadingAudioOutputs] = useState(false);
+  const [hoveredPrimaryButton, setHoveredPrimaryButton] = useState<string | null>(null);
   const [isCopyLinkHovered, setCopyLinkHovered] = useState(false);
   const [isCreateQuoteHovered, setCreateQuoteHovered] = useState(false);
   const [isCallerIdVerified, setCallerIdVerified] = useState(false);
@@ -418,6 +430,7 @@ const PainterCallCenter: React.FC = () => {
   const [callerIdVerificationCode, setCallerIdVerificationCode] = useState('');
 
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const audioOutputMenuRef = useRef<HTMLDivElement | null>(null);
   const roomSessionRef = useRef<any>(null);
   const signalWireRecordingRef = useRef<any>(null);
   const signalWireRecordingIdRef = useRef<string | null>(null);
@@ -455,6 +468,10 @@ const PainterCallCenter: React.FC = () => {
   const autoAudioAttemptInFlightRef = useRef(false);
   const callerIdPollTimerRef = useRef<number | null>(null);
   const quoteAcceptedRef = useRef(false);
+  const ringbackAudioContextRef = useRef<AudioContext | null>(null);
+  const ringbackGainRef = useRef<GainNode | null>(null);
+  const ringbackOscillatorsRef = useRef<OscillatorNode[]>([]);
+  const ringbackCycleTimeoutRef = useRef<number | null>(null);
 
   const auth = getAuth(firebase);
   const firestore = getFirestore(firebase);
@@ -468,6 +485,92 @@ const PainterCallCenter: React.FC = () => {
       window.clearInterval(callerIdPollTimerRef.current);
       callerIdPollTimerRef.current = null;
     }
+  };
+
+  const stopLocalRingbackTone = () => {
+    if (ringbackCycleTimeoutRef.current) {
+      window.clearTimeout(ringbackCycleTimeoutRef.current);
+      ringbackCycleTimeoutRef.current = null;
+    }
+
+    const gainNode = ringbackGainRef.current;
+    const audioContext = ringbackAudioContextRef.current;
+    if (gainNode && audioContext) {
+      try {
+        gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      } catch {
+        // no-op
+      }
+    }
+
+    ringbackOscillatorsRef.current.forEach((oscillator) => {
+      try {
+        oscillator.stop();
+      } catch {
+        // no-op
+      }
+      oscillator.disconnect();
+    });
+    ringbackOscillatorsRef.current = [];
+
+    if (audioContext) {
+      audioContext.close().catch(() => undefined);
+    }
+    ringbackAudioContextRef.current = null;
+    ringbackGainRef.current = null;
+  };
+
+  const startLocalRingbackTone = async () => {
+    stopLocalRingbackTone();
+    const AudioContextCtor =
+      window.AudioContext ||
+      (window as Window & typeof globalThis & {
+        webkitAudioContext?: typeof AudioContext;
+      }).webkitAudioContext;
+
+    if (!AudioContextCtor) return;
+
+    const audioContext = new AudioContextCtor();
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume().catch(() => undefined);
+    }
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.connect(audioContext.destination);
+
+    const oscillators = [440, 480].map((frequency) => {
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      oscillator.connect(gainNode);
+      oscillator.start();
+      return oscillator;
+    });
+
+    ringbackAudioContextRef.current = audioContext;
+    ringbackGainRef.current = gainNode;
+    ringbackOscillatorsRef.current = oscillators;
+
+    const scheduleNextCycle = () => {
+      const activeContext = ringbackAudioContextRef.current;
+      const activeGain = ringbackGainRef.current;
+      if (!activeContext || !activeGain) return;
+
+      const now = activeContext.currentTime;
+      activeGain.gain.cancelScheduledValues(now);
+      activeGain.gain.setValueAtTime(0.08, now);
+      activeGain.gain.setValueAtTime(0.08, now + RINGBACK_ON_MS / 1000);
+      activeGain.gain.setValueAtTime(0, now + RINGBACK_ON_MS / 1000 + 0.02);
+
+      ringbackCycleTimeoutRef.current = window.setTimeout(
+        scheduleNextCycle,
+        RINGBACK_ON_MS + RINGBACK_OFF_MS
+      );
+    };
+
+    scheduleNextCycle();
   };
 
   useEffect(() => {
@@ -485,6 +588,25 @@ const PainterCallCenter: React.FC = () => {
   useEffect(() => {
     roomAudioEnabledRef.current = isRoomAudioEnabled;
   }, [isRoomAudioEnabled]);
+
+  useEffect(() => {
+    if (isRoomAudioEnabled) return;
+    setAudioOutputMenuOpen(false);
+  }, [isRoomAudioEnabled]);
+
+  useEffect(() => {
+    if (!isAudioOutputMenuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (audioOutputMenuRef.current?.contains(event.target as Node)) return;
+      setAudioOutputMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [isAudioOutputMenuOpen]);
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -507,6 +629,10 @@ const PainterCallCenter: React.FC = () => {
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
+  }, []);
+
+  useEffect(() => () => {
+    stopLocalRingbackTone();
   }, []);
 
   const isConsultExpected = () =>
@@ -1158,6 +1284,92 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
+  const supportsAudioOutputSelection = () => {
+    const videoEl = remoteVideoRef.current as (HTMLVideoElement & {
+      setSinkId?: (deviceId: string) => Promise<void>;
+    }) | null;
+    return Boolean(videoEl?.setSinkId && navigator.mediaDevices?.enumerateDevices);
+  };
+
+  const loadAudioOutputOptions = async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) {
+      setAudioOutputOptions([]);
+      return [];
+    }
+
+    setLoadingAudioOutputs(true);
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const outputs = devices
+        .filter((device) => device.kind === 'audiooutput')
+        .map((device, index) => ({
+          deviceId: device.deviceId || 'default',
+          label: device.label?.trim() || `Audio Output ${index + 1}`
+        }));
+
+      const uniqueOutputs = outputs.filter(
+        (device, index, allDevices) =>
+          allDevices.findIndex((entry) => entry.deviceId === device.deviceId) === index
+      );
+
+      if (!uniqueOutputs.some((device) => device.deviceId === 'default')) {
+        uniqueOutputs.unshift({
+          deviceId: 'default',
+          label: 'Default Audio'
+        });
+      }
+
+      setAudioOutputOptions(uniqueOutputs);
+      return uniqueOutputs;
+    } finally {
+      setLoadingAudioOutputs(false);
+    }
+  };
+
+  const applyAudioOutputDevice = async (deviceId: string) => {
+    const videoEl = remoteVideoRef.current as (HTMLVideoElement & {
+      setSinkId?: (nextDeviceId: string) => Promise<void>;
+    }) | null;
+
+    if (!videoEl?.setSinkId) {
+      setStatus('Audio output selection is not supported in this browser.');
+      return;
+    }
+
+    try {
+      await videoEl.setSinkId(deviceId);
+      setSelectedAudioOutputId(deviceId);
+      setAudioOutputMenuOpen(false);
+      const selectedOption = audioOutputOptions.find((option) => option.deviceId === deviceId);
+      setStatus(
+        selectedOption
+          ? `Audio output set to ${selectedOption.label}.`
+          : 'Audio output updated.'
+      );
+    } catch (error) {
+      console.error('Failed to switch audio output device:', error);
+      setStatus('Unable to switch audio output on this device.');
+    }
+  };
+
+  const toggleAudioOutputMenu = async () => {
+    if (!isRoomAudioEnabled) return;
+    if (!supportsAudioOutputSelection()) {
+      setStatus('Audio output selection is not supported in this browser.');
+      return;
+    }
+
+    if (!isAudioOutputMenuOpen) {
+      const options = await loadAudioOutputOptions();
+      if (!options.length) {
+        setStatus('No audio output devices were found.');
+        return;
+      }
+    }
+
+    setAudioOutputMenuOpen((previous) => !previous);
+  };
+
   const joinPainterRoomAudioOnly = async (
     token: string,
     options?: { audioEnabled?: boolean }
@@ -1754,6 +1966,7 @@ const PainterCallCenter: React.FC = () => {
     let connectedAt: number | null = null;
     while (Date.now() - startedAt < timeoutMs) {
       if (localEndRequestedRef.current) {
+        stopLocalRingbackTone();
         return {
           answered: false,
           status: 'cancelled',
@@ -1762,6 +1975,7 @@ const PainterCallCenter: React.FC = () => {
         };
       }
       if (callAnsweredRef.current) {
+        stopLocalRingbackTone();
         return {
           answered: true,
           status: 'member_joined',
@@ -1786,6 +2000,7 @@ const PainterCallCenter: React.FC = () => {
           payload?.answeredBy || ''
         ).trim().toLowerCase() || null;
         if (currentStatus === 'in-progress' || currentStatus === 'in_progress' || currentStatus === 'answered') {
+          stopLocalRingbackTone();
           connectedAt = connectedAt || Date.now();
           if (
             !answeredBy &&
@@ -1803,6 +2018,7 @@ const PainterCallCenter: React.FC = () => {
           };
         }
         if (payload?.completed) {
+          stopLocalRingbackTone();
           const voicemailDetected =
             isVoicemailAnsweredBy(answeredBy);
           if (voicemailDetected) {
@@ -1825,6 +2041,7 @@ const PainterCallCenter: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
+    stopLocalRingbackTone();
     return {
       answered: false,
       status: 'timeout',
@@ -2273,6 +2490,7 @@ const PainterCallCenter: React.FC = () => {
         });
 
       setStatus('Dialing homeowner...');
+      await startLocalRingbackTone();
       const dialResponse = await fetch('/api/signalwire/dial', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2309,9 +2527,11 @@ const PainterCallCenter: React.FC = () => {
         setStatus('Ringing homeowner...');
         answerState = await waitForCallAnswer(activeCallSidRef.current);
         if (localEndRequestedRef.current) {
+          stopLocalRingbackTone();
           return;
         }
         if (!answerState.answered) {
+          stopLocalRingbackTone();
           await forceEndConference();
           if (roomSessionRef.current) {
             await roomSessionRef.current.leave().catch(() => undefined);
@@ -2329,12 +2549,14 @@ const PainterCallCenter: React.FC = () => {
         }
 
         if (answerState.voicemailDetected) {
+          stopLocalRingbackTone();
           setStatus(
             'Call sent to voicemail. Leave your message after the tone.'
           );
         }
       }
 
+      stopLocalRingbackTone();
       activeCallRef.current = true;
       localEndRequestedRef.current = false;
       remoteEndingRef.current = false;
@@ -2351,6 +2573,7 @@ const PainterCallCenter: React.FC = () => {
       watchCallHealth();
       ensureQuoteDoc().catch(() => undefined);
     } catch (error) {
+      stopLocalRingbackTone();
       console.error(error);
       const errorMessage =
         (error as Error)?.name === 'AbortError'
@@ -2527,6 +2750,7 @@ const PainterCallCenter: React.FC = () => {
     }
 
     localEndRequestedRef.current = true;
+    stopLocalRingbackTone();
     activeCallRef.current = false;
     callAnsweredRef.current = false;
     if (findVideoTimerRef.current) {
@@ -2617,6 +2841,7 @@ const PainterCallCenter: React.FC = () => {
   };
 
   const callBack = async () => {
+    stopLocalRingbackTone();
     setQuoteRows([createQuoteRow()]);
     setHasSubmittedQuote(false);
     setShowCrmReminder(true);
@@ -2707,7 +2932,17 @@ const PainterCallCenter: React.FC = () => {
       boxShadow: '0 20px 40px rgba(0,0,0,0.35)'
     };
   const primaryActionColor = PRIMARY_COLOR_HEX;
+  const primaryActionHoverColor = '#E73152';
   const disabledPrimaryActionColor = `${PRIMARY_COLOR_HEX}99`;
+  const getPrimaryButtonBackground = (
+    buttonId: string,
+    disabled = false
+  ) =>
+    disabled
+      ? disabledPrimaryActionColor
+      : hoveredPrimaryButton === buttonId
+        ? primaryActionHoverColor
+        : primaryActionColor;
 
   return (
     <div style={{ minHeight: '100dvh', background: isActiveCallUI ? '#000' : 'transparent', color: isActiveCallUI ? '#fff' : '#0f172a', padding: isActiveCallUI ? 0 : '8px' }}>
@@ -2803,6 +3038,8 @@ const PainterCallCenter: React.FC = () => {
                 />
                 <button
                   onClick={submitCallerIdVerificationCode}
+                  onMouseEnter={() => setHoveredPrimaryButton('submit-caller-id-code')}
+                  onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'submit-caller-id-code' ? null : current)}
                   disabled={
                     isSubmittingCallerIdCode ||
                     isCheckingCallerId
@@ -2810,7 +3047,11 @@ const PainterCallCenter: React.FC = () => {
                   style={{
                     border: 'none',
                     borderRadius: 12,
-                    background: PRIMARY_COLOR_HEX,
+                    background: getPrimaryButtonBackground(
+                      'submit-caller-id-code',
+                      isSubmittingCallerIdCode ||
+                        isCheckingCallerId
+                    ),
                     color: '#fff',
                     padding: '12px 18px',
                     fontWeight: 700,
@@ -2834,6 +3075,8 @@ const PainterCallCenter: React.FC = () => {
             ) : (
               <button
                 onClick={triggerCallerIdVerification}
+                onMouseEnter={() => setHoveredPrimaryButton('trigger-caller-id-verification')}
+                onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'trigger-caller-id-verification' ? null : current)}
                 disabled={
                   isRequestingCallerIdVerification ||
                   isCheckingCallerId
@@ -2841,7 +3084,11 @@ const PainterCallCenter: React.FC = () => {
                 style={{
                   border: 'none',
                   borderRadius: 12,
-                  background: PRIMARY_COLOR_HEX,
+                  background: getPrimaryButtonBackground(
+                    'trigger-caller-id-verification',
+                    isRequestingCallerIdVerification ||
+                      isCheckingCallerId
+                  ),
                   color: '#fff',
                   padding: '12px 18px',
                   fontWeight: 700,
@@ -2931,6 +3178,8 @@ const PainterCallCenter: React.FC = () => {
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button
                       onClick={startPhoneCall}
+                      onMouseEnter={() => setHoveredPrimaryButton('start-phone-call')}
+                      onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'start-phone-call' ? null : current)}
                       disabled={
                         isStartingCall ||
                         isSendingVideoInvite ||
@@ -2947,7 +3196,7 @@ const PainterCallCenter: React.FC = () => {
                           || (requiresCallerIdVerification &&
                             !isCallerIdVerified)
                           ? disabledPrimaryActionColor
-                          : primaryActionColor,
+                          : getPrimaryButtonBackground('start-phone-call'),
                         color: '#fff',
                         fontWeight: 700,
                         cursor: isStartingCall || isSendingVideoInvite || (requiresCallerIdVerification && !isCallerIdVerified)
@@ -2966,6 +3215,8 @@ const PainterCallCenter: React.FC = () => {
                     </button>
                     <button
                       onClick={createVideoRoom}
+                      onMouseEnter={() => setHoveredPrimaryButton('create-video-room')}
+                      onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'create-video-room' ? null : current)}
                       disabled={
                         isStartingCall ||
                         isSendingVideoInvite
@@ -2978,7 +3229,7 @@ const PainterCallCenter: React.FC = () => {
                         background:
                           isStartingCall || isSendingVideoInvite
                             ? disabledPrimaryActionColor
-                            : primaryActionColor,
+                            : getPrimaryButtonBackground('create-video-room'),
                         color: '#fff',
                         fontWeight: 700,
                         cursor:
@@ -3185,13 +3436,15 @@ const PainterCallCenter: React.FC = () => {
                 {!isQuoteSessionClosed && (
                   <button
                     onClick={addQuoteRow}
+                    onMouseEnter={() => setHoveredPrimaryButton('add-quote-row')}
+                    onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'add-quote-row' ? null : current)}
                     style={{
                       marginTop: 14,
                       width: 44,
                       height: 44,
                       borderRadius: '50%',
                       border: 'none',
-                      background: PRIMARY_COLOR_HEX,
+                      background: getPrimaryButtonBackground('add-quote-row'),
                       color: '#fff',
                       fontWeight: 700,
                       fontSize: 24,
@@ -3292,16 +3545,119 @@ const PainterCallCenter: React.FC = () => {
               >
                 {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
               </button>
+              <div
+                ref={audioOutputMenuRef}
+                style={{
+                  position: 'relative'
+                }}
+              >
+                <button
+                  onClick={() => {
+                    toggleAudioOutputMenu().catch(() => undefined);
+                  }}
+                  disabled={!isRoomAudioEnabled || !supportsAudioOutputSelection()}
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: !isRoomAudioEnabled || !supportsAudioOutputSelection()
+                      ? '#1f2937'
+                      : '#fff',
+                    color: !isRoomAudioEnabled || !supportsAudioOutputSelection()
+                      ? '#64748b'
+                      : '#111',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: !isRoomAudioEnabled || !supportsAudioOutputSelection()
+                      ? 'not-allowed'
+                      : 'pointer'
+                  }}
+                  aria-label="Select audio output"
+                >
+                  <Volume2 size={20} />
+                </button>
+                {isAudioOutputMenuOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 64,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 220,
+                      borderRadius: 14,
+                      border: '1px solid rgba(148,163,184,0.2)',
+                      background: 'rgba(8,10,13,0.96)',
+                      boxShadow: '0 18px 40px rgba(0,0,0,0.35)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '10px 12px 8px',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#cbd5e1'
+                      }}
+                    >
+                      Audio Output
+                    </div>
+                    {isLoadingAudioOutputs ? (
+                      <div
+                        style={{
+                          padding: '0 12px 12px',
+                          fontSize: 12,
+                          color: '#94a3b8'
+                        }}
+                      >
+                        Loading devices...
+                      </div>
+                    ) : (
+                      audioOutputOptions.map((option) => (
+                        <button
+                          key={option.deviceId}
+                          onClick={() => {
+                            applyAudioOutputDevice(option.deviceId).catch(() => undefined);
+                          }}
+                          style={{
+                            width: '100%',
+                            border: 'none',
+                            background: option.deviceId === selectedAudioOutputId
+                              ? 'rgba(37,99,235,0.22)'
+                              : 'transparent',
+                            color: option.deviceId === selectedAudioOutputId
+                              ? '#fff'
+                              : '#cbd5e1',
+                            textAlign: 'left',
+                            padding: '11px 12px',
+                            fontSize: 13,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
               {phase === 'calling' && (
                 <button
                   onClick={sendVideoEstimate}
+                  onMouseEnter={() => setHoveredPrimaryButton('send-video-estimate')}
+                  onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'send-video-estimate' ? null : current)}
                   disabled={isSendingVideoInvite}
                   style={{
                     height: 48,
                     borderRadius: 999,
                     border: 'none',
                     padding: '0 18px',
-                    background: isSendingVideoInvite ? disabledPrimaryActionColor : primaryActionColor,
+                    background: getPrimaryButtonBackground(
+                      'send-video-estimate',
+                      isSendingVideoInvite
+                    ),
                     color: '#fff',
                     fontWeight: 700,
                     display: 'inline-flex',
@@ -3325,7 +3681,7 @@ const PainterCallCenter: React.FC = () => {
                       borderRadius: 999,
                       border: 'none',
                       padding: '0 18px',
-                      background: isCopyLinkHovered ? '#1470d6' : primaryActionColor,
+                      background: isCopyLinkHovered ? primaryActionHoverColor : primaryActionColor,
                       color: '#fff',
                       fontWeight: 700,
                       display: 'inline-flex',
@@ -3349,7 +3705,7 @@ const PainterCallCenter: React.FC = () => {
                       background: isSettingQuoteMode
                         ? disabledPrimaryActionColor
                         : isCreateQuoteHovered
-                          ? '#1470d6'
+                          ? primaryActionHoverColor
                           : primaryActionColor,
                       color: '#fff',
                       fontWeight: 700,
@@ -3366,13 +3722,18 @@ const PainterCallCenter: React.FC = () => {
               {phase === 'quoteDraft' && (
                 <button
                   onClick={submitOrUpdateQuote}
+                  onMouseEnter={() => setHoveredPrimaryButton('submit-or-update-quote')}
+                  onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'submit-or-update-quote' ? null : current)}
                   disabled={isSavingQuote}
                   style={{
                     height: 48,
                     borderRadius: 999,
                     border: 'none',
                     padding: '0 18px',
-                    background: isSavingQuote ? disabledPrimaryActionColor : primaryActionColor,
+                    background: getPrimaryButtonBackground(
+                      'submit-or-update-quote',
+                      isSavingQuote
+                    ),
                     color: '#fff',
                     fontWeight: 700,
                     display: 'inline-flex',
@@ -3447,13 +3808,18 @@ const PainterCallCenter: React.FC = () => {
               {phase === 'dropped' ? 'It looks like your call dropped unexpectedly.' : 'Call ended'}
               <button
                 onClick={callBack}
+                onMouseEnter={() => setHoveredPrimaryButton('call-back')}
+                onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'call-back' ? null : current)}
                 disabled={isStartingCall}
                 style={{
                   border: 'none',
                   borderRadius: 999,
                   padding: '10px 18px',
                   color: '#fff',
-                  background: isStartingCall ? disabledPrimaryActionColor : primaryActionColor,
+                  background: getPrimaryButtonBackground(
+                    'call-back',
+                    isStartingCall
+                  ),
                   fontWeight: 700
                 }}
               >
@@ -3463,12 +3829,14 @@ const PainterCallCenter: React.FC = () => {
                 onClick={() => {
                   window.location.href = '/call';
                 }}
+                onMouseEnter={() => setHoveredPrimaryButton('go-home')}
+                onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'go-home' ? null : current)}
                 style={{
                   border: 'none',
                   borderRadius: 999,
                   padding: '10px 18px',
                   color: '#fff',
-                  background: primaryActionColor,
+                  background: getPrimaryButtonBackground('go-home'),
                   fontWeight: 700
                 }}
               >

@@ -268,6 +268,7 @@ const ConsultPage: React.FC = () => {
   const watcherWaitingForIdsLoggedRef = useRef(false);
   const didInitRef = useRef(false);
   const roomAudioEnabledRef = useRef(false);
+  const preferredBackCameraDeviceIdRef = useRef<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -544,6 +545,8 @@ const ConsultPage: React.FC = () => {
       }
     }
     const initialVideoTrack = initialStream.getVideoTracks()[0];
+    preferredBackCameraDeviceIdRef.current =
+      String(initialVideoTrack?.getSettings?.()?.deviceId || '').trim() || null;
     if (initialVideoTrack && 'contentHint' in initialVideoTrack) {
       initialVideoTrack.contentHint = 'detail';
     }
@@ -586,6 +589,7 @@ const ConsultPage: React.FC = () => {
           isLikelyBackCameraLabel(switchedTrack?.label || '');
         if (appearsBackCamera) {
           pushDebugLog(`Switched to back camera: ${candidate.label || candidate.deviceId}`);
+          preferredBackCameraDeviceIdRef.current = candidate.deviceId || null;
           initialStream.getVideoTracks().forEach((track) => track.stop());
           return switchedStream;
         }
@@ -601,6 +605,66 @@ const ConsultPage: React.FC = () => {
       'Unable to lock to your back camera. Please allow camera access, close other camera apps, and try again.'
     );
   }, [pushDebugLog]);
+
+  const restoreBackCameraVideoTrack = useCallback(async () => {
+    const currentStream = localStreamRef.current;
+    const currentAudioTracks = currentStream?.getAudioTracks?.() || [];
+    const nextCameraStream = await getBackCameraStream();
+    const nextVideoTrack = nextCameraStream.getVideoTracks()[0];
+
+    if (!nextVideoTrack) {
+      nextCameraStream.getTracks().forEach((track) => track.stop());
+      throw new Error('Unable to restore the back camera.');
+    }
+
+    if ('contentHint' in nextVideoTrack) {
+      nextVideoTrack.contentHint = 'detail';
+    }
+
+    const nextStream = new MediaStream([
+      nextVideoTrack,
+      ...currentAudioTracks
+    ]);
+
+    const session = sessionRef.current;
+    if (session?.setLocalStream) {
+      await session.setLocalStream(nextStream);
+      pushDebugLog('setLocalStream() applied while restoring back camera');
+    } else if (session?.updateCamera && preferredBackCameraDeviceIdRef.current) {
+      await session.updateCamera({
+        ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
+        deviceId: { exact: preferredBackCameraDeviceIdRef.current }
+      });
+      pushDebugLog('updateCamera() applied while restoring back camera');
+    } else {
+      const peerConnection =
+        session?.peerConnection ||
+        session?._peerConnection ||
+        session?.publisher?.peerConnection ||
+        null;
+      const videoSender = peerConnection?.getSenders?.()
+        ?.find((sender: RTCRtpSender) => sender?.track?.kind === 'video');
+      if (videoSender?.replaceTrack) {
+        await videoSender.replaceTrack(nextVideoTrack);
+        pushDebugLog('replaceTrack() applied while restoring back camera');
+      }
+    }
+
+    localStreamRef.current = nextStream;
+    configureZoom(nextVideoTrack);
+    nextVideoTrack.enabled = true;
+    nextVideoTrack.onended = () => pushDebugLog('Local video track ended');
+    nextVideoTrack.onmute = () => pushDebugLog('Local video track muted');
+    nextVideoTrack.onunmute = () => pushDebugLog('Local video track unmuted');
+    await attachLocalStreamPreview(nextStream);
+
+    currentStream?.getVideoTracks?.().forEach((track) => {
+      if (track !== nextVideoTrack) {
+        track.stop();
+      }
+    });
+    nextCameraStream.getAudioTracks().forEach((track) => track.stop());
+  }, [attachLocalStreamPreview, configureZoom, getBackCameraStream, pushDebugLog]);
 
   const tuneOutboundVideoSender = useCallback(async (session: any) => {
     const peerConnection =
@@ -1275,15 +1339,19 @@ const ConsultPage: React.FC = () => {
     if (!track) return;
     try {
       const nextVideoOff = !isVideoOff;
-      track.enabled = !nextVideoOff;
-      pushDebugLog(
-        nextVideoOff
-          ? 'Local video track disabled from button'
-          : 'Local video track enabled from button'
-      );
+      if (nextVideoOff) {
+        track.enabled = false;
+        sessionRef.current?.stopOutboundVideo?.();
+        pushDebugLog('Local video track disabled from button');
+      } else {
+        await restoreBackCameraVideoTrack();
+        sessionRef.current?.restoreOutboundVideo?.();
+        pushDebugLog('Local video track re-enabled from button using back camera');
+      }
       setVideoOff(nextVideoOff);
     } catch (error) {
       console.error('Video toggle error:', error);
+      setStatus(`Video toggle failed: ${(error as Error).message}`);
     }
   };
 
