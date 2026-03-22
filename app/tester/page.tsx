@@ -1395,8 +1395,6 @@ const PainterCallCenter: React.FC = () => {
         providerAudioStreamRef.current ||
         (await requestProviderRoomMic());
       providerAudioStreamRef.current = localStream;
-    } else if (providerVideoSeedStreamRef.current) {
-      localStream = providerVideoSeedStreamRef.current;
     }
 
     const session = new SWVideo.RoomSession({
