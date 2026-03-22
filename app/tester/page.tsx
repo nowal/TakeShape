@@ -2234,7 +2234,7 @@ const PainterCallCenter: React.FC = () => {
       activeHomeownerNameRef.current = normalizedHomeownerName;
       activeHomeownerAddressRef.current = normalizedHomeownerAddress;
       activeHomeownerEmailRef.current = normalizedHomeownerEmail || null;
-      activeHomeownerNumberRef.current = normalizedHomeownerNumber;
+      activeHomeownerNumberRef.current = normalizedHomeownerNumber || '';
 
       const conferenceId = activeConferenceIdRef.current || conference?.id || null;
       if (conferenceId) {
