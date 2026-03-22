@@ -410,6 +410,7 @@ const PainterCallCenter: React.FC = () => {
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
   const [isHomeownerInCallRoom, setHomeownerInCallRoom] = useState(false);
   const [hasCopiedVideoLink, setHasCopiedVideoLink] = useState(false);
+  const [isWaitingIntakeVisible, setWaitingIntakeVisible] = useState(false);
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
   const [isEnablingRoomAudio, setEnablingRoomAudio] = useState(false);
   const [needsManualAudioEnable, setNeedsManualAudioEnable] = useState(false);
@@ -1402,6 +1403,7 @@ const PainterCallCenter: React.FC = () => {
       const stream = event.streams?.[0] || new MediaStream([track]);
       setRemoteVideoStream(stream);
       setHasVideoFrame(true);
+      setWaitingIntakeVisible(false);
       startEstimateRecording();
     };
     session.on('track', trackHandler);
@@ -1456,6 +1458,7 @@ const PainterCallCenter: React.FC = () => {
           setPhase('ended');
           setStatus('Call ended by other participant.');
           setHasVideoFrame(false);
+          setWaitingIntakeVisible(false);
           return;
         }
         const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
@@ -1487,12 +1490,14 @@ const PainterCallCenter: React.FC = () => {
             setPhase('ended');
             setStatus('Call ended by other participant.');
             setHasVideoFrame(false);
+            setWaitingIntakeVisible(false);
             return;
           }
         }
         transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
         callAnsweredRef.current = false;
         setHasVideoFrame(false);
+        setWaitingIntakeVisible(true);
         setStatus('Homeowner left the phone call. Waiting for video link to connect...');
         return;
       }
@@ -1535,6 +1540,7 @@ const PainterCallCenter: React.FC = () => {
       setPhase('ended');
       setStatus('Call ended by other participant.');
       setHasVideoFrame(false);
+      setWaitingIntakeVisible(false);
     };
     session.on('member.left', memberLeftHandler);
     memberLeftHandlerRef.current = memberLeftHandler;
@@ -1671,6 +1677,7 @@ const PainterCallCenter: React.FC = () => {
     }
     setHomeownerInCallRoom(false);
     setHasCopiedVideoLink(false);
+    setWaitingIntakeVisible(false);
     setRoomAudioEnabled(false);
     setMuted(false);
     setHasVideoFrame(false);
@@ -1912,7 +1919,11 @@ const PainterCallCenter: React.FC = () => {
             );
           }
           if (callStatusResponse.ok && callStatusPayload?.completed) {
-            if (isConsultExpected()) {
+            if (
+              isConsultExpected() &&
+              !hasVideoFrameRef.current &&
+              !recordingStartedRef.current
+            ) {
               activeCallSidRef.current = null;
               transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
               setStatus('Phone call ended. Waiting for homeowner video consult to connect...');
@@ -1927,6 +1938,7 @@ const PainterCallCenter: React.FC = () => {
               }
               setPhase('ended');
               setStatus('Call ended by other participant.');
+              setWaitingIntakeVisible(false);
             }
           }
         }
@@ -2371,6 +2383,7 @@ const PainterCallCenter: React.FC = () => {
     setHasVideoFrame(false);
     setRemoteVideoStream(null);
     setHomeownerInCallRoom(false);
+    setWaitingIntakeVisible(true);
     setPhase('calling');
 
     setStatus('Creating room token...');
@@ -2883,6 +2896,7 @@ const PainterCallCenter: React.FC = () => {
     activeConferenceNameRef.current = null;
     setHomeownerInCallRoom(false);
     setHasCopiedVideoLink(false);
+    setWaitingIntakeVisible(false);
     setRoomAudioEnabled(false);
     setNeedsManualAudioEnable(false);
     setMuted(false);
@@ -2915,6 +2929,7 @@ const PainterCallCenter: React.FC = () => {
     setConference(null);
     setGuestLink('');
     setHasVideoFrame(false);
+    setWaitingIntakeVisible(false);
     setNeedsManualAudioEnable(false);
     if (providerVideoSeedStreamRef.current) {
       providerVideoSeedStreamRef.current
@@ -2974,7 +2989,7 @@ const PainterCallCenter: React.FC = () => {
 
   const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
   const shouldShowWaitingIntakeForm =
-    !hasVideoFrame &&
+    isWaitingIntakeVisible &&
     (phase === 'calling' || phase === 'videoInviteSent');
   const phoneFrameStyle: React.CSSProperties = isActiveCallUI
     ? {
