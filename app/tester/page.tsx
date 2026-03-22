@@ -2255,11 +2255,13 @@ const PainterCallCenter: React.FC = () => {
     normalizedHomeownerAddress,
     normalizedHomeownerEmail,
     normalizedHomeownerNumber,
+    enableRoomAudio,
   }: {
     normalizedHomeownerName: string;
     normalizedHomeownerAddress: string;
     normalizedHomeownerEmail: string;
     normalizedHomeownerNumber: string;
+    enableRoomAudio: boolean;
   }) => {
     await fetch('/api/signalwire/cleanup-painter-calls', {
       method: 'POST',
@@ -2325,7 +2327,9 @@ const PainterCallCenter: React.FC = () => {
     await warmSignalWireDevicePermissions();
     setStatus('Joining call room...');
     await promiseWithTimeout(
-      joinPainterRoomAudioOnly(painterToken.token),
+      joinPainterRoomAudioOnly(painterToken.token, {
+        audioEnabled: enableRoomAudio
+      }),
       20000,
       'Timed out while joining call room.'
     );
@@ -2346,7 +2350,7 @@ const PainterCallCenter: React.FC = () => {
       normalizedHomeownerNumber;
     setHomeownerInCallRoom(false);
     setHasCopiedVideoLink(false);
-    setRoomAudioEnabled(false);
+    setRoomAudioEnabled(enableRoomAudio);
     setNeedsManualAudioEnable(false);
     providerAudioStreamRef.current = null;
     providerVideoSeedStreamRef.current = null;
@@ -2484,7 +2488,8 @@ const PainterCallCenter: React.FC = () => {
           normalizedHomeownerName,
           normalizedHomeownerAddress,
           normalizedHomeownerEmail,
-          normalizedHomeownerNumber: normalizedHomeowner
+          normalizedHomeownerNumber: normalizedHomeowner,
+          enableRoomAudio: true
         });
 
       setStatus('Dialing homeowner...');
@@ -2621,7 +2626,8 @@ const PainterCallCenter: React.FC = () => {
         normalizedHomeownerName,
         normalizedHomeownerAddress,
         normalizedHomeownerEmail,
-        normalizedHomeownerNumber: ''
+        normalizedHomeownerNumber: '',
+        enableRoomAudio: false
       });
       await ensureQuoteDoc();
       await transitionToCopiedVideoLink(prepared.guestLink, {
