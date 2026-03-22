@@ -148,7 +148,7 @@ const isQuoteSessionClosedPayload = (payload: any) => {
 const DEFAULT_HOMEOWNER_NUMBER = '';
 const AUTH_CHECK_TIMEOUT_MS = 10000;
 const CONSULT_TRANSFER_GRACE_MS = 90000;
-const CALL_HEALTH_POLL_MS = 1500;
+const CALL_HEALTH_POLL_MS = 750;
 const AMD_SETTLE_GRACE_MS = 8000;
 const RINGBACK_ON_MS = 2000;
 const RINGBACK_OFF_MS = 4000;
@@ -402,6 +402,7 @@ const PainterCallCenter: React.FC = () => {
   const [painterCallerId, setPainterCallerId] = useState('');
   const [quoteRows, setQuoteRows] = useState<QuotePricingRow[]>([createQuoteRow()]);
   const [isSavingQuote, setSavingQuote] = useState(false);
+  const [isSubmittingHomeownerDetails, setSubmittingHomeownerDetails] = useState(false);
   const [hasSubmittedQuote, setHasSubmittedQuote] = useState(false);
   const [showCrmReminder, setShowCrmReminder] = useState(true);
   const [isQuoteAccepted, setQuoteAccepted] = useState(false);
@@ -1637,7 +1638,7 @@ const PainterCallCenter: React.FC = () => {
 
     mediaRecorderRef.current = recorder;
     recordingStartedRef.current = true;
-    setStatus('Homeowner video detected. Recording estimate...');
+    setStatus('Homeowner video connected.');
 
     if (findVideoTimerRef.current) {
       window.clearInterval(findVideoTimerRef.current);
@@ -2197,6 +2198,85 @@ const PainterCallCenter: React.FC = () => {
     }
   };
 
+  const submitHomeownerDetails = async () => {
+    if (!painterDocId) {
+      setStatus('Painter account required to save homeowner details.');
+      return;
+    }
+
+    const normalizedHomeownerName = homeownerNameInput.trim();
+    const normalizedHomeownerAddress = homeownerAddressInput.trim();
+    const normalizedHomeownerEmail = homeownerEmailInput.trim().toLowerCase();
+    const normalizedHomeownerNumber = homeownerNumberInput.trim()
+      ? normalizeUsPhoneToE164(homeownerNumberInput)
+      : '';
+
+    if (
+      homeownerNumberInput.trim() &&
+      !normalizedHomeownerNumber
+    ) {
+      setStatus('Enter a valid US homeowner phone number.');
+      return;
+    }
+
+    if (
+      normalizedHomeownerEmail &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        normalizedHomeownerEmail
+      )
+    ) {
+      setStatus('Enter a valid homeowner email or leave it blank.');
+      return;
+    }
+
+    setSubmittingHomeownerDetails(true);
+    try {
+      activeHomeownerNameRef.current = normalizedHomeownerName;
+      activeHomeownerAddressRef.current = normalizedHomeownerAddress;
+      activeHomeownerEmailRef.current = normalizedHomeownerEmail || null;
+      activeHomeownerNumberRef.current = normalizedHomeownerNumber;
+
+      const conferenceId = activeConferenceIdRef.current || conference?.id || null;
+      if (conferenceId) {
+        await fetch('/api/signalwire/conference-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conferenceId,
+            metaPatch: {
+              homeowner_name: normalizedHomeownerName || undefined,
+              homeowner_address: normalizedHomeownerAddress || undefined,
+              homeowner_email: normalizedHomeownerEmail || undefined,
+              homeowner_phone: normalizedHomeownerNumber || undefined,
+              painter_doc_id: painterDocId || undefined,
+            }
+          })
+        }).catch(() => undefined);
+      }
+
+      const quoteId = await ensureQuoteDoc();
+      if (quoteId) {
+        await updateDoc(
+          doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
+          {
+            homeownerName: normalizedHomeownerName || null,
+            homeownerAddress: normalizedHomeownerAddress || null,
+            homeownerEmail: normalizedHomeownerEmail || null,
+            homeownerPhone: normalizedHomeownerNumber || null,
+            updatedAt: serverTimestamp()
+          }
+        ).catch(() => undefined);
+      }
+
+      setStatus('Homeowner details updated.');
+    } catch (error) {
+      console.error('Homeowner details update error:', error);
+      setStatus(`Error: ${(error as Error).message}`);
+    } finally {
+      setSubmittingHomeownerDetails(false);
+    }
+  };
+
   const persistEstimateRecording = async () => {
     if (recordingPersistedRef.current) {
       return;
@@ -2432,7 +2512,9 @@ const PainterCallCenter: React.FC = () => {
       Date.now() + CONSULT_TRANSFER_GRACE_MS;
     setPhase('videoInviteSent');
     setStatus(
-      options?.skipCopy
+      remoteMemberPresentRef.current || hasVideoFrameRef.current
+        ? 'Homeowner video connected.'
+        : options?.skipCopy
         ? 'Room ready. Tap Copy Link to send the /tested URL.'
         : didCopy
         ? 'Waiting for Homeowner Video.'
@@ -2914,6 +2996,12 @@ const PainterCallCenter: React.FC = () => {
   }
 
   const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
+  const isCompactCallControls = Boolean(
+    viewport.isDimensions && viewport.isSm
+  );
+  const shouldShowWaitingIntakeForm =
+    !hasVideoFrame &&
+    (phase === 'calling' || phase === 'videoInviteSent');
   const phoneFrameStyle: React.CSSProperties = isActiveCallUI
     ? {
       position: 'fixed',
@@ -3291,7 +3379,7 @@ const PainterCallCenter: React.FC = () => {
                 </div>
               </div>
             )}
-            {(phase === 'calling' || phase === 'quoteDraft') && (
+            {phase === 'quoteDraft' && (
               <div
                 style={{
                   position: 'absolute',
@@ -3305,13 +3393,7 @@ const PainterCallCenter: React.FC = () => {
                   padding: 18
                 }}
               >
-                {phase === 'calling'
-                  ? (
-                      activeHomeownerNumberRef.current
-                        ? 'Audio call in progress. Copy the video link when you are ready to transition.'
-                        : 'Video room ready. Copy the video link to invite the homeowner.'
-                    )
-                  : 'Build quote while audio call remains active.'}
+                {'Build quote while audio call remains active.'}
               </div>
             )}
             <video
@@ -3329,7 +3411,7 @@ const PainterCallCenter: React.FC = () => {
                 pointerEvents: 'none'
               }}
             />
-            {phase !== 'quoteDraft' && !hasVideoFrame && (
+            {!shouldShowWaitingIntakeForm && phase !== 'quoteDraft' && !hasVideoFrame && (
               <div
                 style={{
                   position: 'absolute',
@@ -3350,6 +3432,123 @@ const PainterCallCenter: React.FC = () => {
                         : 'Video room ready'
                     )
                   : 'Waiting for Homeowner Video'}
+              </div>
+            )}
+            {shouldShowWaitingIntakeForm && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: viewport.isDimensions && viewport.isSm ? '64px 16px 128px' : '72px 20px 120px',
+                  overflowY: 'auto'
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth: 420,
+                    borderRadius: 20,
+                    background: 'rgba(8,10,13,0.82)',
+                    border: '1px solid rgba(148,163,184,0.18)',
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.28)',
+                    padding: viewport.isDimensions && viewport.isSm ? '18px 16px' : '22px 20px',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <div
+                    style={{
+                      marginBottom: 14,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: '#fff'
+                      }}
+                    >
+                      Homeowner Intake
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                        color: '#a9b7cb'
+                      }}
+                    >
+                      {phase === 'calling'
+                        ? 'Capture the homeowner details while the call is active.'
+                        : 'Capture the homeowner details while you wait for them to join the video.'}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <InputsText
+                      type="tel"
+                      inputMode="numeric"
+                      value={homeownerNumberInput}
+                      onChange={(event) =>
+                        setHomeownerNumberInput(
+                          formatUsPhoneInput(
+                            event.target.value
+                          )
+                        )
+                      }
+                      placeholder="(555) 123-4567"
+                    />
+                    <InputsText
+                      value={homeownerNameInput}
+                      onChange={(event) =>
+                        setHomeownerNameInput(event.target.value)
+                      }
+                      placeholder="Homeowner Name (Optional)"
+                    />
+                    <MapsLoaded>
+                      <CallAddressField
+                        value={homeownerAddressInput}
+                        onChange={setHomeownerAddressInput}
+                      />
+                    </MapsLoaded>
+                    <InputsText
+                      type="email"
+                      value={homeownerEmailInput}
+                      onChange={(event) =>
+                        setHomeownerEmailInput(event.target.value)
+                      }
+                      placeholder="Homeowner Email (Optional)"
+                    />
+                    <button
+                      onClick={submitHomeownerDetails}
+                      onMouseEnter={() => setHoveredPrimaryButton('submit-homeowner-details')}
+                      onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'submit-homeowner-details' ? null : current)}
+                      disabled={isSubmittingHomeownerDetails}
+                      style={{
+                        marginTop: 4,
+                        width: '100%',
+                        height: 48,
+                        borderRadius: 12,
+                        border: 'none',
+                        background: getPrimaryButtonBackground(
+                          'submit-homeowner-details',
+                          isSubmittingHomeownerDetails
+                        ),
+                        color: '#fff',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: isSubmittingHomeownerDetails ? 'not-allowed' : 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {isSubmittingHomeownerDetails ? 'Submitting...' : 'Submit'}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
             {phase === 'quoteDraft' && (
@@ -3526,9 +3725,141 @@ const PainterCallCenter: React.FC = () => {
                   padding: '10px 12px 14px',
                   background: 'linear-gradient(to top, rgba(8,10,13,0.92), rgba(8,10,13,0.35), rgba(8,10,13,0))',
                   display: 'flex',
+                  flexDirection: isCompactCallControls ? 'column' : 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 10
+                }}
+              >
+              {isCompactCallControls && phase === 'calling' && (
+                <button
+                  onClick={sendVideoEstimate}
+                  onMouseEnter={() => setHoveredPrimaryButton('send-video-estimate')}
+                  onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'send-video-estimate' ? null : current)}
+                  disabled={isSendingVideoInvite}
+                  style={{
+                    width: '100%',
+                    maxWidth: 360,
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: getPrimaryButtonBackground(
+                      'send-video-estimate',
+                      isSendingVideoInvite
+                    ),
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <VideoIcon size={16} />
+                  Copy Video Link
+                </button>
+              )}
+              {isCompactCallControls && phase === 'videoInviteSent' && (
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth: 420,
+                    display: 'flex',
+                    gap: 10
+                  }}
+                >
+                  <button
+                    onClick={copyConsultLinkNow}
+                    onMouseEnter={() => setCopyLinkHovered(true)}
+                    onMouseLeave={() => setCopyLinkHovered(false)}
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      borderRadius: 999,
+                      border: 'none',
+                      padding: '0 18px',
+                      background: isCopyLinkHovered ? primaryActionHoverColor : primaryActionColor,
+                      color: '#fff',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={enterQuoteMode}
+                    disabled={isSettingQuoteMode}
+                    onMouseEnter={() => setCreateQuoteHovered(true)}
+                    onMouseLeave={() => setCreateQuoteHovered(false)}
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      borderRadius: 999,
+                      border: 'none',
+                      padding: '0 18px',
+                      background: isSettingQuoteMode
+                        ? disabledPrimaryActionColor
+                        : isCreateQuoteHovered
+                          ? primaryActionHoverColor
+                          : primaryActionColor,
+                      color: '#fff',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {isSettingQuoteMode ? 'Starting...' : 'Create Quote'}
+                  </button>
+                </div>
+              )}
+              {isCompactCallControls && phase === 'quoteDraft' && !isQuoteAccepted && (
+                <button
+                  onClick={submitOrUpdateQuote}
+                  onMouseEnter={() => setHoveredPrimaryButton('submit-or-update-quote')}
+                  onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'submit-or-update-quote' ? null : current)}
+                  disabled={isSavingQuote}
+                  style={{
+                    width: '100%',
+                    maxWidth: 360,
+                    height: 48,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: '0 18px',
+                    background: getPrimaryButtonBackground(
+                      'submit-or-update-quote',
+                      isSavingQuote
+                    ),
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {isSavingQuote
+                    ? (hasSubmittedQuote ? 'Updating...' : 'Submitting...')
+                    : (hasSubmittedQuote ? 'Update Quote' : 'Submit Quote')}
+                </button>
+              )}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  width: '100%',
+                  flexWrap: isCompactCallControls ? 'nowrap' : 'wrap'
                 }}
               >
               <button
@@ -3647,7 +3978,7 @@ const PainterCallCenter: React.FC = () => {
                   </div>
                 )}
               </div>
-              {phase === 'calling' && (
+              {!isCompactCallControls && phase === 'calling' && (
                 <button
                   onClick={sendVideoEstimate}
                   onMouseEnter={() => setHoveredPrimaryButton('send-video-estimate')}
@@ -3674,7 +4005,7 @@ const PainterCallCenter: React.FC = () => {
                   Copy Video Link
                 </button>
               )}
-              {phase === 'videoInviteSent' && (
+              {!isCompactCallControls && phase === 'videoInviteSent' && (
                 <>
                   <button
                     onClick={copyConsultLinkNow}
@@ -3723,7 +4054,7 @@ const PainterCallCenter: React.FC = () => {
                   </button>
                 </>
               )}
-              {phase === 'quoteDraft' && (
+              {!isCompactCallControls && phase === 'quoteDraft' && (
                 <button
                   onClick={submitOrUpdateQuote}
                   onMouseEnter={() => setHoveredPrimaryButton('submit-or-update-quote')}
@@ -3789,6 +4120,7 @@ const PainterCallCenter: React.FC = () => {
                   <PhoneOff size={22} />
                 </button>
               )}
+              </div>
               </div>
             )}
           </div>

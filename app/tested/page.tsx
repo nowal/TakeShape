@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { PhoneOff, RotateCcw, Video, VideoOff } from 'lucide-react';
+import { PhoneOff, Video, VideoOff } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -275,7 +275,6 @@ const ConsultPage: React.FC = () => {
   const [status, setStatus] = useState('Preparing...');
   const [isVideoOff, setVideoOff] = useState(false);
   const [isEnded, setEnded] = useState(false);
-  const [isRejoining, setRejoining] = useState(false);
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [endReason, setEndReason] = useState<'ended' | 'dropped'>('ended');
   const [isQuoteMode, setQuoteMode] = useState(false);
@@ -974,7 +973,7 @@ const ConsultPage: React.FC = () => {
             `Microphone request failed; continuing video-only: ${(error as Error).message}`
           );
           setStatus(
-            'Microphone unavailable while on phone call. Continuing video-only. Hang up and tap Call Back to retry audio.'
+            'Microphone unavailable while on phone call. Continuing video-only.'
           );
         }
       }
@@ -1448,36 +1447,6 @@ const ConsultPage: React.FC = () => {
     setStatus('Call ended.');
   };
 
-  const rejoin = async () => {
-    if (!tokenRef.current) return;
-    setRejoining(true);
-    try {
-      setStatus('Rejoining consult...');
-      pushDebugLog('Rejoining consult');
-      localEndRequestedRef.current = false;
-      remoteEndingRef.current = false;
-      await joinConsult(tokenRef.current);
-      setEnded(false);
-      setEndReason('ended');
-      setQuoteMode(false);
-      setQuoteSubmitted(false);
-      setQuoteAccepted(false);
-      setQuoteSessionClosed(false);
-      setSubmittedQuote(null);
-      setBlockingError('');
-      setStatus('Connected with video only.');
-      watchConferenceState();
-    } catch (error) {
-      console.error('Rejoin error:', error);
-      const message = (error as Error).message;
-      setStatus(`Rejoin failed: ${message}`);
-      setBlockingError(message);
-      pushDebugLog(`Rejoin error: ${message}`);
-    } finally {
-      setRejoining(false);
-    }
-  };
-
   return (
     <div
       style={{
@@ -1535,25 +1504,6 @@ const ConsultPage: React.FC = () => {
               >
                 {blockingError}
               </div>
-            )}
-            {!!tokenRef.current && (
-              <button
-                onClick={rejoin}
-                disabled={isRejoining}
-                style={{
-                  border: '1px solid #334155',
-                  background: '#111827',
-                  color: '#fff',
-                  borderRadius: 999,
-                  padding: '10px 16px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8
-                }}
-              >
-                <RotateCcw size={14} />
-                {isRejoining ? 'Calling...' : 'Call Back'}
-              </button>
             )}
           </div>
         ) : (
