@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       From: from,
       Twiml: twiml,
       StatusCallback: callbackUrl.toString(),
-      StatusCallbackEvent: 'initiated ringing answered completed'
+      StatusCallbackEvent: 'completed'
     });
     if (useMachineDetection) {
       requestBody.set('MachineDetection', 'DetectMessageEnd');
