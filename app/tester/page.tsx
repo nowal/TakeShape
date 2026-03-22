@@ -197,6 +197,16 @@ const readConferencePstnStatus = (payload: any) =>
     .trim()
     .toLowerCase() || null;
 
+const TERMINAL_PSTN_STATUSES = new Set([
+  'completed',
+  'busy',
+  'failed',
+  'no-answer',
+  'no_answer',
+  'canceled',
+  'cancelled'
+]);
+
 const getMissedCallStatusMessage = (
   status: string,
   answeredBy?: string | null
@@ -1267,6 +1277,7 @@ const PainterCallCenter: React.FC = () => {
     if (stream) {
       videoEl.onloadeddata = () => {
         setHasVideoFrame(true);
+        setWaitingIntakeVisible(false);
       };
     } else {
       videoEl.onloadeddata = null;
@@ -1402,8 +1413,6 @@ const PainterCallCenter: React.FC = () => {
       if (!track || track.kind !== 'video') return;
       const stream = event.streams?.[0] || new MediaStream([track]);
       setRemoteVideoStream(stream);
-      setHasVideoFrame(true);
-      setWaitingIntakeVisible(false);
       startEstimateRecording();
     };
     session.on('track', trackHandler);
@@ -1702,6 +1711,33 @@ const PainterCallCenter: React.FC = () => {
     setStatus(nextStatus);
   };
 
+  const endProviderCallFromRemote = async (
+    nextPhase: CallPhase,
+    nextStatus: string
+  ) => {
+    remoteEndingRef.current = true;
+    activeCallRef.current = false;
+    callAnsweredRef.current = false;
+    stopConferenceWatch();
+    if (findVideoTimerRef.current) {
+      window.clearInterval(findVideoTimerRef.current);
+      findVideoTimerRef.current = null;
+    }
+    await persistEstimateRecording().catch(() => undefined);
+    await forceEndConference().catch(() => undefined);
+    if (roomSessionRef.current) {
+      await roomSessionRef.current.leave().catch(() => undefined);
+      roomSessionRef.current = null;
+    }
+    activeCallSidRef.current = null;
+    setHomeownerInCallRoom(false);
+    setHasVideoFrame(false);
+    setRemoteVideoStream(null);
+    setWaitingIntakeVisible(false);
+    setPhase(nextPhase);
+    setStatus(nextStatus);
+  };
+
   const watchCallHealth = () => {
     stopConferenceWatch();
     conferenceWatchTimerRef.current = window.setInterval(async () => {
@@ -1795,6 +1831,24 @@ const PainterCallCenter: React.FC = () => {
           );
         }
 
+        if (callbackPstnStatus && TERMINAL_PSTN_STATUSES.has(callbackPstnStatus)) {
+          if (!callAnsweredRef.current) {
+            await endProviderCallFromRemote(
+              'dropped',
+              getMissedCallStatusMessage(
+                callbackPstnStatus,
+                callbackAnsweredBy
+              )
+            );
+          } else {
+            await endProviderCallFromRemote(
+              'ended',
+              'Call ended by other participant.'
+            );
+          }
+          return;
+        }
+
         if (!conferenceState?.exists) {
           if (quoteAcceptedRef.current) {
             await concludeAcceptedQuoteSession();
@@ -1864,34 +1918,8 @@ const PainterCallCenter: React.FC = () => {
           return;
         }
 
-        if (
-          phaseRef.current === 'calling' &&
-          !callAnsweredRef.current &&
-          callbackPstnStatus &&
-          ['busy', 'no-answer', 'no_answer', 'failed', 'canceled', 'cancelled', 'completed'].includes(
-            callbackPstnStatus
-          )
-        ) {
-          activeCallRef.current = false;
-          stopConferenceWatch();
-          await persistEstimateRecording().catch(() => undefined);
-          await forceEndConference();
-          if (roomSessionRef.current) {
-            await roomSessionRef.current.leave().catch(() => undefined);
-            roomSessionRef.current = null;
-          }
-          setPhase('dropped');
-          setStatus(
-            getMissedCallStatusMessage(
-              callbackPstnStatus,
-              callbackAnsweredBy
-            )
-          );
-          return;
-        }
-
         const callSid = activeCallSidRef.current;
-        if (callSid) {
+        if (callSid && !callbackPstnStatus) {
         const callStatusResponse = await fetch(
           `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`
         );
@@ -1919,27 +1947,21 @@ const PainterCallCenter: React.FC = () => {
             );
           }
           if (callStatusResponse.ok && callStatusPayload?.completed) {
-            if (
-              isConsultExpected() &&
-              !hasVideoFrameRef.current &&
-              !recordingStartedRef.current
-            ) {
-              activeCallSidRef.current = null;
-              transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
-              setStatus('Phone call ended. Waiting for homeowner video consult to connect...');
+            if (!callAnsweredRef.current) {
+              await endProviderCallFromRemote(
+                'dropped',
+                getMissedCallStatusMessage(
+                  String(callStatusPayload?.status || 'completed'),
+                  answeredBy
+                )
+              );
             } else {
-              activeCallRef.current = false;
-              stopConferenceWatch();
-              await persistEstimateRecording().catch(() => undefined);
-              await forceEndConference();
-              if (roomSessionRef.current) {
-                await roomSessionRef.current.leave().catch(() => undefined);
-                roomSessionRef.current = null;
-              }
-              setPhase('ended');
-              setStatus('Call ended by other participant.');
-              setWaitingIntakeVisible(false);
+              await endProviderCallFromRemote(
+                'ended',
+                'Call ended by other participant.'
+              );
             }
+            return;
           }
         }
       } catch (error) {
@@ -2501,6 +2523,7 @@ const PainterCallCenter: React.FC = () => {
 
     setHasCopiedVideoLink(didCopy);
     setNeedsManualAudioEnable(false);
+    setWaitingIntakeVisible(true);
     estimateInviteSentRef.current = true;
     transferWaitUntilRef.current =
       Date.now() + CONSULT_TRANSFER_GRACE_MS;
