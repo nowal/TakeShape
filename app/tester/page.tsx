@@ -3719,7 +3719,8 @@ const PainterCallCenter: React.FC = () => {
                   position: 'absolute',
                   left: 16,
                   right: 16,
-                  bottom: 92,
+                  // Keep reminder above the quote submit/update CTA row.
+                  bottom: 156,
                   display: 'flex',
                   justifyContent: 'center',
                   pointerEvents: 'none'
