@@ -197,6 +197,20 @@ const readConferencePstnStatus = (payload: any) =>
     .trim()
     .toLowerCase() || null;
 
+const readConferenceHomeownerVideoEnabled = (payload: any) => {
+  const value =
+    payload?.meta?.homeowner_video_enabled ??
+    payload?.meta?.homeownerVideoEnabled;
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return (
+    value === true ||
+    normalized === 'true' ||
+    normalized === '1' ||
+    normalized === 'yes' ||
+    normalized === 'on'
+  );
+};
+
 const TERMINAL_PSTN_STATUSES = new Set([
   'completed',
   'busy',
@@ -419,6 +433,7 @@ const PainterCallCenter: React.FC = () => {
   const [isQuoteSessionClosed, setQuoteSessionClosed] = useState(false);
   const [isSettingQuoteMode, setSettingQuoteMode] = useState(false);
   const [isHomeownerInCallRoom, setHomeownerInCallRoom] = useState(false);
+  const [isHomeownerVideoEnabled, setHomeownerVideoEnabled] = useState(false);
   const [hasCopiedVideoLink, setHasCopiedVideoLink] = useState(false);
   const [isWaitingIntakeVisible, setWaitingIntakeVisible] = useState(false);
   const [isRoomAudioEnabled, setRoomAudioEnabled] = useState(false);
@@ -1276,8 +1291,9 @@ const PainterCallCenter: React.FC = () => {
     if (!videoEl) return;
     if (stream) {
       videoEl.onloadeddata = () => {
-        setHasVideoFrame(true);
-        setWaitingIntakeVisible(false);
+        if (videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
+          setHasVideoFrame(true);
+        }
       };
     } else {
       videoEl.onloadeddata = null;
@@ -1438,6 +1454,7 @@ const PainterCallCenter: React.FC = () => {
       if (!activeCallRef.current) return;
       remoteMemberPresentRef.current = false;
       setHomeownerInCallRoom(false);
+      setHomeownerVideoEnabled(false);
 
       if (isConsultExpected()) {
         if (hasVideoFrameRef.current || recordingStartedRef.current) {
@@ -1685,6 +1702,7 @@ const PainterCallCenter: React.FC = () => {
       providerAudioStreamRef.current = null;
     }
     setHomeownerInCallRoom(false);
+    setHomeownerVideoEnabled(false);
     setHasCopiedVideoLink(false);
     setWaitingIntakeVisible(false);
     setRoomAudioEnabled(false);
@@ -1731,6 +1749,7 @@ const PainterCallCenter: React.FC = () => {
     }
     activeCallSidRef.current = null;
     setHomeownerInCallRoom(false);
+    setHomeownerVideoEnabled(false);
     setHasVideoFrame(false);
     setRemoteVideoStream(null);
     setWaitingIntakeVisible(false);
@@ -1772,6 +1791,20 @@ const PainterCallCenter: React.FC = () => {
           readConferenceAnsweredBy(conferenceState);
         const callbackPstnStatus =
           readConferencePstnStatus(conferenceState);
+        const homeownerVideoEnabled =
+          readConferenceHomeownerVideoEnabled(conferenceState);
+        setHomeownerVideoEnabled(homeownerVideoEnabled);
+        if (
+          phaseRef.current !== 'quoteDraft' &&
+          (phaseRef.current === 'calling' ||
+            phaseRef.current === 'videoInviteSent')
+        ) {
+          if (!homeownerVideoEnabled) {
+            setWaitingIntakeVisible(true);
+          } else if (hasVideoFrameRef.current) {
+            setWaitingIntakeVisible(false);
+          }
+        }
 
         if (
           phaseRef.current === 'quoteDraft' &&
@@ -1919,9 +1952,20 @@ const PainterCallCenter: React.FC = () => {
         }
 
         const callSid = activeCallSidRef.current;
-        if (callSid && !callbackPstnStatus) {
+        if (
+          callSid &&
+          (!callbackPstnStatus ||
+            !TERMINAL_PSTN_STATUSES.has(callbackPstnStatus))
+        ) {
         const callStatusResponse = await fetch(
-          `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`
+          `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}&_ts=${Date.now()}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'cache-control': 'no-cache',
+              pragma: 'no-cache'
+            }
+          }
         );
         const callStatusPayload = await callStatusResponse.json().catch(() => ({}));
         if (callStatusResponse.ok) {
@@ -1995,7 +2039,16 @@ const PainterCallCenter: React.FC = () => {
           answeredBy: null
         };
       }
-      const response = await fetch(`/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}`);
+      const response = await fetch(
+        `/api/signalwire/call-status?callSid=${encodeURIComponent(callSid)}&_ts=${Date.now()}`,
+        {
+          cache: 'no-store',
+          headers: {
+            'cache-control': 'no-cache',
+            pragma: 'no-cache'
+          }
+        }
+      );
       const payload = await response.json().catch(() => ({}));
 
       if (response.ok) {
@@ -2405,6 +2458,7 @@ const PainterCallCenter: React.FC = () => {
     setHasVideoFrame(false);
     setRemoteVideoStream(null);
     setHomeownerInCallRoom(false);
+    setHomeownerVideoEnabled(false);
     setWaitingIntakeVisible(true);
     setPhase('calling');
 
@@ -2445,6 +2499,7 @@ const PainterCallCenter: React.FC = () => {
     activeHomeownerNumberRef.current =
       normalizedHomeownerNumber;
     setHomeownerInCallRoom(false);
+    setHomeownerVideoEnabled(false);
     setHasCopiedVideoLink(false);
     setRoomAudioEnabled(enableRoomAudio);
     setNeedsManualAudioEnable(false);
@@ -2918,6 +2973,7 @@ const PainterCallCenter: React.FC = () => {
     activeConferenceIdRef.current = null;
     activeConferenceNameRef.current = null;
     setHomeownerInCallRoom(false);
+    setHomeownerVideoEnabled(false);
     setHasCopiedVideoLink(false);
     setWaitingIntakeVisible(false);
     setRoomAudioEnabled(false);
@@ -3013,7 +3069,8 @@ const PainterCallCenter: React.FC = () => {
   const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
   const shouldShowWaitingIntakeForm =
     isWaitingIntakeVisible &&
-    (phase === 'calling' || phase === 'videoInviteSent');
+    (phase === 'calling' || phase === 'videoInviteSent') &&
+    (!isHomeownerVideoEnabled || !hasVideoFrame);
   const phoneFrameStyle: React.CSSProperties = isActiveCallUI
     ? {
       position: 'fixed',

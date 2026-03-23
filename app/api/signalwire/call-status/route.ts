@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
       'busy',
       'failed',
       'no-answer',
-      'canceled'
+      'no_answer',
+      'canceled',
+      'cancelled'
     ]);
 
     return NextResponse.json({

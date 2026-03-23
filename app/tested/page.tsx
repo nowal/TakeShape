@@ -326,6 +326,26 @@ const ConsultPage: React.FC = () => {
     pushDebugLog(`Status: ${status}`);
   }, [status, pushDebugLog]);
 
+  const publishHomeownerVideoState = useCallback(async (enabled: boolean) => {
+    if (!conferenceIdRef.current && !roomNameRef.current) return;
+    try {
+      await fetch('/api/signalwire/conference-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conferenceId: conferenceIdRef.current || undefined,
+          roomName: roomNameRef.current || undefined,
+          metaPatch: {
+            homeowner_video_enabled: enabled,
+            homeowner_video_updated_at: new Date().toISOString()
+          }
+        })
+      });
+    } catch {
+      // no-op
+    }
+  }, []);
+
   const cleanupSession = useCallback(async () => {
     pushDebugLog('cleanupSession()');
     if (sessionRef.current) {
@@ -740,12 +760,6 @@ const ConsultPage: React.FC = () => {
     if (session?.setLocalStream) {
       await session.setLocalStream(nextStream);
       pushDebugLog('setLocalStream() applied while restoring back camera');
-    } else if (session?.updateCamera && preferredBackCameraDeviceIdRef.current) {
-      await session.updateCamera({
-        ...HIGH_QUALITY_BACK_CAMERA_CONSTRAINTS,
-        deviceId: { exact: preferredBackCameraDeviceIdRef.current }
-      });
-      pushDebugLog('updateCamera() applied while restoring back camera');
     } else {
       const peerConnection =
         session?.peerConnection ||
@@ -1300,6 +1314,7 @@ const ConsultPage: React.FC = () => {
           localEndRequestedRef.current = false;
           remoteEndingRef.current = false;
           setVideoOff(false);
+          publishHomeownerVideoState(true).catch(() => undefined);
           watchConferenceState();
         }
       } catch (error) {
@@ -1334,17 +1349,19 @@ const ConsultPage: React.FC = () => {
   }, []);
 
   const toggleVideo = async () => {
-    const track = localStreamRef.current?.getVideoTracks?.()[0];
-    if (!track) return;
     try {
       const nextVideoOff = !isVideoOff;
       if (nextVideoOff) {
+        const track = localStreamRef.current?.getVideoTracks?.()[0];
+        if (!track) return;
         track.enabled = false;
         sessionRef.current?.stopOutboundVideo?.();
+        publishHomeownerVideoState(false).catch(() => undefined);
         pushDebugLog('Local video track disabled from button');
       } else {
         await restoreBackCameraVideoTrack();
         sessionRef.current?.restoreOutboundVideo?.();
+        publishHomeownerVideoState(true).catch(() => undefined);
         pushDebugLog('Local video track re-enabled from button using back camera');
       }
       setVideoOff(nextVideoOff);
@@ -1393,6 +1410,7 @@ const ConsultPage: React.FC = () => {
 
   const endCall = async () => {
     if (isQuoteAccepted) {
+      publishHomeownerVideoState(false).catch(() => undefined);
       const closedAt = new Date().toISOString();
       if (conferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
@@ -1423,6 +1441,7 @@ const ConsultPage: React.FC = () => {
     }
 
     localEndRequestedRef.current = true;
+    publishHomeownerVideoState(false).catch(() => undefined);
     stopConferenceWatch();
     stopQuoteWatcher();
     if (conferenceIdRef.current) {
