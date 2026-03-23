@@ -2057,18 +2057,32 @@ const ConsultPage: React.FC = () => {
                       >
                         Terms & Conditions
                       </div>
-                      <div style={{ height: '45vh', minHeight: 230, background: '#fff' }}>
-                        <iframe
-                          src={`${providerProfile.termsAndConditionsUrl}#view=FitH`}
-                          title="Provider terms and conditions"
+                      <div
+                        style={{
+                          height: 'clamp(150px, 28vh, 220px)',
+                          background: '#fff',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <object
+                          data={`${providerProfile.termsAndConditionsUrl}#view=FitH&zoom=page-fit&toolbar=0&navpanes=0&scrollbar=0`}
+                          type="application/pdf"
                           style={{
                             width: '100%',
                             height: '100%',
-                            maxWidth: '100%',
-                            border: 'none',
-                            overflowX: 'hidden'
+                            display: 'block'
                           }}
-                        />
+                        >
+                          <iframe
+                            src={`${providerProfile.termsAndConditionsUrl}#view=FitH&zoom=page-fit`}
+                            title="Provider terms and conditions fallback"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              border: 'none'
+                            }}
+                          />
+                        </object>
                       </div>
                       <div style={{ padding: 10, background: '#f8fafc' }}>
                         <button
@@ -2117,7 +2131,9 @@ const ConsultPage: React.FC = () => {
                         onPointerCancel={handleSignaturePointerEnd}
                         style={{
                           width: '100%',
-                          height: providerProfile.termsAndConditionsUrl ? 180 : 220,
+                          height: providerProfile.termsAndConditionsUrl
+                            ? 'clamp(120px, 20vh, 160px)'
+                            : 220,
                           touchAction: 'none',
                           display: 'block',
                           cursor: 'crosshair'
