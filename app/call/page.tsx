@@ -3701,10 +3701,33 @@ const PainterCallCenter: React.FC = () => {
                       textAlign: 'center',
                       color: '#86efac',
                       fontWeight: 700,
-                      fontSize: 15
+                      fontSize: 15,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 10
                     }}
                   >
-                    Congratulations, the homeowner has accepted your quote!
+                    <div>Congratulations, the homeowner has accepted your quote!</div>
+                    <button
+                      onClick={() => {
+                        window.location.href = '/call';
+                      }}
+                      onMouseEnter={() => setHoveredPrimaryButton('go-home-accepted')}
+                      onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'go-home-accepted' ? null : current)}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        padding: '9px 16px',
+                        color: '#fff',
+                        background: getPrimaryButtonBackground('go-home-accepted'),
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Home
+                    </button>
                   </div>
                 )}
                 </div>

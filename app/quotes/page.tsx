@@ -40,6 +40,9 @@ type QuoteCard = {
   homeownerEmail: string | null;
   homeownerPhone: string | null;
   homeownerAddress: string | null;
+  isSigned: boolean;
+  signatureDataUrl: string | null;
+  signatureSignedAtLabel: string | null;
   isLocked: boolean;
   missingFields: string[];
 };
@@ -60,6 +63,14 @@ const normalizeOptionalField = (raw: any): string | null => {
   const value = String(raw || '').trim();
   return value ? value : null;
 };
+
+const escapeHtml = (raw: string) =>
+  raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 const extractLegacyVideoUrl = (rawVideoEstimates: any): string | null => {
   if (!Array.isArray(rawVideoEstimates)) return null;
@@ -135,6 +146,7 @@ export default function QuotesPage() {
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
   const [isSavingCustomerInfo, setSavingCustomerInfo] = useState(false);
   const [customerInfoError, setCustomerInfoError] = useState<string | null>(null);
+  const [isMobileLayout, setMobileLayout] = useState(false);
   const videoRetryAttemptedRef = useRef<Set<string>>(new Set());
   const [customerInfoForm, setCustomerInfoForm] = useState({
     homeownerName: '',
@@ -168,6 +180,122 @@ export default function QuotesPage() {
     }
   }, []);
 
+  const handleDownloadQuoteSummary = useCallback((quote: QuoteCard) => {
+    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=980,height=900');
+    if (!printWindow) {
+      setError('Unable to open print window. Please allow pop-ups and try again.');
+      return;
+    }
+
+    const rowsMarkup = quote.rows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.item || '-')}</td>
+        <td>${escapeHtml(row.description || '-')}</td>
+        <td>$${row.price.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    const signatureMarkup = quote.signatureDataUrl
+      ? `
+        <div class="section-title">Signature</div>
+        <div class="signature-shell">
+          <img src="${quote.signatureDataUrl}" alt="Homeowner signature" />
+        </div>
+        <div class="muted">Signed at: ${escapeHtml(quote.signatureSignedAtLabel || 'Unknown')}</div>
+      `
+      : '<div class="muted">No signature on file.</div>';
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Quote Summary ${escapeHtml(quote.id)}</title>
+          <style>
+            @page { size: A4; margin: 24px; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              color: #0f172a;
+              margin: 0;
+              padding: 0;
+            }
+            .heading { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+            .meta { color: #475569; font-size: 12px; margin-bottom: 14px; }
+            .section-title { font-size: 14px; font-weight: 700; margin: 14px 0 8px; }
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+            th, td {
+              border: 1px solid #dbe3ef;
+              padding: 8px 10px;
+              font-size: 12px;
+              vertical-align: top;
+              word-break: break-word;
+            }
+            th { background: #f8fafc; text-align: left; color: #334155; font-weight: 700; }
+            .total { text-align: right; margin-top: 8px; font-weight: 700; }
+            .homeowner-grid { display: grid; grid-template-columns: 130px 1fr; row-gap: 6px; column-gap: 8px; font-size: 12px; }
+            .label { color: #64748b; font-weight: 700; }
+            .signature-shell {
+              border: 1px solid #dbe3ef;
+              border-radius: 8px;
+              min-height: 90px;
+              padding: 8px;
+              display: flex;
+              align-items: center;
+            }
+            .signature-shell img {
+              max-width: 100%;
+              max-height: 130px;
+              object-fit: contain;
+            }
+            .muted { color: #64748b; font-size: 12px; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="heading">TakeShape Quote Summary</div>
+          <div class="meta">Quote ID: ${escapeHtml(quote.id)} | Created: ${escapeHtml(quote.createdAtLabel)}</div>
+
+          <div class="section-title">Line Items</div>
+          <table>
+            <thead>
+              <tr><th style="width:30%">Item</th><th style="width:42%">Description</th><th style="width:28%">Price</th></tr>
+            </thead>
+            <tbody>${rowsMarkup}</tbody>
+          </table>
+          <div class="total">Total: $${quote.totalPrice.toFixed(2)}</div>
+
+          <div class="section-title">Homeowner Information</div>
+          <div class="homeowner-grid">
+            <div class="label">Name</div><div>${escapeHtml(quote.homeownerName || 'Not provided')}</div>
+            <div class="label">Email</div><div>${escapeHtml(quote.homeownerEmail || 'Not provided')}</div>
+            <div class="label">Phone</div><div>${escapeHtml(quote.homeownerPhone || 'Not provided')}</div>
+            <div class="label">Address</div><div>${escapeHtml(quote.homeownerAddress || 'Not provided')}</div>
+          </div>
+
+          ${signatureMarkup}
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => {
+      printWindow.print();
+    }, 200);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(max-width: 720px)');
+    const syncLayout = () => setMobileLayout(mediaQuery.matches);
+    syncLayout();
+    mediaQuery.addEventListener('change', syncLayout);
+    return () => {
+      mediaQuery.removeEventListener('change', syncLayout);
+    };
+  }, []);
+
   const loadQuotes = useCallback(async (
     painterId: string,
     options: { skipAutoFinalize?: boolean } = {}
@@ -189,6 +317,18 @@ export default function QuotesPage() {
           const homeownerEmail = normalizeOptionalField(data.homeownerEmail);
           const homeownerPhone = normalizeOptionalField(data.homeownerPhone);
           const homeownerAddress = normalizeOptionalField(data.homeownerAddress);
+          const signatureDataUrl = normalizeOptionalField(
+            data?.quoteSignature?.dataUrl || data?.quoteSignatureDataUrl
+          );
+          const signatureSignedAtRaw = data?.quoteSignature?.signedAt || data?.quoteSignatureCapturedAt;
+          const signatureSignedAtLabel = signatureSignedAtRaw
+            ? resolveDisplayDate(signatureSignedAtRaw)
+            : null;
+          const isSigned = Boolean(
+            data?.quoteSignatureCaptured ||
+            data?.quoteSignature ||
+            signatureDataUrl
+          );
           const missingFields: string[] = [];
           if (!homeownerName) missingFields.push('Name');
           if (!homeownerEmail) missingFields.push('Email');
@@ -253,6 +393,9 @@ export default function QuotesPage() {
             homeownerEmail,
             homeownerPhone,
             homeownerAddress,
+            isSigned,
+            signatureDataUrl,
+            signatureSignedAtLabel,
             isLocked: missingFields.length > 0,
             missingFields
           } as QuoteCard;
@@ -702,17 +845,74 @@ export default function QuotesPage() {
                 style={{
                   marginTop: 12,
                   display: 'grid',
-                  gridTemplateColumns: '30% 42% 28%',
+                  gridTemplateColumns: isMobileLayout ? '1fr' : '30% 42% 28%',
                   color: '#334155',
                   fontWeight: 700
                 }}
               >
-                <div />
-                <div />
-                <div style={{ textAlign: 'left', padding: '0 4px' }}>
-                  Total: ${quote.totalPrice.toFixed(2)}
-                </div>
+                {isMobileLayout ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 10,
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <div style={{ textAlign: 'left', padding: '0 4px' }}>
+                      Total: ${quote.totalPrice.toFixed(2)}
+                    </div>
+                    <button
+                      onClick={() => handleDownloadQuoteSummary(quote)}
+                      disabled={quote.isLocked}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
+                        color: '#fff',
+                        padding: '8px 14px',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: quote.isLocked ? 'not-allowed' : 'pointer',
+                        opacity: quote.isLocked ? 0.72 : 1
+                      }}
+                    >
+                      Download Quote PDF
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div />
+                    <div />
+                    <div
+                      style={{
+                        textAlign: 'left',
+                        padding: '0 4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: quote.isSigned ? '#15803d' : '#64748b' }}>
+                        <span style={{ fontSize: 14 }}>{quote.isSigned ? '✅' : '⬜'}</span>
+                        <span style={{ fontWeight: 700, fontSize: 12 }}>{quote.isSigned ? 'Signed' : 'Unsigned'}</span>
+                      </span>
+                      <span>Total: ${quote.totalPrice.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
               </div>
+
+              {isMobileLayout && (
+                <div style={{ marginTop: 10 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: quote.isSigned ? '#15803d' : '#64748b' }}>
+                    <span style={{ fontSize: 14 }}>{quote.isSigned ? '✅' : '⬜'}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12 }}>{quote.isSigned ? 'Signed' : 'Unsigned'}</span>
+                  </span>
+                </div>
+              )}
 
               <div
                 style={{
@@ -721,28 +921,62 @@ export default function QuotesPage() {
                   background: '#f8fafc',
                   padding: 12,
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                  gap: 8,
+                  gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(4, minmax(0, 1fr))',
+                  gap: isMobileLayout ? 10 : 8,
                   marginTop: 12
                 }}
               >
-                <div style={customerInfoItemStyle}>
-                  <span style={customerInfoLabelStyle}>Homeowner</span>
-                  <span>{quote.homeownerName || 'Not provided'}</span>
-                </div>
-                <div style={customerInfoItemStyle}>
-                  <span style={customerInfoLabelStyle}>Email</span>
-                  <span>{quote.homeownerEmail || 'Not provided'}</span>
-                </div>
-                <div style={customerInfoItemStyle}>
-                  <span style={customerInfoLabelStyle}>Phone</span>
-                  <span>{quote.homeownerPhone || 'Not provided'}</span>
-                </div>
-                <div style={customerInfoItemStyle}>
-                  <span style={customerInfoLabelStyle}>Address</span>
-                  <span>{quote.homeownerAddress || 'Not provided'}</span>
-                </div>
+                {isMobileLayout ? (
+                  <>
+                    <div style={customerInfoMobileRowStyle}><strong>Homeowner:</strong> {quote.homeownerName || 'Not provided'}</div>
+                    <div style={customerInfoMobileRowStyle}><strong>Email:</strong> {quote.homeownerEmail || 'Not provided'}</div>
+                    <div style={customerInfoMobileRowStyle}><strong>Phone:</strong> {quote.homeownerPhone || 'Not provided'}</div>
+                    <div style={customerInfoMobileRowStyle}><strong>Address:</strong> {quote.homeownerAddress || 'Not provided'}</div>
+                    <div style={customerInfoMobileRowStyle}><strong>Quote ID:</strong> {quote.id}</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={customerInfoItemStyle}>
+                      <span style={customerInfoLabelStyle}>Homeowner</span>
+                      <span>{quote.homeownerName || 'Not provided'}</span>
+                    </div>
+                    <div style={customerInfoItemStyle}>
+                      <span style={customerInfoLabelStyle}>Email</span>
+                      <span>{quote.homeownerEmail || 'Not provided'}</span>
+                    </div>
+                    <div style={customerInfoItemStyle}>
+                      <span style={customerInfoLabelStyle}>Phone</span>
+                      <span>{quote.homeownerPhone || 'Not provided'}</span>
+                    </div>
+                    <div style={customerInfoItemStyle}>
+                      <span style={customerInfoLabelStyle}>Address</span>
+                      <span>{quote.homeownerAddress || 'Not provided'}</span>
+                    </div>
+                  </>
+                )}
               </div>
+
+              {!isMobileLayout && (
+                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => handleDownloadQuoteSummary(quote)}
+                    disabled={quote.isLocked}
+                    style={{
+                      border: 'none',
+                      borderRadius: 999,
+                      background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
+                      color: '#fff',
+                      padding: '10px 16px',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      cursor: quote.isLocked ? 'not-allowed' : 'pointer',
+                      opacity: quote.isLocked ? 0.72 : 1
+                    }}
+                  >
+                    Download Quote PDF
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -912,6 +1146,12 @@ const customerInfoLabelStyle: React.CSSProperties = {
   fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: 0.4
+};
+
+const customerInfoMobileRowStyle: React.CSSProperties = {
+  color: '#0f172a',
+  fontSize: 13,
+  lineHeight: 1.45
 };
 
 const modalInputStyle: React.CSSProperties = {

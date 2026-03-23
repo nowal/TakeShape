@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useViewport } from '@/context/viewport';
+import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
 
 const pickLikelyBackCamera = (devices: MediaDeviceInfo[]) => {
   const videoInputs = devices.filter((device) => device.kind === 'videoinput');
@@ -1569,7 +1570,13 @@ const ConsultPage: React.FC = () => {
           quoteTermsUrl: providerProfile.termsAndConditionsUrl || '',
           quoteSignatureCaptured: true,
           quoteSignatureCapturedAt: acceptedAt,
-          quoteSignatureDataUrl: signatureDataUrl
+          quoteSignatureDataUrl: signatureDataUrl,
+          quoteSignature: {
+            format: 'image/png',
+            dataUrl: signatureDataUrl,
+            signedAt: acceptedAt,
+            source: 'consult-signature-pad-v1'
+          }
         }).catch(() => undefined);
       }
 
@@ -2052,12 +2059,14 @@ const ConsultPage: React.FC = () => {
                       </div>
                       <div style={{ height: '45vh', minHeight: 230, background: '#fff' }}>
                         <iframe
-                          src={providerProfile.termsAndConditionsUrl}
+                          src={`${providerProfile.termsAndConditionsUrl}#view=FitH`}
                           title="Provider terms and conditions"
                           style={{
                             width: '100%',
                             height: '100%',
-                            border: 'none'
+                            maxWidth: '100%',
+                            border: 'none',
+                            overflowX: 'hidden'
                           }}
                         />
                       </div>
@@ -2072,12 +2081,12 @@ const ConsultPage: React.FC = () => {
                             height: 40,
                             borderRadius: 10,
                             border: 'none',
-                            background: hasReviewedTerms ? '#15803d' : '#1d4ed8',
+                            background: hasReviewedTerms ? '#16a34a' : PRIMARY_COLOR_HEX,
                             color: '#fff',
                             fontWeight: 700
                           }}
                         >
-                          {hasReviewedTerms ? 'Terms Confirmed' : 'I Have Reviewed The Terms'}
+                          {hasReviewedTerms ? 'Terms Accepted' : 'Accept Terms & Conditions'}
                         </button>
                       </div>
                     </div>
@@ -2139,14 +2148,16 @@ const ConsultPage: React.FC = () => {
                           borderRadius: 10,
                           border: 'none',
                           background:
-                            isSubmittingAcceptance || (providerProfile.termsAndConditionsUrl ? !hasReviewedTerms : false) || !hasSignature
+                            isSubmittingAcceptance
+                              ? '#16a34a'
+                              : ((providerProfile.termsAndConditionsUrl ? !hasReviewedTerms : false) || !hasSignature)
                               ? '#94a3b8'
-                              : '#16a34a',
+                              : PRIMARY_COLOR_HEX,
                           color: '#fff',
                           fontWeight: 700
                         }}
                       >
-                        {isSubmittingAcceptance ? 'Submitting...' : 'Submit & Accept Quote'}
+                        {isSubmittingAcceptance ? 'Submitting...' : 'Submit Signature'}
                       </button>
                     </div>
                     {signatureError && (
