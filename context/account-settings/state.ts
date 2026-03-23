@@ -71,6 +71,18 @@ export const useAccountSettingsState = (
     string | null
   >(null);
   const [
+    termsAndConditionsFile,
+    setTermsAndConditionsFile,
+  ] = useState<File | null>(null);
+  const [
+    termsAndConditionsUrl,
+    setTermsAndConditionsUrl,
+  ] = useState<string | null>(null);
+  const [
+    termsAndConditionsFileName,
+    setTermsAndConditionsFileName,
+  ] = useState('');
+  const [
     isAccountSettingsSubmitting,
     setAccountSettingsSubmitting,
   ] = useState(false);
@@ -160,6 +172,9 @@ export const useAccountSettingsState = (
                     ''
                 );
                 setLogoUrl(painterData.logoUrl || null);
+                setTermsAndConditionsUrl(
+                  painterData.termsAndConditionsUrl || null
+                );
                 // Geocode address to set marker
                 const address =
                   displayPainterAddress;
@@ -264,6 +279,23 @@ export const useAccountSettingsState = (
     reader.readAsDataURL(file);
   };
 
+  const handleTermsAndConditionsChange = (file: File) => {
+    setTermsAndConditionsFile(file);
+    setTermsAndConditionsFileName(file.name);
+  };
+
+  const uploadTermsAndConditionsAndGetUrl = async (
+    file: File | null
+  ): Promise<string> => {
+    if (!file) return '';
+    const termsRef = storageRef(
+      storage,
+      `terms-and-conditions/${file.name}-${Date.now()}`
+    );
+    await uploadBytes(termsRef, file);
+    return await getDownloadURL(termsRef);
+  };
+
   const handleUpdate = async () => {
     try {
       setAccountSettingsSubmitting(true); // Set loading state to true
@@ -311,6 +343,12 @@ export const useAccountSettingsState = (
           const updatedLogoUrl = logo
             ? await resolveLogosUpload(logo)
             : logoUrl; // Handle logo upload if provided
+          const updatedTermsAndConditionsUrl =
+            termsAndConditionsFile
+              ? await uploadTermsAndConditionsAndGetUrl(
+                  termsAndConditionsFile
+                )
+              : termsAndConditionsUrl;
 
           const updatedPainterData = {
             businessName,
@@ -318,6 +356,8 @@ export const useAccountSettingsState = (
             range: 0,
             isInsured,
             logoUrl: updatedLogoUrl,
+            termsAndConditionsUrl:
+              updatedTermsAndConditionsUrl || '',
             phoneNumber: normalizedPhone,
             phoneNumberRaw: phoneNumber,
             ...(phoneChanged
@@ -461,6 +501,7 @@ export const useAccountSettingsState = (
     newProfilePicturePreview || profilePictureUrl;
 
   const logoSrc = logoPreview || logoUrl;
+  const termsAndConditionsSrc = termsAndConditionsUrl;
 
   return {
     isAgent,
@@ -469,6 +510,17 @@ export const useAccountSettingsState = (
     isDataLoading,
     profilePictureSrc,
     logoSrc,
+    termsAndConditionsSrc,
+    termsAndConditionsFileName:
+      termsAndConditionsFileName ||
+      (termsAndConditionsUrl
+        ? decodeURIComponent(
+            String(termsAndConditionsUrl)
+              .split('?')[0]
+              .split('/')
+              .pop() || ''
+          )
+        : ''),
     name,
     errorMessage,
     businessName,
@@ -488,6 +540,8 @@ export const useAccountSettingsState = (
     onSubmit: handleSubmit,
     onUpdate: handleUpdate,
     onLogoChange: handleLogoChange,
+    onTermsAndConditionsChange:
+      handleTermsAndConditionsChange,
     onProfilePictureChange: handleProfilePictureChange,
   };
 };

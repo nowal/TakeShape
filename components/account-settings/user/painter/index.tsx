@@ -12,7 +12,10 @@ export const ComponentsAccountSettingsPainter: FC = () => {
   const {
     businessName,
     logoSrc,
+    termsAndConditionsSrc,
+    termsAndConditionsFileName,
     onLogoChange,
+    onTermsAndConditionsChange,
     dispatchBusinessName,
   } = useAccountSettings();
 
@@ -53,6 +56,27 @@ export const ComponentsAccountSettingsPainter: FC = () => {
               : IconsUpload,
           }}
         />
+      </div>
+      <div className="relative h-[96px]">
+        <InputsFile
+          title="Terms & Conditions (PDF)"
+          onFile={onTermsAndConditionsChange}
+          inputProps={{
+            accept: 'application/pdf',
+          }}
+          classValue={cx(
+            termsAndConditionsSrc ? 'gap-3' : 'gap-2'
+          )}
+          isValue={Boolean(termsAndConditionsSrc)}
+          center={!termsAndConditionsSrc}
+          icon={{ Leading: IconsUpload }}
+        >
+          {termsAndConditionsFileName ? (
+            <div className="text-xs text-gray max-w-[180px] truncate">
+              {termsAndConditionsFileName}
+            </div>
+          ) : null}
+        </InputsFile>
       </div>
     </>
   );

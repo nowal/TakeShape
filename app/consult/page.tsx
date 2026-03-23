@@ -6,6 +6,7 @@ import firebase from '@/lib/firebase';
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   onSnapshot,
@@ -135,6 +136,12 @@ type QuoteDisplay = {
   rows: QuoteDisplayRow[];
   totalPrice: number;
   updatedAt: string;
+};
+
+type ProviderProfile = {
+  businessName: string;
+  logoUrl: string;
+  termsAndConditionsUrl: string;
 };
 
 const parseQuoteMeta = (meta: any): QuoteDisplay | null => {
@@ -269,6 +276,10 @@ const ConsultPage: React.FC = () => {
   const didInitRef = useRef(false);
   const roomAudioEnabledRef = useRef(false);
   const preferredBackCameraDeviceIdRef = useRef<string | null>(null);
+  const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const signaturePointerIdRef = useRef<number | null>(null);
+  const signatureLastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const signatureHasStrokeRef = useRef(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
@@ -283,6 +294,18 @@ const ConsultPage: React.FC = () => {
   const [isQuoteSessionClosed, setQuoteSessionClosed] = useState(false);
   const [submittedQuote, setSubmittedQuote] = useState<QuoteDisplay | null>(null);
   const [blockingError, setBlockingError] = useState<string>('');
+  const [providerDocId, setProviderDocId] = useState('');
+  const [providerProfile, setProviderProfile] = useState<ProviderProfile>({
+    businessName: '',
+    logoUrl: '',
+    termsAndConditionsUrl: ''
+  });
+  const [isAcceptModalOpen, setAcceptModalOpen] = useState(false);
+  const [hasReviewedTerms, setHasReviewedTerms] = useState(false);
+  const [signatureError, setSignatureError] = useState('');
+  const [hasSignature, setHasSignature] = useState(false);
+  const [isSubmittingAcceptance, setSubmittingAcceptance] = useState(false);
+  const [showAcceptedScreen, setShowAcceptedScreen] = useState(false);
   const [zoomSupported, setZoomSupported] = useState(false);
   const [zoomValue, setZoomValue] = useState(1);
   const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number }>({
@@ -313,6 +336,41 @@ const ConsultPage: React.FC = () => {
   useEffect(() => {
     quoteAcceptedRef.current = isQuoteAccepted;
   }, [isQuoteAccepted]);
+
+  useEffect(() => {
+    if (!isQuoteAccepted) return;
+    setShowAcceptedScreen(true);
+  }, [isQuoteAccepted]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProviderProfile = async () => {
+      if (!providerDocId) return;
+      try {
+        const painterDocRef = doc(firestore, 'painters', providerDocId);
+        const painterDoc = await getDoc(painterDocRef);
+        if (!painterDoc.exists() || cancelled) return;
+        const data = painterDoc.data() as Record<string, any>;
+        if (cancelled) return;
+        setProviderProfile({
+          businessName: String(data.businessName || data.name || ''),
+          logoUrl: String(data.logoUrl || ''),
+          termsAndConditionsUrl: String(
+            data.termsAndConditionsUrl || data.termsUrl || ''
+          )
+        });
+      } catch (error) {
+        console.error('Failed to load provider profile:', error);
+      }
+    };
+
+    loadProviderProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [firestore, providerDocId]);
 
   const pushDebugLog = useCallback((message: string) => {
     const stamp = new Date().toISOString().slice(11, 23);
@@ -1001,6 +1059,8 @@ const ConsultPage: React.FC = () => {
     localStreamRef.current = stream;
     configureZoom(stream.getVideoTracks()[0]);
     setQuoteAccepted(false);
+    setShowAcceptedScreen(false);
+    setAcceptModalOpen(false);
     setQuoteSessionClosed(false);
     stream.getVideoTracks().forEach((track) => {
       track.enabled = true;
@@ -1159,6 +1219,7 @@ const ConsultPage: React.FC = () => {
         ).trim();
         if (conferencePainterDocId) {
           painterDocIdRef.current = conferencePainterDocId;
+          setProviderDocId(conferencePainterDocId);
         }
         const conferenceQuoteId = String(
           payload?.meta?.quote_id ||
@@ -1288,6 +1349,7 @@ const ConsultPage: React.FC = () => {
         roomNameRef.current = roomName || '';
         conferenceIdRef.current = conferenceId || '';
         painterDocIdRef.current = String(painterDocId || '').trim();
+        setProviderDocId(String(painterDocId || '').trim());
         quoteIdRef.current = String(quoteId || '').trim();
         if (!token) {
           if (!roomName) {
@@ -1371,9 +1433,114 @@ const ConsultPage: React.FC = () => {
     }
   };
 
-  const acceptQuote = async () => {
+  const clearSignatureCanvas = useCallback(() => {
+    signatureHasStrokeRef.current = false;
+    signatureLastPointRef.current = null;
+    signaturePointerIdRef.current = null;
+    setHasSignature(false);
+    setSignatureError('');
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  const ensureSignatureCanvas = useCallback(() => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const bounds = canvas.getBoundingClientRect();
+    const width = Math.max(1, Math.round(bounds.width));
+    const height = Math.max(1, Math.round(bounds.height));
+    const dpr = window.devicePixelRatio || 1;
+    const nextWidth = Math.round(width * dpr);
+    const nextHeight = Math.round(height * dpr);
+    if (canvas.width === nextWidth && canvas.height === nextHeight) return;
+    canvas.width = nextWidth;
+    canvas.height = nextHeight;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    context.scale(dpr, dpr);
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.lineWidth = 2.5;
+    context.strokeStyle = '#111827';
+    context.fillStyle = '#111827';
+    context.clearRect(0, 0, width, height);
+    signatureHasStrokeRef.current = false;
+    setHasSignature(false);
+  }, []);
+
+  const signaturePointFromEvent = (
+    event: React.PointerEvent<HTMLCanvasElement>
+  ) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return null;
+    const bounds = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top
+    };
+  };
+
+  const handleSignaturePointerDown = (
+    event: React.PointerEvent<HTMLCanvasElement>
+  ) => {
+    ensureSignatureCanvas();
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const point = signaturePointFromEvent(event);
+    if (!point) return;
+    signaturePointerIdRef.current = event.pointerId;
+    signatureLastPointRef.current = point;
+    canvas.setPointerCapture(event.pointerId);
+    context.beginPath();
+    context.arc(point.x, point.y, 1.25, 0, Math.PI * 2);
+    context.fill();
+    signatureHasStrokeRef.current = true;
+    setHasSignature(true);
+    setSignatureError('');
+  };
+
+  const handleSignaturePointerMove = (
+    event: React.PointerEvent<HTMLCanvasElement>
+  ) => {
+    if (signaturePointerIdRef.current !== event.pointerId) return;
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const nextPoint = signaturePointFromEvent(event);
+    const previousPoint = signatureLastPointRef.current;
+    if (!nextPoint || !previousPoint) return;
+    context.beginPath();
+    context.moveTo(previousPoint.x, previousPoint.y);
+    context.lineTo(nextPoint.x, nextPoint.y);
+    context.stroke();
+    signatureLastPointRef.current = nextPoint;
+    signatureHasStrokeRef.current = true;
+    setHasSignature(true);
+  };
+
+  const handleSignaturePointerEnd = (
+    event: React.PointerEvent<HTMLCanvasElement>
+  ) => {
+    if (signaturePointerIdRef.current !== event.pointerId) return;
+    const canvas = signatureCanvasRef.current;
+    if (canvas) {
+      canvas.releasePointerCapture(event.pointerId);
+    }
+    signaturePointerIdRef.current = null;
+    signatureLastPointRef.current = null;
+  };
+
+  const acceptQuote = useCallback(async (signatureDataUrl: string) => {
     try {
+      setSubmittingAcceptance(true);
       const acceptedAt = new Date().toISOString();
+      const hasTerms = Boolean(providerProfile.termsAndConditionsUrl);
       if (conferenceIdRef.current) {
         await fetch('/api/signalwire/conference-state', {
           method: 'POST',
@@ -1383,7 +1550,11 @@ const ConsultPage: React.FC = () => {
             mode: 'quote',
             metaPatch: {
               quote_accepted: true,
-              quote_accepted_at: acceptedAt
+              quote_accepted_at: acceptedAt,
+              quote_terms_reviewed: hasTerms ? hasReviewedTerms : false,
+              quote_terms_url: providerProfile.termsAndConditionsUrl || null,
+              quote_signature_captured: true,
+              quote_signature_captured_at: acceptedAt
             }
           })
         }).catch(() => undefined);
@@ -1393,11 +1564,18 @@ const ConsultPage: React.FC = () => {
       if (quoteRef) {
         await updateDoc(quoteRef, {
           quoteAccepted: true,
-          quoteAcceptedAt: acceptedAt
+          quoteAcceptedAt: acceptedAt,
+          quoteTermsReviewed: hasTerms ? hasReviewedTerms : false,
+          quoteTermsUrl: providerProfile.termsAndConditionsUrl || '',
+          quoteSignatureCaptured: true,
+          quoteSignatureCapturedAt: acceptedAt,
+          quoteSignatureDataUrl: signatureDataUrl
         }).catch(() => undefined);
       }
 
+      setAcceptModalOpen(false);
       setQuoteAccepted(true);
+      setShowAcceptedScreen(true);
       setStatus('Congratulations on Accepting Your Quote!');
       pushDebugLog('Quote accepted by homeowner');
     } catch (error) {
@@ -1405,8 +1583,51 @@ const ConsultPage: React.FC = () => {
       pushDebugLog(
         `Accept quote error: ${(error as Error).message}`
       );
+    } finally {
+      setSubmittingAcceptance(false);
     }
+  }, [
+    hasReviewedTerms,
+    providerProfile.termsAndConditionsUrl,
+    pushDebugLog,
+    resolveQuoteDocRef
+  ]);
+
+  const openAcceptModal = () => {
+    setAcceptModalOpen(true);
+    setHasReviewedTerms(false);
+    clearSignatureCanvas();
+    setSignatureError('');
   };
+
+  const submitAcceptedQuote = async () => {
+    const hasTerms = Boolean(providerProfile.termsAndConditionsUrl);
+    if (hasTerms && !hasReviewedTerms) {
+      setSignatureError('Please review and confirm the terms and conditions first.');
+      return;
+    }
+    if (!signatureHasStrokeRef.current) {
+      setSignatureError('Please sign before accepting your quote.');
+      return;
+    }
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) {
+      setSignatureError('Signature pad is unavailable. Please try again.');
+      return;
+    }
+    const signatureDataUrl = canvas.toDataURL('image/png');
+    await acceptQuote(signatureDataUrl);
+  };
+
+  useEffect(() => {
+    if (!isAcceptModalOpen) return;
+    ensureSignatureCanvas();
+    const handleResize = () => ensureSignatureCanvas();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [ensureSignatureCanvas, isAcceptModalOpen]);
 
   const endCall = async () => {
     if (isQuoteAccepted) {
@@ -1567,7 +1788,117 @@ const ConsultPage: React.FC = () => {
                   overflowY: 'auto'
                 }}
               >
-                {submittedQuote ? (
+                {showAcceptedScreen && submittedQuote ? (
+                  <div
+                    style={{
+                      position: 'relative',
+                      minHeight: '100%',
+                      background: '#ffffff',
+                      color: '#0f172a',
+                      borderRadius: 16,
+                      padding: '22px 14px 28px',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {[...Array(20)].map((_, index) => (
+                      <span
+                        key={`confetti-${index}`}
+                        style={{
+                          ...acceptedConfettiStyle(index),
+                          animationDelay: `${(index % 6) * 0.18}s`
+                        }}
+                      />
+                    ))}
+                    <div
+                      style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        maxWidth: 560,
+                        margin: '0 auto'
+                      }}
+                    >
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          fontWeight: 800,
+                          fontSize: 28,
+                          lineHeight: 1.18,
+                          color: '#14532d'
+                        }}
+                      >
+                        Congrats on accepting your quote with {providerProfile.businessName || 'your provider'}!
+                      </div>
+                      {providerProfile.logoUrl ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 10 }}>
+                          <img
+                            src={providerProfile.logoUrl}
+                            alt={`${providerProfile.businessName || 'Provider'} logo`}
+                            style={{
+                              maxHeight: 78,
+                              maxWidth: 220,
+                              width: 'auto',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                      <div
+                        style={{
+                          marginTop: 14,
+                          background: '#f8fafc',
+                          border: '1px solid #dbe7f4',
+                          borderRadius: 14,
+                          padding: '14px 12px'
+                        }}
+                      >
+                        <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17, color: '#0f172a' }}>Your Quote</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                          <colgroup>
+                            <col style={{ width: '30%' }} />
+                            <col style={{ width: '42%' }} />
+                            <col style={{ width: '28%' }} />
+                          </colgroup>
+                          <thead>
+                            <tr>
+                              <th style={whiteQuoteHeaderCellStyle}>Item</th>
+                              <th style={whiteQuoteHeaderCellStyle}>Description</th>
+                              <th style={whiteQuoteHeaderCellStyle}>Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {submittedQuote.rows.map((row, index) => (
+                              <tr key={`${row.item}-${row.description}-${index}`} style={{ borderTop: '1px solid #dbe7f4' }}>
+                                <td style={quoteCellStyle}>
+                                  <div style={whiteQuoteDisplayCellStyle}>{row.item || '-'}</div>
+                                </td>
+                                <td style={quoteCellStyle}>
+                                  <div style={whiteQuoteDisplayCellStyle}>{row.description || '-'}</div>
+                                </td>
+                                <td style={quoteCellStyle}>
+                                  <div style={whiteQuoteDisplayCellStyle}>${row.price}</div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <div style={{ marginTop: 12, color: '#0f172a', fontSize: 14, fontWeight: 700 }}>
+                          Total: ${submittedQuote.totalPrice.toFixed(2)}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          marginTop: 20,
+                          fontSize: 20,
+                          fontWeight: 800,
+                          color: '#0f172a'
+                        }}
+                      >
+                        Thanks for using TakeShape!
+                      </div>
+                    </div>
+                  </div>
+                ) : submittedQuote ? (
                   <>
                     <div style={{ marginBottom: 10, fontWeight: 700, fontSize: 17 }}>Your Quote</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -1602,42 +1933,6 @@ const ConsultPage: React.FC = () => {
                     <div style={{ marginTop: 12, color: '#9fb0c8', fontSize: 13 }}>
                       Total: ${submittedQuote.totalPrice.toFixed(2)}
                     </div>
-                    {isQuoteAccepted && (
-                      <div
-                        style={{
-                          marginTop: 18,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 10,
-                          textAlign: 'center'
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: 8,
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <span style={confettiDotStyle('#f472b6')} />
-                          <span style={confettiDotStyle('#facc15')} />
-                          <span style={confettiDotStyle('#60a5fa')} />
-                          <span style={confettiDotStyle('#34d399')} />
-                          <span style={confettiDotStyle('#fb7185')} />
-                        </div>
-                        <div
-                          style={{
-                            color: '#86efac',
-                            fontWeight: 700,
-                            fontSize: 16
-                          }}
-                        >
-                          Congratulations on Accepting Your Quote!
-                        </div>
-                      </div>
-                    )}
                   </>
                 ) : isQuoteSubmitted ? (
                   <div
@@ -1680,6 +1975,187 @@ const ConsultPage: React.FC = () => {
                     <div>Your quote is being completed</div>
                   </div>
                 )}
+              </div>
+            )}
+            {isQuoteMode && submittedQuote && !isQuoteAccepted && isAcceptModalOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  zIndex: 22,
+                  background: 'rgba(2, 6, 23, 0.82)',
+                  padding: '10px 8px 84px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth: 760,
+                    maxHeight: providerProfile.termsAndConditionsUrl ? '92%' : 420,
+                    overflowY: 'auto',
+                    borderRadius: 16,
+                    background: '#ffffff',
+                    color: '#111827',
+                    border: '1px solid #dbe5f2',
+                    padding: '14px 12px 16px',
+                    boxShadow: '0 18px 40px rgba(2, 6, 23, 0.42)'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 10
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: 17 }}>
+                      Review & Sign to Accept
+                    </div>
+                    <button
+                      onClick={() => setAcceptModalOpen(false)}
+                      style={{
+                        border: 'none',
+                        background: '#f1f5f9',
+                        color: '#0f172a',
+                        borderRadius: 999,
+                        padding: '6px 10px',
+                        fontWeight: 600,
+                        fontSize: 12
+                      }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  {providerProfile.termsAndConditionsUrl && (
+                    <div
+                      style={{
+                        border: '1px solid #dbe5f2',
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        marginBottom: 12
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: '8px 10px',
+                          background: '#f8fafc',
+                          borderBottom: '1px solid #dbe5f2',
+                          fontSize: 13,
+                          fontWeight: 700
+                        }}
+                      >
+                        Terms & Conditions
+                      </div>
+                      <div style={{ height: '45vh', minHeight: 230, background: '#fff' }}>
+                        <iframe
+                          src={providerProfile.termsAndConditionsUrl}
+                          title="Provider terms and conditions"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            border: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ padding: 10, background: '#f8fafc' }}>
+                        <button
+                          onClick={() => {
+                            setHasReviewedTerms(true);
+                            setSignatureError('');
+                          }}
+                          style={{
+                            width: '100%',
+                            height: 40,
+                            borderRadius: 10,
+                            border: 'none',
+                            background: hasReviewedTerms ? '#15803d' : '#1d4ed8',
+                            color: '#fff',
+                            fontWeight: 700
+                          }}
+                        >
+                          {hasReviewedTerms ? 'Terms Confirmed' : 'I Have Reviewed The Terms'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      border: '1px solid #dbe5f2',
+                      borderRadius: 12,
+                      padding: 10
+                    }}
+                  >
+                    <div style={{ fontSize: 13, color: '#334155', marginBottom: 8 }}>
+                      Homeowner Signature
+                    </div>
+                    <div
+                      style={{
+                        border: '1px solid #cbd5e1',
+                        borderRadius: 10,
+                        overflow: 'hidden',
+                        background: '#ffffff'
+                      }}
+                    >
+                      <canvas
+                        ref={signatureCanvasRef}
+                        onPointerDown={handleSignaturePointerDown}
+                        onPointerMove={handleSignaturePointerMove}
+                        onPointerUp={handleSignaturePointerEnd}
+                        onPointerCancel={handleSignaturePointerEnd}
+                        style={{
+                          width: '100%',
+                          height: providerProfile.termsAndConditionsUrl ? 180 : 220,
+                          touchAction: 'none',
+                          display: 'block',
+                          cursor: 'crosshair'
+                        }}
+                      />
+                    </div>
+                    <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={clearSignatureCanvas}
+                        style={{
+                          flex: 1,
+                          height: 40,
+                          borderRadius: 10,
+                          border: '1px solid #cbd5e1',
+                          background: '#f8fafc',
+                          color: '#0f172a',
+                          fontWeight: 700
+                        }}
+                      >
+                        Clear Signature
+                      </button>
+                      <button
+                        onClick={submitAcceptedQuote}
+                        disabled={isSubmittingAcceptance || (providerProfile.termsAndConditionsUrl ? !hasReviewedTerms : false) || !hasSignature}
+                        style={{
+                          flex: 2,
+                          height: 40,
+                          borderRadius: 10,
+                          border: 'none',
+                          background:
+                            isSubmittingAcceptance || (providerProfile.termsAndConditionsUrl ? !hasReviewedTerms : false) || !hasSignature
+                              ? '#94a3b8'
+                              : '#16a34a',
+                          color: '#fff',
+                          fontWeight: 700
+                        }}
+                      >
+                        {isSubmittingAcceptance ? 'Submitting...' : 'Submit & Accept Quote'}
+                      </button>
+                    </div>
+                    {signatureError && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: '#b91c1c', fontWeight: 600 }}>
+                        {signatureError}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
             <div
@@ -1779,7 +2255,7 @@ const ConsultPage: React.FC = () => {
                 {debugLogs.length ? debugLogs.join('\n') : 'Debug log enabled...'}
               </div>
             )}
-            {!isQuoteSessionClosed && (
+            {!isQuoteSessionClosed && !showAcceptedScreen && (
               <div
                 style={{
                   position: 'absolute',
@@ -1815,7 +2291,7 @@ const ConsultPage: React.FC = () => {
               )}
               {isQuoteMode && submittedQuote && !isQuoteAccepted && (
                 <button
-                  onClick={acceptQuote}
+                  onClick={openAcceptModal}
                   style={{
                     height: 48,
                     borderRadius: 999,
@@ -1832,7 +2308,7 @@ const ConsultPage: React.FC = () => {
                   Accept Quote
                 </button>
               )}
-              {isQuoteAccepted && isQuoteMode ? (
+              {isQuoteAccepted && isQuoteMode && !showAcceptedScreen ? (
                 <button
                   onClick={endCall}
                   style={{
@@ -1904,6 +2380,19 @@ const ConsultPage: React.FC = () => {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        @keyframes consult-confetti-fall {
+          0% {
+            transform: translate3d(0, -30px, 0) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.92;
+          }
+          100% {
+            transform: translate3d(0, 540px, 0) rotate(340deg);
+            opacity: 0;
+          }
+        }
       `}</style>
     </div>
   );
@@ -1917,14 +2406,27 @@ const quoteHeaderCellStyle: React.CSSProperties = {
   padding: '8px 4px'
 };
 
-const confettiDotStyle = (
-  background: string
-): React.CSSProperties => ({
-  width: 10,
-  height: 10,
-  borderRadius: '50%',
-  display: 'inline-block',
-  background
+const whiteQuoteHeaderCellStyle: React.CSSProperties = {
+  textAlign: 'left',
+  color: '#334155',
+  fontSize: 12,
+  fontWeight: 700,
+  padding: '8px 4px'
+};
+
+const acceptedConfettiPalette = ['#f97316', '#f43f5e', '#22c55e', '#3b82f6', '#eab308', '#14b8a6'];
+
+const acceptedConfettiStyle = (index: number): React.CSSProperties => ({
+  position: 'absolute',
+  left: `${5 + ((index * 4.9) % 90)}%`,
+  top: -28 - (index % 4) * 16,
+  width: 8 + (index % 4) * 3,
+  height: 14 + (index % 3) * 4,
+  borderRadius: 2,
+  background: acceptedConfettiPalette[index % acceptedConfettiPalette.length],
+  opacity: 0.9,
+  transform: `rotate(${(index * 37) % 360}deg)`,
+  animation: `consult-confetti-fall ${2.8 + (index % 4) * 0.42}s linear infinite`
 });
 
 const quoteCellStyle: React.CSSProperties = {
@@ -1938,6 +2440,19 @@ const quoteDisplayCellStyle: React.CSSProperties = {
   borderRadius: 10,
   background: '#0f131a',
   color: '#fff',
+  padding: '8px 10px',
+  fontSize: 13,
+  minHeight: 34,
+  display: 'flex',
+  alignItems: 'center'
+};
+
+const whiteQuoteDisplayCellStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #dbe7f4',
+  borderRadius: 10,
+  background: '#ffffff',
+  color: '#0f172a',
   padding: '8px 10px',
   fontSize: 13,
   minHeight: 34,

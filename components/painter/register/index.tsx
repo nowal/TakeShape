@@ -18,11 +18,13 @@ export const ComponentsPainterRegister: FC = () => {
     isPainterRegisterSubmitting,
     email,
     logoPreview,
+    termsAndConditionsFileName,
     phoneNumber,
     password,
     dispatchPassword,
     dispatchEmail,
     onLogoChange,
+    onTermsAndConditionsChange,
     onSubmit,
     dipatchPhoneNumber,
   } = painterRegister;
@@ -77,6 +79,27 @@ export const ComponentsPainterRegister: FC = () => {
               : IconsUpload,
           }}
         />
+      </div>
+      <div className="relative h-[96px]">
+        <InputsFile
+          title="Terms & Conditions (PDF)"
+          onFile={onTermsAndConditionsChange}
+          inputProps={{
+            accept: 'application/pdf',
+          }}
+          classValue={cx(
+            termsAndConditionsFileName ? 'gap-3' : 'gap-2'
+          )}
+          isValue={Boolean(termsAndConditionsFileName)}
+          center={!termsAndConditionsFileName}
+          icon={{ Leading: IconsUpload }}
+        >
+          {termsAndConditionsFileName ? (
+            <div className="text-xs text-gray max-w-[180px] truncate">
+              {termsAndConditionsFileName}
+            </div>
+          ) : null}
+        </InputsFile>
       </div>
       <InputsText
         type="email"

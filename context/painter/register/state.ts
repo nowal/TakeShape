@@ -41,6 +41,12 @@ export const usePainterRegisterState = () => {
   const [logoPreview, setLogoPreview] = useState<
     string | null
   >(null);
+  const [termsAndConditionsFile, setTermsAndConditionsFile] =
+    useState<File | null>(null);
+  const [
+    termsAndConditionsFileName,
+    setTermsAndConditionsFileName,
+  ] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [
@@ -74,6 +80,11 @@ export const usePainterRegisterState = () => {
       const logoUrl = logo
         ? await uploadLogoAndGetUrl(logo)
         : ''; // Handle logo upload if provided
+      const termsAndConditionsUrl = termsAndConditionsFile
+        ? await uploadTermsAndConditionsAndGetUrl(
+            termsAndConditionsFile
+          )
+        : '';
       const addressValue = addressFormatted ?? address;
       const normalizedPhone = normalizeUsPhoneToE164(
         phoneNumber
@@ -91,6 +102,7 @@ export const usePainterRegisterState = () => {
         range: 0,
         isInsured: false,
         logoUrl,
+        termsAndConditionsUrl,
         phoneNumber: normalizedPhone,
         phoneNumberRaw: phoneNumber,
         signalwireCallerId: {
@@ -124,7 +136,7 @@ export const usePainterRegisterState = () => {
 
   const uploadLogoAndGetUrl = async (
     logoFile: File | null
-  ) => {
+  ): Promise<string> => {
     if (!logoFile) {
       return ''; // Return an empty string if no logo file is provided
     }
@@ -151,6 +163,27 @@ export const usePainterRegisterState = () => {
       const errorMessage = 'Error uploading logo';
       notifyError(errorMessage);
       console.error('Error uploading logo: ', error);
+      return '';
+    }
+  };
+
+  const uploadTermsAndConditionsAndGetUrl = async (
+    file: File | null
+  ): Promise<string> => {
+    if (!file) return '';
+    const fileRef = storageRef(
+      storage,
+      `terms-and-conditions/${file.name}-${Date.now()}`
+    );
+    try {
+      const uploadResult = await uploadBytes(fileRef, file);
+      return await getDownloadURL(uploadResult.ref);
+    } catch (error) {
+      const errorMessage =
+        'Error uploading terms and conditions PDF';
+      notifyError(errorMessage);
+      console.error(errorMessage, error);
+      return '';
     }
   };
 
@@ -164,11 +197,17 @@ export const usePainterRegisterState = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleTermsAndConditionsChange = (file: File) => {
+    setTermsAndConditionsFile(file);
+    setTermsAndConditionsFileName(file.name);
+  };
+
   return {
     isPainterRegisterSubmitting,
     errorMessage,
     email,
     logoPreview,
+    termsAndConditionsFileName,
     painterInfo,
     phoneNumber,
     password,
@@ -176,6 +215,8 @@ export const usePainterRegisterState = () => {
     dispatchEmail: setEmail,
     dipatchPhoneNumber: setPhoneNumber,
     onLogoChange: handleLogoChange,
+    onTermsAndConditionsChange:
+      handleTermsAndConditionsChange,
     onSubmit: handleSubmit,
   };
 };
