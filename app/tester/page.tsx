@@ -3326,13 +3326,13 @@ const PainterCallCenter: React.FC = () => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 8
+                        gap: 6
                       }}
                     >
                       <Phone size={18} />
                       {isStartingCall
                         ? 'Starting...'
-                        : 'Call Homeowner'}
+                        : 'Outbound Call'}
                     </button>
                     <button
                       onClick={createVideoRoom}
@@ -3366,7 +3366,7 @@ const PainterCallCenter: React.FC = () => {
                       <VideoIcon size={18} />
                       {isSendingVideoInvite
                         ? 'Creating...'
-                        : 'Create Room'}
+                        : 'Inbound Call'}
                     </button>
                   </div>
                 </div>
