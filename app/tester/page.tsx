@@ -3025,10 +3025,12 @@ const PainterCallCenter: React.FC = () => {
   }
 
   const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
-  const shouldShowWaitingIntakeForm =
-    isWaitingIntakeVisible &&
-    (phase === 'calling' || phase === 'videoInviteSent') &&
-    !isHomeownerVideoEnabled;
+  // Temporarily disable the in-call persistent intake overlay.
+  // const shouldShowWaitingIntakeForm =
+  //   isWaitingIntakeVisible &&
+  //   (phase === 'calling' || phase === 'videoInviteSent') &&
+  //   !isHomeownerVideoEnabled;
+  const shouldShowWaitingIntakeForm = false;
   const phoneFrameStyle: React.CSSProperties = isActiveCallUI
     ? {
       position: 'fixed',
