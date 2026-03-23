@@ -2158,7 +2158,7 @@ const ConsultPage: React.FC = () => {
                           fontWeight: 700
                         }}
                       >
-                        Clear Signature
+                        Clear
                       </button>
                       <button
                         onClick={submitAcceptedQuote}
