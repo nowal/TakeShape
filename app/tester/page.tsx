@@ -667,35 +667,6 @@ const PainterCallCenter: React.FC = () => {
     phaseRef.current === 'videoInviteSent' ||
     phaseRef.current === 'quoteDraft';
 
-  const waitForConferenceToEnd = async (
-    conferenceId: string,
-    timeoutMs = 7000
-  ): Promise<'ended' | 'active'> => {
-    const started = Date.now();
-    while (Date.now() - started < timeoutMs) {
-      try {
-        const response = await fetch(
-          `/api/signalwire/conference-state?conferenceId=${encodeURIComponent(conferenceId)}&_ts=${Date.now()}`,
-          {
-            cache: 'no-store',
-            headers: {
-              'cache-control': 'no-cache',
-              pragma: 'no-cache'
-            }
-          }
-        );
-        const payload = await response.json().catch(() => ({}));
-        if (response.ok && (!payload?.exists || payload?.mode === 'ending')) {
-          return 'ended';
-        }
-      } catch {
-        // no-op
-      }
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    return 'active';
-  };
-
   useEffect(() => {
     let isMounted = true;
     const authCheckTimeout = window.setTimeout(() => {
@@ -1293,10 +1264,13 @@ const PainterCallCenter: React.FC = () => {
       videoEl.onloadeddata = () => {
         if (videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
           setHasVideoFrame(true);
+          setHomeownerVideoEnabled(true);
+          setWaitingIntakeVisible(false);
         }
       };
     } else {
       videoEl.onloadeddata = null;
+      setHomeownerVideoEnabled(false);
     }
     videoEl.srcObject = stream;
     if (stream) {
@@ -1427,6 +1401,16 @@ const PainterCallCenter: React.FC = () => {
     const trackHandler = (event: RTCTrackEvent) => {
       const track = event?.track;
       if (!track || track.kind !== 'video') return;
+      track.onunmute = () => {
+        setHomeownerVideoEnabled(true);
+        setWaitingIntakeVisible(false);
+      };
+      track.onmute = () => {
+        setHomeownerVideoEnabled(false);
+      };
+      track.onended = () => {
+        setHomeownerVideoEnabled(false);
+      };
       const stream = event.streams?.[0] || new MediaStream([track]);
       setRemoteVideoStream(stream);
       startEstimateRecording();
@@ -1486,39 +1470,6 @@ const PainterCallCenter: React.FC = () => {
           setHasVideoFrame(false);
           setWaitingIntakeVisible(false);
           return;
-        }
-        const targetConferenceId = activeConferenceIdRef.current || conference?.id || null;
-        if (targetConferenceId) {
-          const endState = await waitForConferenceToEnd(targetConferenceId);
-          if (endState === 'ended') {
-            remoteEndingRef.current = true;
-            activeCallRef.current = false;
-            callAnsweredRef.current = false;
-            stopConferenceWatch();
-            if (findVideoTimerRef.current) {
-              window.clearInterval(findVideoTimerRef.current);
-              findVideoTimerRef.current = null;
-            }
-            await persistEstimateRecording().catch(() => undefined);
-            if (roomSessionRef.current) {
-              if (trackHandlerRef.current && roomSessionRef.current.off) {
-                roomSessionRef.current.off('track', trackHandlerRef.current);
-              }
-              if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
-                roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
-              }
-              if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
-                roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
-              }
-              await roomSessionRef.current.leave().catch(() => undefined);
-              roomSessionRef.current = null;
-            }
-            setPhase('ended');
-            setStatus('Call ended by other participant.');
-            setHasVideoFrame(false);
-            setWaitingIntakeVisible(false);
-            return;
-          }
         }
         transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
         callAnsweredRef.current = false;
@@ -1799,9 +1750,9 @@ const PainterCallCenter: React.FC = () => {
           (phaseRef.current === 'calling' ||
             phaseRef.current === 'videoInviteSent')
         ) {
-          if (!homeownerVideoEnabled) {
+          if (!homeownerVideoEnabled && !hasVideoFrameRef.current) {
             setWaitingIntakeVisible(true);
-          } else if (hasVideoFrameRef.current) {
+          } else if (homeownerVideoEnabled || hasVideoFrameRef.current) {
             setWaitingIntakeVisible(false);
           }
         }
