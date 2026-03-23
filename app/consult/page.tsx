@@ -2042,7 +2042,6 @@ const ConsultPage: React.FC = () => {
                       style={{
                         border: '1px solid #dbe5f2',
                         borderRadius: 12,
-                        overflow: 'hidden',
                         marginBottom: 12
                       }}
                     >
@@ -2059,30 +2058,36 @@ const ConsultPage: React.FC = () => {
                       </div>
                       <div
                         style={{
-                          height: 'clamp(150px, 28vh, 220px)',
+                          padding: '12px 10px',
                           background: '#fff',
-                          overflow: 'hidden'
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10
                         }}
                       >
-                        <object
-                          data={`${providerProfile.termsAndConditionsUrl}#view=FitH&zoom=page-fit&toolbar=0&navpanes=0&scrollbar=0`}
-                          type="application/pdf"
+                        <div style={{ fontSize: 12, color: '#475569' }}>
+                          Open the provider terms in a new page to review them.
+                        </div>
+                        <a
+                          href={providerProfile.termsAndConditionsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             width: '100%',
-                            height: '100%',
-                            display: 'block'
+                            height: 40,
+                            borderRadius: 10,
+                            textDecoration: 'none',
+                            background: '#e2e8f0',
+                            color: '#0f172a',
+                            fontWeight: 700,
+                            fontSize: 13
                           }}
                         >
-                          <iframe
-                            src={`${providerProfile.termsAndConditionsUrl}#view=FitH&zoom=page-fit`}
-                            title="Provider terms and conditions fallback"
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              border: 'none'
-                            }}
-                          />
-                        </object>
+                          Open Terms & Conditions
+                        </a>
                       </div>
                       <div style={{ padding: 10, background: '#f8fafc' }}>
                         <button
