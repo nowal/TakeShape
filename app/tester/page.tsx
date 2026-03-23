@@ -1261,13 +1261,7 @@ const PainterCallCenter: React.FC = () => {
     const videoEl = remoteVideoRef.current;
     if (!videoEl) return;
     if (stream) {
-      videoEl.onloadeddata = () => {
-        if (videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
-          setHasVideoFrame(true);
-          setHomeownerVideoEnabled(true);
-          setWaitingIntakeVisible(false);
-        }
-      };
+      videoEl.onloadeddata = null;
     } else {
       videoEl.onloadeddata = null;
       setHomeownerVideoEnabled(false);
@@ -1402,13 +1396,16 @@ const PainterCallCenter: React.FC = () => {
       const track = event?.track;
       if (!track || track.kind !== 'video') return;
       track.onunmute = () => {
+        setHasVideoFrame(true);
         setHomeownerVideoEnabled(true);
         setWaitingIntakeVisible(false);
       };
       track.onmute = () => {
+        setHasVideoFrame(false);
         setHomeownerVideoEnabled(false);
       };
       track.onended = () => {
+        setHasVideoFrame(false);
         setHomeownerVideoEnabled(false);
       };
       const stream = event.streams?.[0] || new MediaStream([track]);
@@ -1450,25 +1447,29 @@ const PainterCallCenter: React.FC = () => {
             window.clearInterval(findVideoTimerRef.current);
             findVideoTimerRef.current = null;
           }
-          await forceEndConference();
-          await persistEstimateRecording().catch(() => undefined);
-          if (roomSessionRef.current) {
-            if (trackHandlerRef.current && roomSessionRef.current.off) {
-              roomSessionRef.current.off('track', trackHandlerRef.current);
-            }
-            if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
-              roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
-            }
-            if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
-              roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
-            }
-            await roomSessionRef.current.leave().catch(() => undefined);
-            roomSessionRef.current = null;
-          }
           setPhase('ended');
           setStatus('Call ended by other participant.');
           setHasVideoFrame(false);
           setWaitingIntakeVisible(false);
+          setRemoteVideoStream(null);
+
+          void (async () => {
+            await forceEndConference().catch(() => undefined);
+            await persistEstimateRecording().catch(() => undefined);
+            if (roomSessionRef.current) {
+              if (trackHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('track', trackHandlerRef.current);
+              }
+              if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+              }
+              if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+                roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+              }
+              await roomSessionRef.current.leave().catch(() => undefined);
+              roomSessionRef.current = null;
+            }
+          })();
           return;
         }
         transferWaitUntilRef.current = Date.now() + CONSULT_TRANSFER_GRACE_MS;
@@ -1488,36 +1489,39 @@ const PainterCallCenter: React.FC = () => {
         findVideoTimerRef.current = null;
       }
 
-      try {
-        await forceEndConference();
-      } catch {
-        // no-op
-      }
-
-      try {
-        await persistEstimateRecording();
-      } catch (error) {
-        console.error('Persist recording after remote leave failed:', error);
-      }
-
-      if (roomSessionRef.current) {
-        if (trackHandlerRef.current && roomSessionRef.current.off) {
-          roomSessionRef.current.off('track', trackHandlerRef.current);
-        }
-        if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
-          roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
-        }
-        if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
-          roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
-        }
-        await roomSessionRef.current.leave().catch(() => undefined);
-        roomSessionRef.current = null;
-      }
-
       setPhase('ended');
       setStatus('Call ended by other participant.');
       setHasVideoFrame(false);
       setWaitingIntakeVisible(false);
+      setRemoteVideoStream(null);
+
+      void (async () => {
+        try {
+          await forceEndConference();
+        } catch {
+          // no-op
+        }
+
+        try {
+          await persistEstimateRecording();
+        } catch (error) {
+          console.error('Persist recording after remote leave failed:', error);
+        }
+
+        if (roomSessionRef.current) {
+          if (trackHandlerRef.current && roomSessionRef.current.off) {
+            roomSessionRef.current.off('track', trackHandlerRef.current);
+          }
+          if (memberJoinedHandlerRef.current && roomSessionRef.current.off) {
+            roomSessionRef.current.off('member.joined', memberJoinedHandlerRef.current);
+          }
+          if (memberLeftHandlerRef.current && roomSessionRef.current.off) {
+            roomSessionRef.current.off('member.left', memberLeftHandlerRef.current);
+          }
+          await roomSessionRef.current.leave().catch(() => undefined);
+          roomSessionRef.current = null;
+        }
+      })();
     };
     session.on('member.left', memberLeftHandler);
     memberLeftHandlerRef.current = memberLeftHandler;
@@ -1680,7 +1684,7 @@ const PainterCallCenter: React.FC = () => {
     setStatus(nextStatus);
   };
 
-  const endProviderCallFromRemote = async (
+  const endProviderCallFromRemote = (
     nextPhase: CallPhase,
     nextStatus: string
   ) => {
@@ -1692,12 +1696,6 @@ const PainterCallCenter: React.FC = () => {
       window.clearInterval(findVideoTimerRef.current);
       findVideoTimerRef.current = null;
     }
-    await persistEstimateRecording().catch(() => undefined);
-    await forceEndConference().catch(() => undefined);
-    if (roomSessionRef.current) {
-      await roomSessionRef.current.leave().catch(() => undefined);
-      roomSessionRef.current = null;
-    }
     activeCallSidRef.current = null;
     setHomeownerInCallRoom(false);
     setHomeownerVideoEnabled(false);
@@ -1706,6 +1704,15 @@ const PainterCallCenter: React.FC = () => {
     setWaitingIntakeVisible(false);
     setPhase(nextPhase);
     setStatus(nextStatus);
+
+    void (async () => {
+      await persistEstimateRecording().catch(() => undefined);
+      await forceEndConference().catch(() => undefined);
+      if (roomSessionRef.current) {
+        await roomSessionRef.current.leave().catch(() => undefined);
+        roomSessionRef.current = null;
+      }
+    })();
   };
 
   const watchCallHealth = () => {
@@ -1750,9 +1757,9 @@ const PainterCallCenter: React.FC = () => {
           (phaseRef.current === 'calling' ||
             phaseRef.current === 'videoInviteSent')
         ) {
-          if (!homeownerVideoEnabled && !hasVideoFrameRef.current) {
+          if (!homeownerVideoEnabled) {
             setWaitingIntakeVisible(true);
-          } else if (homeownerVideoEnabled || hasVideoFrameRef.current) {
+          } else {
             setWaitingIntakeVisible(false);
           }
         }
@@ -3021,7 +3028,7 @@ const PainterCallCenter: React.FC = () => {
   const shouldShowWaitingIntakeForm =
     isWaitingIntakeVisible &&
     (phase === 'calling' || phase === 'videoInviteSent') &&
-    (!isHomeownerVideoEnabled || !hasVideoFrame);
+    !isHomeownerVideoEnabled;
   const phoneFrameStyle: React.CSSProperties = isActiveCallUI
     ? {
       position: 'fixed',
