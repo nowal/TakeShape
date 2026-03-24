@@ -3280,7 +3280,7 @@ const PainterCallCenter: React.FC = () => {
                     onChange={(event) =>
                       setHomeownerNameInput(event.target.value)
                     }
-                    placeholder="Homeowner Name (Optional)"
+                    placeholder="Customer Name (Optional)"
                   />
                   <MapsLoaded>
                     <CallAddressField
@@ -3294,7 +3294,7 @@ const PainterCallCenter: React.FC = () => {
                     onChange={(event) =>
                       setHomeownerEmailInput(event.target.value)
                     }
-                    placeholder="Homeowner Email (Optional)"
+                    placeholder="Customer Email (Optional)"
                   />
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button
