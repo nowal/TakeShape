@@ -14,7 +14,7 @@ export const MobileMenuModal: FC<TProps> = ({
       <ComponentsModalPosition>
         <>
           <ComponentsModalBackground
-            classBackgroundColor="bg-white"
+            classBackgroundColor="bg-[hsl(var(--app-bg-hsl)/98%)]"
             {...props}
           />
           {children}

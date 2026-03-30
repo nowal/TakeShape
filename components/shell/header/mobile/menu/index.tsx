@@ -74,7 +74,7 @@ export const ShellHeaderMobileMenu = () => {
           />
         </MobileMenuModal>
       )}
-      <div className="relative flex items-center justify-center size-12 text-pink shrink-0 shadow-09 rounded-md sm:hidden">
+      <div className="relative flex items-center justify-center size-12 text-pink shrink-0 shadow-09 rounded-md sm:hidden bg-[hsl(var(--app-bg-hsl))] border border-black-08">
         <ShellHeaderMobileButton />
       </div>
     </>

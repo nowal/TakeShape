@@ -16,6 +16,7 @@ import {
   where
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
@@ -24,6 +25,7 @@ import { InputsText } from '@/components/inputs/text';
 import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
 import { MapsLoaded } from '@/components/maps/loaded';
 import { useViewport } from '@/context/viewport';
+import { isPainterPaying } from '@/utils/painter-billing';
 
 type CallPhase = 'idle' | 'calling' | 'videoInviteSent' | 'quoteDraft' | 'ended' | 'dropped';
 
@@ -406,6 +408,7 @@ const CallAddressField: React.FC<TCallAddressFieldProps> = ({
 };
 
 const PainterCallCenter: React.FC = () => {
+  const router = useRouter();
   const viewport = useViewport();
   const [status, setStatus] = useState('Ready');
   const [phase, setPhase] = useState<CallPhase>('idle');
@@ -417,6 +420,7 @@ const PainterCallCenter: React.FC = () => {
   const [isSendingVideoInvite, setIsSendingVideoInvite] = useState(false);
   const [isCheckingAuth, setCheckingAuth] = useState(true);
   const [isPainterUser, setPainterUser] = useState(false);
+  const [isPayingProvider, setPayingProvider] = useState<boolean | null>(null);
   const [painterDocId, setPainterDocId] = useState<string | null>(null);
   const [authUid, setAuthUid] = useState<string | null>(null);
   const [homeownerNameInput, setHomeownerNameInput] = useState('');
@@ -677,6 +681,7 @@ const PainterCallCenter: React.FC = () => {
       setAuthUid(null);
       setPainterDocId(null);
       setPainterUser(false);
+      setPayingProvider(null);
       setPainterCallerId('');
       setCallerIdVerified(false);
       setCallerIdVerificationStep('request');
@@ -710,6 +715,7 @@ const PainterCallCenter: React.FC = () => {
             setAuthUid(null);
             setPainterDocId(null);
             setPainterUser(false);
+            setPayingProvider(null);
             setPainterCallerId('');
             setCallerIdVerified(false);
             setCallerIdVerificationStep('request');
@@ -733,6 +739,7 @@ const PainterCallCenter: React.FC = () => {
               string,
               unknown
             >;
+            setPayingProvider(isPainterPaying(painterData));
             const normalizedPhone = normalizeUsPhoneToE164(
               String(
                 painterData.phoneNumber ||
@@ -758,6 +765,7 @@ const PainterCallCenter: React.FC = () => {
           } else {
             setPainterDocId(null);
             setPainterUser(false);
+            setPayingProvider(null);
             setPainterCallerId('');
             setStoredCallerIdId(null);
             setRequiresCallerIdVerification(false);
@@ -772,6 +780,7 @@ const PainterCallCenter: React.FC = () => {
           setAuthUid(null);
           setPainterDocId(null);
           setPainterUser(false);
+          setPayingProvider(null);
           setPainterCallerId('');
           setStoredCallerIdId(null);
           setRequiresCallerIdVerification(false);
@@ -792,6 +801,7 @@ const PainterCallCenter: React.FC = () => {
         setAuthUid(null);
         setPainterDocId(null);
         setPainterUser(false);
+        setPayingProvider(null);
         setPainterCallerId('');
         setStoredCallerIdId(null);
         setRequiresCallerIdVerification(false);
@@ -809,6 +819,12 @@ const PainterCallCenter: React.FC = () => {
       unsubscribe();
     };
   }, [auth, firestore]);
+
+  useEffect(() => {
+    if (!isCheckingAuth && isPainterUser && isPayingProvider === false) {
+      router.push('/plans');
+    }
+  }, [isCheckingAuth, isPainterUser, isPayingProvider, router]);
 
   useEffect(() => {
     if (!isPainterUser || !painterCallerId) {
@@ -3008,7 +3024,7 @@ const PainterCallCenter: React.FC = () => {
           style={{
             maxWidth: 540,
             width: '100%',
-            background: '#fff',
+            background: 'var(--app-surface-card)',
             border: '1px solid #dbe3ef',
             borderRadius: 16,
             padding: 24,
@@ -3022,6 +3038,10 @@ const PainterCallCenter: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (isPayingProvider === false) {
+    return <div style={{ padding: 24 }}>Redirecting to plans...</div>;
   }
 
   const isActiveCallUI = phase === 'calling' || phase === 'videoInviteSent' || phase === 'quoteDraft';
@@ -3149,7 +3169,7 @@ const PainterCallCenter: React.FC = () => {
                     width: 120,
                     borderRadius: 12,
                     border: '1px solid #cbd5e1',
-                    background: '#fff',
+                    background: 'var(--app-surface-card)',
                     color: '#0f172a',
                     padding: '12px 14px',
                     fontWeight: 600,
@@ -3259,7 +3279,7 @@ const PainterCallCenter: React.FC = () => {
               Start Virtual Estimate
             </h2>
             <div className="relative flex flex-col gap-5 items-center w-full sm:w-[382px]">
-              <div className="fill-column-white-sm w-full">
+              <div className="fill-column-surface-sm w-full">
                 <div className="flex flex-col gap-4">
                   <InputsText
                     type="tel"

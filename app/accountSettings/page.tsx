@@ -42,7 +42,7 @@ const AccountSettingsPage = () => {
             Your Profile
           </h2>
           <div className="relative flex flex-col gap-5 items-center w-[320px] sm:w-[382px]">
-            <div className="fill-column-white-sm gap-4">
+            <div className="fill-column-surface-sm gap-4">
               {isError && (
                 <ComponentsAccountSettingsNotifications>
                   {errorMessage}

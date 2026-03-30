@@ -606,7 +606,7 @@ export default function QuotesPage() {
           style={{
             maxWidth: 540,
             width: '100%',
-            background: '#fff',
+            background: 'var(--app-surface-card)',
             border: '1px solid #dbe3ef',
             borderRadius: 16,
             padding: 24,
@@ -684,7 +684,7 @@ export default function QuotesPage() {
                 margin: '0 auto',
                 borderRadius: 16,
                 border: '1px solid #dbe3ef',
-                background: '#fff',
+                background: 'var(--app-surface-card)',
                 boxShadow: '0 8px 20px rgba(15,23,42,0.06)',
                 padding: 16
               }}
@@ -1002,7 +1002,7 @@ export default function QuotesPage() {
             style={{
               width: '100%',
               maxWidth: 420,
-              background: '#fff',
+              background: 'var(--app-surface-card)',
               borderRadius: 16,
               border: '1px solid #dbe3ef',
               boxShadow: '0 18px 40px rgba(15,23,42,0.24)',
@@ -1073,7 +1073,7 @@ export default function QuotesPage() {
                 style={{
                   border: '1px solid #cbd5e1',
                   borderRadius: 10,
-                  background: '#fff',
+                  background: 'var(--app-surface-card)',
                   color: '#334155',
                   padding: '8px 12px',
                   fontWeight: 600,
@@ -1159,7 +1159,7 @@ const modalInputStyle: React.CSSProperties = {
   height: 44,
   borderRadius: 10,
   border: '1px solid #dbe3ef',
-  background: '#fff',
+  background: 'var(--app-surface-card)',
   color: '#0f172a',
   padding: '0 12px',
   fontSize: 14

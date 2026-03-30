@@ -12,7 +12,11 @@ import { ShellChildren } from '@/components/shell/children';
 import { MotionConfig } from 'framer-motion';
 import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
-import { PRIMARY_COLOR_HSL } from '@/constants/brand-color';
+import {
+  APP_BACKGROUND_HSL,
+  PRIMARY_COLOR_HSL,
+  SECONDARY_BACKGROUND_HSL,
+} from '@/constants/brand-color';
 
 import '../css/inputs.css';
 import '../css/reset.css';
@@ -34,6 +38,12 @@ export default function RootLayout({ children }: TProps) {
     '--primary-h': `${PRIMARY_COLOR_HSL.hue}`,
     '--primary-s': `${PRIMARY_COLOR_HSL.saturation}%`,
     '--primary-l': `${PRIMARY_COLOR_HSL.lightness}%`,
+    '--app-bg-h': `${APP_BACKGROUND_HSL.hue}`,
+    '--app-bg-s': `${APP_BACKGROUND_HSL.saturation}%`,
+    '--app-bg-l': `${APP_BACKGROUND_HSL.lightness}%`,
+    '--secondary-bg-h': `${SECONDARY_BACKGROUND_HSL.hue}`,
+    '--secondary-bg-s': `${SECONDARY_BACKGROUND_HSL.saturation}%`,
+    '--secondary-bg-l': `${SECONDARY_BACKGROUND_HSL.lightness}%`,
   } as CSSProperties;
 
   return (
@@ -41,7 +51,10 @@ export default function RootLayout({ children }: TProps) {
       <CssGlobal />
       <Provider>
         <body className="font-montserrat">
-          <div className="fixed inset-0 bg-white" />
+          <div
+            className="fixed inset-0"
+            style={{ backgroundColor: 'var(--app-bg)' }}
+          />
           <div className="relative flex min-h-screen flex-col items-stretch max-w-shell w-full mx-auto">
             <MotionConfig transition={MOTION_CONFIG}>
               <ContextProviders>

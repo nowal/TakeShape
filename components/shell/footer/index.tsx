@@ -1,10 +1,27 @@
 'use client';
 import { cx } from 'class-variance-authority';
+import { usePathname } from 'next/navigation';
 import { ShellFooterLogo } from '@/components/shell/footer/logo';
 import { ShellFooterTelephone } from '@/components/shell/footer/telephone';
 import { ShellFooterEmail } from '@/components/shell/footer/email';
 
 export const ShellFooter = () => {
+  const pathname = usePathname();
+  const isHiddenFooterRoute =
+    pathname === '/' ||
+    pathname === '/newLanding' ||
+    pathname === '/plans' ||
+    pathname.startsWith('/plans/') ||
+    pathname === '/call' ||
+    pathname.startsWith('/call/') ||
+    pathname === '/quotes' ||
+    pathname === '/accountSettings' ||
+    pathname === '/providerRegister';
+
+  if (isHiddenFooterRoute) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col items-stretch">
       <footer

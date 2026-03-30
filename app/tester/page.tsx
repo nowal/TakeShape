@@ -1,7 +1,7 @@
 'use client';
 
 import { Video as SWVideo } from '@signalwire/js';
-import { Mic, MicOff, Phone, PhoneOff, Volume2, Video as VideoIcon } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Volume2, Video as VideoIcon } from 'lucide-react';
 import firebase from '@/lib/firebase';
 import {
   addDoc,
@@ -2447,7 +2447,7 @@ const PainterCallCenter: React.FC = () => {
       process.env.NEXT_PUBLIC_BASE_URL ||
       window.location.origin;
     const nextGuestLink =
-      `${appBase}/tested?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`;
+      `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`;
     setGuestLink(nextGuestLink);
     activeHomeownerNameRef.current = normalizedHomeownerName;
     activeHomeownerAddressRef.current =
@@ -2513,7 +2513,7 @@ const PainterCallCenter: React.FC = () => {
       } catch {
         didCopy = false;
         window.prompt(
-          'Copy this /tested link and send to the homeowner:',
+          'Copy this /consult link and send to the homeowner:',
           linkWithQuote
         );
       }
@@ -2543,7 +2543,7 @@ const PainterCallCenter: React.FC = () => {
     setPhase('videoInviteSent');
     setStatus(
       options?.skipCopy
-        ? 'Room ready. Tap Copy Link to send the /tested URL.'
+        ? 'Room ready. Tap Copy Link to send the /consult URL.'
         : didCopy
         ? 'Video Mode'
         : 'Video Mode. Auto-copy failed, use the consult link below.'
@@ -2792,7 +2792,7 @@ const PainterCallCenter: React.FC = () => {
       setStatus('Video Mode');
     } catch {
       const promptResult = window.prompt(
-        'Copy this /tested link and send to the homeowner:',
+        'Copy this /consult link and send to the homeowner:',
         guestLink
       );
       setHasCopiedVideoLink(Boolean(promptResult && promptResult.trim()));
@@ -3329,10 +3329,9 @@ const PainterCallCenter: React.FC = () => {
                         gap: 6
                       }}
                     >
-                      <Phone size={18} />
                       {isStartingCall
                         ? 'Starting...'
-                        : 'Outbound Call'}
+                        : 'Outgoing'}
                     </button>
                     <button
                       onClick={createVideoRoom}
@@ -3363,10 +3362,9 @@ const PainterCallCenter: React.FC = () => {
                         gap: 8
                       }}
                     >
-                      <VideoIcon size={18} />
                       {isSendingVideoInvite
                         ? 'Creating...'
-                        : 'Inbound Call'}
+                        : 'Incoming'}
                     </button>
                   </div>
                 </div>
@@ -3703,10 +3701,33 @@ const PainterCallCenter: React.FC = () => {
                       textAlign: 'center',
                       color: '#86efac',
                       fontWeight: 700,
-                      fontSize: 15
+                      fontSize: 15,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 10
                     }}
                   >
-                    Congratulations, the homeowner has accepted your quote!
+                    <div>Congratulations, the homeowner has accepted your quote!</div>
+                    <button
+                      onClick={() => {
+                        window.location.href = '/call';
+                      }}
+                      onMouseEnter={() => setHoveredPrimaryButton('go-home-accepted')}
+                      onMouseLeave={() => setHoveredPrimaryButton((current) => current === 'go-home-accepted' ? null : current)}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        padding: '9px 16px',
+                        color: '#fff',
+                        background: getPrimaryButtonBackground('go-home-accepted'),
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Home
+                    </button>
                   </div>
                 )}
                 </div>

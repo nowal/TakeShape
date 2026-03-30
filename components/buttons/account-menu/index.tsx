@@ -46,7 +46,12 @@ export const AccountMenu = () => {
       <CvaButton
         title="Title Open"
         onTap={onMenuOpenToggle}
-        classValue={cx('bg-white', 'shadow-md', 'z-10')}
+        classValue={cx(
+          'bg-[hsl(var(--app-bg-hsl))]',
+          'border border-black-08',
+          'shadow-md',
+          'z-10'
+        )}
         rounded="full"
         size="iconXl"
         intent="icon"

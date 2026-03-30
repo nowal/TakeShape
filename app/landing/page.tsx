@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { cx } from 'class-variance-authority';
 import { LandingFaq } from '@/components/landing/faq';
@@ -16,6 +17,55 @@ import { AnimationFade } from '@/components/animation/fade';
 const Landing = () => {
   const viewport = useViewport();
   const objectPosition = useObjectPosition();
+
+  useEffect(() => {
+    let isCancelled = false;
+    let controller: { destroy: () => void } | null = null;
+
+    const initializeEmbed = () => {
+      const embedApi = (window as any).TakeShapeEmbed;
+      if (!embedApi || typeof embedApi.init !== 'function') {
+        return;
+      }
+
+      controller = embedApi.init({
+        mode: 'modal',
+        buttonText: 'Send Us A Video',
+        buttonPosition: 'bottom-right',
+        providerId: 'landing-demo-provider',
+      });
+    };
+
+    const existingScript = document.querySelector(
+      'script[src="/embed.js"]'
+    ) as HTMLScriptElement | null;
+
+    if ((window as any).TakeShapeEmbed) {
+      initializeEmbed();
+    } else if (existingScript) {
+      existingScript.addEventListener('load', initializeEmbed);
+    } else {
+      const script = document.createElement('script');
+      script.src = '/embed.js';
+      script.async = true;
+      script.onload = () => {
+        if (!isCancelled) {
+          initializeEmbed();
+        }
+      };
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      isCancelled = true;
+
+      if (existingScript) {
+        existingScript.removeEventListener('load', initializeEmbed);
+      }
+
+      controller?.destroy?.();
+    };
+  }, []);
 
   return (
     <>

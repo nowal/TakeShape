@@ -9,7 +9,10 @@ const ProviderRegisterPage = () => {
   const { errorMessage } = painterRegister;
 
   return (
-    <ComponentsRegisterShell title="Provider Registration">
+    <ComponentsRegisterShell
+      title="Provider Registration"
+      isSurface
+    >
       <>
         {errorMessage && (
           <ComponentsAccountSettingsNotifications>

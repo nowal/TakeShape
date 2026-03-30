@@ -16,9 +16,13 @@ import {
   addDoc,
   doc,
   getDoc,
+  getDocs,
+  query,
+  where,
 } from 'firebase/firestore';
 import { TAuthConfig } from '@/context/auth/types';
 import { useApp } from '@/context/app/provider';
+import { isPainterPaying } from '@/utils/painter-billing';
 
 export const useSignIn = ({
   isUserSignedIn,
@@ -125,6 +129,28 @@ export const useSignIn = ({
         if (agentDoc.exists()) {
           onNavigateScrollTopClick('/agentDashboard');
         } else {
+          const painterQuery = query(
+            collection(firestore, 'painters'),
+            where('userId', '==', currentUser.uid)
+          );
+          const painterSnapshot = await withTimeout(
+            getDocs(painterQuery),
+            FIRESTORE_TIMEOUT_MS,
+            'Provider lookup timed out. Please try again.'
+          );
+
+          if (!painterSnapshot.empty) {
+            const painterData = painterSnapshot.docs[0]
+              .data() as Record<string, unknown>;
+            if (isPainterPaying(painterData)) {
+              onNavigateScrollTopClick('/call');
+            } else {
+              onNavigateScrollTopClick('/plans');
+            }
+            dispatchAuthLoading(false);
+            return;
+          }
+
           // Link quote data to the user's account if they are not an agent
           const quoteData =
             sessionStorage.getItem('quoteData');

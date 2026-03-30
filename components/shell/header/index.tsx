@@ -12,21 +12,20 @@ import { ShellHeaderBackground } from '@/components/shell/header/background';
 
 export const ShellHeader = () => {
   const pathname = usePathname();
-  const isLanding = pathname === '/landing';
+  const isLandingRoute =
+    pathname === '/landing' || pathname === '/newLanding';
   const viewport = useViewport();
   const height = viewport.headerHeight;
-  const headerBackgroundColor = '#FFFFFF'
+  const headerBackgroundColor = 'hsl(var(--app-bg-hsl))';
 
   return (
     <header
       className={cx(
-        isLanding ? 'fixed' : 'relative',
+        isLandingRoute ? 'fixed' : 'relative',
         'flex justify-center',
         'w-full',
         'top-0 inset-x-0 pt-3.5',
-        viewport.isDimensions && viewport.isSm
-          ? 'z-20'
-          : 'z-10'
+        'z-40'
       )}
     >
       <InView

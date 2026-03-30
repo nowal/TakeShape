@@ -6,12 +6,68 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(request: NextRequest) {
-  console.log(request)
   try {
-    const { amount, painterId, userImageId } = await request.json(); // Get painterId and userImageId
+    const {
+      amount,
+      painterId,
+      userImageId,
+      plan,
+      userId,
+      email,
+      painterDocId,
+    } = await request.json();
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || request.nextUrl.origin;
+
+    if (plan) {
+      const normalizedPlan = String(plan).trim().toLowerCase();
+      const isPro = normalizedPlan === 'pro';
+
+      if (!isPro) {
+        throw new Error('Invalid plan selected');
+      }
+
+      const monthlyCents = 4800;
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'subscription',
+        customer_email: typeof email === 'string' ? email : undefined,
+        metadata: {
+          plan: normalizedPlan,
+          userId: String(userId || ''),
+          painterDocId: String(painterDocId || ''),
+        },
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              recurring: { interval: 'month' },
+              product_data: {
+                name: 'Pro Plan',
+                description:
+                  'Provider subscription for TakeShape call center access.',
+              },
+              unit_amount: monthlyCents,
+            },
+            quantity: 1,
+          },
+        ],
+        subscription_data: { trial_period_days: 30 },
+        custom_text: {
+          submit: {
+            message:
+              'You will not be charged today. Your subscription starts at $48/month after the first 30 days.',
+          },
+        },
+        success_url: `${baseUrl}/plans/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/plans?canceled=1`,
+      });
+
+      return NextResponse.json({ sessionId: session.id });
+    }
 
     if (!amount) {
-      throw new Error("Amount is required");
+      throw new Error('Amount is required');
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -27,13 +83,13 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/congrats?userImageId=${userImageId}&painterId=${painterId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+      success_url: `${baseUrl}/congrats?userImageId=${userImageId}&painterId=${painterId}`,
+      cancel_url: `${baseUrl}/dashboard`,
     });
 
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {
-    console.error("Error creating Stripe session:", error);
+    console.error('Error creating Stripe session:', error);
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

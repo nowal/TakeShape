@@ -34,7 +34,7 @@ export const ComponentsPanel: FC<TProps> = ({
   return (
     <div
       className={cx(
-        'fill-column-white-sm',
+        'fill-column-surface-sm',
         classWidth ?? 'w-[320px] xs:w-[345px]',
         classValue
       )}

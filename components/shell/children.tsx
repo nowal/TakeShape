@@ -8,7 +8,8 @@ import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 type TProps = TPropsWithChildren;
 export const ShellChildren: FC<TProps> = ({ children }) => {
   const pathname = usePathname();
-  const isLanding = pathname === '/landing';
+  const isLanding =
+    pathname === '/landing' || pathname === '/newLanding';
   return (
     <div
       className={cx(

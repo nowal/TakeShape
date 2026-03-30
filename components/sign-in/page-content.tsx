@@ -31,7 +31,10 @@ export const SignInPageContent = () => {
     : 'Login';
 
   return (
-    <ComponentsRegisterShell title="Provider Login">
+    <ComponentsRegisterShell
+      title="Provider Login"
+      isSurface
+    >
       <>
         <form
           onSubmit={onSignIn}

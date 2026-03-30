@@ -24,7 +24,8 @@ export const AccountMenuList: FC<TProps> = ({
         'flex flex-col items-stretch',
         classPosition ?? 'absolute right-0 top-full mt-2',
         'w-full sm:w-48 z-20',
-        'bg-white',
+        'bg-[hsl(var(--app-bg-hsl)/98%)]',
+        'border border-black-08',
         'drop-shadow-none sm:drop-shadow-05',
         'rounded-xl'
       )}
@@ -51,7 +52,7 @@ export const AccountMenuList: FC<TProps> = ({
                     isFirst && 'sm:rounded-t-xl',
                     isLast && 'sm:rounded-b-xl',
                     'active:bg-black',
-                    'hover:bg-pink hover:bg-opacity-100 sm:hover:bg-white-1 sm:hover:bg-opacity-50'
+                    'hover:bg-pink hover:bg-opacity-100 sm:hover:bg-[hsl(var(--app-bg-hsl)/92%)]'
                   )}
                 >
                   <span

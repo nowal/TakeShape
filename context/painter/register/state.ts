@@ -99,6 +99,12 @@ export const usePainterRegisterState = () => {
         businessName,
         address: addressValue,
         ...(coords ? { coords } : {}),
+        paid: false,
+        paying: false,
+        billingPlan: null,
+        subscriptionStatus: null,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
         range: 0,
         isInsured: false,
         logoUrl,
@@ -123,7 +129,7 @@ export const usePainterRegisterState = () => {
       console.log('Painter info saved:', painterData);
 
       dispatchPainter(true); // Set the user as a painter
-      onNavigateScrollTopClick('/call');
+      onNavigateScrollTopClick('/plans');
     } catch (error) {
       console.error('Error registering painter: ', error);
       const errorMessage: null | string = errorAuth(error);

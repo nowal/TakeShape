@@ -9,9 +9,13 @@ export const ShellHeaderBackground: FC = () => {
     <div
       className={cx(
         'absolute inset-0',
+        'rounded-xl sm:rounded-2xl',
+        'border border-black-08',
+        'backdrop-blur-md',
         'shadow-09 sm:shadow-08',
-        'rounded-[0.70013rem] sm:rounded-15.1875',
-        isUserSignedIn ? 'bg-white-5' : 'bg-white'
+        isUserSignedIn
+          ? 'bg-[hsl(var(--app-bg-hsl)/98%)]'
+          : 'bg-[hsl(var(--app-bg-hsl)/96%)]'
       )}
     />
   );

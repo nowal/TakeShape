@@ -37,6 +37,7 @@ export const SignInModal: FC = () => {
   return (
     <ComponentsModal onTap={onClose}>
       <ComponentsPanel
+        classValue="!bg-[hsl(var(--app-bg-hsl))]"
         title="Login"
         closeProps={{
           title: 'Close Login Modal',

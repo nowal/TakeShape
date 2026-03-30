@@ -11,7 +11,9 @@ export const HeaderOptions: FC = () => {
 
   return (
     <div className="hidden items-center px-4 gap-2.5 sm:px-2 sm:flex">
-      {!isUserSignedIn && <SignInButton />}
+      {!isUserSignedIn && (
+        <SignInButton classValue="!bg-[hsl(var(--app-bg-hsl))] !border-black-08 hover:!bg-[hsl(var(--app-bg-hsl)/92%)]" />
+      )}
       {!isQuotePage && <SignUpButton />}
       {isUserSignedIn && <AccountMenu />}
     </div>

@@ -9,6 +9,12 @@
   /* -- */
   /* Primary brand color is set globally from app/layout.tsx. */
   --primary-hsl: var(--primary-h, 343) var(--primary-s, 90%) var(--primary-l, 40%);
+  --app-bg-hsl: var(--app-bg-h, 40) var(--app-bg-s, 33%) var(--app-bg-l, 96%);
+  --secondary-bg-hsl: var(--secondary-bg-h, 150) var(--secondary-bg-s, 7%) var(--secondary-bg-l, 51%);
+  --app-bg: hsl(var(--app-bg-hsl));
+  --app-secondary-bg: hsl(var(--secondary-bg-hsl));
+  --app-surface: hsl(var(--secondary-bg-hsl) / 10%);
+  --app-surface-card: hsl(var(--secondary-bg-hsl) / 14%);
   --pink: hsl(var(--primary-hsl));
   /* using this `--pink` variable will fail Google Insights accessiblity tests */
   /* -- */
@@ -43,6 +49,7 @@ body,
 html,
 #__next {
   font-style: normal;
+  background-color: var(--app-bg);
   /* color: rgb(var(--foreground-rgb)); */
 }
 html,
@@ -78,11 +85,11 @@ input {
 }
 
 .bg-floral-white {
-  background-color: #ffffff;
+  background-color: var(--app-bg);
 }
 
 .secondary-color {
-  background-color: #d4c4c5;
+  background-color: var(--app-secondary-bg);
 }
 
 .button-color {
@@ -250,5 +257,16 @@ input {
   }
   .fill-gray-col {
     @apply fill-gray-base flex-col items-stretch;
+  }
+
+  .fill-column-surface-base {
+    @apply flex flex-col items-stretch w-full shadow-08 rounded-2xl;
+    background-color: var(--app-surface-card);
+  }
+  .fill-column-surface {
+    @apply fill-column-surface-base px-6 py-9;
+  }
+  .fill-column-surface-sm {
+    @apply fill-column-surface-base px-4 py-5;
   }
 }
