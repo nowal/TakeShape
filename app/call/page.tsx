@@ -2994,15 +2994,6 @@ const PainterCallCenter: React.FC = () => {
     await startPhoneCall();
   };
 
-  const stageLabel = useMemo(() => {
-    if (phase === 'idle') return 'Ready';
-    if (phase === 'calling') return 'On Call';
-    if (phase === 'videoInviteSent') return 'Video Estimate';
-    if (phase === 'quoteDraft') return 'Create Quote';
-    if (phase === 'dropped') return 'Dropped';
-    return 'Ended';
-  }, [phase]);
-
   if (isCheckingAuth) {
     return <div style={{ padding: 24 }}>Checking account...</div>;
   }
@@ -3015,7 +3006,7 @@ const PainterCallCenter: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'radial-gradient(circle at 20% 0%, #ecf7ff 0%, #f8fafc 55%, #eef2f7 100%)',
+          background: 'var(--app-bg)',
           color: '#0f172a',
           padding: 24
         }}
@@ -3088,6 +3079,7 @@ const PainterCallCenter: React.FC = () => {
   return (
     <div style={{ minHeight: '100dvh', background: isActiveCallUI ? '#000' : 'transparent', color: isActiveCallUI ? '#fff' : '#0f172a', padding: isActiveCallUI ? 0 : '8px' }}>
       <style jsx global>{`
+        ${isActiveCallUI ? '[data-shell-header] { display: none !important; }' : ''}
         .pac-container {
           z-index: 99999 !important;
           border-radius: 12px;
@@ -3101,12 +3093,6 @@ const PainterCallCenter: React.FC = () => {
         }
       `}</style>
       <div style={{ maxWidth: isActiveCallUI ? '100%' : 900, margin: '0 auto' }}>
-        {!isActiveCallUI && (
-          <div style={{ textAlign: 'center', margin: '8px 0 12px 0' }}>
-            <div style={{ fontSize: 12, color: '#92a0b5', letterSpacing: 1 }}>{stageLabel}</div>
-            <div style={{ marginTop: 6, fontWeight: 600, color: '#0f172a' }}>{status}</div>
-          </div>
-        )}
         {!isActiveCallUI && isPainterUser && requiresCallerIdVerification && !isCallerIdVerified && (
           <div
             style={{
@@ -3252,24 +3238,6 @@ const PainterCallCenter: React.FC = () => {
             )}
           </div>
         )}
-        {isActiveCallUI && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 10,
-              left: 0,
-              right: 0,
-              zIndex: 20,
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#d2d7df',
-              textShadow: '0 1px 2px rgba(0,0,0,0.8)'
-            }}
-          >
-            {status}
-          </div>
-        )}
-
         {phase === 'idle' && (
           <div className="relative flex flex-col gap-5 items-center px-4 py-8">
             <h2
@@ -3458,29 +3426,6 @@ const PainterCallCenter: React.FC = () => {
                 pointerEvents: 'none'
               }}
             />
-            {!shouldShowWaitingIntakeForm && phase !== 'quoteDraft' && !hasVideoFrame && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: '#000',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#8ea0bb',
-                  textAlign: 'center',
-                  padding: 16
-                }}
-              >
-                {phase === 'calling'
-                  ? (
-                      activeHomeownerNumberRef.current
-                        ? 'Audio call active'
-                        : 'Video room ready'
-                    )
-                  : 'Waiting for Homeowner Video'}
-              </div>
-            )}
             {shouldShowWaitingIntakeForm && (
               <div
                 style={{
@@ -3833,20 +3778,73 @@ const PainterCallCenter: React.FC = () => {
                 </button>
               )}
               {phase === 'videoInviteSent' && (
-                <div
-                  style={{
-                    width: '100%',
-                    maxWidth: 420,
-                    display: 'flex',
-                    gap: 10
-                  }}
-                >
+                hasCopiedVideoLink ? (
+                  <div
+                    style={{
+                      width: '100%',
+                      maxWidth: 420,
+                      display: 'flex',
+                      gap: 10
+                    }}
+                  >
+                    <button
+                      onClick={copyConsultLinkNow}
+                      onMouseEnter={() => setCopyLinkHovered(true)}
+                      onMouseLeave={() => setCopyLinkHovered(false)}
+                      style={{
+                        flex: 1,
+                        height: 48,
+                        borderRadius: 999,
+                        border: 'none',
+                        padding: '0 18px',
+                        background: isCopyLinkHovered ? primaryActionHoverColor : primaryActionColor,
+                        color: '#fff',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Re-copy Link
+                    </button>
+                    <button
+                      onClick={enterQuoteMode}
+                      disabled={isSettingQuoteMode}
+                      onMouseEnter={() => setCreateQuoteHovered(true)}
+                      onMouseLeave={() => setCreateQuoteHovered(false)}
+                      style={{
+                        flex: 1,
+                        height: 48,
+                        borderRadius: 999,
+                        border: 'none',
+                        padding: '0 18px',
+                        background: isSettingQuoteMode
+                          ? disabledPrimaryActionColor
+                          : isCreateQuoteHovered
+                            ? primaryActionHoverColor
+                            : primaryActionColor,
+                        color: '#fff',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {isSettingQuoteMode ? 'Starting...' : 'Create Quote'}
+                    </button>
+                  </div>
+                ) : (
                   <button
                     onClick={copyConsultLinkNow}
                     onMouseEnter={() => setCopyLinkHovered(true)}
                     onMouseLeave={() => setCopyLinkHovered(false)}
                     style={{
-                      flex: 1,
+                      width: '100%',
+                      maxWidth: 360,
                       height: 48,
                       borderRadius: 999,
                       border: 'none',
@@ -3863,34 +3861,7 @@ const PainterCallCenter: React.FC = () => {
                   >
                     Copy Link
                   </button>
-                  <button
-                    onClick={enterQuoteMode}
-                    disabled={isSettingQuoteMode}
-                    onMouseEnter={() => setCreateQuoteHovered(true)}
-                    onMouseLeave={() => setCreateQuoteHovered(false)}
-                    style={{
-                      flex: 1,
-                      height: 48,
-                      borderRadius: 999,
-                      border: 'none',
-                      padding: '0 18px',
-                      background: isSettingQuoteMode
-                        ? disabledPrimaryActionColor
-                        : isCreateQuoteHovered
-                          ? primaryActionHoverColor
-                          : primaryActionColor,
-                      color: '#fff',
-                      fontWeight: 700,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {isSettingQuoteMode ? 'Starting...' : 'Create Quote'}
-                  </button>
-                </div>
+                )
               )}
               {phase === 'quoteDraft' && !isQuoteAccepted && (
                 <button

@@ -196,7 +196,7 @@ export default function PricingPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'radial-gradient(circle at 20% 0%, #ecf7ff 0%, #f8fafc 55%, #eef2f7 100%)',
+          background: 'var(--app-bg)',
           color: '#0f172a',
           padding: 24
         }}

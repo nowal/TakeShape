@@ -573,6 +573,42 @@ const ConsultPage: React.FC = () => {
     setStatus('Quote accepted. Call ended.');
   }, [cleanupSession, stopConferenceWatch, stopQuoteWatcher]);
 
+  const endConferenceEverywhereOnPageExit = useCallback(() => {
+    if (!roomNameRef.current && !conferenceIdRef.current) return;
+
+    const payload = {
+      roomName: roomNameRef.current || undefined,
+      conferenceId: conferenceIdRef.current || undefined,
+      callSid: callSidRef.current || undefined
+    };
+    const body = JSON.stringify(payload);
+
+    try {
+      fetch('/api/signalwire/end-conference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true
+      }).catch(() => undefined);
+    } catch {
+      // no-op
+    }
+
+    try {
+      if (navigator.sendBeacon) {
+        const beaconBody = new Blob([body], {
+          type: 'application/json'
+        });
+        navigator.sendBeacon(
+          '/api/signalwire/end-conference',
+          beaconBody
+        );
+      }
+    } catch {
+      // no-op
+    }
+  }, []);
+
   const endConferenceEverywhere = useCallback(async () => {
     if (!roomNameRef.current && !conferenceIdRef.current) return;
     try {
@@ -1333,6 +1369,32 @@ const ConsultPage: React.FC = () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
+
+  useEffect(() => {
+    const handlePageExit = () => {
+      if (localEndRequestedRef.current) return;
+      localEndRequestedRef.current = true;
+      stopConferenceWatch();
+      stopQuoteWatcher();
+      publishHomeownerVideoState(false).catch(() => undefined);
+      endConferenceEverywhereOnPageExit();
+      cleanupSession().catch(() => undefined);
+    };
+
+    window.addEventListener('beforeunload', handlePageExit);
+    window.addEventListener('pagehide', handlePageExit);
+
+    return () => {
+      window.removeEventListener('beforeunload', handlePageExit);
+      window.removeEventListener('pagehide', handlePageExit);
+    };
+  }, [
+    cleanupSession,
+    endConferenceEverywhereOnPageExit,
+    publishHomeownerVideoState,
+    stopConferenceWatch,
+    stopQuoteWatcher
+  ]);
 
   useEffect(() => {
     if (didInitRef.current) return;

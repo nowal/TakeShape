@@ -14,12 +14,18 @@ export const ShellHeader = () => {
   const pathname = usePathname();
   const isLandingRoute =
     pathname === '/landing' || pathname === '/newLanding';
+  const isHiddenHeaderRoute = pathname === '/consult';
   const viewport = useViewport();
   const height = viewport.headerHeight;
   const headerBackgroundColor = 'hsl(var(--app-bg-hsl))';
 
+  if (isHiddenHeaderRoute) {
+    return null;
+  }
+
   return (
     <header
+      data-shell-header
       className={cx(
         isLandingRoute ? 'fixed' : 'relative',
         'flex justify-center',
