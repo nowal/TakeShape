@@ -14,6 +14,8 @@ export const ShellFooter = () => {
     pathname.startsWith('/plans/') ||
     pathname === '/call' ||
     pathname.startsWith('/call/') ||
+    pathname === '/call-demo' ||
+    pathname.startsWith('/call-demo/') ||
     pathname === '/quotes' ||
     pathname === '/accountSettings' ||
     pathname === '/providerRegister';

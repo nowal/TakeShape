@@ -14,7 +14,10 @@ export const ShellHeader = () => {
   const pathname = usePathname();
   const isLandingRoute =
     pathname === '/landing' || pathname === '/newLanding';
-  const isHiddenHeaderRoute = pathname === '/consult';
+  const isHiddenHeaderRoute =
+    pathname === '/consult' ||
+    pathname === '/call-demo' ||
+    pathname.startsWith('/call-demo/');
   const viewport = useViewport();
   const height = viewport.headerHeight;
   const headerBackgroundColor = 'hsl(var(--app-bg-hsl))';
