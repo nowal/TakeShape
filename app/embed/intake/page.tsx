@@ -347,7 +347,7 @@ export default function EmbedIntakePage() {
                   />
                 </label>
 
-                <div className="w-full">
+                <div className="w-full flex justify-center">
                   <ButtonsQuoteSubmit
                     title={
                       videoSubmitPending
