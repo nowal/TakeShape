@@ -30,6 +30,8 @@ type QuotePricingRow = {
 type QuoteCard = {
   id: string;
   videoUrl: string | null;
+  thumbnailUrl: string | null;
+  thumbnailStatus: 'pending' | 'ready' | 'failed' | null;
   videoStatus: 'ready' | 'storing' | 'missing' | 'error';
   videoMessage: string;
   recordingId: string | null;
@@ -43,8 +45,6 @@ type QuoteCard = {
   isSigned: boolean;
   signatureDataUrl: string | null;
   signatureSignedAtLabel: string | null;
-  isLocked: boolean;
-  missingFields: string[];
 };
 
 const resolveDisplayDate = (raw: any) => {
@@ -148,12 +148,160 @@ export default function QuotesPage() {
   const [customerInfoError, setCustomerInfoError] = useState<string | null>(null);
   const [isMobileLayout, setMobileLayout] = useState(false);
   const videoRetryAttemptedRef = useRef<Set<string>>(new Set());
+  const thumbnailAttemptedRef = useRef<Set<string>>(new Set());
+  const thumbnailInFlightRef = useRef<Set<string>>(new Set());
   const [customerInfoForm, setCustomerInfoForm] = useState({
     homeownerName: '',
     homeownerEmail: '',
     homeownerPhone: '',
     homeownerAddress: ''
   });
+
+  const captureThumbnailFromVideo = useCallback(async (
+    videoUrl: string
+  ): Promise<{ dataUrl: string; second: number } | null> => {
+    if (!videoUrl || typeof window === 'undefined') return null;
+
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = videoUrl;
+
+    const waitForMetadata = new Promise<void>((resolve, reject) => {
+      const onLoadedMetadata = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        reject(new Error('Failed to load video metadata'));
+      };
+      const cleanup = () => {
+        video.removeEventListener('loadedmetadata', onLoadedMetadata);
+        video.removeEventListener('error', onError);
+      };
+      video.addEventListener('loadedmetadata', onLoadedMetadata);
+      video.addEventListener('error', onError);
+    });
+
+    try {
+      await waitForMetadata;
+    } catch {
+      return null;
+    }
+
+    const duration = Number(video.duration);
+    const candidateSeconds = [
+      1,
+      2,
+      4,
+      6,
+      10,
+      14,
+      20,
+      duration * 0.2,
+      duration * 0.35,
+      duration * 0.5
+    ]
+      .filter((value) => Number.isFinite(value))
+      .map((value) => Math.max(0.2, Math.min(Number(value), Math.max(0.2, duration - 0.2))))
+      .filter((value, index, list) => list.findIndex((entry) => Math.abs(entry - value) < 0.2) === index);
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return null;
+
+    let fallbackFrame: { dataUrl: string; second: number } | null = null;
+
+    const seekTo = async (second: number) => {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('Video seek timed out'));
+        }, 4500);
+        const onSeeked = () => {
+          cleanup();
+          resolve();
+        };
+        const onError = () => {
+          cleanup();
+          reject(new Error('Video seek failed'));
+        };
+        const cleanup = () => {
+          window.clearTimeout(timeout);
+          video.removeEventListener('seeked', onSeeked);
+          video.removeEventListener('error', onError);
+        };
+        video.addEventListener('seeked', onSeeked);
+        video.addEventListener('error', onError);
+        video.currentTime = second;
+      });
+    };
+
+    const scoreFrame = () => {
+      const width = Math.max(1, Math.min(video.videoWidth || 0, 960));
+      const height = Math.max(1, Math.round(width / Math.max(1, (video.videoWidth || 1) / Math.max(1, video.videoHeight || 1))));
+      canvas.width = width;
+      canvas.height = height;
+      context.drawImage(video, 0, 0, width, height);
+
+      const frame = context.getImageData(0, 0, width, height).data;
+      const stride = 24;
+      let samples = 0;
+      let luminanceSum = 0;
+      let luminanceSquaredSum = 0;
+
+      for (let index = 0; index < frame.length; index += stride) {
+        const red = frame[index];
+        const green = frame[index + 1];
+        const blue = frame[index + 2];
+        const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+        luminanceSum += luminance;
+        luminanceSquaredSum += luminance * luminance;
+        samples += 1;
+      }
+
+      if (!samples) {
+        return { acceptable: false, dataUrl: null as string | null };
+      }
+
+      const averageLuminance = luminanceSum / samples;
+      const variance = Math.max(
+        0,
+        luminanceSquaredSum / samples - averageLuminance * averageLuminance
+      );
+
+      let dataUrl: string | null = null;
+      try {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+      } catch {
+        dataUrl = null;
+      }
+
+      const acceptable = averageLuminance >= 24 && variance >= 120;
+      return { acceptable, dataUrl };
+    };
+
+    for (const second of candidateSeconds) {
+      try {
+        await seekTo(second);
+        const scored = scoreFrame();
+        if (!scored.dataUrl) continue;
+        if (!fallbackFrame) {
+          fallbackFrame = { dataUrl: scored.dataUrl, second };
+        }
+        if (scored.acceptable) {
+          return { dataUrl: scored.dataUrl, second };
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return fallbackFrame;
+  }, []);
 
   const handleDownloadVideo = useCallback(async (
     quote: QuoteCard
@@ -329,10 +477,6 @@ export default function QuotesPage() {
             data?.quoteSignature ||
             signatureDataUrl
           );
-          const missingFields: string[] = [];
-          if (!homeownerName) missingFields.push('Name');
-          if (!homeownerEmail) missingFields.push('Email');
-          if (!homeownerAddress) missingFields.push('Address');
           const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
           const rows: QuotePricingRow[] = rowsRaw.map((row: any) => ({
             item: String(row?.item || ''),
@@ -350,9 +494,22 @@ export default function QuotesPage() {
             ''
           ).trim() || null;
           const storedVideoValue = String(videoEstimate.url || '').trim() || null;
+          const storedThumbnailValue = String(
+            videoEstimate.thumbnailUrl || ''
+          ).trim() || null;
+          const thumbnailStatusRaw = String(
+            videoEstimate.thumbnailStatus || ''
+          ).trim().toLowerCase();
+          const thumbnailStatus: QuoteCard['thumbnailStatus'] =
+            thumbnailStatusRaw === 'pending' ||
+            thumbnailStatusRaw === 'ready' ||
+            thumbnailStatusRaw === 'failed'
+              ? (thumbnailStatusRaw as QuoteCard['thumbnailStatus'])
+              : null;
           const resolvedStoredVideoValue = storedVideoValue || legacyVideoUrl;
 
           let videoUrl: string | null = null;
+          let thumbnailUrl: string | null = null;
           if (resolvedStoredVideoValue) {
             if (/^https?:\/\//i.test(resolvedStoredVideoValue)) {
               videoUrl = resolvedStoredVideoValue;
@@ -361,6 +518,22 @@ export default function QuotesPage() {
                 videoUrl = await getDownloadURL(storageRef(storage, resolvedStoredVideoValue));
               } catch {
                 videoUrl = null;
+              }
+            }
+          }
+          if (storedThumbnailValue) {
+            if (
+              /^data:image\//i.test(storedThumbnailValue) ||
+              /^https?:\/\//i.test(storedThumbnailValue)
+            ) {
+              thumbnailUrl = storedThumbnailValue;
+            } else {
+              try {
+                thumbnailUrl = await getDownloadURL(
+                  storageRef(storage, storedThumbnailValue)
+                );
+              } catch {
+                thumbnailUrl = null;
               }
             }
           }
@@ -383,6 +556,8 @@ export default function QuotesPage() {
           return {
             id: quoteDoc.id,
             videoUrl,
+            thumbnailUrl,
+            thumbnailStatus,
             videoStatus,
             videoMessage,
             recordingId,
@@ -395,9 +570,7 @@ export default function QuotesPage() {
             homeownerAddress,
             isSigned,
             signatureDataUrl,
-            signatureSignedAtLabel,
-            isLocked: missingFields.length > 0,
-            missingFields
+            signatureSignedAtLabel
           } as QuoteCard;
         })
       );
@@ -479,6 +652,118 @@ export default function QuotesPage() {
     }
   }, [activePainterId, loadQuotes]);
 
+  useEffect(() => {
+    if (!activePainterId) return;
+
+    const candidates = quotes.filter((quote) =>
+      !!quote.videoUrl &&
+      !quote.thumbnailUrl &&
+      quote.thumbnailStatus === 'pending' &&
+      !thumbnailAttemptedRef.current.has(quote.id) &&
+      !thumbnailInFlightRef.current.has(quote.id)
+    );
+
+    if (!candidates.length) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      for (const quote of candidates) {
+        if (cancelled || !quote.videoUrl) break;
+        thumbnailInFlightRef.current.add(quote.id);
+        thumbnailAttemptedRef.current.add(quote.id);
+
+        try {
+          const capturedThumbnail = await captureThumbnailFromVideo(
+            quote.videoUrl
+          );
+
+          if (!capturedThumbnail) {
+            await updateDoc(
+              doc(
+                firestore,
+                'painters',
+                activePainterId,
+                'quotes',
+                quote.id
+              ),
+              {
+                'videoEstimate.thumbnailStatus': 'failed',
+                'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
+                updatedAt: serverTimestamp()
+              }
+            );
+            continue;
+          }
+
+          await updateDoc(
+            doc(
+              firestore,
+              'painters',
+              activePainterId,
+              'quotes',
+              quote.id
+            ),
+            {
+              'videoEstimate.thumbnailUrl': capturedThumbnail.dataUrl,
+              'videoEstimate.thumbnailStatus': 'ready',
+              'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
+              'videoEstimate.thumbnailSourceSecond': Number(
+                capturedThumbnail.second.toFixed(2)
+              ),
+              updatedAt: serverTimestamp()
+            }
+          );
+
+          if (cancelled) continue;
+          setQuotes((previousQuotes) =>
+            previousQuotes.map((previousQuote) =>
+              previousQuote.id === quote.id
+                ? {
+                  ...previousQuote,
+                  thumbnailUrl: capturedThumbnail.dataUrl,
+                  thumbnailStatus: 'ready'
+                }
+                : previousQuote
+            )
+          );
+        } catch {
+          try {
+            await updateDoc(
+              doc(
+                firestore,
+                'painters',
+                activePainterId,
+                'quotes',
+                quote.id
+              ),
+              {
+                'videoEstimate.thumbnailStatus': 'failed',
+                'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
+                updatedAt: serverTimestamp()
+              }
+            );
+          } catch {
+            // no-op
+          }
+        } finally {
+          thumbnailInFlightRef.current.delete(quote.id);
+        }
+      }
+    };
+
+    run().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activePainterId,
+    captureThumbnailFromVideo,
+    firestore,
+    quotes
+  ]);
+
   const handleCustomerInfoSubmit = useCallback(async () => {
     if (!activePainterId || !editingQuoteId) return;
 
@@ -513,19 +798,13 @@ export default function QuotesPage() {
 
       setQuotes((prevQuotes) => prevQuotes.map((quote) => {
         if (quote.id !== editingQuoteId) return quote;
-        const missingFields: string[] = [];
-        if (!homeownerName) missingFields.push('Name');
-        if (!homeownerEmail) missingFields.push('Email');
-        if (!homeownerAddress) missingFields.push('Address');
 
         return {
           ...quote,
           homeownerName,
           homeownerEmail,
           homeownerPhone: homeownerPhone || null,
-          homeownerAddress,
-          missingFields,
-          isLocked: missingFields.length > 0
+          homeownerAddress
         };
       }));
       setEditingQuoteId(null);
@@ -693,7 +972,8 @@ export default function QuotesPage() {
                 {quote.videoUrl ? (
                   <video
                     src={`${quote.videoUrl}#t=0.001`}
-                    controls={!quote.isLocked}
+                    poster={quote.thumbnailUrl || undefined}
+                    controls
                     muted
                     onError={() => {
                       setQuotes((prevQuotes) => prevQuotes.map((item) =>
@@ -711,9 +991,7 @@ export default function QuotesPage() {
                     style={{
                       width: '100%',
                       borderRadius: 12,
-                      background: '#0f131a',
-                      filter: quote.isLocked ? 'grayscale(1)' : 'none',
-                      opacity: quote.isLocked ? 0.55 : 1
+                      background: '#0f131a'
                     }}
                   />
                 ) : (
@@ -728,9 +1006,7 @@ export default function QuotesPage() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: 6,
-                      filter: quote.isLocked ? 'grayscale(1)' : 'none',
-                      opacity: quote.isLocked ? 0.55 : 1
+                      gap: 6
                     }}
                   >
                     <div>{quote.videoMessage}</div>
@@ -739,35 +1015,6 @@ export default function QuotesPage() {
                         Recording ID: {quote.recordingId}
                       </div>
                     )}
-                  </div>
-                )}
-                {quote.isLocked && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(15, 23, 42, 0.42)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      padding: 16
-                    }}
-                  >
-                    <button
-                      onClick={() => openCustomerInfoModal(quote)}
-                      style={{
-                        border: 'none',
-                        borderRadius: 999,
-                        background: PRIMARY_COLOR_HEX,
-                        color: '#fff',
-                        padding: '12px 22px',
-                        fontWeight: 700,
-                        fontSize: 14,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Complete Customer Info to Access Video
-                    </button>
                   </div>
                 )}
               </div>
@@ -788,22 +1035,18 @@ export default function QuotesPage() {
                 {quote.videoUrl && (
                   <button
                     onClick={() => {
-                      if (!quote.isLocked) {
-                        handleDownloadVideo(quote);
-                      }
+                      handleDownloadVideo(quote);
                     }}
-                    disabled={quote.isLocked}
                     style={{
                       border: 'none',
                       borderRadius: 999,
-                      background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
+                      background: PRIMARY_COLOR_HEX,
                       color: '#fff',
                       padding: '10px 20px',
                       fontWeight: 700,
                       fontSize: 15,
                       lineHeight: 1.2,
-                      cursor: quote.isLocked ? 'not-allowed' : 'pointer',
-                      opacity: quote.isLocked ? 0.7 : 1
+                      cursor: 'pointer'
                     }}
                   >
                     Download Video
@@ -865,17 +1108,15 @@ export default function QuotesPage() {
                     </div>
                     <button
                       onClick={() => handleDownloadQuoteSummary(quote)}
-                      disabled={quote.isLocked}
                       style={{
                         border: 'none',
                         borderRadius: 999,
-                        background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
+                        background: PRIMARY_COLOR_HEX,
                         color: '#fff',
                         padding: '8px 14px',
                         fontWeight: 700,
                         fontSize: 12,
-                        cursor: quote.isLocked ? 'not-allowed' : 'pointer',
-                        opacity: quote.isLocked ? 0.72 : 1
+                        cursor: 'pointer'
                       }}
                     >
                       Download Quote PDF
@@ -958,23 +1199,38 @@ export default function QuotesPage() {
 
               {!isMobileLayout && (
                 <div style={{ marginTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
-                  <button
-                    onClick={() => handleDownloadQuoteSummary(quote)}
-                    disabled={quote.isLocked}
-                    style={{
-                      border: 'none',
-                      borderRadius: 999,
-                      background: quote.isLocked ? '#94a3b8' : PRIMARY_COLOR_HEX,
-                      color: '#fff',
-                      padding: '10px 16px',
-                      fontWeight: 700,
-                      fontSize: 13,
-                      cursor: quote.isLocked ? 'not-allowed' : 'pointer',
-                      opacity: quote.isLocked ? 0.72 : 1
-                    }}
-                  >
-                    Download Quote PDF
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                    <button
+                      onClick={() => openCustomerInfoModal(quote)}
+                      style={{
+                        border: '1px solid #cbd5e1',
+                        borderRadius: 999,
+                        background: '#fff',
+                        color: '#334155',
+                        padding: '10px 14px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Edit Customer Info
+                    </button>
+                    <button
+                      onClick={() => handleDownloadQuoteSummary(quote)}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        background: PRIMARY_COLOR_HEX,
+                        color: '#fff',
+                        padding: '10px 16px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Download Quote PDF
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

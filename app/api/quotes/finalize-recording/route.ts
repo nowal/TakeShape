@@ -204,6 +204,8 @@ export async function POST(request: NextRequest) {
     const nowIso = new Date().toISOString();
 
     if (recordingResult.ready && recordingResult.url) {
+      const currentVideoEstimate = (quoteData?.videoEstimate || {}) as Record<string, any>;
+      const existingThumbnailUrl = String(currentVideoEstimate.thumbnailUrl || '').trim() || null;
       await updateQuote({
         signalwireRecordingId: resolvedRecordingId,
         videoEstimate: {
@@ -211,6 +213,14 @@ export async function POST(request: NextRequest) {
           message: 'Video ready',
           recordingId: resolvedRecordingId,
           url: recordingResult.url,
+          thumbnailUrl: existingThumbnailUrl,
+          thumbnailStatus: existingThumbnailUrl ? 'ready' : 'pending',
+          thumbnailCapturedAt: existingThumbnailUrl
+            ? String(currentVideoEstimate.thumbnailCapturedAt || '').trim() || nowIso
+            : null,
+          thumbnailSourceSecond: Number.isFinite(Number(currentVideoEstimate.thumbnailSourceSecond))
+            ? Number(currentVideoEstimate.thumbnailSourceSecond)
+            : null,
           updatedAt: nowIso
         },
         videoEstimates: [
