@@ -6,6 +6,10 @@ import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 import { initializeEmbed, sendCompletionEvent } from '@/app/embed/utils';
+import uploadIcon from './upload.png';
+import callIcon from './call.png';
+import inPersonIcon from './in-person.png';
+import intakeHeroImage from './embed.png';
 
 type Step =
   | 'contact'
@@ -162,7 +166,7 @@ export default function EmbedIntakePage() {
                 </p>
                 <div className="relative w-full overflow-hidden rounded-2xl border border-black-08 bg-white-pink-1 h-[240px] sm:h-[300px]">
                   <Image
-                    src="/takingVideo.jpg"
+                    src={intakeHeroImage}
                     alt="Video estimate preview"
                     fill
                     className="object-cover"
@@ -277,7 +281,7 @@ export default function EmbedIntakePage() {
         )}
 
         {step === 'estimateChoice' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
+          <div className="fill-column-white-sm sm:fill-column-white min-h-[620px]">
             <div className="mb-6 text-center">
               <h2 className="typography-page-title">
                 Choose Your Estimate Type
@@ -287,16 +291,19 @@ export default function EmbedIntakePage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <EstimateChoiceCard
                 title="Upload Job Video"
+                icon={uploadIcon}
                 onClick={() => onEstimateChoice('uploadVideo')}
               />
               <EstimateChoiceCard
                 title="Request Live Video Estimate"
+                icon={callIcon}
                 onClick={() =>
                   onEstimateChoice('requestLiveVideoEstimate')
                 }
               />
               <EstimateChoiceCard
                 title="Request In-Person Estimate"
+                icon={inPersonIcon}
                 onClick={() =>
                   onEstimateChoice('requestInPersonEstimate')
                 }
@@ -380,11 +387,13 @@ export default function EmbedIntakePage() {
 
 type EstimateChoiceCardProps = {
   title: string;
+  icon: Parameters<typeof Image>[0]['src'];
   onClick: () => void;
 };
 
 function EstimateChoiceCard({
   title,
+  icon,
   onClick,
 }: EstimateChoiceCardProps) {
   return (
@@ -393,11 +402,16 @@ function EstimateChoiceCard({
       onClick={onClick}
       className="w-full text-left rounded-xl border border-black-08 bg-white p-4 transition hover:border-pink hover:shadow-08"
     >
-      <h3 className="text-base font-semibold text-black min-h-[48px]">
+      <h3 className="text-center text-lg font-semibold text-black min-h-[48px]">
         {title}
       </h3>
-      <div className="mt-4 h-[160px] rounded-lg border border-dashed border-gray-4 bg-white-pink-1 flex items-center justify-center text-sm font-open-sans text-gray">
-        Icon Placeholder
+      <div className="mt-4 w-full overflow-hidden rounded-lg bg-white">
+        <Image
+          src={icon}
+          alt={title}
+          className="h-auto w-full object-contain"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
       </div>
     </button>
   );
