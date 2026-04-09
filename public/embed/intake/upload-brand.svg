@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1053" height="1024" viewBox="0 0 1053 1024" fill="none">
+  <defs>
+    <filter id="brand-tint-upload" x="0" y="0" width="1053" height="1024" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="
+        0 0 0 0 0
+        0 0 0 0 0
+        0 0 0 0 0
+        -1 -1 -1 0 3
+      " result="shape-mask"/>
+      <feFlood flood-color="hsl(355 90% 40%)" result="brand-color"/>
+      <feComposite in="brand-color" in2="shape-mask" operator="in" result="tinted"/>
+    </filter>
+  </defs>
+  <image href="/embed/intake/upload.png" width="1053" height="1024" filter="url(#brand-tint-upload)"/>
+</svg>

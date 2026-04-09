@@ -66,13 +66,29 @@
   box-sizing: border-box;
   font-family: var(--font-family);
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: visible;
   position: relative;
   z-index: 1000; /* Ensure embed content is above other elements */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: block;
+  background: transparent;
+}
+
+.takeshape-embed {
+  background: transparent !important;
+}
+
+html:has(.embed-container),
+body:has(.embed-container) {
+  background: transparent !important;
+}
+
+.app-shell-bg {
+  display: none !important;
+}
+
+.app-shell-root {
+  max-width: 100% !important;
 }
 
 /* Hide header and footer in embed mode */

@@ -202,6 +202,9 @@
     iframe.style.width = '100%';
     iframe.style.height = 'min(760px, calc(100vh - 70px))';
     iframe.style.maxHeight = 'calc(100vh - 70px)';
+    iframe.style.backgroundColor = 'transparent';
+    iframe.style.borderRadius = '0';
+    iframe.style.boxShadow = 'none';
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';

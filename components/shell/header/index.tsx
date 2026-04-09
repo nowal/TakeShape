@@ -17,7 +17,8 @@ export const ShellHeader = () => {
   const isHiddenHeaderRoute =
     pathname === '/consult' ||
     pathname === '/call-demo' ||
-    pathname.startsWith('/call-demo/');
+    pathname.startsWith('/call-demo/') ||
+    pathname.startsWith('/embed');
   const viewport = useViewport();
   const height = viewport.headerHeight;
   const headerBackgroundColor = 'hsl(var(--app-bg-hsl))';

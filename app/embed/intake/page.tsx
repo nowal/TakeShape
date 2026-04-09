@@ -6,9 +6,9 @@ import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
 import { initializeEmbed, sendCompletionEvent } from '@/app/embed/utils';
-import uploadIcon from './upload.png';
-import callIcon from './call.png';
-import inPersonIcon from './in-person.png';
+import uploadIcon from './upload-brand.png';
+import callIcon from './call-brand.png';
+import inPersonIcon from './in-person-brand.png';
 import intakeHeroImage from './embed.png';
 
 type Step =
@@ -58,7 +58,7 @@ export default function EmbedIntakePage() {
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoFileName, setVideoFileName] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
+  const jobDescription = '';
   const [videoSubmitPending, setVideoSubmitPending] =
     useState(false);
 
@@ -80,8 +80,8 @@ export default function EmbedIntakePage() {
   }, [step, estimateChoice, contact, videoFile, jobDescription]);
 
   const canSubmitVideo = useMemo(() => {
-    return Boolean(videoFile && jobDescription.trim());
-  }, [videoFile, jobDescription]);
+    return Boolean(videoFile);
+  }, [videoFile]);
 
   const handleContactChange = (
     key: keyof ContactForm,
@@ -150,19 +150,17 @@ export default function EmbedIntakePage() {
     <div className="w-full px-3 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto w-full max-w-6xl">
         {step === 'contact' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
+          <div className="fill-column-white-sm sm:fill-column-white min-h-[620px]">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
               <section className="flex flex-col gap-5">
                 <h1 className="text-3xl font-montserrat font-bold text-black leading-tight">
-                  Send us a video!
+                  Get Started Today!
                 </h1>
                 <p className="text-[17px] leading-8 text-black-6 font-open-sans max-w-[34rem]">
-                  Answer a few questions, take a video of your
-                  project, and leave the rest to us. Once we
-                  receive your video, our team will provide a
-                  personalized quote. If you cannot take a video,
-                  no worries. Fill out the form and we will be in
-                  touch shortly.
+                  We offer quick, video-based estimates.
+                  Upload a video of your job, hop on a live video call,
+                  or schedule an on-site appointment
+                  with a member of our team today!
                 </p>
                 <div className="relative w-full overflow-hidden rounded-2xl border border-black-08 bg-white-pink-1 h-[240px] sm:h-[300px]">
                   <Image
@@ -290,12 +288,14 @@ export default function EmbedIntakePage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <EstimateChoiceCard
-                title="Upload Job Video"
+                title="Upload a Video"
+                subtitle="At Your Convenience"
                 icon={uploadIcon}
                 onClick={() => onEstimateChoice('uploadVideo')}
               />
               <EstimateChoiceCard
-                title="Request Live Video Estimate"
+                title="Schedule Live Video Call"
+                subtitle="Talk to us"
                 icon={callIcon}
                 onClick={() =>
                   onEstimateChoice('requestLiveVideoEstimate')
@@ -303,6 +303,7 @@ export default function EmbedIntakePage() {
               />
               <EstimateChoiceCard
                 title="Request In-Person Estimate"
+                subtitle="For more complex jobs"
                 icon={inPersonIcon}
                 onClick={() =>
                   onEstimateChoice('requestInPersonEstimate')
@@ -313,21 +314,20 @@ export default function EmbedIntakePage() {
         )}
 
         {step === 'videoUpload' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
+          <div className="fill-column-white-sm sm:fill-column-white min-h-[620px]">
             <div className="mx-auto w-full max-w-xl">
-              <div className="mb-5 text-center">
+              <div className="mb-8 text-center">
                 <h2 className="typography-page-title">
-                  Please give us any additional details about your
-                  job
+                  Show Us Your Job!
                 </h2>
               </div>
 
               <form
-                className="flex flex-col items-center gap-4"
+                className="flex min-h-[470px] flex-col"
                 onSubmit={onVideoSubmit}
               >
-                <div className="w-full">
-                  <div className="relative h-[7.25rem] text-pink">
+                <div className="w-full space-y-5">
+                  <div className="relative h-[8.75rem] text-pink">
                     <InputsFile
                       title="Upload Job Video"
                       onFile={onVideoFile}
@@ -340,21 +340,21 @@ export default function EmbedIntakePage() {
                       ) : null}
                     </InputsFile>
                   </div>
+
+                  <div className="min-h-[170px] w-full rounded-xl border border-black-08 bg-white p-6 sm:p-7 flex items-center">
+                    <p className="w-full text-center text-base font-open-sans text-black-6 leading-7">
+                      As you record, verbally tell us any relevant
+                      details about your job.
+                      <br />
+                      ...
+                      <br />
+                      You can specify any other information you want
+                      your customers to provide here.
+                    </p>
+                  </div>
                 </div>
 
-                <label className="w-full">
-                  <textarea
-                    value={jobDescription}
-                    onChange={(event) =>
-                      setJobDescription(event.target.value)
-                    }
-                    placeholder="Describe your job in detail (scope, timeline, goals) *"
-                    className="border border-gray-4 w-full bg-white-1 typography-text-input rounded-lg px-6 py-4 min-h-[180px]"
-                    required
-                  />
-                </label>
-
-                <div className="w-full flex justify-center">
+                <div className="mt-auto w-full flex justify-center pb-3 sm:pb-4">
                   <ButtonsQuoteSubmit
                     title={
                       videoSubmitPending
@@ -364,6 +364,8 @@ export default function EmbedIntakePage() {
                     isDisabled={
                       !canSubmitVideo || videoSubmitPending
                     }
+                    size="md"
+                    classValue="font-bold min-h-[56px] px-12"
                   />
                 </div>
               </form>
@@ -387,12 +389,14 @@ export default function EmbedIntakePage() {
 
 type EstimateChoiceCardProps = {
   title: string;
+  subtitle: string;
   icon: Parameters<typeof Image>[0]['src'];
   onClick: () => void;
 };
 
 function EstimateChoiceCard({
   title,
+  subtitle,
   icon,
   onClick,
 }: EstimateChoiceCardProps) {
@@ -402,13 +406,18 @@ function EstimateChoiceCard({
       onClick={onClick}
       className="w-full text-left rounded-xl border border-black-08 bg-white p-4 transition hover:border-pink hover:shadow-08"
     >
-      <h3 className="text-center text-lg font-semibold text-black min-h-[48px]">
+      <h3 className="text-center text-lg font-semibold text-black">
         {title}
       </h3>
+      <p className="mt-1 text-center text-base font-open-sans text-black-6 min-h-[24px]">
+        {subtitle}
+      </p>
       <div className="mt-4 w-full overflow-hidden rounded-lg bg-white">
         <Image
           src={icon}
           alt={title}
+          width={1053}
+          height={1024}
           className="h-auto w-full object-contain"
           sizes="(max-width: 768px) 100vw, 33vw"
         />

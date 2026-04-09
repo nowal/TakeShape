@@ -10,12 +10,17 @@ export const ShellChildren: FC<TProps> = ({ children }) => {
   const pathname = usePathname();
   const isLanding =
     pathname === '/landing' || pathname === '/newLanding';
+  const isEmbed = pathname.startsWith('/embed');
   return (
     <div
       className={cx(
         'relative min-h-[400px] flex-1',
-        isLanding ? 'my-0' : 'mt-8 mb-12',
-        isLanding ? 'min-h-screen' : 'min-h-[400px]'
+        isLanding || isEmbed ? 'my-0' : 'mt-8 mb-12',
+        isLanding
+          ? 'min-h-screen'
+          : isEmbed
+          ? 'min-h-0'
+          : 'min-h-[400px]'
       )}
     >
       <Suspense fallback={<FallbacksLogoFill />}>

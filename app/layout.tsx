@@ -52,10 +52,10 @@ export default function RootLayout({ children }: TProps) {
       <Provider>
         <body className="font-montserrat">
           <div
-            className="fixed inset-0"
+            className="fixed inset-0 app-shell-bg"
             style={{ backgroundColor: 'var(--app-bg)' }}
           />
-          <div className="relative flex min-h-screen flex-col items-stretch max-w-shell w-full mx-auto">
+          <div className="relative flex min-h-screen flex-col items-stretch max-w-shell w-full mx-auto app-shell-root">
             <MotionConfig transition={MOTION_CONFIG}>
               <ContextProviders>
                 <ShellHeader />

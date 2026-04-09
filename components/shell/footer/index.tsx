@@ -18,7 +18,8 @@ export const ShellFooter = () => {
     pathname.startsWith('/call-demo/') ||
     pathname === '/quotes' ||
     pathname === '/accountSettings' ||
-    pathname === '/providerRegister';
+    pathname === '/providerRegister' ||
+    pathname.startsWith('/embed');
 
   if (isHiddenFooterRoute) {
     return null;
