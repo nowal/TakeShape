@@ -14,8 +14,10 @@ import intakeHeroImage from './embed.png';
 type Step =
   | 'contact'
   | 'estimateChoice'
+  | 'videoCallSchedule'
   | 'videoUpload'
-  | 'thanks';
+  | 'thanks'
+  | 'videoCallRequested';
 
 type EstimateChoice =
   | 'uploadVideo'
@@ -31,6 +33,10 @@ type ContactForm = {
 };
 
 type ContactErrors = ContactForm;
+type LiveVideoCallPreference =
+  | 'asap'
+  | 'scheduled'
+  | null;
 
 const INITIAL_CONTACT: ContactForm = {
   name: '',
@@ -49,12 +55,72 @@ const INITIAL_ERRORS: ContactErrors = {
 const THANK_YOU_MESSAGE =
   'Thanks for contacting us! Someone will reach out shortly to handle your estimate!';
 
+const buildDefaultSchedule = () => {
+  const now = new Date();
+  const rounded = new Date(now);
+  rounded.setSeconds(0, 0);
+
+  const minutes = rounded.getMinutes();
+  const remainder = minutes % 15;
+
+  if (remainder !== 0) {
+    rounded.setMinutes(minutes + (15 - remainder));
+  }
+
+  const date = `${rounded.getFullYear()}-${String(
+    rounded.getMonth() + 1
+  ).padStart(2, '0')}-${String(
+    rounded.getDate()
+  ).padStart(2, '0')}`;
+  const time = `${String(rounded.getHours()).padStart(
+    2,
+    '0'
+  )}:${String(rounded.getMinutes()).padStart(2, '0')}`;
+
+  return { date, time };
+};
+
+const buildTimeOptions = () => {
+  const options: Array<{ value: string; label: string }> = [];
+
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const value = `${String(hour).padStart(2, '0')}:${String(
+        minute
+      ).padStart(2, '0')}`;
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      const minuteLabel = String(minute).padStart(2, '0');
+      const label = `${hour12}:${minuteLabel} ${period}`;
+      options.push({ value, label });
+    }
+  }
+
+  return options;
+};
+
+const formatPhoneNumber = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+
+  if (digits.length !== 10) return phone;
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(
+    3,
+    6
+  )}-${digits.slice(6)}`;
+};
+
 export default function EmbedIntakePage() {
   const [step, setStep] = useState<Step>('contact');
   const [contact, setContact] = useState<ContactForm>(INITIAL_CONTACT);
   const [errors, setErrors] = useState<ContactErrors>(INITIAL_ERRORS);
   const [estimateChoice, setEstimateChoice] =
     useState<EstimateChoice>(null);
+  const [liveVideoCallPreference, setLiveVideoCallPreference] =
+    useState<LiveVideoCallPreference>('asap');
+  const [videoCallSchedule, setVideoCallSchedule] = useState(
+    () => buildDefaultSchedule()
+  );
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoFileName, setVideoFileName] = useState('');
@@ -67,21 +133,49 @@ export default function EmbedIntakePage() {
   }, []);
 
   useEffect(() => {
-    if (step !== 'thanks') return;
+    if (
+      step !== 'thanks' &&
+      step !== 'videoCallRequested'
+    ) {
+      return;
+    }
 
     sendCompletionEvent({
       flow: 'contact-video-intake',
       estimateChoice,
       contact,
+      liveVideoCallPreference,
+      videoCallSchedule:
+        liveVideoCallPreference === 'scheduled'
+          ? videoCallSchedule
+          : null,
       hasVideoUpload: Boolean(videoFile),
       jobDescription,
       completedAt: new Date().toISOString(),
     });
-  }, [step, estimateChoice, contact, videoFile, jobDescription]);
+  }, [
+    step,
+    estimateChoice,
+    contact,
+    liveVideoCallPreference,
+    videoCallSchedule,
+    videoFile,
+    jobDescription,
+  ]);
 
   const canSubmitVideo = useMemo(() => {
     return Boolean(videoFile);
   }, [videoFile]);
+  const timeOptions = useMemo(() => buildTimeOptions(), []);
+  const canRequestVideoCall = useMemo(() => {
+    if (!liveVideoCallPreference) return false;
+
+    if (liveVideoCallPreference === 'asap') return true;
+
+    return Boolean(
+      videoCallSchedule.date && videoCallSchedule.time
+    );
+  }, [liveVideoCallPreference, videoCallSchedule]);
 
   const handleContactChange = (
     key: keyof ContactForm,
@@ -125,7 +219,30 @@ export default function EmbedIntakePage() {
       return;
     }
 
+    if (choice === 'requestLiveVideoEstimate') {
+      setLiveVideoCallPreference('asap');
+      setVideoCallSchedule(buildDefaultSchedule());
+      setStep('videoCallSchedule');
+      return;
+    }
+
     setStep('thanks');
+  };
+
+  const onLiveVideoPreferenceToggle = (
+    preference: Exclude<LiveVideoCallPreference, null>
+  ) => {
+    setLiveVideoCallPreference((previous) =>
+      previous === preference ? null : preference
+    );
+  };
+
+  const onLiveVideoRequest = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!canRequestVideoCall) return;
+
+    setStep('videoCallRequested');
   };
 
   const onVideoFile = (file: File) => {
@@ -373,11 +490,142 @@ export default function EmbedIntakePage() {
           </div>
         )}
 
+        {step === 'videoCallSchedule' && (
+          <div className="fill-column-white-sm sm:fill-column-white min-h-[620px]">
+            <div className="mx-auto w-full max-w-2xl">
+              <div className="mb-8 text-center">
+                <h2 className="typography-page-title">
+                  Schedule Your Live Video Estimate
+                </h2>
+              </div>
+
+              <form
+                className="rounded-2xl border border-black-08 bg-white p-5 sm:p-7"
+                onSubmit={onLiveVideoRequest}
+              >
+                <div className="space-y-4">
+                  <label className="flex items-start gap-3 rounded-lg border border-black-08 p-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={
+                        liveVideoCallPreference === 'asap'
+                      }
+                      onChange={() =>
+                        onLiveVideoPreferenceToggle('asap')
+                      }
+                      className="mt-1 h-4 w-4 appearance-auto accent-pink bg-transparent hover:bg-transparent"
+                      style={{
+                        WebkitAppearance: 'checkbox',
+                        appearance: 'auto',
+                      }}
+                    />
+                    <span className="text-base font-open-sans text-black-7">
+                      I want to do my live video estimate as soon as
+                      possible.
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-3 rounded-lg border border-black-08 p-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={
+                        liveVideoCallPreference ===
+                        'scheduled'
+                      }
+                      onChange={() =>
+                        onLiveVideoPreferenceToggle(
+                          'scheduled'
+                        )
+                      }
+                      className="mt-1 h-4 w-4 appearance-auto accent-pink bg-transparent hover:bg-transparent"
+                      style={{
+                        WebkitAppearance: 'checkbox',
+                        appearance: 'auto',
+                      }}
+                    />
+                    <span className="text-base font-open-sans text-black-7">
+                      The soonest I can do my live video estimate is:
+                    </span>
+                  </label>
+
+                  {liveVideoCallPreference === 'scheduled' && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold text-black-4">
+                          Date
+                        </label>
+                        <input
+                          type="date"
+                          value={videoCallSchedule.date}
+                          onChange={(event) =>
+                            setVideoCallSchedule((prev) => ({
+                              ...prev,
+                              date: event.target.value,
+                            }))
+                          }
+                          className="w-full h-12 rounded border border-black-08 px-3 text-base text-black-7"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold text-black-4">
+                          Time
+                        </label>
+                        <select
+                          value={videoCallSchedule.time}
+                          onChange={(event) =>
+                            setVideoCallSchedule((prev) => ({
+                              ...prev,
+                              time: event.target.value,
+                            }))
+                          }
+                          className="w-full h-12 rounded border border-black-08 px-3 text-base text-black-7"
+                          required
+                        >
+                          {timeOptions.map((time) => (
+                            <option
+                              key={time.value}
+                              value={time.value}
+                            >
+                              {time.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 flex justify-center">
+                  <ButtonsQuoteSubmit
+                    title="Confirm Call Time!"
+                    isDisabled={!canRequestVideoCall}
+                    size="md"
+                    classValue="font-bold min-h-[56px] px-12"
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {step === 'thanks' && (
           <div className="fill-column-white-sm sm:fill-column-white">
             <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-4 text-center px-4">
               <h2 className="typography-page-title">
                 {THANK_YOU_MESSAGE}
+              </h2>
+            </div>
+          </div>
+        )}
+
+        {step === 'videoCallRequested' && (
+          <div className="fill-column-white-sm sm:fill-column-white">
+            <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-4 text-center px-4">
+              <h2 className="typography-page-title">
+                We can&apos;t wait to talk with you! We&apos;ll call
+                you at your requested time from{' '}
+                {formatPhoneNumber(contact.phone)}. Talk soon!
               </h2>
             </div>
           </div>
