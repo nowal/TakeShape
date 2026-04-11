@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFirestore } from '@/lib/firebase-admin';
 import firebase from '@/lib/firebase';
+import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
+import {
+  findLatestQuoteByConferenceSupabase,
+  getQuoteSupabase,
+} from '@/lib/data/supabase/quotes';
 import {
   collection,
   collectionGroup,
@@ -65,6 +70,52 @@ export async function GET(request: NextRequest) {
         updatedAt: data.updatedAt || data.createdAt || null
       };
     };
+
+    const mapSupabaseQuotePayload = (data: Record<string, any>) => {
+      const pricing = (data?.pricing || {}) as Record<string, any>;
+      const rowsRaw = Array.isArray(pricing.rows) ? pricing.rows : [];
+      const rows: QuoteRow[] = rowsRaw.map((row: any) => ({
+        item: String(row?.item || ''),
+        description: String(row?.description || ''),
+        price: Number(row?.price) || 0,
+      }));
+
+      return {
+        found: true,
+        quoteId: String(data.id || ''),
+        pricing: {
+          rows,
+          totalPrice: Number(pricing.totalPrice) || 0,
+          updatedAt: pricing.updatedAt || data.updated_at || data.created_at || null,
+        },
+        updatedAt: data.updated_at || data.created_at || null,
+        source: 'supabase',
+      };
+    };
+
+    if (isSupabaseDataLayerEnabled()) {
+      if (painterDocId && quoteId) {
+        const supabaseQuote = await getQuoteSupabase({
+          providerId: painterDocId,
+          quoteId,
+        });
+        if (supabaseQuote) {
+          return NextResponse.json(
+            mapSupabaseQuotePayload(supabaseQuote as Record<string, any>)
+          );
+        }
+      } else if (conferenceId) {
+        const supabaseQuote = await findLatestQuoteByConferenceSupabase({
+          conferenceId,
+          providerId: painterDocId || undefined,
+        });
+        if (supabaseQuote) {
+          return NextResponse.json(
+            mapSupabaseQuotePayload(supabaseQuote as Record<string, any>)
+          );
+        }
+      }
+    }
 
     let adminReadError: unknown = null;
 

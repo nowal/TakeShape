@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminFirestore } from '@/lib/firebase-admin';
+import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
+import { supabaseServer } from '@/lib/supabase/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -40,25 +42,6 @@ export async function POST(request: NextRequest) {
 
     const userId = String(metadata.userId || '').trim();
     const plan = String(metadata.plan || '').trim() || null;
-    let painterDocId = String(metadata.painterDocId || '').trim() || null;
-
-    const db = getAdminFirestore();
-    if (!painterDocId && userId) {
-      const painterSnapshot = await db
-        .collection('painters')
-        .where('userId', '==', userId)
-        .limit(1)
-        .get();
-
-      if (!painterSnapshot.empty) {
-        painterDocId = painterSnapshot.docs[0].id;
-      }
-    }
-
-    if (!painterDocId) {
-      throw new Error('Could not find provider billing record');
-    }
-
     const paying = isSubscriptionPaying(subscription.status);
     const stripeCustomerId =
       typeof subscription.customer === 'string'
@@ -68,19 +51,75 @@ export async function POST(request: NextRequest) {
       ? new Date(subscription.trial_end * 1000).toISOString()
       : null;
 
-    await db.collection('painters').doc(painterDocId).set(
-      {
-        paid: paying,
-        paying,
-        billingPlan: plan,
-        subscriptionStatus: subscription.status,
-        stripeCustomerId,
-        stripeSubscriptionId: subscription.id,
-        trialEndsAt,
-        billingUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    if (isSupabaseDataLayerEnabled()) {
+      let providerId =
+        String(metadata.providerDocId || metadata.providerId || metadata.painterDocId || '').trim() ||
+        null;
+
+      if (!providerId && userId) {
+        const { data, error } = await supabaseServer
+          .from('providers')
+          .select('id')
+          .eq('user_id', userId)
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+        providerId = data?.id || null;
+      }
+
+      if (!providerId) {
+        throw new Error('Could not find provider billing record');
+      }
+
+      const { error: updateError } = await supabaseServer
+        .from('providers')
+        .update({
+          paid: paying,
+          paying,
+          billing_plan: plan,
+          subscription_status: subscription.status,
+          stripe_customer_id: stripeCustomerId,
+          stripe_subscription_id: subscription.id,
+          trial_ends_at: trialEndsAt,
+        })
+        .eq('id', providerId);
+
+      if (updateError) throw updateError;
+    } else {
+      let painterDocId = String(metadata.painterDocId || '').trim() || null;
+      const db = getAdminFirestore();
+
+      if (!painterDocId && userId) {
+        const painterSnapshot = await db
+          .collection('painters')
+          .where('userId', '==', userId)
+          .limit(1)
+          .get();
+
+        if (!painterSnapshot.empty) {
+          painterDocId = painterSnapshot.docs[0].id;
+        }
+      }
+
+      if (!painterDocId) {
+        throw new Error('Could not find provider billing record');
+      }
+
+      await db.collection('painters').doc(painterDocId).set(
+        {
+          paid: paying,
+          paying,
+          billingPlan: plan,
+          subscriptionStatus: subscription.status,
+          stripeCustomerId,
+          stripeSubscriptionId: subscription.id,
+          trialEndsAt,
+          billingUpdatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
 
     return NextResponse.json({
       ok: true,

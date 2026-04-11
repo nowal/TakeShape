@@ -17,7 +17,10 @@ import {
 import { getDownloadURL, getStorage, ref as storageRef } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
+import {
+  BRAND_FONT_FALLBACK_STACK,
+  PRIMARY_COLOR_HEX,
+} from '@/constants/brand-color';
 import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
 import { MapsLoaded } from '@/components/maps/loaded';
 
@@ -362,7 +365,7 @@ export default function QuotesPage() {
           <style>
             @page { size: A4; margin: 24px; }
             body {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              font-family: ${BRAND_FONT_FALLBACK_STACK};
               color: #0f172a;
               margin: 0;
               padding: 0;
@@ -652,6 +655,18 @@ export default function QuotesPage() {
     }
   }, [activePainterId, loadQuotes]);
 
+  const syncQuoteShadow = useCallback(async (quoteId: string) => {
+    if (!activePainterId || !quoteId) return;
+    await fetch('/api/quotes/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerId: activePainterId,
+        quoteId,
+      }),
+    }).catch(() => undefined);
+  }, [activePainterId]);
+
   useEffect(() => {
     if (!activePainterId) return;
 
@@ -693,6 +708,7 @@ export default function QuotesPage() {
                 updatedAt: serverTimestamp()
               }
             );
+            await syncQuoteShadow(quote.id);
             continue;
           }
 
@@ -714,6 +730,7 @@ export default function QuotesPage() {
               updatedAt: serverTimestamp()
             }
           );
+          await syncQuoteShadow(quote.id);
 
           if (cancelled) continue;
           setQuotes((previousQuotes) =>
@@ -743,6 +760,7 @@ export default function QuotesPage() {
                 updatedAt: serverTimestamp()
               }
             );
+            await syncQuoteShadow(quote.id);
           } catch {
             // no-op
           }
@@ -761,7 +779,8 @@ export default function QuotesPage() {
     activePainterId,
     captureThumbnailFromVideo,
     firestore,
-    quotes
+    quotes,
+    syncQuoteShadow
   ]);
 
   const handleCustomerInfoSubmit = useCallback(async () => {
@@ -795,6 +814,7 @@ export default function QuotesPage() {
           updatedAt: serverTimestamp()
         }
       );
+      await syncQuoteShadow(editingQuoteId);
 
       setQuotes((prevQuotes) => prevQuotes.map((quote) => {
         if (quote.id !== editingQuoteId) return quote;
@@ -814,7 +834,7 @@ export default function QuotesPage() {
     } finally {
       setSavingCustomerInfo(false);
     }
-  }, [activePainterId, customerInfoForm, editingQuoteId, firestore]);
+  }, [activePainterId, customerInfoForm, editingQuoteId, firestore, syncQuoteShadow]);
 
   useEffect(() => {
     let mounted = true;

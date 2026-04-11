@@ -1640,6 +1640,16 @@ const ConsultPage: React.FC = () => {
             source: 'consult-signature-pad-v1'
           }
         }).catch(() => undefined);
+        if (painterDocIdRef.current && quoteIdRef.current) {
+          await fetch('/api/quotes/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              providerId: painterDocIdRef.current,
+              quoteId: quoteIdRef.current,
+            }),
+          }).catch(() => undefined);
+        }
       }
 
       setAcceptModalOpen(false);
@@ -1724,6 +1734,16 @@ const ConsultPage: React.FC = () => {
           quoteSessionClosed: true,
           quoteSessionClosedAt: closedAt
         }).catch(() => undefined);
+        if (painterDocIdRef.current && quoteIdRef.current) {
+          await fetch('/api/quotes/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              providerId: painterDocIdRef.current,
+              quoteId: quoteIdRef.current,
+            }),
+          }).catch(() => undefined);
+        }
       }
       await endConferenceEverywhere();
       await concludeAcceptedQuoteSession();

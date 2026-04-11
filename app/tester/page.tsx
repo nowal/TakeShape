@@ -2160,7 +2160,27 @@ const PainterCallCenter: React.FC = () => {
       }
     );
     quoteDocIdRef.current = quoteRef.id;
+    fetch('/api/quotes/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerId: painterDocId,
+        quoteId: quoteRef.id,
+      }),
+    }).catch(() => undefined);
     return quoteRef.id;
+  };
+
+  const syncQuoteShadow = async (quoteId: string) => {
+    if (!painterDocId || !quoteId) return;
+    await fetch('/api/quotes/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerId: painterDocId,
+        quoteId,
+      }),
+    }).catch(() => undefined);
   };
 
   const submitOrUpdateQuote = async () => {
@@ -2209,6 +2229,7 @@ const PainterCallCenter: React.FC = () => {
           updatedAt: serverTimestamp()
         }
       );
+      await syncQuoteShadow(quoteId);
 
       await upsertConferenceQuoteMeta({ rows, totalPrice, quoteId });
 
@@ -2290,6 +2311,7 @@ const PainterCallCenter: React.FC = () => {
             updatedAt: serverTimestamp()
           }
         ).catch(() => undefined);
+        await syncQuoteShadow(quoteId);
       }
 
       setStatus('Homeowner details updated.');
@@ -2324,6 +2346,7 @@ const PainterCallCenter: React.FC = () => {
       },
       updatedAt: serverTimestamp()
     });
+    await syncQuoteShadow(quoteId);
 
     if (recordingId) {
       const finalizeResponse = await fetch('/api/quotes/finalize-recording', {

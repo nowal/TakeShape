@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFirestore } from '@/lib/firebase-admin';
 import { getSignalWireConfig } from '@/app/api/signalwire/_lib';
 import firebase from '@/lib/firebase';
+import { buildQuoteVideoObjectKey } from '@/lib/r2/object-key';
+import { uploadRemoteVideoToR2 } from '@/lib/r2/upload';
+import { getR2BucketName } from '@/lib/r2/config';
+import {
+  isSupabaseDataLayerEnabled,
+  shouldCopySignalWireRecordingsToR2,
+} from '@/lib/feature-flags';
+import { upsertVideoAssetSupabase } from '@/lib/data/supabase/video-assets';
+import { upsertQuoteSupabaseFromFirestore } from '@/lib/data/supabase/quotes';
 import {
   doc as clientDoc,
   getDoc as clientGetDoc,
@@ -159,19 +168,39 @@ export async function POST(request: NextRequest) {
     const updateQuote = async (payload: Record<string, any>) => {
       if (readSource === 'admin' && adminQuoteRef) {
         await adminQuoteRef.update(payload);
-        return;
+      } else {
+        if (!clientQuoteRef) {
+          const clientFirestore = getClientFirestore(firebase);
+          clientQuoteRef = clientDoc(
+            clientFirestore,
+            'painters',
+            normalizedPainterDocId,
+            'quotes',
+            normalizedQuoteId
+          );
+        }
+        await clientUpdateDoc(clientQuoteRef, payload);
       }
-      if (!clientQuoteRef) {
-        const clientFirestore = getClientFirestore(firebase);
-        clientQuoteRef = clientDoc(
-          clientFirestore,
-          'painters',
-          normalizedPainterDocId,
-          'quotes',
-          normalizedQuoteId
-        );
+
+      quoteData = {
+        ...(quoteData || {}),
+        ...payload,
+      };
+
+      if (isSupabaseDataLayerEnabled()) {
+        try {
+          await upsertQuoteSupabaseFromFirestore({
+            providerId: normalizedPainterDocId,
+            quoteId: normalizedQuoteId,
+            quoteData: quoteData || {},
+          });
+        } catch (syncError) {
+          console.error(
+            'Failed to mirror quote to Supabase in finalize-recording:',
+            syncError
+          );
+        }
       }
-      await clientUpdateDoc(clientQuoteRef, payload);
     };
 
     const fallbackRecordingId = String(
@@ -204,6 +233,58 @@ export async function POST(request: NextRequest) {
     const nowIso = new Date().toISOString();
 
     if (recordingResult.ready && recordingResult.url) {
+      let r2ObjectKey: string | null = null;
+      let r2UploadError: string | null = null;
+
+      if (shouldCopySignalWireRecordingsToR2()) {
+        try {
+          r2ObjectKey = buildQuoteVideoObjectKey({
+            providerId: normalizedPainterDocId,
+            quoteId: normalizedQuoteId,
+            contentType: 'video/mp4',
+            source: 'signalwire',
+          });
+
+          await uploadRemoteVideoToR2({
+            sourceUrl: recordingResult.url,
+            objectKey: r2ObjectKey,
+            contentType: 'video/mp4',
+          });
+        } catch (r2Error) {
+          r2UploadError =
+            r2Error instanceof Error
+              ? r2Error.message
+              : 'R2 upload failed';
+          console.error('Failed to copy SignalWire recording to R2:', r2Error);
+        }
+      }
+
+      if (isSupabaseDataLayerEnabled()) {
+        try {
+          await upsertVideoAssetSupabase({
+            quoteId: normalizedQuoteId,
+            providerId: normalizedPainterDocId,
+            source: 'signalwire',
+            storageProvider: r2ObjectKey ? 'r2' : 'signalwire',
+            bucket: r2ObjectKey ? getR2BucketName() : null,
+            objectKey: r2ObjectKey,
+            contentType: 'video/mp4',
+            signalwireRecordingId: resolvedRecordingId,
+            upstreamUrl: recordingResult.url,
+            playbackUrl: recordingResult.url,
+            status: r2ObjectKey ? 'ready' : 'ready_upstream_only',
+            metadata: r2UploadError
+              ? { r2UploadError }
+              : undefined,
+          });
+        } catch (assetError) {
+          console.error(
+            'Failed to record video asset in Supabase:',
+            assetError
+          );
+        }
+      }
+
       const currentVideoEstimate = (quoteData?.videoEstimate || {}) as Record<string, any>;
       const existingThumbnailUrl = String(currentVideoEstimate.thumbnailUrl || '').trim() || null;
       await updateQuote({
@@ -213,6 +294,8 @@ export async function POST(request: NextRequest) {
           message: 'Video ready',
           recordingId: resolvedRecordingId,
           url: recordingResult.url,
+          r2Bucket: r2ObjectKey ? getR2BucketName() : null,
+          r2ObjectKey,
           thumbnailUrl: existingThumbnailUrl,
           thumbnailStatus: existingThumbnailUrl ? 'ready' : 'pending',
           thumbnailCapturedAt: existingThumbnailUrl
@@ -227,6 +310,8 @@ export async function POST(request: NextRequest) {
           {
             type: 'signalwire',
             value: recordingResult.url,
+            r2Bucket: r2ObjectKey ? getR2BucketName() : null,
+            r2ObjectKey,
             signalwireRecordingId: resolvedRecordingId,
             createdAt: nowIso
           }
@@ -236,8 +321,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ready: true,
         recordingUrl: recordingResult.url,
+        r2ObjectKey,
         source: readSource,
-        adminReadError
+        adminReadError,
+        r2UploadError
       });
     }
 
