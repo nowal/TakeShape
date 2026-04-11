@@ -1,15 +1,9 @@
 'use client';
-import {
-  Montserrat,
-  Open_Sans,
-  Poppins,
-} from 'next/font/google';
+import { Barlow } from 'next/font/google';
 
-const montserrat = Montserrat({ subsets: ['latin'] });
-const openSans = Open_Sans({ subsets: ['latin'] });
-const poppins = Poppins({
+const barlow = Barlow({
   subsets: ['latin'],
-  weight: ['500'],
+  weight: ['400', '500', '600', '700'],
 });
 
 export const CssGlobal = () => {
@@ -17,14 +11,15 @@ export const CssGlobal = () => {
     <style jsx global>
       {`
         :root {
-          --font-montserrat: ${montserrat.style.fontFamily};
-          --font-open-sans: ${openSans.style.fontFamily};
-          --font-poppins: ${poppins.style.fontFamily};
+          --font-montserrat: ${barlow.style.fontFamily};
+          --font-open-sans: ${barlow.style.fontFamily};
+          --font-poppins: ${barlow.style.fontFamily};
+          --font-barlow: ${barlow.style.fontFamily};
         }
 
         body {
-          font-family: ${montserrat.className};
-          font-weight: 400;
+          font-family: ${barlow.style.fontFamily};
+          font-weight: 500;
         }
       `}
     </style>

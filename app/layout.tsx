@@ -14,6 +14,7 @@ import { MOTION_CONFIG } from '@/constants/animation';
 import { LibsToastify } from '@/components/libs/toastify';
 import {
   APP_BACKGROUND_HSL,
+  PRIMARY_HOVER_COLOR_HSL,
   PRIMARY_COLOR_HSL,
   SECONDARY_BACKGROUND_HSL,
 } from '@/constants/brand-color';
@@ -38,6 +39,9 @@ export default function RootLayout({ children }: TProps) {
     '--primary-h': `${PRIMARY_COLOR_HSL.hue}`,
     '--primary-s': `${PRIMARY_COLOR_HSL.saturation}%`,
     '--primary-l': `${PRIMARY_COLOR_HSL.lightness}%`,
+    '--primary-hover-h': `${PRIMARY_HOVER_COLOR_HSL.hue}`,
+    '--primary-hover-s': `${PRIMARY_HOVER_COLOR_HSL.saturation}%`,
+    '--primary-hover-l': `${PRIMARY_HOVER_COLOR_HSL.lightness}%`,
     '--app-bg-h': `${APP_BACKGROUND_HSL.hue}`,
     '--app-bg-s': `${APP_BACKGROUND_HSL.saturation}%`,
     '--app-bg-l': `${APP_BACKGROUND_HSL.lightness}%`,

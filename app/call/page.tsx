@@ -20,7 +20,10 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
-import { PRIMARY_COLOR_HEX } from '@/constants/brand-color';
+import {
+  PRIMARY_COLOR_HEX,
+  PRIMARY_HOVER_COLOR_HEX,
+} from '@/constants/brand-color';
 import { InputsText } from '@/components/inputs/text';
 import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
 import { MapsLoaded } from '@/components/maps/loaded';
@@ -3064,7 +3067,8 @@ const PainterCallCenter: React.FC = () => {
       boxShadow: '0 20px 40px rgba(0,0,0,0.35)'
     };
   const primaryActionColor = PRIMARY_COLOR_HEX;
-  const primaryActionHoverColor = '#E73152';
+  const primaryActionHoverColor =
+    PRIMARY_HOVER_COLOR_HEX;
   const disabledPrimaryActionColor = `${PRIMARY_COLOR_HEX}99`;
   const getPrimaryButtonBackground = (
     buttonId: string,

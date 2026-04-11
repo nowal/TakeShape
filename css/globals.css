@@ -8,14 +8,16 @@
   --background-end-rgb: 255, 255, 255; /* Keeping end color also white for a solid background */
   /* -- */
   /* Primary brand color is set globally from app/layout.tsx. */
-  --primary-hsl: var(--primary-h, 343) var(--primary-s, 90%) var(--primary-l, 40%);
-  --app-bg-hsl: var(--app-bg-h, 40) var(--app-bg-s, 33%) var(--app-bg-l, 96%);
-  --secondary-bg-hsl: var(--secondary-bg-h, 150) var(--secondary-bg-s, 7%) var(--secondary-bg-l, 51%);
+  --primary-hsl: var(--primary-h, 355) var(--primary-s, 90%) var(--primary-l, 40%);
+  --primary-hover-hsl: var(--primary-hover-h, 355) var(--primary-hover-s, 91%) var(--primary-hover-l, 22%);
+  --app-bg-hsl: var(--app-bg-h, 40) var(--app-bg-s, 27%) var(--app-bg-l, 98%);
+  --secondary-bg-hsl: var(--secondary-bg-h, 38) var(--secondary-bg-s, 21%) var(--secondary-bg-l, 93%);
   --app-bg: hsl(var(--app-bg-hsl));
   --app-secondary-bg: hsl(var(--secondary-bg-hsl));
   --app-surface: hsl(var(--secondary-bg-hsl) / 10%);
   --app-surface-card: hsl(var(--secondary-bg-hsl) / 14%);
   --pink: hsl(var(--primary-hsl));
+  --primary-hover: hsl(var(--primary-hover-hsl));
   /* using this `--pink` variable will fail Google Insights accessiblity tests */
   /* -- */
   /* --pink: #eb0029; */

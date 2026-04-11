@@ -61,7 +61,7 @@ const config: Config = {
         'white-pink-4': '#FFF5F8',
 
         pink: 'var(--pink)',
-        'pink-1': '#E73152',
+        'pink-1': 'var(--primary-hover)',
 
         red: 'var(--red)',
 
