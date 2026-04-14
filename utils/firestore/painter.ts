@@ -120,3 +120,23 @@ export const getAllPainters = async () => {
     throw error;
   }
 };
+
+/**
+ * Save intake embed settings on painter profile as a fallback store.
+ */
+export const setPainterIntakeEmbedSettings = async (
+  painterId: string,
+  intakeEmbedSettings: Record<string, unknown>
+) => {
+  try {
+    const painterRef = doc(db, PAINTERS_COLLECTION, painterId);
+    await updateDoc(painterRef, {
+      intakeEmbedSettings,
+      updatedAt: new Date()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error saving painter intake embed settings:', error);
+    throw error;
+  }
+};

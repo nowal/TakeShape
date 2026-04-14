@@ -1,11 +1,26 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import Image from 'next/image';
 import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
-import { initializeEmbed, sendCompletionEvent } from '@/app/embed/utils';
+import {
+  initializeEmbed,
+  sendCompletionEvent,
+  sendMessageToParent,
+} from '@/app/embed/utils';
+import {
+  DEFAULT_INTAKE_EMBED_SETTINGS,
+  IntakeEmbedSettings,
+  normalizeIntakeEmbedSettings,
+} from '@/app/embed/intake/settings';
 import uploadIcon from './upload-brand.png';
 import callIcon from './call-brand.png';
 import inPersonIcon from './in-person-brand.png';
@@ -52,9 +67,6 @@ const INITIAL_ERRORS: ContactErrors = {
   phone: '',
   address: '',
 };
-
-const THANK_YOU_MESSAGE =
-  'Thanks for contacting us! Someone will reach out shortly to handle your estimate!';
 
 const buildDefaultSchedule = () => {
   const now = new Date();
@@ -111,6 +123,19 @@ const formatPhoneNumber = (phone: string) => {
   )}-${digits.slice(6)}`;
 };
 
+const resolveCompletionMessage = ({
+  template,
+  phone,
+}: {
+  template: string;
+  phone: string;
+}) => {
+  return template.replace(
+    /\{phone\}/g,
+    formatPhoneNumber(phone || '(555) 555-5555')
+  );
+};
+
 export default function EmbedIntakePage() {
   const [step, setStep] = useState<Step>('contact');
   const [contact, setContact] = useState<ContactForm>(INITIAL_CONTACT);
@@ -122,18 +147,76 @@ export default function EmbedIntakePage() {
   const [videoCallSchedule, setVideoCallSchedule] = useState(
     () => buildDefaultSchedule()
   );
-
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoFileName, setVideoFileName] = useState('');
+  const [providerId, setProviderId] = useState('');
+  const [previewMode, setPreviewMode] = useState(false);
+  const [settings, setSettings] = useState<IntakeEmbedSettings>(
+    DEFAULT_INTAKE_EMBED_SETTINGS
+  );
   const jobDescription = '';
   const [videoSubmitPending, setVideoSubmitPending] =
     useState(false);
 
   useEffect(() => {
-    initializeEmbed();
+    const options = initializeEmbed();
+    const params = new URLSearchParams(window.location.search);
+    const queryProviderId = String(
+      options.providerId || params.get('providerId') || ''
+    ).trim();
+    const isPreview =
+      String(params.get('previewMode') || '').trim() === 'true';
+
+    setPreviewMode(isPreview);
+    if (queryProviderId) {
+      setProviderId(queryProviderId);
+    }
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadSettings = async () => {
+      if (!providerId) {
+        setSettings(DEFAULT_INTAKE_EMBED_SETTINGS);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/embed/intake-settings?providerId=${encodeURIComponent(
+            providerId
+          )}`
+        );
+
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        if (cancelled) return;
+
+        setSettings(
+          (payload.settings ||
+            DEFAULT_INTAKE_EMBED_SETTINGS) as IntakeEmbedSettings
+        );
+      } catch (error) {
+        if (!cancelled) {
+          console.error(
+            'Failed to load intake embed settings:',
+            error
+          );
+        }
+      }
+    };
+
+    loadSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [providerId]);
+
+  useEffect(() => {
+    if (previewMode) return;
     if (
       step !== 'thanks' &&
       step !== 'inPersonRequested' &&
@@ -144,6 +227,7 @@ export default function EmbedIntakePage() {
 
     sendCompletionEvent({
       flow: 'contact-video-intake',
+      providerId,
       estimateChoice,
       contact,
       liveVideoCallPreference,
@@ -157,7 +241,9 @@ export default function EmbedIntakePage() {
     });
   }, [
     step,
+    previewMode,
     estimateChoice,
+    providerId,
     contact,
     liveVideoCallPreference,
     videoCallSchedule,
@@ -165,15 +251,39 @@ export default function EmbedIntakePage() {
     jobDescription,
   ]);
 
+  useEffect(() => {
+    sendMessageToParent('intake-step', { step });
+  }, [step]);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      const payload = event.data;
+      if (
+        !payload ||
+        payload.type !== 'takeshape-embed' ||
+        payload.action !== 'intake-settings-update'
+      ) {
+        return;
+      }
+      const nextSettings = normalizeIntakeEmbedSettings(
+        payload?.data?.settings || {}
+      );
+      setSettings(nextSettings);
+    };
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
   const canSubmitVideo = useMemo(() => {
-    return Boolean(videoFile);
-  }, [videoFile]);
+    return previewMode ? true : Boolean(videoFile);
+  }, [previewMode, videoFile]);
+
   const timeOptions = useMemo(() => buildTimeOptions(), []);
+
   const canRequestVideoCall = useMemo(() => {
     if (!liveVideoCallPreference) return false;
-
     if (liveVideoCallPreference === 'asap') return true;
-
     return Boolean(
       videoCallSchedule.date && videoCallSchedule.time
     );
@@ -202,14 +312,12 @@ export default function EmbedIntakePage() {
     };
 
     setErrors(nextErrors);
-
     return Object.values(nextErrors).every((value) => !value);
   };
 
   const onContactSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!validateContact()) return;
-
+    if (!previewMode && !validateContact()) return;
     setStep('estimateChoice');
   };
 
@@ -245,20 +353,18 @@ export default function EmbedIntakePage() {
 
   const onLiveVideoRequest = (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!canRequestVideoCall) return;
-
     setStep('videoCallRequested');
   };
 
   const onVideoFile = (file: File) => {
+    if (previewMode) return;
     setVideoFile(file);
     setVideoFileName(file.name);
   };
 
   const onVideoSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!canSubmitVideo) return;
 
     try {
@@ -268,6 +374,11 @@ export default function EmbedIntakePage() {
       setVideoSubmitPending(false);
     }
   };
+
+  const videoCallCompletionMessage = resolveCompletionMessage({
+    template: settings.completion.videoCallRequestedMessage,
+    phone: contact.phone,
+  });
 
   return (
     <div className="w-full px-3 py-5 sm:px-6 sm:py-8">
@@ -279,11 +390,8 @@ export default function EmbedIntakePage() {
                 <h1 className="text-3xl font-montserrat font-bold text-black leading-tight">
                   Get Started Today!
                 </h1>
-                <p className="text-[17px] leading-8 text-black-6 font-open-sans max-w-[34rem]">
-                  We offer quick, video-based estimates.
-                  Upload a video of your job, hop on a live video call,
-                  or schedule an on-site appointment
-                  with a member of our team today!
+                <p className="text-[17px] leading-8 text-black-6 font-open-sans max-w-[34rem] whitespace-pre-line">
+                  {settings.contactIntroText}
                 </p>
                 <div className="relative w-full overflow-hidden rounded-2xl border border-black-08 bg-white-pink-1 h-[240px] sm:h-[300px]">
                   <Image
@@ -315,7 +423,7 @@ export default function EmbedIntakePage() {
                         )
                       }
                       placeholder="John Smith"
-                      required
+                      required={!previewMode}
                     />
                     {errors.name && (
                       <p className="text-sm text-red">
@@ -338,7 +446,7 @@ export default function EmbedIntakePage() {
                         )
                       }
                       placeholder="you@example.com"
-                      required
+                      required={!previewMode}
                     />
                     {errors.email && (
                       <p className="text-sm text-red">
@@ -361,7 +469,7 @@ export default function EmbedIntakePage() {
                         )
                       }
                       placeholder="(123) 456-7890"
-                      required
+                      required={!previewMode}
                     />
                     {errors.phone && (
                       <p className="text-sm text-red">
@@ -383,7 +491,7 @@ export default function EmbedIntakePage() {
                         )
                       }
                       placeholder="123 Main St, City, State, ZIP"
-                      required
+                      required={!previewMode}
                     />
                     {errors.address && (
                       <p className="text-sm text-red">
@@ -412,13 +520,18 @@ export default function EmbedIntakePage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <EstimateChoiceCard
                 title="Upload a Video"
-                subtitle="At Your Convenience"
+                subtitle={
+                  settings.estimateChoiceSubtitles.uploadVideo
+                }
                 icon={uploadIcon}
                 onClick={() => onEstimateChoice('uploadVideo')}
               />
               <EstimateChoiceCard
                 title="Schedule Live Video Call"
-                subtitle="Talk to us"
+                subtitle={
+                  settings.estimateChoiceSubtitles
+                    .requestLiveVideoEstimate
+                }
                 icon={callIcon}
                 onClick={() =>
                   onEstimateChoice('requestLiveVideoEstimate')
@@ -426,7 +539,10 @@ export default function EmbedIntakePage() {
               />
               <EstimateChoiceCard
                 title="Request In-Person Estimate"
-                subtitle="For more complex jobs"
+                subtitle={
+                  settings.estimateChoiceSubtitles
+                    .requestInPersonEstimate
+                }
                 icon={inPersonIcon}
                 onClick={() =>
                   onEstimateChoice('requestInPersonEstimate')
@@ -454,7 +570,7 @@ export default function EmbedIntakePage() {
                     <InputsFile
                       title="Upload Job Video"
                       onFile={onVideoFile}
-                      isRequired
+                      isRequired={!previewMode}
                     >
                       {videoFileName ? (
                         <div className="absolute right-0 bottom-0 w-full truncate font-open-sans text-xs p-2 text-gray text-left">
@@ -465,14 +581,8 @@ export default function EmbedIntakePage() {
                   </div>
 
                   <div className="min-h-[170px] w-full rounded-xl border border-black-08 bg-white p-6 sm:p-7 flex items-center">
-                    <p className="w-full text-center text-base font-open-sans text-black-6 leading-7">
-                      As you record, verbally tell us any relevant
-                      details about your job.
-                      <br />
-                      ...
-                      <br />
-                      You can specify any other information you want
-                      your customers to provide here.
+                    <p className="w-full text-center text-base font-open-sans text-black-6 leading-7 whitespace-pre-line">
+                      {settings.uploadInstructionsText}
                     </p>
                   </div>
                 </div>
@@ -630,12 +740,12 @@ export default function EmbedIntakePage() {
         )}
 
         {step === 'inPersonRequested' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
-            <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-6 text-center px-4">
-              <h2 className="typography-page-title">
-                Thanks for contacting us! We&apos;ll reach out shortly
-                to schedule your in-person estimate.
-              </h2>
+          <CompletionScreen
+            message={settings.completion.inPersonRequestedMessage}
+            showConfetti={
+              settings.completion.confetti.inPersonRequested
+            }
+            footer={
               <ButtonsQuoteSubmit
                 type="button"
                 title="Go Back"
@@ -643,30 +753,26 @@ export default function EmbedIntakePage() {
                 classValue="font-bold min-h-[56px] px-12"
                 onTap={onPreviousToEstimateChoice}
               />
-            </div>
-          </div>
+            }
+          />
         )}
 
         {step === 'thanks' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
-            <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-4 text-center px-4">
-              <h2 className="typography-page-title">
-                {THANK_YOU_MESSAGE}
-              </h2>
-            </div>
-          </div>
+          <CompletionScreen
+            message={settings.completion.uploadVideoMessage}
+            showConfetti={
+              settings.completion.confetti.uploadVideo
+            }
+          />
         )}
 
         {step === 'videoCallRequested' && (
-          <div className="fill-column-white-sm sm:fill-column-white">
-            <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-4 text-center px-4">
-              <h2 className="typography-page-title">
-                We can&apos;t wait to talk with you! We&apos;ll call
-                you at your requested time from{' '}
-                {formatPhoneNumber(contact.phone)}. Talk soon!
-              </h2>
-            </div>
-          </div>
+          <CompletionScreen
+            message={videoCallCompletionMessage}
+            showConfetti={
+              settings.completion.confetti.videoCallRequested
+            }
+          />
         )}
       </div>
     </div>
@@ -695,7 +801,7 @@ function EstimateChoiceCard({
       <h3 className="text-center text-lg font-semibold text-black">
         {title}
       </h3>
-      <p className="mt-1 text-center text-base font-open-sans text-black-6 min-h-[24px]">
+      <p className="mt-1 text-center text-base font-open-sans text-black-6 min-h-[24px] whitespace-pre-line">
         {subtitle}
       </p>
       <div className="mt-4 w-full overflow-hidden rounded-lg bg-white">
@@ -709,5 +815,90 @@ function EstimateChoiceCard({
         />
       </div>
     </button>
+  );
+}
+
+const completionConfettiPalette = [
+  '#f97316',
+  '#f43f5e',
+  '#22c55e',
+  '#3b82f6',
+  '#eab308',
+  '#14b8a6',
+];
+
+const completionConfettiStyle = (
+  index: number
+): CSSProperties => ({
+  position: 'absolute',
+  left: `${5 + ((index * 4.9) % 90)}%`,
+  top: -28 - (index % 4) * 16,
+  width: 8 + (index % 4) * 3,
+  height: 14 + (index % 3) * 4,
+  borderRadius: 2,
+  background:
+    completionConfettiPalette[
+      index % completionConfettiPalette.length
+    ],
+  opacity: 0.9,
+  transform: `rotate(${(index * 37) % 360}deg)`,
+  animation: `intake-confetti-fall ${
+    2.8 + (index % 4) * 0.42
+  }s linear infinite`,
+});
+
+type CompletionScreenProps = {
+  message: string;
+  showConfetti: boolean;
+  footer?: ReactNode;
+};
+
+function CompletionScreen({
+  message,
+  showConfetti,
+  footer,
+}: CompletionScreenProps) {
+  return (
+    <div className="fill-column-white-sm sm:fill-column-white">
+      <div className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
+        <div className="relative overflow-hidden rounded-2xl border border-black-08 bg-white p-6 sm:p-8">
+          {showConfetti
+            ? [...Array(20)].map((_, index) => (
+                <span
+                  key={`intake-confetti-${index}`}
+                  style={{
+                    ...completionConfettiStyle(index),
+                    animationDelay: `${(index % 6) * 0.18}s`,
+                  }}
+                />
+              ))
+            : null}
+
+          <div className="relative z-[1] flex min-h-[280px] flex-col items-center justify-center gap-5 text-center">
+            <h2 className="typography-page-title whitespace-pre-line">
+              {message}
+            </h2>
+            {footer ? (
+              <div className="pt-1">{footer}</div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @keyframes intake-confetti-fall {
+          0% {
+            transform: translate3d(0, -30px, 0) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.92;
+          }
+          100% {
+            transform: translate3d(0, 540px, 0) rotate(340deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
