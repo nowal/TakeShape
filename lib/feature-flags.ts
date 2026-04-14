@@ -14,3 +14,6 @@ export const isSupabaseDataLayerEnabled = () =>
 
 export const shouldCopySignalWireRecordingsToR2 = () =>
   parseBoolean(process.env.COPY_SIGNALWIRE_RECORDINGS_TO_R2, true);
+
+export const shouldInlineCopySignalWireToR2 = () =>
+  parseBoolean(process.env.INLINE_R2_COPY_ON_FINALIZE, false);

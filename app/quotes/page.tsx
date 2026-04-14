@@ -7,8 +7,6 @@ import {
   doc,
   getDocs,
   getFirestore,
-  limit,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -453,16 +451,24 @@ export default function QuotesPage() {
   ) => {
     setLoadingQuotes(true);
     try {
-      const quotesQuery = query(
-        collection(firestore, 'painters', painterId, 'quotes'),
-        orderBy('createdAt', 'desc'),
-        limit(30)
+      const response = await fetch(
+        `/api/quotes/list?providerId=${encodeURIComponent(painterId)}`
       );
-      const snapshot = await getDocs(quotesQuery);
+      if (!response.ok) {
+        throw new Error('Failed to fetch quotes');
+      }
+      const payload = await response.json();
+      const quoteRows = Array.isArray(payload?.quotes)
+        ? payload.quotes
+        : [];
 
       const cards = await Promise.all(
-        snapshot.docs.map(async (quoteDoc) => {
-          const data = quoteDoc.data() as Record<string, any>;
+        quoteRows.map(async (quoteEntry: any) => {
+          const quoteId = String(quoteEntry?.id || '').trim();
+          const data = (quoteEntry?.data || {}) as Record<
+            string,
+            any
+          >;
           const pricing = data.pricing || {};
           const homeownerName = normalizeOptionalField(data.homeownerName);
           const homeownerEmail = normalizeOptionalField(data.homeownerEmail);
@@ -557,7 +563,7 @@ export default function QuotesPage() {
                 : 'Video not found';
 
           return {
-            id: quoteDoc.id,
+            id: quoteId,
             videoUrl,
             thumbnailUrl,
             thumbnailStatus,
@@ -611,7 +617,7 @@ export default function QuotesPage() {
       setLoadingQuotes(false);
       setRefreshingVideos(false);
     }
-  }, [firestore, storage]);
+  }, [storage]);
 
   const openCustomerInfoModal = useCallback((quote: QuoteCard) => {
     setEditingQuoteId(quote.id);

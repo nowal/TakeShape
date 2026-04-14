@@ -2464,6 +2464,7 @@ const PainterCallCenter: React.FC = () => {
     const appBase =
       process.env.NEXT_PUBLIC_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_BASE_URL ||
+      'https://app.takeshapehome.com' ||
       window.location.origin;
     const nextGuestLink =
       `${appBase}/consult?room=${encodeURIComponent(conferenceRoomName)}&conferenceId=${encodeURIComponent(confData.id)}&painterDocId=${encodeURIComponent(painterDocId || '')}`;

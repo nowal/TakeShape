@@ -379,6 +379,38 @@ export const useAccountSettingsState = (
             painterDocRef,
             updatedPainterData
           );
+          const profileSyncResponse = await fetch(
+            '/api/providers/sync-profile',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                providerId: painterDocRef.id,
+                userId: currentUser.uid,
+                businessName,
+                address: addressValue,
+                isInsured,
+                logoUrl: updatedLogoUrl || '',
+                termsAndConditionsUrl:
+                  updatedTermsAndConditionsUrl || '',
+                phoneNumber: normalizedPhone,
+              }),
+            }
+          ).catch(() => null);
+
+          if (profileSyncResponse && !profileSyncResponse.ok) {
+            const payload = await profileSyncResponse
+              .json()
+              .catch(() => ({}));
+            throw new Error(
+              String(
+                payload?.error ||
+                  'Failed to sync provider profile to Supabase'
+              )
+            );
+          }
           console.log(
             'Painter info updated:',
             updatedPainterData

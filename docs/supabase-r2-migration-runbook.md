@@ -67,6 +67,7 @@ Enable:
 ```bash
 USE_SUPABASE_DATA_LAYER=true
 COPY_SIGNALWIRE_RECORDINGS_TO_R2=true
+INLINE_R2_COPY_ON_FINALIZE=false
 ```
 
 Current routes wired for phased cutover:
@@ -75,10 +76,17 @@ Current routes wired for phased cutover:
 - `/api/painter/addSession` (supports provider data in Supabase mode)
 - `/api/stripe/confirm` (updates `providers` when Supabase mode is on)
 - `/api/quotes/by-conference` (reads Supabase first in Supabase mode)
+- `/api/quotes/list` (powers provider `/quotes` list from Supabase in Supabase mode)
 - `/api/quotes/sync` (mirrors a Firestore quote into Supabase for dual-write testing)
 - `/api/quotes/finalize-recording` (copies SignalWire recording to R2 + tracks `video_assets` in Supabase mode)
+- `/api/quotes/reconcile-recordings` (nightly asynchronous R2 reconciliation from SignalWire recording IDs)
 - `/api/video/r2/upload-url`
 - `/api/video/r2/download-url`
+
+Nightly job:
+- `vercel.json` schedules `/api/quotes/reconcile-recordings` daily at `03:15 UTC`.
+- Set `CRON_SECRET` in Vercel and call manually with:
+  `Authorization: Bearer <CRON_SECRET>`.
 
 ## 7) Rollback
 
