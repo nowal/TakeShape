@@ -16,6 +16,7 @@ type Step =
   | 'estimateChoice'
   | 'videoCallSchedule'
   | 'videoUpload'
+  | 'inPersonRequested'
   | 'thanks'
   | 'videoCallRequested';
 
@@ -135,6 +136,7 @@ export default function EmbedIntakePage() {
   useEffect(() => {
     if (
       step !== 'thanks' &&
+      step !== 'inPersonRequested' &&
       step !== 'videoCallRequested'
     ) {
       return;
@@ -226,7 +228,11 @@ export default function EmbedIntakePage() {
       return;
     }
 
-    setStep('thanks');
+    setStep('inPersonRequested');
+  };
+
+  const onPreviousToEstimateChoice = () => {
+    setStep('estimateChoice');
   };
 
   const onLiveVideoPreferenceToggle = (
@@ -471,7 +477,14 @@ export default function EmbedIntakePage() {
                   </div>
                 </div>
 
-                <div className="mt-auto w-full flex justify-center pb-3 sm:pb-4">
+                <div className="mt-auto w-full flex flex-col sm:flex-row items-center justify-center gap-3 pb-3 sm:pb-4">
+                  <ButtonsQuoteSubmit
+                    type="button"
+                    title="Go Back"
+                    size="md"
+                    classValue="font-bold min-h-[56px] px-12"
+                    onTap={onPreviousToEstimateChoice}
+                  />
                   <ButtonsQuoteSubmit
                     title={
                       videoSubmitPending
@@ -596,7 +609,14 @@ export default function EmbedIntakePage() {
                   )}
                 </div>
 
-                <div className="mt-8 flex justify-center">
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <ButtonsQuoteSubmit
+                    type="button"
+                    title="Go Back"
+                    size="md"
+                    classValue="font-bold min-h-[56px] px-12"
+                    onTap={onPreviousToEstimateChoice}
+                  />
                   <ButtonsQuoteSubmit
                     title="Confirm Call Time!"
                     isDisabled={!canRequestVideoCall}
@@ -605,6 +625,24 @@ export default function EmbedIntakePage() {
                   />
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {step === 'inPersonRequested' && (
+          <div className="fill-column-white-sm sm:fill-column-white">
+            <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col items-center justify-center gap-6 text-center px-4">
+              <h2 className="typography-page-title">
+                Thanks for contacting us! We&apos;ll reach out shortly
+                to schedule your in-person estimate.
+              </h2>
+              <ButtonsQuoteSubmit
+                type="button"
+                title="Go Back"
+                size="md"
+                classValue="font-bold min-h-[56px] px-12"
+                onTap={onPreviousToEstimateChoice}
+              />
             </div>
           </div>
         )}
