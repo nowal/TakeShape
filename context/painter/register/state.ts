@@ -126,6 +126,37 @@ export const usePainterRegisterState = () => {
       );
 
       await setDoc(painterDocRef, painterData);
+
+      const profileSyncResponse = await fetch(
+        '/api/providers/sync-profile',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            providerId: painterDocRef.id,
+            userId: user.uid,
+            businessName,
+            address: addressValue,
+            isInsured: false,
+            logoUrl,
+            termsAndConditionsUrl,
+            phoneNumber: normalizedPhone,
+          }),
+        }
+      );
+
+      if (!profileSyncResponse.ok) {
+        const payload = await profileSyncResponse
+          .json()
+          .catch(() => ({}));
+        throw new Error(
+          String(
+            payload?.error ||
+              'Failed to sync provider profile to Supabase'
+          )
+        );
+      }
+
       console.log('Painter info saved:', painterData);
 
       dispatchPainter(true); // Set the user as a painter

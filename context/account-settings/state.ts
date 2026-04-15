@@ -398,9 +398,9 @@ export const useAccountSettingsState = (
                 phoneNumber: normalizedPhone,
               }),
             }
-          ).catch(() => null);
+          );
 
-          if (profileSyncResponse && !profileSyncResponse.ok) {
+          if (!profileSyncResponse.ok) {
             const payload = await profileSyncResponse
               .json()
               .catch(() => ({}));

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
 import { supabaseServer } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -7,14 +6,6 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    if (!isSupabaseDataLayerEnabled()) {
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        reason: 'USE_SUPABASE_DATA_LAYER is disabled',
-      });
-    }
-
     const body = await request.json();
     const providerId = String(body.providerId || '').trim();
     const userId = String(body.userId || '').trim();
@@ -63,4 +54,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

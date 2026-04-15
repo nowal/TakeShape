@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPainter, addSessionToPainter } from '@/utils/firestore/painter';
-import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
-import {
-  addSessionToProviderSupabase,
-  getProviderByIdSupabase,
-} from '@/lib/data/supabase/providers';
-import { sessionExistsSupabase } from '@/lib/data/supabase/sessions';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,40 +13,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (isSupabaseDataLayerEnabled()) {
-      const provider = await getProviderByIdSupabase(painterId);
-      if (!provider) {
-        return NextResponse.json(
-          { error: 'Provider not found' },
-          { status: 404 }
-        );
-      }
-
-      const sessionExists = await sessionExistsSupabase(sessionId);
-      if (!sessionExists) {
-        return NextResponse.json(
-          { error: 'Session not found' },
-          { status: 404 }
-        );
-      }
-
-      await addSessionToProviderSupabase({
-        providerId: painterId,
-        sessionId,
-      });
-    } else {
-      // Check if painter exists
-      const painter = await getPainter(painterId);
-      if (!painter) {
-        return NextResponse.json(
-          { error: 'Painter not found' },
-          { status: 404 }
-        );
-      }
-
-      // Add session to painter
-      await addSessionToPainter(painterId, sessionId);
+    // Check if painter exists in Firestore first.
+    const painter = await getPainter(painterId);
+    if (!painter) {
+      return NextResponse.json(
+        { error: 'Painter not found' },
+        { status: 404 }
+      );
     }
+
+    // Write to Firestore.
+    await addSessionToPainter(painterId, sessionId);
+
+    // Write to Supabase.
+    const existingSessions = Array.isArray(painter.sessions)
+      ? painter.sessions
+      : [];
+    const normalizedSessions = existingSessions
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+    const nextSessions = normalizedSessions.includes(sessionId)
+      ? normalizedSessions
+      : [...normalizedSessions, sessionId];
+
+    const { error: upsertError } = await supabaseServer
+      .from('providers')
+      .upsert(
+        {
+          id: painterId,
+          user_id: painter.userId || null,
+          sessions: nextSessions,
+        },
+        { onConflict: 'id' }
+      );
+
+    if (upsertError) throw upsertError;
     
     return NextResponse.json(
       { success: true, message: 'Session added to provider successfully' },

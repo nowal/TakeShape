@@ -511,7 +511,26 @@ const PainterCallCenter: React.FC = () => {
   const firestore = getFirestore(firebase);
 
   useEffect(() => {
-    setHomeownerAddressInput('');
+    const params = new URLSearchParams(
+      window.location.search
+    );
+    const prefilledPhone = String(
+      params.get('homeownerPhone') || ''
+    ).trim();
+    const prefilledName = String(
+      params.get('homeownerName') || ''
+    ).trim();
+    const prefilledEmail = String(
+      params.get('homeownerEmail') || ''
+    ).trim();
+    const prefilledAddress = String(
+      params.get('homeownerAddress') || ''
+    ).trim();
+
+    setHomeownerNumberInput(prefilledPhone);
+    setHomeownerNameInput(prefilledName);
+    setHomeownerEmailInput(prefilledEmail);
+    setHomeownerAddressInput(prefilledAddress);
   }, []);
 
   const stopCallerIdPolling = () => {
@@ -2150,6 +2169,28 @@ const PainterCallCenter: React.FC = () => {
     }).catch(() => undefined);
   };
 
+  const syncQuoteToSupabase = async (quoteId: string) => {
+    if (!painterDocId || !quoteId) return;
+    const syncResponse = await fetch('/api/quotes/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerId: painterDocId,
+        quoteId,
+      }),
+    });
+    if (!syncResponse.ok) {
+      const payload = await syncResponse
+        .json()
+        .catch(() => ({}));
+      throw new Error(
+        String(
+          payload?.error || 'Failed to sync quote to Supabase'
+        )
+      );
+    }
+  };
+
   const ensureQuoteDoc = async () => {
     if (!painterDocId) return null;
     if (quoteDocIdRef.current) return quoteDocIdRef.current;
@@ -2179,6 +2220,7 @@ const PainterCallCenter: React.FC = () => {
       }
     );
     quoteDocIdRef.current = quoteRef.id;
+    await syncQuoteToSupabase(quoteRef.id);
     return quoteRef.id;
   };
 
@@ -2228,6 +2270,7 @@ const PainterCallCenter: React.FC = () => {
           updatedAt: serverTimestamp()
         }
       );
+      await syncQuoteToSupabase(quoteId);
 
       await upsertConferenceQuoteMeta({ rows, totalPrice, quoteId });
 
@@ -2308,7 +2351,8 @@ const PainterCallCenter: React.FC = () => {
             homeownerPhone: normalizedHomeownerNumber || null,
             updatedAt: serverTimestamp()
           }
-        ).catch(() => undefined);
+        );
+        await syncQuoteToSupabase(quoteId);
       }
 
       setStatus('Homeowner details updated.');
@@ -2343,6 +2387,7 @@ const PainterCallCenter: React.FC = () => {
       },
       updatedAt: serverTimestamp()
     });
+    await syncQuoteToSupabase(quoteId);
 
     if (recordingId) {
       const finalizeResponse = await fetch('/api/quotes/finalize-recording', {

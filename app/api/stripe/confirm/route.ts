@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminFirestore } from '@/lib/firebase-admin';
-import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
 import { supabaseServer } from '@/lib/supabase/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -50,63 +49,56 @@ export async function POST(request: NextRequest) {
     const trialEndsAt = subscription.trial_end
       ? new Date(subscription.trial_end * 1000).toISOString()
       : null;
+    let painterDocId = String(metadata.painterDocId || '').trim() || null;
+    let providerId =
+      String(
+        metadata.providerDocId ||
+          metadata.providerId ||
+          metadata.painterDocId ||
+          ''
+      ).trim() || null;
+    const db = getAdminFirestore();
 
-    if (isSupabaseDataLayerEnabled()) {
-      let providerId =
-        String(metadata.providerDocId || metadata.providerId || metadata.painterDocId || '').trim() ||
-        null;
+    if (!painterDocId && userId) {
+      const painterSnapshot = await db
+        .collection('painters')
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
 
-      if (!providerId && userId) {
-        const { data, error } = await supabaseServer
-          .from('providers')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1)
-          .maybeSingle();
-
-        if (error) throw error;
-        providerId = data?.id || null;
+      if (!painterSnapshot.empty) {
+        painterDocId = painterSnapshot.docs[0].id;
       }
+    }
 
-      if (!providerId) {
-        throw new Error('Could not find provider billing record');
-      }
-
-      const { error: updateError } = await supabaseServer
+    if (!providerId && userId) {
+      const { data, error } = await supabaseServer
         .from('providers')
-        .update({
-          paid: paying,
-          paying,
-          billing_plan: plan,
-          subscription_status: subscription.status,
-          stripe_customer_id: stripeCustomerId,
-          stripe_subscription_id: subscription.id,
-          trial_ends_at: trialEndsAt,
-        })
-        .eq('id', providerId);
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
 
-      if (updateError) throw updateError;
-    } else {
-      let painterDocId = String(metadata.painterDocId || '').trim() || null;
-      const db = getAdminFirestore();
+      if (error) throw error;
+      providerId = data?.id || null;
+    }
 
-      if (!painterDocId && userId) {
-        const painterSnapshot = await db
-          .collection('painters')
-          .where('userId', '==', userId)
-          .limit(1)
-          .get();
+    if (!providerId && painterDocId) {
+      providerId = painterDocId;
+    }
 
-        if (!painterSnapshot.empty) {
-          painterDocId = painterSnapshot.docs[0].id;
-        }
-      }
+    if (!painterDocId && providerId) {
+      painterDocId = providerId;
+    }
 
-      if (!painterDocId) {
-        throw new Error('Could not find provider billing record');
-      }
+    if (!providerId || !painterDocId) {
+      throw new Error('Could not find provider billing record');
+    }
 
-      await db.collection('painters').doc(painterDocId).set(
+    await db
+      .collection('painters')
+      .doc(painterDocId)
+      .set(
         {
           paid: paying,
           paying,
@@ -119,7 +111,25 @@ export async function POST(request: NextRequest) {
         },
         { merge: true }
       );
-    }
+
+    const { error: upsertError } = await supabaseServer
+      .from('providers')
+      .upsert(
+        {
+          id: providerId,
+          user_id: userId || null,
+          paid: paying,
+          paying,
+          billing_plan: plan,
+          subscription_status: subscription.status,
+          stripe_customer_id: stripeCustomerId,
+          stripe_subscription_id: subscription.id,
+          trial_ends_at: trialEndsAt,
+        },
+        { onConflict: 'id' }
+      );
+
+    if (upsertError) throw upsertError;
 
     return NextResponse.json({
       ok: true,
