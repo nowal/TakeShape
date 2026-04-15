@@ -1,5 +1,7 @@
 import { App, cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
 const initAdminApp = (): App => {
   const existing = getApps();
@@ -21,14 +23,30 @@ const initAdminApp = (): App => {
         projectId,
         clientEmail,
         privateKey
-      })
+      }),
+      storageBucket:
+        process.env.FIREBASE_ADMIN_STORAGE_BUCKET ||
+        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+        `${projectId}.appspot.com`,
     });
   }
 
-  return initializeApp();
+  return initializeApp({
+    storageBucket: process.env.FIREBASE_ADMIN_STORAGE_BUCKET,
+  });
 };
 
 export const getAdminFirestore = () => {
   const app = initAdminApp();
   return getFirestore(app);
+};
+
+export const getAdminAuth = () => {
+  const app = initAdminApp();
+  return getAuth(app);
+};
+
+export const getAdminStorageBucket = () => {
+  const app = initAdminApp();
+  return getStorage(app).bucket();
 };

@@ -14,11 +14,18 @@ import {
 
 export const runtime = 'nodejs';
 
-const isSupabaseAuthKeyError = (error: unknown) => {
+const isSupabaseFallbackError = (error: unknown) => {
+  const code = String((error as any)?.code || '')
+    .trim()
+    .toUpperCase();
   const message = String((error as any)?.message || '')
     .trim()
     .toLowerCase();
-  return message.includes('invalid api key');
+  return (
+    message.includes('invalid api key') ||
+    code === 'PGRST205' ||
+    message.includes('could not find the table')
+  );
 };
 
 export async function GET(request: Request) {
@@ -45,7 +52,7 @@ export async function GET(request: Request) {
       settings =
         await getProviderIntakeEmbedSettingsSupabase(providerId);
     } catch (error) {
-      if (!isSupabaseAuthKeyError(error)) {
+      if (!isSupabaseFallbackError(error)) {
         throw error;
       }
 
@@ -91,7 +98,7 @@ export async function POST(request: Request) {
         intakeSettings: settings,
       });
     } catch (error) {
-      if (!isSupabaseAuthKeyError(error)) {
+      if (!isSupabaseFallbackError(error)) {
         throw error;
       }
 

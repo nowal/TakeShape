@@ -2,22 +2,14 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
-import { cx } from 'class-variance-authority';
-import { LandingFaq } from '@/components/landing/faq';
-import { LandingProblemAndDecision } from '@/components/landing/problem-and-decision';
-import { LandingBenefits } from '@/components/landing/benefits';
-import { LandingDreamRoom } from '@/components/landing/dream-room';
-import { SignUpButton } from '@/components/buttons/sign-up/signUpButton';
+import Link from 'next/link';
 import imageHero from '@/public/landing/hero.png';
-import { LandingHeroText } from '@/components/landing/hero/text';
-import { useObjectPosition } from '@/components/landing/hero/object-position';
-import { useViewport } from '@/context/viewport';
-import { AnimationFade } from '@/components/animation/fade';
+
+const LANDING_EMBED_PROVIDER_ID =
+  process.env.NEXT_PUBLIC_LANDING_EMBED_PROVIDER_ID?.trim() ||
+  'kBkowdrNetYiZ73P8fPI';
 
 const Landing = () => {
-  const viewport = useViewport();
-  const objectPosition = useObjectPosition();
-
   useEffect(() => {
     let isCancelled = false;
     let controller: { destroy: () => void } | null = null;
@@ -30,9 +22,9 @@ const Landing = () => {
 
       controller = embedApi.init({
         mode: 'modal',
-        buttonText: 'Send Us A Video',
+        buttonText: 'Start Your Free Estimate',
         buttonPosition: 'bottom-right',
-        providerId: '9IsuIup4lcqZB2KHd4yh',
+        providerId: LANDING_EMBED_PROVIDER_ID,
       });
     };
 
@@ -68,55 +60,58 @@ const Landing = () => {
   }, []);
 
   return (
-    <>
-      <section
-        className="relative"
-        style={{
-          height: viewport.landingHeroHeight,
-        }}
-      >
-        <div className="h-0 lg:h-20" />
-        <AnimationFade classValue="absolute inset-0">
-          <Image
-            style={{
-              objectPosition,
-              objectFit: 'cover',
-            }}
-            src={imageHero.src}
-            alt="Landing Hero, Happy Pic"
-            quality="100"
-            fill
-            priority
-            loading="eager"
-            sizes="(max-width: 1250px) 100vw, 1250px"
-          />
-        </AnimationFade>
-        <LandingHeroText />
+    <main className="min-h-screen bg-white pt-6 md:pt-10">
+      <section className="relative min-h-[560px] overflow-hidden">
+        <Image
+          src={imageHero}
+          alt="Freshly painted home interior"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-6xl flex-col justify-center px-6 py-20 text-white">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em]">
+            Noah&apos;s Painting
+          </p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
+            Professional interior and exterior painting in your area.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base text-white/90 md:text-lg">
+            This is a demo landing page for a painting company. Use the floating button to open the embedded estimate form.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link
+              href="/contact"
+              className="inline-flex items-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+            >
+              Go to Contact Page
+            </Link>
+            <span className="text-sm text-white/80">
+              Licensed and insured
+            </span>
+          </div>
+        </div>
       </section>
-      <section
-        className={cx(
-          'relative',
-          'xl:h-[676px]',
-          'flex flex-col items-center px-0 sm:px-20 lg:px-44 xl:px-0'
-        )}
-      >
-        <LandingBenefits />
+
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+            <h2 className="text-lg font-semibold text-neutral-900">Interior Painting</h2>
+            <p className="mt-2 text-sm text-neutral-600">Walls, ceilings, trim, and cabinet refinishing.</p>
+          </div>
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+            <h2 className="text-lg font-semibold text-neutral-900">Exterior Painting</h2>
+            <p className="mt-2 text-sm text-neutral-600">Siding, stucco, fences, and durable weather-ready coatings.</p>
+          </div>
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+            <h2 className="text-lg font-semibold text-neutral-900">Fast Estimates</h2>
+            <p className="mt-2 text-sm text-neutral-600">Share project details and get a quick estimate with the embedded form.</p>
+          </div>
+        </div>
       </section>
-      <div className="flex justify-center py-12 xl:py-0 xl:hidden">
-        <SignUpButton />
-      </div>
-      <section className={cx('relative')}>
-        <LandingProblemAndDecision />
-      </section>
-      <section
-        className={cx('relative', 'overflow-hidden')}
-      >
-        <LandingFaq />
-      </section>
-      <section className="relative h-[748px] lg:h-[717px]">
-        <LandingDreamRoom />
-      </section>
-    </>
+    </main>
   );
 };
 

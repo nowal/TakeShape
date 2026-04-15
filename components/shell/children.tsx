@@ -9,7 +9,9 @@ type TProps = TPropsWithChildren;
 export const ShellChildren: FC<TProps> = ({ children }) => {
   const pathname = usePathname();
   const isLanding =
-    pathname === '/landing' || pathname === '/newLanding';
+    pathname === '/landing' ||
+    pathname === '/newLanding' ||
+    pathname === '/homeownerLanding';
   const isEmbed = pathname.startsWith('/embed');
   return (
     <div

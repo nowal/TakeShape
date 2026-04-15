@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -157,6 +158,10 @@ export default function EmbedIntakePage() {
   const jobDescription = '';
   const [videoSubmitPending, setVideoSubmitPending] =
     useState(false);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState('');
+  const sentNotificationStepRef = useRef<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     const options = initializeEmbed();
@@ -252,6 +257,78 @@ export default function EmbedIntakePage() {
   ]);
 
   useEffect(() => {
+    if (previewMode) return;
+    if (!providerId) return;
+    if (!estimateChoice) return;
+    if (
+      step !== 'thanks' &&
+      step !== 'inPersonRequested' &&
+      step !== 'videoCallRequested'
+    ) {
+      return;
+    }
+
+    const sentKey = `${step}:${estimateChoice}`;
+    if (sentNotificationStepRef.current.has(sentKey)) {
+      return;
+    }
+    sentNotificationStepRef.current.add(sentKey);
+
+    const notify = async () => {
+      try {
+        const response = await fetch(
+          '/api/embed/intake/notify-provider',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              providerId,
+              estimateChoice,
+              contact,
+              liveVideoCallPreference,
+              videoCallSchedule:
+                liveVideoCallPreference === 'scheduled'
+                  ? videoCallSchedule
+                  : null,
+              videoUrl: uploadedVideoUrl || null,
+              videoFileName: videoFileName || null,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const payload = await response
+            .json()
+            .catch(() => null);
+          console.error(
+            'Failed to notify provider after intake completion',
+            payload || response.status
+          );
+        }
+      } catch (error) {
+        console.error(
+          'Failed to notify provider after intake completion:',
+          error
+        );
+      }
+    };
+
+    void notify();
+  }, [
+    step,
+    previewMode,
+    providerId,
+    estimateChoice,
+    contact,
+    liveVideoCallPreference,
+    videoCallSchedule,
+    uploadedVideoUrl,
+    videoFileName,
+  ]);
+
+  useEffect(() => {
     sendMessageToParent('intake-step', { step });
   }, [step]);
 
@@ -323,6 +400,7 @@ export default function EmbedIntakePage() {
 
   const onEstimateChoice = (choice: EstimateChoice) => {
     setEstimateChoice(choice);
+    setUploadedVideoUrl('');
 
     if (choice === 'uploadVideo') {
       setStep('videoUpload');
@@ -369,6 +447,35 @@ export default function EmbedIntakePage() {
 
     try {
       setVideoSubmitPending(true);
+      if (!previewMode && videoFile && providerId) {
+        const formData = new FormData();
+        formData.append('providerId', providerId);
+        formData.append('video', videoFile);
+
+        const uploadResponse = await fetch(
+          '/api/embed/intake/upload-video',
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+
+        if (uploadResponse.ok) {
+          const uploadPayload = await uploadResponse.json();
+          setUploadedVideoUrl(
+            String(uploadPayload.downloadUrl || '')
+          );
+        } else {
+          setUploadedVideoUrl('');
+          const uploadPayload = await uploadResponse
+            .json()
+            .catch(() => null);
+          console.error(
+            'Failed to upload intake video before notification:',
+            uploadPayload || uploadResponse.status
+          );
+        }
+      }
       setStep('thanks');
     } finally {
       setVideoSubmitPending(false);
@@ -744,15 +851,6 @@ export default function EmbedIntakePage() {
             message={settings.completion.inPersonRequestedMessage}
             showConfetti={
               settings.completion.confetti.inPersonRequested
-            }
-            footer={
-              <ButtonsQuoteSubmit
-                type="button"
-                title="Go Back"
-                size="md"
-                classValue="font-bold min-h-[56px] px-12"
-                onTap={onPreviousToEstimateChoice}
-              />
             }
           />
         )}

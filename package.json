@@ -12,6 +12,7 @@
     "backfill:quotes": "esrun scripts/backfill-quotes-to-supabase.ts",
     "verify:backfill": "esrun scripts/verify-backfill.ts",
     "setup:r2": "esrun scripts/setup-r2.ts",
+    "backfill:provider": "esrun scripts/backfill-provider-to-supabase.ts",
     "screens": "esrun test/screens",
     "erase": "esrun ops/eraser && npm i"
   },

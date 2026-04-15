@@ -13,7 +13,7 @@ import { ShellHeaderBackground } from '@/components/shell/header/background';
 export const ShellHeader = () => {
   const pathname = usePathname();
   const isLandingRoute =
-    pathname === '/landing' || pathname === '/newLanding';
+    pathname === '/newLanding';
   const isHiddenHeaderRoute =
     pathname === '/consult' ||
     pathname === '/call-demo' ||
