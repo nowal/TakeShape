@@ -35,21 +35,21 @@ export const ShellHeaderMobileMenu = () => {
     }
   }, [viewport.isResizing]);
 
-  const dashboardItems = isPainter && !isAgent
+  const dashboardItems: TAccountMenuListItem[] = isPainter && !isAgent
     ? [
         [
           'Call',
           () => onNavigateScrollTopClick('/call'),
-        ],
+        ] satisfies TAccountMenuListItem,
         ['Quotes', onDashboardClick],
         [
           'Customize Embed',
           () => onNavigateScrollTopClick('/customize'),
-        ],
+        ] satisfies TAccountMenuListItem,
         [
           'Manage Account',
           () => onNavigateScrollTopClick('/accountSettings'),
-        ],
+        ] satisfies TAccountMenuListItem,
       ]
     : [
         [isAgent ? 'Dashboard' : 'Quotes', onDashboardClick],
@@ -57,7 +57,7 @@ export const ShellHeaderMobileMenu = () => {
           'Manage Account',
           () => onNavigateScrollTopClick('/accountSettings'),
         ],
-      ] satisfies TAccountMenuListItem[];
+      ];
 
   const quoteItems = [
     ['Signup', () => onNavigateScrollTopClick('/providerRegister')],
