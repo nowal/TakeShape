@@ -22,7 +22,7 @@ const Landing = () => {
 
       controller = embedApi.init({
         mode: 'modal',
-        buttonText: 'Start Your Free Estimate',
+        buttonText: 'Start Video Quote',
         buttonPosition: 'bottom-right',
         providerId: LANDING_EMBED_PROVIDER_ID,
       });
