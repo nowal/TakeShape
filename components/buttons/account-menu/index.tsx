@@ -26,6 +26,7 @@ export const AccountMenu = () => {
     isAgent ? 'Dashboard' : 'Quotes',
     onDashboardClick,
   ];
+  const quotesItem: TAccountMenuListItem = ['Quotes', onDashboardClick];
   const manageAccountItem: TAccountMenuListItem = [
     'Manage Account',
     () => onNavigateScrollTopClick('/accountSettings'),
@@ -34,10 +35,14 @@ export const AccountMenu = () => {
     'Call',
     () => onNavigateScrollTopClick('/call'),
   ];
+  const customizeEmbedItem: TAccountMenuListItem = [
+    'Customize Embed',
+    () => onNavigateScrollTopClick('/customize'),
+  ];
   const items = [
-    dashboardItem,
-    ...(isPainter && !isAgent ? [callItem] : []),
-    manageAccountItem,
+    ...(isPainter && !isAgent
+      ? [callItem, quotesItem, customizeEmbedItem, manageAccountItem]
+      : [dashboardItem, manageAccountItem]),
     signInButtonItem,
   ] satisfies TAccountMenuListItem[];
 
