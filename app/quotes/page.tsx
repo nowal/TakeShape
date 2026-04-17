@@ -33,7 +33,7 @@ type QuoteCard = {
   videoUrl: string | null;
   thumbnailUrl: string | null;
   thumbnailStatus: 'pending' | 'ready' | 'failed' | null;
-  videoStatus: 'ready' | 'storing' | 'missing' | 'error';
+  videoStatus: 'ready' | 'loading' | 'storing' | 'missing' | 'error';
   videoMessage: string;
   recordingId: string | null;
   rows: QuotePricingRow[];
@@ -93,6 +93,51 @@ const extractLegacyRecordingId = (rawVideoEstimates: any): string | null => {
     if (recordingId) return recordingId;
   }
   return null;
+};
+
+const parseSignedUrlExpiryMs = (rawUrl: string): number | null => {
+  try {
+    const parsed = new URL(rawUrl);
+    const dateRaw = parsed.searchParams.get('X-Amz-Date');
+    const expiresRaw = parsed.searchParams.get('X-Amz-Expires');
+    if (!dateRaw || !expiresRaw) return null;
+    const matches = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(
+      dateRaw
+    );
+    if (!matches) return null;
+    const [, year, month, day, hour, minute, second] = matches;
+    const signedAt = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+    const expiresSeconds = Number(expiresRaw);
+    if (!Number.isFinite(expiresSeconds) || expiresSeconds <= 0) return null;
+    return signedAt + expiresSeconds * 1000;
+  } catch {
+    return null;
+  }
+};
+
+const shouldUseStoredVideoUrl = ({
+  url,
+  recordingId,
+}: {
+  url: string;
+  recordingId: string | null;
+}) => {
+  if (!recordingId) return true;
+  if (!/^https?:\/\//i.test(url)) return true;
+  if (!/files\.signalwire\.com/i.test(url)) return true;
+
+  const expiresAt = parseSignedUrlExpiryMs(url);
+  if (!expiresAt) return true;
+
+  // Treat links expiring soon as stale to avoid immediate playback errors.
+  return Date.now() + 30_000 < expiresAt;
 };
 
 type TQuoteAddressFieldProps = {
@@ -445,9 +490,65 @@ export default function QuotesPage() {
     };
   }, []);
 
+  const fetchFreshRecordingUrl = useCallback(
+    async (recordingId: string, waitMs = 0): Promise<string | null> => {
+      const response = await fetch(
+        `/api/quotes/recording-url?recordingId=${encodeURIComponent(
+          recordingId
+        )}&waitMs=${encodeURIComponent(String(waitMs))}`,
+        { cache: 'no-store' }
+      );
+      if (!response.ok) return null;
+      const payload = await response.json().catch(() => ({}));
+      const recordingUrl = normalizeOptionalField(payload?.recordingUrl);
+      if (payload?.ready && recordingUrl) {
+        return recordingUrl;
+      }
+      return null;
+    },
+    []
+  );
+
+  const hydrateSignalWireVideos = useCallback(
+    async (cards: QuoteCard[]) => {
+      const targets = cards.filter((card) => !card.videoUrl && !!card.recordingId);
+      if (!targets.length) return;
+
+      setRefreshingVideos(true);
+      const queue = [...targets];
+      const workerCount = Math.min(6, queue.length);
+
+      const workers = Array.from({ length: workerCount }, async () => {
+        while (queue.length > 0) {
+          const nextCard = queue.shift();
+          if (!nextCard?.recordingId) continue;
+
+          const recordingUrl = await fetchFreshRecordingUrl(nextCard.recordingId);
+          if (!recordingUrl) continue;
+
+          setQuotes((previousQuotes) =>
+            previousQuotes.map((previousQuote) =>
+              previousQuote.id === nextCard.id
+                ? {
+                  ...previousQuote,
+                  videoUrl: recordingUrl,
+                  videoStatus: 'ready',
+                  videoMessage: ''
+                }
+                : previousQuote
+            )
+          );
+        }
+      });
+
+      await Promise.all(workers);
+      setRefreshingVideos(false);
+    },
+    [fetchFreshRecordingUrl]
+  );
+
   const loadQuotes = useCallback(async (
-    painterId: string,
-    options: { skipAutoFinalize?: boolean } = {}
+    painterId: string
   ) => {
     setLoadingQuotes(true);
     try {
@@ -520,9 +621,15 @@ export default function QuotesPage() {
           let videoUrl: string | null = null;
           let thumbnailUrl: string | null = null;
           if (resolvedStoredVideoValue) {
-            if (/^https?:\/\//i.test(resolvedStoredVideoValue)) {
+            if (
+              /^https?:\/\//i.test(resolvedStoredVideoValue) &&
+              shouldUseStoredVideoUrl({
+                url: resolvedStoredVideoValue,
+                recordingId
+              })
+            ) {
               videoUrl = resolvedStoredVideoValue;
-            } else {
+            } else if (!/^https?:\/\//i.test(resolvedStoredVideoValue)) {
               try {
                 videoUrl = await getDownloadURL(storageRef(storage, resolvedStoredVideoValue));
               } catch {
@@ -551,6 +658,8 @@ export default function QuotesPage() {
             ? 'ready'
             : videoStatusRaw === 'storing'
               ? 'storing'
+              : recordingId
+                ? 'loading'
               : videoStatusRaw === 'error'
                 ? 'error'
                 : 'missing';
@@ -558,6 +667,8 @@ export default function QuotesPage() {
             ? ''
             : videoStatus === 'storing'
               ? 'Video is being stored'
+              : videoStatus === 'loading'
+                ? 'Fetching latest video...'
               : videoStatus === 'error'
                 ? 'Video unavailable right now'
                 : 'Video not found';
@@ -585,31 +696,7 @@ export default function QuotesPage() {
       );
 
       setQuotes(cards);
-
-      if (!options.skipAutoFinalize) {
-        const cardsNeedingVideoRefresh = cards.filter(
-          (card) => !card.videoUrl && !!card.recordingId
-        );
-
-        if (cardsNeedingVideoRefresh.length > 0) {
-          setRefreshingVideos(true);
-          await Promise.all(
-            cardsNeedingVideoRefresh.map((card) =>
-              fetch('/api/quotes/finalize-recording', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  painterDocId: painterId,
-                  quoteId: card.id,
-                  recordingId: card.recordingId,
-                  waitMs: 0
-                })
-              }).catch(() => null)
-            )
-          );
-          await loadQuotes(painterId, { skipAutoFinalize: true });
-        }
-      }
+      await hydrateSignalWireVideos(cards);
     } catch (loadError) {
       console.error('Failed to load quotes:', loadError);
       setError('Failed to load quotes.');
@@ -617,7 +704,7 @@ export default function QuotesPage() {
       setLoadingQuotes(false);
       setRefreshingVideos(false);
     }
-  }, [storage]);
+  }, [hydrateSignalWireVideos, storage]);
 
   const openCustomerInfoModal = useCallback((quote: QuoteCard) => {
     setEditingQuoteId(quote.id);
@@ -643,6 +730,23 @@ export default function QuotesPage() {
     videoRetryAttemptedRef.current.add(quote.id);
     try {
       setRefreshingVideos(true);
+      const freshUrl = await fetchFreshRecordingUrl(quote.recordingId, 2000);
+      if (freshUrl) {
+        setQuotes((previousQuotes) =>
+          previousQuotes.map((previousQuote) =>
+            previousQuote.id === quote.id
+              ? {
+                ...previousQuote,
+                videoUrl: freshUrl,
+                videoStatus: 'ready',
+                videoMessage: ''
+              }
+              : previousQuote
+          )
+        );
+        return;
+      }
+
       await fetch('/api/quotes/finalize-recording', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -653,13 +757,13 @@ export default function QuotesPage() {
           waitMs: 0
         })
       });
-      await loadQuotes(activePainterId, { skipAutoFinalize: true });
+      await loadQuotes(activePainterId);
     } catch (refreshError) {
       console.error('Video refresh failed:', refreshError);
     } finally {
       setRefreshingVideos(false);
     }
-  }, [activePainterId, loadQuotes]);
+  }, [activePainterId, fetchFreshRecordingUrl, loadQuotes]);
 
   const syncQuoteShadow = useCallback(async (quoteId: string) => {
     if (!activePainterId || !quoteId) return;
