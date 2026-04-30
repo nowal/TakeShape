@@ -4,29 +4,11 @@ import {
   normalizeIntakeEmbedSettings,
 } from '@/app/embed/intake/settings';
 import {
-  getProviderIntakeEmbedSettingsSupabase,
-  upsertProviderIntakeEmbedSettingsSupabase,
-} from '@/lib/data/supabase/provider-embed-settings';
-import {
   getPainter,
   setPainterIntakeEmbedSettings,
 } from '@/utils/firestore/painter';
 
 export const runtime = 'nodejs';
-
-const isSupabaseFallbackError = (error: unknown) => {
-  const code = String((error as any)?.code || '')
-    .trim()
-    .toUpperCase();
-  const message = String((error as any)?.message || '')
-    .trim()
-    .toLowerCase();
-  return (
-    message.includes('invalid api key') ||
-    code === 'PGRST205' ||
-    message.includes('could not find the table')
-  );
-};
 
 export async function GET(request: Request) {
   try {
@@ -45,25 +27,16 @@ export async function GET(request: Request) {
       );
     }
 
-    let settings = DEFAULT_INTAKE_EMBED_SETTINGS;
-    let source: 'supabase' | 'firestore-fallback' = 'supabase';
+    const painter = await getPainter(providerId);
+    const settings = normalizeIntakeEmbedSettings(
+      (painter as any)?.intakeEmbedSettings || {}
+    );
 
-    try {
-      settings =
-        await getProviderIntakeEmbedSettingsSupabase(providerId);
-    } catch (error) {
-      if (!isSupabaseFallbackError(error)) {
-        throw error;
-      }
-
-      const painter = await getPainter(providerId);
-      settings = normalizeIntakeEmbedSettings(
-        (painter as any)?.intakeEmbedSettings || {}
-      );
-      source = 'firestore-fallback';
-    }
-
-    return NextResponse.json({ providerId, settings, source });
+    return NextResponse.json({
+      providerId,
+      settings,
+      source: 'firestore',
+    });
   } catch (error) {
     console.error(
       '[api/embed/intake-settings] GET failed:',
@@ -91,25 +64,16 @@ export async function POST(request: Request) {
       );
     }
 
-    let source: 'supabase' | 'firestore-fallback' = 'supabase';
-    try {
-      await upsertProviderIntakeEmbedSettingsSupabase({
-        providerId,
-        intakeSettings: settings,
-      });
-    } catch (error) {
-      if (!isSupabaseFallbackError(error)) {
-        throw error;
-      }
+    await setPainterIntakeEmbedSettings(
+      providerId,
+      settings as unknown as Record<string, unknown>
+    );
 
-      await setPainterIntakeEmbedSettings(
-        providerId,
-        settings as unknown as Record<string, unknown>
-      );
-      source = 'firestore-fallback';
-    }
-
-    return NextResponse.json({ providerId, settings, source });
+    return NextResponse.json({
+      providerId,
+      settings,
+      source: 'firestore',
+    });
   } catch (error) {
     console.error(
       '[api/embed/intake-settings] POST failed:',
