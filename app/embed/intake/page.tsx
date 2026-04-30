@@ -552,14 +552,65 @@ export default function EmbedIntakePage() {
         }
 
         setUploadStatus('Uploading video...');
-        await uploadFileToSignedUrl({
-          file: videoFile,
-          uploadUrl,
-          contentType: videoFile.type || 'video/mp4',
-        });
+        try {
+          await uploadFileToSignedUrl({
+            file: videoFile,
+            uploadUrl,
+            contentType: videoFile.type || 'video/mp4',
+          });
 
-        setUploadedVideoUrl(downloadUrl);
-        setUploadStatus('Upload complete.');
+          setUploadedVideoUrl(downloadUrl);
+          setUploadStatus('Upload complete.');
+        } catch (directUploadError) {
+          console.warn(
+            'Direct upload failed, attempting server fallback upload:',
+            directUploadError
+          );
+
+          setUploadStatus(
+            'Direct upload blocked by storage policy. Retrying upload...'
+          );
+          setUploadProgress(0);
+
+          const formData = new FormData();
+          formData.append('providerId', providerId);
+          formData.append('video', videoFile);
+
+          const uploadResponse = await fetch(
+            '/api/embed/intake/upload-video',
+            {
+              method: 'POST',
+              body: formData,
+            }
+          );
+
+          if (!uploadResponse.ok) {
+            const payload = await uploadResponse
+              .json()
+              .catch(() => null);
+            throw new Error(
+              String(
+                payload?.error ||
+                  `Fallback upload failed (${uploadResponse.status})`
+              )
+            );
+          }
+
+          const fallbackPayload = await uploadResponse.json();
+          const fallbackDownloadUrl = String(
+            fallbackPayload.downloadUrl || ''
+          );
+
+          if (!fallbackDownloadUrl) {
+            throw new Error(
+              'Fallback upload succeeded but no download URL was returned.'
+            );
+          }
+
+          setUploadProgress(100);
+          setUploadedVideoUrl(fallbackDownloadUrl);
+          setUploadStatus('Upload complete.');
+        }
       }
 
       setStep('thanks');
