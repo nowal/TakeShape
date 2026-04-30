@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
-import { supabaseServer } from '@/lib/supabase/server';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -83,6 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (isSupabaseDataLayerEnabled()) {
+      const { supabaseServer } = await import('@/lib/supabase/server');
       const { data, error } = await supabaseServer
         .from('quotes')
         .select('*')
