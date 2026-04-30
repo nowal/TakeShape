@@ -159,6 +159,9 @@ export default function EmbedIntakePage() {
   const [videoSubmitPending, setVideoSubmitPending] =
     useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [uploadError, setUploadError] = useState('');
   const sentNotificationStepRef = useRef<Set<string>>(
     new Set()
   );
@@ -260,6 +263,13 @@ export default function EmbedIntakePage() {
     if (previewMode) return;
     if (!providerId) return;
     if (!estimateChoice) return;
+    if (
+      estimateChoice === 'uploadVideo' &&
+      step === 'thanks' &&
+      !uploadedVideoUrl
+    ) {
+      return;
+    }
     if (
       step !== 'thanks' &&
       step !== 'inPersonRequested' &&
@@ -439,7 +449,57 @@ export default function EmbedIntakePage() {
     if (previewMode) return;
     setVideoFile(file);
     setVideoFileName(file.name);
+    setUploadProgress(0);
+    setUploadStatus('');
+    setUploadError('');
   };
+
+  const uploadFileToSignedUrl = ({
+    file,
+    uploadUrl,
+    contentType,
+  }: {
+    file: File;
+    uploadUrl: string;
+    contentType: string;
+  }) =>
+    new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl, true);
+      xhr.setRequestHeader('Content-Type', contentType);
+
+      xhr.upload.onprogress = (event) => {
+        if (!event.lengthComputable) return;
+        const percent = Math.min(
+          100,
+          Math.round((event.loaded / event.total) * 100)
+        );
+        setUploadProgress(percent);
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setUploadProgress(100);
+          resolve();
+          return;
+        }
+        reject(
+          new Error(
+            `Upload failed with status ${xhr.status}`
+          )
+        );
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during upload.'));
+      };
+
+      xhr.onabort = () => {
+        reject(new Error('Upload was cancelled.'));
+      };
+
+      xhr.send(file);
+    });
 
   const onVideoSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -447,36 +507,71 @@ export default function EmbedIntakePage() {
 
     try {
       setVideoSubmitPending(true);
-      if (!previewMode && videoFile && providerId) {
-        const formData = new FormData();
-        formData.append('providerId', providerId);
-        formData.append('video', videoFile);
+      setUploadError('');
 
-        const uploadResponse = await fetch(
-          '/api/embed/intake/upload-video',
+      if (!previewMode && videoFile && providerId) {
+        setUploadStatus('Preparing upload...');
+        setUploadProgress(0);
+
+        const uploadUrlResponse = await fetch(
+          '/api/embed/intake/upload-url',
           {
             method: 'POST',
-            body: formData,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              providerId,
+              fileName: videoFile.name,
+              contentType: videoFile.type,
+              fileSize: videoFile.size,
+            }),
           }
         );
 
-        if (uploadResponse.ok) {
-          const uploadPayload = await uploadResponse.json();
-          setUploadedVideoUrl(
-            String(uploadPayload.downloadUrl || '')
-          );
-        } else {
-          setUploadedVideoUrl('');
-          const uploadPayload = await uploadResponse
+        if (!uploadUrlResponse.ok) {
+          const payload = await uploadUrlResponse
             .json()
             .catch(() => null);
-          console.error(
-            'Failed to upload intake video before notification:',
-            uploadPayload || uploadResponse.status
+          throw new Error(
+            String(
+              payload?.error ||
+                `Failed to initialize upload (${uploadUrlResponse.status})`
+            )
           );
         }
+
+        const uploadPayload = await uploadUrlResponse.json();
+        const uploadUrl = String(uploadPayload.uploadUrl || '');
+        const downloadUrl = String(
+          uploadPayload.downloadUrl || ''
+        );
+
+        if (!uploadUrl || !downloadUrl) {
+          throw new Error('Upload URL response is invalid.');
+        }
+
+        setUploadStatus('Uploading video...');
+        await uploadFileToSignedUrl({
+          file: videoFile,
+          uploadUrl,
+          contentType: videoFile.type || 'video/mp4',
+        });
+
+        setUploadedVideoUrl(downloadUrl);
+        setUploadStatus('Upload complete.');
       }
+
       setStep('thanks');
+    } catch (error) {
+      console.error('Intake video upload failed:', error);
+      setUploadStatus('');
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : 'Upload failed. Please try again.'
+      );
+      setUploadedVideoUrl('');
     } finally {
       setVideoSubmitPending(false);
     }
@@ -692,6 +787,27 @@ export default function EmbedIntakePage() {
                       {settings.uploadInstructionsText}
                     </p>
                   </div>
+
+                  {videoSubmitPending ? (
+                    <div className="w-full rounded-xl border border-black-08 bg-white px-4 py-3">
+                      <div className="flex items-center justify-between text-sm font-open-sans text-black-7">
+                        <span>{uploadStatus || 'Uploading...'}</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black-08">
+                        <div
+                          className="h-full bg-pink transition-all duration-200"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {uploadError ? (
+                    <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-open-sans text-red-700">
+                      {uploadError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="mt-auto w-full flex flex-col sm:flex-row items-center justify-center gap-3 pb-3 sm:pb-4">
