@@ -9,6 +9,13 @@ import {
   type ReactNode,
 } from 'react';
 import Image from 'next/image';
+import firebase from '@/lib/firebase';
+import {
+  getDownloadURL,
+  getStorage,
+  ref as storageRef,
+  uploadBytesResumable,
+} from 'firebase/storage';
 import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
@@ -136,6 +143,14 @@ const resolveCompletionMessage = ({
     formatPhoneNumber(phone || '(555) 555-5555')
   );
 };
+
+const sanitizeStorageSegment = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 
 export default function EmbedIntakePage() {
   const [step, setStep] = useState<Step>('contact');
@@ -454,51 +469,56 @@ export default function EmbedIntakePage() {
     setUploadError('');
   };
 
-  const uploadFileToSignedUrl = ({
+  const uploadVideoResumable = ({
     file,
-    uploadUrl,
-    contentType,
+    providerId,
   }: {
     file: File;
-    uploadUrl: string;
-    contentType: string;
+    providerId: string;
   }) =>
-    new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader('Content-Type', contentType);
+    new Promise<string>((resolve, reject) => {
+      const storage = getStorage(firebase);
+      const safeProviderId =
+        sanitizeStorageSegment(providerId) || 'provider';
+      const extension =
+        (file.name.split('.').pop() || 'mp4').toLowerCase();
+      const timestamp = Date.now();
+      const randomPart = Math.random()
+        .toString(36)
+        .slice(2, 10);
+      const objectKey = `intake-videos/providers/${safeProviderId}/${timestamp}-${randomPart}.${extension}`;
+      const fileRef = storageRef(storage, objectKey);
+      const uploadTask = uploadBytesResumable(fileRef, file, {
+        contentType: file.type || 'video/mp4',
+      });
 
-      xhr.upload.onprogress = (event) => {
-        if (!event.lengthComputable) return;
-        const percent = Math.min(
-          100,
-          Math.round((event.loaded / event.total) * 100)
-        );
-        setUploadProgress(percent);
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadProgress(100);
-          resolve();
-          return;
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const percent = Math.min(
+            100,
+            Math.round(
+              (snapshot.bytesTransferred /
+                snapshot.totalBytes) *
+                100
+            )
+          );
+          setUploadProgress(percent);
+        },
+        (error) => {
+          reject(error);
+        },
+        async () => {
+          try {
+            const url = await getDownloadURL(
+              uploadTask.snapshot.ref
+            );
+            resolve(url);
+          } catch (error) {
+            reject(error);
+          }
         }
-        reject(
-          new Error(
-            `Upload failed with status ${xhr.status}`
-          )
-        );
-      };
-
-      xhr.onerror = () => {
-        reject(new Error('Network error during upload.'));
-      };
-
-      xhr.onabort = () => {
-        reject(new Error('Upload was cancelled.'));
-      };
-
-      xhr.send(file);
+      );
     });
 
   const onVideoSubmit = async (event: React.FormEvent) => {
@@ -510,117 +530,42 @@ export default function EmbedIntakePage() {
       setUploadError('');
 
       if (!previewMode && videoFile && providerId) {
-        setUploadStatus('Preparing upload...');
+        setUploadStatus('Starting upload...');
         setUploadProgress(0);
-
-        const uploadUrlResponse = await fetch(
-          '/api/embed/intake/upload-url',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              providerId,
-              fileName: videoFile.name,
-              contentType: videoFile.type,
-              fileSize: videoFile.size,
-            }),
-          }
-        );
-
-        if (!uploadUrlResponse.ok) {
-          const payload = await uploadUrlResponse
-            .json()
-            .catch(() => null);
-          throw new Error(
-            String(
-              payload?.error ||
-                `Failed to initialize upload (${uploadUrlResponse.status})`
-            )
-          );
-        }
-
-        const uploadPayload = await uploadUrlResponse.json();
-        const uploadUrl = String(uploadPayload.uploadUrl || '');
-        const downloadUrl = String(
-          uploadPayload.downloadUrl || ''
-        );
-
-        if (!uploadUrl || !downloadUrl) {
-          throw new Error('Upload URL response is invalid.');
-        }
-
         setUploadStatus('Uploading video...');
-        try {
-          await uploadFileToSignedUrl({
-            file: videoFile,
-            uploadUrl,
-            contentType: videoFile.type || 'video/mp4',
-          });
-
-          setUploadedVideoUrl(downloadUrl);
-          setUploadStatus('Upload complete.');
-        } catch (directUploadError) {
-          console.warn(
-            'Direct upload failed, attempting server fallback upload:',
-            directUploadError
+        const downloadUrl = await uploadVideoResumable({
+          file: videoFile,
+          providerId,
+        });
+        if (!downloadUrl) {
+          throw new Error(
+            'Upload succeeded but no download URL was returned.'
           );
-
-          setUploadStatus(
-            'Direct upload blocked by storage policy. Retrying upload...'
-          );
-          setUploadProgress(0);
-
-          const formData = new FormData();
-          formData.append('providerId', providerId);
-          formData.append('video', videoFile);
-
-          const uploadResponse = await fetch(
-            '/api/embed/intake/upload-video',
-            {
-              method: 'POST',
-              body: formData,
-            }
-          );
-
-          if (!uploadResponse.ok) {
-            const payload = await uploadResponse
-              .json()
-              .catch(() => null);
-            throw new Error(
-              String(
-                payload?.error ||
-                  `Fallback upload failed (${uploadResponse.status})`
-              )
-            );
-          }
-
-          const fallbackPayload = await uploadResponse.json();
-          const fallbackDownloadUrl = String(
-            fallbackPayload.downloadUrl || ''
-          );
-
-          if (!fallbackDownloadUrl) {
-            throw new Error(
-              'Fallback upload succeeded but no download URL was returned.'
-            );
-          }
-
-          setUploadProgress(100);
-          setUploadedVideoUrl(fallbackDownloadUrl);
-          setUploadStatus('Upload complete.');
         }
+        setUploadProgress(100);
+        setUploadedVideoUrl(downloadUrl);
+        setUploadStatus('Upload complete.');
       }
 
       setStep('thanks');
     } catch (error) {
       console.error('Intake video upload failed:', error);
       setUploadStatus('');
+      const maybeCode = String(
+        (error as { code?: string })?.code || ''
+      ).trim();
+      const maybeMessage = String(
+        (error as { message?: string })?.message || ''
+      ).trim();
+      const resolvedError =
+        maybeCode === 'storage/unauthorized'
+          ? 'Upload is blocked by Firebase Storage rules for unauthenticated users.'
+          : maybeCode === 'storage/canceled'
+            ? 'Upload was canceled.'
+            : maybeMessage ||
+              'Upload failed. Please try again.';
       setUploadError(
-        error instanceof Error
-          ? error.message
-          : 'Upload failed. Please try again.'
+        resolvedError
       );
       setUploadedVideoUrl('');
     } finally {
