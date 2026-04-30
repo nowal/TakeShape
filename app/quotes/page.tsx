@@ -7,6 +7,8 @@ import {
   doc,
   getDocs,
   getFirestore,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -552,16 +554,16 @@ export default function QuotesPage() {
   ) => {
     setLoadingQuotes(true);
     try {
-      const response = await fetch(
-        `/api/quotes/list?providerId=${encodeURIComponent(painterId)}`
+      const quotesQuery = query(
+        collection(firestore, 'painters', painterId, 'quotes'),
+        orderBy('createdAt', 'desc'),
+        limit(30)
       );
-      if (!response.ok) {
-        throw new Error('Failed to fetch quotes');
-      }
-      const payload = await response.json();
-      const quoteRows = Array.isArray(payload?.quotes)
-        ? payload.quotes
-        : [];
+      const snapshot = await getDocs(quotesQuery);
+      const quoteRows = snapshot.docs.map((quoteDoc) => ({
+        id: quoteDoc.id,
+        data: quoteDoc.data(),
+      }));
 
       const cards = await Promise.all(
         quoteRows.map(async (quoteEntry: any) => {
