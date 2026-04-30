@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
+import { getAdminFirestore } from '@/lib/firebase-admin';
 import firebase from '@/lib/firebase';
 import {
   collection,
@@ -99,18 +100,41 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    let snapshot: Awaited<ReturnType<typeof getDocs>> | null = null;
+
+    try {
+      const adminFirestore = getAdminFirestore();
+      const adminSnapshot = await adminFirestore
+        .collection('painters')
+        .doc(providerId)
+        .collection('quotes')
+        .orderBy('createdAt', 'desc')
+        .limit(30)
+        .get();
+
+      return NextResponse.json({
+        quotes: adminSnapshot.docs.map((quoteDoc) => ({
+          id: quoteDoc.id,
+          data: quoteDoc.data(),
+        })),
+        source: 'firestore-admin',
+      });
+    } catch (adminError) {
+      console.warn('Quote list admin Firestore read failed, falling back:', adminError);
+    }
+
     const firestore = getFirestore(firebase);
     const quotesQuery = query(
       collection(firestore, 'painters', providerId, 'quotes'),
       orderBy('createdAt', 'desc'),
       limit(30)
     );
-    const snapshot = await getDocs(quotesQuery);
+    snapshot = await getDocs(quotesQuery);
 
     return NextResponse.json({
-      quotes: snapshot.docs.map((doc) => ({
-        id: doc.id,
-        data: doc.data(),
+      quotes: snapshot.docs.map((quoteDoc) => ({
+        id: quoteDoc.id,
+        data: quoteDoc.data(),
       })),
       source: 'firestore',
     });
