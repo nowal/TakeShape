@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { CvaAnchor } from '@/components/cva/anchor';
 import { TJob } from '@/types/jobs';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 
 type TProps = TJob;
 export const DashboardPainterJobInvoice: FC<TProps> = (

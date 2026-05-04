@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 import {
   getFirestore,
   doc,

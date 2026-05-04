@@ -15,7 +15,7 @@ import {
   updateDoc,
   where
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';

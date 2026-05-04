@@ -4,15 +4,9 @@ import { errorAuth } from '@/utils/error/auth';
 import { notifyError } from '@/utils/notifications';
 import { useState, FormEvent } from 'react';
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  collection,
-} from 'firebase/firestore';
-import {
   getAuth,
   createUserWithEmailAndPassword,
-} from 'firebase/auth';
+} from '@/lib/auth';
 import {
   getStorage,
   ref as storageRef,
@@ -95,37 +89,7 @@ export const usePainterRegisterState = () => {
         );
       }
 
-      const painterData = {
-        businessName,
-        address: addressValue,
-        ...(coords ? { coords } : {}),
-        paid: false,
-        paying: false,
-        billingPlan: null,
-        subscriptionStatus: null,
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        range: 0,
-        isInsured: false,
-        logoUrl,
-        termsAndConditionsUrl,
-        phoneNumber: normalizedPhone,
-        phoneNumberRaw: phoneNumber,
-        signalwireCallerId: {
-          status: 'unverified',
-          phoneNumber: normalizedPhone,
-          initiatedAt: null,
-        },
-        userId: user.uid, // Link the painter data to the user ID
-        sessions: [], // Initialize empty sessions array for storing lead session IDs
-      };
-
-      const firestore = getFirestore();
-      const painterDocRef = doc(
-        collection(firestore, 'painters')
-      );
-
-      await setDoc(painterDocRef, painterData);
+      const providerId = crypto.randomUUID();
 
       const profileSyncResponse = await fetch(
         '/api/providers/sync-profile',
@@ -133,7 +97,7 @@ export const usePainterRegisterState = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            providerId: painterDocRef.id,
+            providerId,
             userId: user.uid,
             businessName,
             address: addressValue,
@@ -141,6 +105,7 @@ export const usePainterRegisterState = () => {
             logoUrl,
             termsAndConditionsUrl,
             phoneNumber: normalizedPhone,
+            coords,
           }),
         }
       );
@@ -156,8 +121,6 @@ export const usePainterRegisterState = () => {
           )
         );
       }
-
-      console.log('Painter info saved:', painterData);
 
       dispatchPainter(true); // Set the user as a painter
       onNavigateScrollTopClick('/plans');

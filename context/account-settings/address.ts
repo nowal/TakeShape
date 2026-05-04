@@ -5,7 +5,7 @@ import {
   getFirestore,
   updateDoc,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
 import { TCoordsValue } from '@/context/account-settings/types';
 

@@ -1,4 +1,4 @@
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut } from '@/lib/auth';
 import firebase from '@/lib/firebase';
 import { useCallback, useState } from 'react';
 import { TAuthSignOutConfig } from '@/context/auth/types';

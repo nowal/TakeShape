@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isSupabaseDataLayerEnabled } from '@/lib/feature-flags';
-import { getAdminFirestore } from '@/lib/firebase-admin';
-import firebase from '@/lib/firebase';
-import {
-  collection,
-  getDocs,
-  getFirestore,
-  limit,
-  orderBy,
-  query,
-} from 'firebase/firestore';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -82,64 +72,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (isSupabaseDataLayerEnabled()) {
-      const { supabaseServer } = await import('@/lib/supabase/server');
-      const { data, error } = await supabaseServer
-        .from('quotes')
-        .select('*')
-        .eq('provider_id', providerId)
-        .order('created_at', { ascending: false })
-        .limit(30);
+    const { data, error } = await supabaseServer
+      .from('quotes')
+      .select('*')
+      .eq('provider_id', providerId)
+      .order('created_at', { ascending: false })
+      .limit(30);
 
-      if (error) throw error;
-      return NextResponse.json({
-        quotes: (data || []).map((row) =>
-          mapSupabaseQuote(row as Record<string, any>)
-        ),
-        source: 'supabase',
-      });
-    }
-
-    let snapshot: Awaited<ReturnType<typeof getDocs>> | null = null;
-
-    try {
-      const adminFirestore = getAdminFirestore();
-      const adminSnapshot = await adminFirestore
-        .collection('painters')
-        .doc(providerId)
-        .collection('quotes')
-        .orderBy('createdAt', 'desc')
-        .limit(30)
-        .get();
-
-      return NextResponse.json({
-        quotes: adminSnapshot.docs.map((quoteDoc) => ({
-          id: quoteDoc.id,
-          data: quoteDoc.data(),
-        })),
-        source: 'firestore-admin',
-      });
-    } catch (adminError) {
-      console.warn('Quote list admin Firestore read failed, falling back:', adminError);
-    }
-
-    const firestore = getFirestore(firebase);
-    const quotesQuery = query(
-      collection(firestore, 'painters', providerId, 'quotes'),
-      orderBy('createdAt', 'desc'),
-      limit(30)
-    );
-    snapshot = await getDocs(quotesQuery);
-
+    if (error) throw error;
     return NextResponse.json({
-      quotes: snapshot.docs.map((quoteDoc) => ({
-        id: quoteDoc.id,
-        data: quoteDoc.data(),
-      })),
-      source: 'firestore',
+      quotes: (data || []).map((row) =>
+        mapSupabaseQuote(row as Record<string, any>)
+      ),
+      source: 'supabase',
     });
   } catch (error) {
-    console.error('Quote list API error:', error);
     return NextResponse.json(
       {
         error:

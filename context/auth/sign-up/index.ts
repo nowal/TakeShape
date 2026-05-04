@@ -4,7 +4,7 @@ import { errorAuth } from '@/utils/error/auth';
 import {
   getAuth,
   createUserWithEmailAndPassword,
-} from 'firebase/auth';
+} from '@/lib/auth';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import {
   useRouter,

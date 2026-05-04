@@ -14,7 +14,7 @@ import {
   doc,
 } from 'firebase/firestore';
 import firebase from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 import { notifyError } from '@/utils/notifications';
 import { useAuth } from '@/context/auth/provider';
 import { useDashboard } from '@/context/dashboard/provider';

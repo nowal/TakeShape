@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPainter, getPainterByUserId } from '@/utils/firestore/painter';
 import { useAccountSettings } from '@/context/account-settings/provider';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 import firebase from '@/lib/firebase';
 import { getSession, getSessionRooms } from '@/utils/firestore/session';
 import { getHomeowner } from '@/utils/firestore/homeowner';

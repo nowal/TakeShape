@@ -6,9 +6,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import firebase from '@/lib/firebase';
-import { getPainterByUserId } from '@/utils/firestore/painter';
 import {
   DEFAULT_INTAKE_EMBED_SETTINGS,
   IntakeEmbedSettings,
@@ -58,8 +57,15 @@ export default function CustomizePage() {
           return;
         }
 
-        const painter = await getPainterByUserId(user.uid);
-        const resolvedProviderId = String(painter?.id || '').trim();
+        const response = await fetch(
+          `/api/providers/by-user?userId=${encodeURIComponent(
+            user.uid
+          )}`
+        );
+        const payload = await response.json().catch(() => ({}));
+        const resolvedProviderId = String(
+          payload?.provider?.id || ''
+        ).trim();
 
         if (!resolvedProviderId) {
           setProviderId('');

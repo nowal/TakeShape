@@ -22,12 +22,21 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       business_name: String(body.businessName || '').trim(),
       address: String(body.address || '').trim(),
+      coords: body.coords || null,
+      range_km:
+        typeof body.rangeKm === 'number'
+          ? body.rangeKm
+          : null,
       is_insured: Boolean(body.isInsured),
       logo_url: String(body.logoUrl || '').trim(),
       terms_and_conditions_url: String(
         body.termsAndConditionsUrl || ''
       ).trim(),
       phone_number: String(body.phoneNumber || '').trim(),
+      paid: Boolean(body.paid),
+      paying: Boolean(body.paying),
+      billing_plan: body.billingPlan || null,
+      subscription_status: body.subscriptionStatus || null,
     };
 
     const { error } = await supabaseServer

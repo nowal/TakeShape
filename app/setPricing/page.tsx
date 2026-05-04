@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from '@/lib/auth';
 import firebase from '@/lib/firebase';
 import { PricingRule, PricingSheet } from '@/utils/firestore/pricingSheet';
 import { useAccountSettings } from '@/context/account-settings/provider';

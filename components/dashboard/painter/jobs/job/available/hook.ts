@@ -5,7 +5,7 @@ import {
   updateDoc,
   arrayUnion,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 import {
   getStorage,
   ref,

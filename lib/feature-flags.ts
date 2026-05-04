@@ -10,7 +10,7 @@ const parseBoolean = (
 };
 
 export const isSupabaseDataLayerEnabled = () =>
-  parseBoolean(process.env.USE_SUPABASE_DATA_LAYER, false);
+  parseBoolean(process.env.USE_SUPABASE_DATA_LAYER, true);
 
 export const shouldCopySignalWireRecordingsToR2 = () =>
   parseBoolean(process.env.COPY_SIGNALWIRE_RECORDINGS_TO_R2, true);

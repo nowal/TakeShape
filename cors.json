@@ -1,0 +1,21 @@
+[
+  {
+    "origin": [
+      "https://app.takeshapehome.com",
+      "https://takeshapehome.com",
+      "http://localhost:3000"
+    ],
+    "method": ["GET", "POST", "PUT", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "X-Goog-Upload-Command",
+      "X-Goog-Upload-Header-Content-Length",
+      "X-Goog-Upload-Header-Content-Type",
+      "X-Goog-Upload-Offset",
+      "X-Goog-Upload-Protocol",
+      "X-Firebase-Storage-Version"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

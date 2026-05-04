@@ -3,7 +3,7 @@
 import firebase from '@/lib/firebase';
 import { isPainterPaying } from '@/utils/painter-billing';
 import { loadStripe } from '@stripe/stripe-js';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from '@/lib/auth';
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';

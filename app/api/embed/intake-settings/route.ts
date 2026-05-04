@@ -4,9 +4,9 @@ import {
   normalizeIntakeEmbedSettings,
 } from '@/app/embed/intake/settings';
 import {
-  getPainter,
-  setPainterIntakeEmbedSettings,
-} from '@/utils/firestore/painter';
+  getProviderIntakeEmbedSettingsSupabase,
+  upsertProviderIntakeEmbedSettingsSupabase,
+} from '@/lib/data/supabase/provider-embed-settings';
 
 export const runtime = 'nodejs';
 
@@ -27,15 +27,13 @@ export async function GET(request: Request) {
       );
     }
 
-    const painter = await getPainter(providerId);
-    const settings = normalizeIntakeEmbedSettings(
-      (painter as any)?.intakeEmbedSettings || {}
-    );
+    const settings =
+      await getProviderIntakeEmbedSettingsSupabase(providerId);
 
     return NextResponse.json({
       providerId,
       settings,
-      source: 'firestore',
+      source: 'supabase',
     });
   } catch (error) {
     console.error(
@@ -64,15 +62,15 @@ export async function POST(request: Request) {
       );
     }
 
-    await setPainterIntakeEmbedSettings(
+    await upsertProviderIntakeEmbedSettingsSupabase({
       providerId,
-      settings as unknown as Record<string, unknown>
-    );
+      intakeSettings: settings,
+    });
 
     return NextResponse.json({
       providerId,
       settings,
-      source: 'firestore',
+      source: 'supabase',
     });
   } catch (error) {
     console.error(

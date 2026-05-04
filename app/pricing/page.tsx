@@ -2,7 +2,7 @@
 
 import firebase from '@/lib/firebase';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import Image from 'next/image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

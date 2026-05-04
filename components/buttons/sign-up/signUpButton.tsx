@@ -1,5 +1,5 @@
 import { useEffect, FC } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import {
   CvaLink,
   TCvaLinkProps,

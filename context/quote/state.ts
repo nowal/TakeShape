@@ -5,7 +5,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import firebase from '@/lib/firebase';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import { useQuoteUpload } from '@/context/quote/upload';
 import { useQuoteSubmit } from '@/context/quote/submit';
 import { useAuth } from '@/context/auth/provider';

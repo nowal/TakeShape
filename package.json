@@ -17,11 +17,12 @@
     "erase": "esrun ops/eraser && npm i"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.33.1",
     "@aws-sdk/client-s3": "^3.879.0",
     "@aws-sdk/s3-request-presigner": "^3.879.0",
-    "@anthropic-ai/sdk": "^0.33.1",
     "@google-cloud/aiplatform": "^3.34.0",
     "@google-cloud/vertexai": "^1.9.2",
+    "@nangohq/frontend": "^0.70.1",
     "@next/third-parties": "^14.1.4",
     "@radix-ui/react-select": "^2.1.1",
     "@react-three/drei": "9.88.0",
@@ -65,6 +66,7 @@
     "eslint": "^8.0.0",
     "eslint-config-next": "14.2.12",
     "favicons": "^7.2.0",
+    "firebase-tools": "^15.16.0",
     "postcss": "^8",
     "puppeteer": "^23.3.0",
     "tailwindcss": "^3.4.10",

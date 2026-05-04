@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { TJob } from '@/types/jobs';
 import { cx } from 'class-variance-authority';
 import { DashboardPainterJobInvoice } from '@/components/dashboard/painter/jobs/job/invoice';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 
 type TProps = TJob;
 export const DashboardPainterJobPrice: FC<TProps> = (

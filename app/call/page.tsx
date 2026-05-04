@@ -3,19 +3,7 @@
 import { Video as SWVideo } from '@signalwire/js';
 import { Mic, MicOff, PhoneOff, Volume2, Video as VideoIcon } from 'lucide-react';
 import firebase from '@/lib/firebase';
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where
-} from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -508,7 +496,6 @@ const PainterCallCenter: React.FC = () => {
   const ringbackCycleTimeoutRef = useRef<number | null>(null);
 
   const auth = getAuth(firebase);
-  const firestore = getFirestore(firebase);
 
   useEffect(() => {
     const params = new URLSearchParams(
@@ -747,20 +734,20 @@ const PainterCallCenter: React.FC = () => {
           }
 
           setAuthUid(user.uid);
-          const paintersQuery = query(
-            collection(firestore, 'painters'),
-            where('userId', '==', user.uid)
+          const response = await fetch(
+            `/api/providers/by-user?userId=${encodeURIComponent(
+              user.uid
+            )}`
           );
-          const snapshot = await getDocs(paintersQuery);
+          const payload = await response.json().catch(() => ({}));
+          const provider = payload?.provider as
+            | Record<string, unknown>
+            | null;
           if (!isMounted) return;
 
-          if (!snapshot.empty) {
-            const painterDoc = snapshot.docs[0];
-            setPainterDocId(painterDoc.id);
-            const painterData = painterDoc.data() as Record<
-              string,
-              unknown
-            >;
+          if (provider?.id) {
+            setPainterDocId(String(provider.id));
+            const painterData = provider;
             setPayingProvider(isPainterPaying(painterData));
             const normalizedPhone = normalizeUsPhoneToE164(
               String(
@@ -840,7 +827,7 @@ const PainterCallCenter: React.FC = () => {
       window.clearTimeout(authCheckTimeout);
       unsubscribe();
     };
-  }, [auth, firestore]);
+  }, [auth]);
 
   useEffect(() => {
     if (!isCheckingAuth && isPainterUser && isPayingProvider === false) {
@@ -1802,44 +1789,6 @@ const PainterCallCenter: React.FC = () => {
           }
         }
 
-        if (
-          phaseRef.current === 'quoteDraft' &&
-          painterDocId &&
-          quoteDocIdRef.current
-        ) {
-          const quoteSnapshot = await getDoc(
-            doc(
-              firestore,
-              'painters',
-              painterDocId,
-              'quotes',
-              quoteDocIdRef.current
-            )
-          ).catch(() => null);
-
-          if (quoteSnapshot?.exists()) {
-            const quoteData = quoteSnapshot.data() as Record<string, any>;
-            const docAccepted = Boolean(
-              quoteData?.quoteAccepted || quoteData?.quoteAcceptedAt
-            );
-            const docClosed = Boolean(
-              quoteData?.quoteSessionClosed || quoteData?.quoteSessionClosedAt
-            );
-
-            if (docAccepted && !quoteAcceptedRef.current) {
-              setQuoteAccepted(true);
-              setStatus(
-                'Congratulations, the homeowner has accepted your quote!'
-              );
-            }
-
-            if (docClosed) {
-              await concludeAcceptedQuoteSession();
-              return;
-            }
-          }
-        }
-
         if (nextQuoteAccepted && !quoteAcceptedRef.current) {
           setQuoteAccepted(true);
           setStatus('Congratulations, the homeowner has accepted your quote!');
@@ -2169,26 +2118,43 @@ const PainterCallCenter: React.FC = () => {
     }).catch(() => undefined);
   };
 
-  const syncQuoteToSupabase = async (quoteId: string) => {
-    if (!painterDocId || !quoteId) return;
-    const syncResponse = await fetch('/api/quotes/sync', {
+  const upsertQuote = async ({
+    quoteId,
+    pricingPatch,
+    customerInfoPatch,
+    metadataPatch,
+    signalwireConferenceId,
+    signalwireRecordingId,
+    status,
+  }: {
+    quoteId?: string;
+    pricingPatch?: Record<string, unknown>;
+    customerInfoPatch?: Record<string, unknown>;
+    metadataPatch?: Record<string, unknown>;
+    signalwireConferenceId?: string | null;
+    signalwireRecordingId?: string | null;
+    status?: string;
+  }) => {
+    if (!painterDocId) return null;
+    const response = await fetch('/api/quotes/upsert', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         providerId: painterDocId,
         quoteId,
+        pricingPatch,
+        customerInfoPatch,
+        metadataPatch,
+        signalwireConferenceId,
+        signalwireRecordingId,
+        status,
       }),
     });
-    if (!syncResponse.ok) {
-      const payload = await syncResponse
-        .json()
-        .catch(() => ({}));
-      throw new Error(
-        String(
-          payload?.error || 'Failed to sync quote to Supabase'
-        )
-      );
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(String(payload?.error || 'Failed to upsert quote'));
     }
+    return String(payload?.quoteId || '').trim() || null;
   };
 
   const ensureQuoteDoc = async () => {
@@ -2197,31 +2163,31 @@ const PainterCallCenter: React.FC = () => {
 
     const rows = normalizeQuoteRows();
     const now = new Date().toISOString();
-    const quoteRef = await addDoc(
-      collection(firestore, 'painters', painterDocId, 'quotes'),
-      {
+    const quoteId = await upsertQuote({
+      pricingPatch: {
+        rows,
+        totalPrice: Number(
+          rows.reduce((sum, row) => sum + row.price, 0).toFixed(2)
+        ),
+        submittedAt: null,
+        updatedAt: now,
+      },
+      customerInfoPatch: {
+        name: activeHomeownerNameRef.current || null,
+        address: activeHomeownerAddressRef.current || null,
+        email: activeHomeownerEmailRef.current || null,
+        phone: activeHomeownerNumberRef.current || null,
+      },
+      metadataPatch: {
         painterId: painterDocId,
         userId: authUid || null,
-        homeownerName: activeHomeownerNameRef.current || null,
-        homeownerAddress: activeHomeownerAddressRef.current || null,
-        homeownerEmail: activeHomeownerEmailRef.current,
-        homeownerPhone: activeHomeownerNumberRef.current || null,
-        signalwireConferenceId: conference?.id || null,
         signalwireConferenceName: conference?.name || null,
-        pricing: {
-          rows,
-          totalPrice: Number(rows.reduce((sum, row) => sum + row.price, 0).toFixed(2)),
-          submittedAt: null,
-          updatedAt: now
-        },
         videoEstimates: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      }
-    );
-    quoteDocIdRef.current = quoteRef.id;
-    await syncQuoteToSupabase(quoteRef.id);
-    return quoteRef.id;
+      },
+      signalwireConferenceId: conference?.id || null,
+    });
+    quoteDocIdRef.current = quoteId;
+    return quoteId;
   };
 
   const submitOrUpdateQuote = async () => {
@@ -2257,20 +2223,20 @@ const PainterCallCenter: React.FC = () => {
         updatedAt: nowIso,
         ...(isUpdate ? {} : { submittedAt: nowIso })
       };
-      await updateDoc(
-        doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
-        {
-          homeownerName: activeHomeownerNameRef.current || null,
-          homeownerAddress: activeHomeownerAddressRef.current || null,
-          homeownerEmail: activeHomeownerEmailRef.current,
-          homeownerPhone: activeHomeownerNumberRef.current || null,
-          signalwireConferenceId: conference.id,
-          signalwireConferenceName: conference.name,
-          pricing: pricingPayload,
-          updatedAt: serverTimestamp()
-        }
-      );
-      await syncQuoteToSupabase(quoteId);
+      await upsertQuote({
+        quoteId,
+        pricingPatch: pricingPayload as unknown as Record<string, unknown>,
+        customerInfoPatch: {
+          name: activeHomeownerNameRef.current || null,
+          address: activeHomeownerAddressRef.current || null,
+          email: activeHomeownerEmailRef.current || null,
+          phone: activeHomeownerNumberRef.current || null,
+        },
+        metadataPatch: {
+          signalwireConferenceName: conference.name || null,
+        },
+        signalwireConferenceId: conference.id,
+      });
 
       await upsertConferenceQuoteMeta({ rows, totalPrice, quoteId });
 
@@ -2342,17 +2308,15 @@ const PainterCallCenter: React.FC = () => {
 
       const quoteId = await ensureQuoteDoc();
       if (quoteId) {
-        await updateDoc(
-          doc(firestore, 'painters', painterDocId, 'quotes', quoteId),
-          {
-            homeownerName: normalizedHomeownerName || null,
-            homeownerAddress: normalizedHomeownerAddress || null,
-            homeownerEmail: normalizedHomeownerEmail || null,
-            homeownerPhone: normalizedHomeownerNumber || null,
-            updatedAt: serverTimestamp()
-          }
-        );
-        await syncQuoteToSupabase(quoteId);
+        await upsertQuote({
+          quoteId,
+          customerInfoPatch: {
+            name: normalizedHomeownerName || null,
+            address: normalizedHomeownerAddress || null,
+            email: normalizedHomeownerEmail || null,
+            phone: normalizedHomeownerNumber || null,
+          },
+        });
       }
 
       setStatus('Homeowner details updated.');
@@ -2374,20 +2338,22 @@ const PainterCallCenter: React.FC = () => {
     if (!quoteId) return;
     const recordingId = String(signalWireRecordingIdRef.current || '').trim();
 
-    await updateDoc(doc(firestore, 'painters', painterDocId, 'quotes', quoteId), {
+    await upsertQuote({
+      quoteId,
       signalwireRecordingId: recordingId || null,
-      videoEstimate: {
-        status: recordingId ? 'storing' : 'missing',
-        message: recordingId
-          ? 'Video is being stored'
-          : 'Video not found',
-        recordingId: recordingId || null,
-        url: null,
-        updatedAt: new Date().toISOString()
+      metadataPatch: {
+        signalwireRecordingId: recordingId || null,
+        videoEstimate: {
+          status: recordingId ? 'storing' : 'missing',
+          message: recordingId
+            ? 'Video is being stored'
+            : 'Video not found',
+          recordingId: recordingId || null,
+          url: null,
+          updatedAt: new Date().toISOString(),
+        },
       },
-      updatedAt: serverTimestamp()
     });
-    await syncQuoteToSupabase(quoteId);
 
     if (recordingId) {
       const finalizeResponse = await fetch('/api/quotes/finalize-recording', {

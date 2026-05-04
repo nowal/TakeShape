@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import { TAuthConfig } from '@/context/auth/types';
 import { useTimeoutRef } from '@/hooks/timeout-ref';
 import { useEventListener } from '@/hooks/event-listener';

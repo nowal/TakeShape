@@ -1,19 +1,7 @@
 'use client';
 
 import firebase from '@/lib/firebase';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import {
-  collection,
-  doc,
-  getDocs,
-  getFirestore,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where
-} from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import { getDownloadURL, getStorage, ref as storageRef } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -184,7 +172,6 @@ const QuoteAddressField: React.FC<TQuoteAddressFieldProps> = ({
 export default function QuotesPage() {
   const router = useRouter();
   const auth = useMemo(() => getAuth(firebase), []);
-  const firestore = useMemo(() => getFirestore(firebase), []);
   const storage = useMemo(() => getStorage(firebase), []);
   const [isCheckingAuth, setCheckingAuth] = useState(true);
   const [isPainterUser, setPainterUser] = useState(false);
@@ -556,16 +543,21 @@ export default function QuotesPage() {
   ) => {
     setLoadingQuotes(true);
     try {
-      const quotesQuery = query(
-        collection(firestore, 'painters', painterId, 'quotes'),
-        orderBy('createdAt', 'desc'),
-        limit(30)
+      const response = await fetch(
+        `/api/quotes/list?providerId=${encodeURIComponent(
+          painterId
+        )}`,
+        { cache: 'no-store' }
       );
-      const snapshot = await getDocs(quotesQuery);
-      const quoteRows = snapshot.docs.map((quoteDoc) => ({
-        id: quoteDoc.id,
-        data: quoteDoc.data(),
-      }));
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          String(payload?.error || 'Failed to load quotes')
+        );
+      }
+      const quoteRows = Array.isArray(payload?.quotes)
+        ? payload.quotes
+        : [];
 
       const cards = await Promise.all(
         quoteRows.map(async (quoteEntry: any) => {
@@ -769,16 +761,21 @@ export default function QuotesPage() {
     }
   }, [activePainterId, fetchFreshRecordingUrl, loadQuotes]);
 
-  const syncQuoteShadow = useCallback(async (quoteId: string) => {
+  const upsertQuote = useCallback(async (quoteId: string, body: Record<string, unknown>) => {
     if (!activePainterId || !quoteId) return;
-    await fetch('/api/quotes/sync', {
+    const response = await fetch('/api/quotes/upsert', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         providerId: activePainterId,
         quoteId,
+        ...body,
       }),
-    }).catch(() => undefined);
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(String(payload?.error || 'Failed to update quote'));
+    }
   }, [activePainterId]);
 
   useEffect(() => {
@@ -808,43 +805,29 @@ export default function QuotesPage() {
           );
 
           if (!capturedThumbnail) {
-            await updateDoc(
-              doc(
-                firestore,
-                'painters',
-                activePainterId,
-                'quotes',
-                quote.id
-              ),
-              {
-                'videoEstimate.thumbnailStatus': 'failed',
-                'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
-                updatedAt: serverTimestamp()
-              }
-            );
-            await syncQuoteShadow(quote.id);
+            await upsertQuote(quote.id, {
+              metadataPatch: {
+                videoEstimate: {
+                  thumbnailStatus: 'failed',
+                  thumbnailCapturedAt: new Date().toISOString(),
+                },
+              },
+            });
             continue;
           }
 
-          await updateDoc(
-            doc(
-              firestore,
-              'painters',
-              activePainterId,
-              'quotes',
-              quote.id
-            ),
-            {
-              'videoEstimate.thumbnailUrl': capturedThumbnail.dataUrl,
-              'videoEstimate.thumbnailStatus': 'ready',
-              'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
-              'videoEstimate.thumbnailSourceSecond': Number(
-                capturedThumbnail.second.toFixed(2)
-              ),
-              updatedAt: serverTimestamp()
-            }
-          );
-          await syncQuoteShadow(quote.id);
+          await upsertQuote(quote.id, {
+            metadataPatch: {
+              videoEstimate: {
+                thumbnailUrl: capturedThumbnail.dataUrl,
+                thumbnailStatus: 'ready',
+                thumbnailCapturedAt: new Date().toISOString(),
+                thumbnailSourceSecond: Number(
+                  capturedThumbnail.second.toFixed(2)
+                ),
+              },
+            },
+          });
 
           if (cancelled) continue;
           setQuotes((previousQuotes) =>
@@ -860,21 +843,14 @@ export default function QuotesPage() {
           );
         } catch {
           try {
-            await updateDoc(
-              doc(
-                firestore,
-                'painters',
-                activePainterId,
-                'quotes',
-                quote.id
-              ),
-              {
-                'videoEstimate.thumbnailStatus': 'failed',
-                'videoEstimate.thumbnailCapturedAt': new Date().toISOString(),
-                updatedAt: serverTimestamp()
-              }
-            );
-            await syncQuoteShadow(quote.id);
+            await upsertQuote(quote.id, {
+              metadataPatch: {
+                videoEstimate: {
+                  thumbnailStatus: 'failed',
+                  thumbnailCapturedAt: new Date().toISOString(),
+                },
+              },
+            });
           } catch {
             // no-op
           }
@@ -892,9 +868,8 @@ export default function QuotesPage() {
   }, [
     activePainterId,
     captureThumbnailFromVideo,
-    firestore,
     quotes,
-    syncQuoteShadow
+    upsertQuote
   ]);
 
   const handleCustomerInfoSubmit = useCallback(async () => {
@@ -918,17 +893,20 @@ export default function QuotesPage() {
     setSavingCustomerInfo(true);
     setCustomerInfoError(null);
     try {
-      await updateDoc(
-        doc(firestore, 'painters', activePainterId, 'quotes', editingQuoteId),
-        {
+      await upsertQuote(editingQuoteId, {
+        customerInfoPatch: {
+          name: homeownerName,
+          email: homeownerEmail,
+          phone: homeownerPhone || null,
+          address: homeownerAddress,
+        },
+        metadataPatch: {
           homeownerName,
           homeownerEmail,
           homeownerPhone: homeownerPhone || null,
           homeownerAddress,
-          updatedAt: serverTimestamp()
-        }
-      );
-      await syncQuoteShadow(editingQuoteId);
+        },
+      });
 
       setQuotes((prevQuotes) => prevQuotes.map((quote) => {
         if (quote.id !== editingQuoteId) return quote;
@@ -948,7 +926,7 @@ export default function QuotesPage() {
     } finally {
       setSavingCustomerInfo(false);
     }
-  }, [activePainterId, customerInfoForm, editingQuoteId, firestore, syncQuoteShadow]);
+  }, [activePainterId, customerInfoForm, editingQuoteId, upsertQuote]);
 
   useEffect(() => {
     let mounted = true;
@@ -965,14 +943,16 @@ export default function QuotesPage() {
       }
 
       try {
-        const paintersQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', user.uid)
+        const response = await fetch(
+          `/api/providers/by-user?userId=${encodeURIComponent(
+            user.uid
+          )}`
         );
-        const snapshot = await getDocs(paintersQuery);
+        const payload = await response.json().catch(() => ({}));
         if (!mounted) return;
 
-        if (snapshot.empty) {
+        const providerId = String(payload?.provider?.id || '').trim();
+        if (!providerId) {
           setPainterUser(false);
           setCheckingAuth(false);
           setQuotes([]);
@@ -980,9 +960,9 @@ export default function QuotesPage() {
         }
 
         setPainterUser(true);
-        setActivePainterId(snapshot.docs[0].id);
+        setActivePainterId(providerId);
         setCheckingAuth(false);
-        await loadQuotes(snapshot.docs[0].id);
+        await loadQuotes(providerId);
       } catch (authError) {
         console.error('Quotes auth lookup failed:', authError);
         if (!mounted) return;
@@ -996,7 +976,7 @@ export default function QuotesPage() {
       mounted = false;
       unsubscribe();
     };
-  }, [auth, firestore, loadQuotes]);
+  }, [auth, loadQuotes]);
 
   if (isCheckingAuth) {
     return <div style={{ padding: 24 }}>Checking account...</div>;

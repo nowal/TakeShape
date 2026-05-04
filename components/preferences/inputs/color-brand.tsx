@@ -8,7 +8,7 @@ import { InputsSelect } from "@/components/inputs/select";
 import { INPUTS_NAME_DELIMITER } from "@/constants/inputs";
 import { usePreferencesStateColor } from "@/hooks/color";
 import { CvaButton } from "@/components/cva/button";
-import { getAuth } from "firebase/auth";
+import { getAuth } from '@/lib/auth';
 import {
   getFirestore,
   doc,

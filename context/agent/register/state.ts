@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   getAuth,
   createUserWithEmailAndPassword,
-} from 'firebase/auth';
+} from '@/lib/auth';
 import {
   getFirestore,
   doc,

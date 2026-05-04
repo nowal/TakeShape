@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, FormEvent } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from '@/lib/auth';
 import {
   getFirestore,
   collection,
@@ -40,6 +40,7 @@ export const useAccountSettingsState = (
 ) => {
   const { onNavigateScrollTopClick } = useApp();
   const {
+    coords,
     range,
     address,
     addressFormatted,
@@ -91,6 +92,7 @@ export const useAccountSettingsState = (
   const [agentName, setAgentName] = useState(''); // New state for agent's name
   const [newAgentName, setNewAgentName] = useState(''); // New state for new agent's name
   const [agentError, setAgentError] = useState(''); // New state for agent error message
+  const [providerId, setProviderId] = useState('');
   const auth = getAuth(firebase);
   const firestore = getFirestore();
   const storage = getStorage(firebase);
@@ -102,6 +104,64 @@ export const useAccountSettingsState = (
       async (user) => {
         if (user) {
           try {
+            const providerResponse = await fetch(
+              `/api/providers/by-user?userId=${encodeURIComponent(
+                user.uid
+              )}`
+            );
+            const providerPayload = await providerResponse
+              .json()
+              .catch(() => ({}));
+            const provider = providerPayload?.provider as
+              | Record<string, unknown>
+              | null;
+            if (provider?.id) {
+              setProviderId(String(provider.id));
+              setAgent(false);
+              setPainter(true);
+              setBusinessName(String(provider.business_name || ''));
+              const rawPainterAddress = String(
+                provider.address || ''
+              );
+              const parsedCoordsAddress =
+                parseCoordsFromAddress(rawPainterAddress);
+              let displayPainterAddress = rawPainterAddress;
+              if (parsedCoordsAddress) {
+                const resolvedAddress =
+                  await resolveAddressFromCoords(
+                    parsedCoordsAddress
+                  );
+                if (resolvedAddress) {
+                  displayPainterAddress = resolvedAddress;
+                }
+              }
+              dispatchAddressFormatted(displayPainterAddress);
+              dispatchRange(Number(provider.range_km || 0));
+              setInsured(Boolean(provider.is_insured));
+              setPhoneNumber(String(provider.phone_number || ''));
+              setLogoUrl(
+                String(provider.logo_url || '') || null
+              );
+              setTermsAndConditionsUrl(
+                String(provider.terms_and_conditions_url || '') ||
+                  null
+              );
+              const providerCoords =
+                (provider.coords as
+                  | { lat: number; lng: number }
+                  | undefined) ||
+                parsedCoordsAddress ||
+                (await handleAddressGeocode(
+                  displayPainterAddress
+                ));
+              if (providerCoords) {
+                onCoordsUpdate(providerCoords);
+              }
+              setErrorMessage('');
+              setDataLoading(false);
+              return;
+            }
+
             // Check if the user is an agent
             const agentDocRef = doc(
               firestore,
@@ -305,23 +365,12 @@ export const useAccountSettingsState = (
       const addressValue = addressFormatted ?? address;
 
       if (isPainter) {
-        // Painter specific update
-        const painterQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', currentUser.uid)
-        );
-        const painterSnapshot = await getDocs(painterQuery);
-        const isPainter = !painterSnapshot.empty;
-
         if (!addressValue) {
           setErrorMessage('Invalid address.');
           return;
         }
 
-        if (isPainter) {
-          const painterDocRef = painterSnapshot.docs[0].ref;
-          const currentPainterData =
-            painterSnapshot.docs[0].data();
+        if (providerId) {
           const normalizedPhone =
             normalizeUsPhoneToE164(phoneNumber);
           if (!normalizedPhone) {
@@ -330,16 +379,7 @@ export const useAccountSettingsState = (
             );
             return;
           }
-          const currentNormalizedPhone =
-            normalizeUsPhoneToE164(
-              String(
-                currentPainterData.phoneNumber ||
-                  currentPainterData.phoneNumberRaw ||
-                  ''
-              )
-            );
-          const phoneChanged =
-            normalizedPhone !== currentNormalizedPhone;
+          const phoneChanged = true;
           const updatedLogoUrl = logo
             ? await resolveLogosUpload(logo)
             : logoUrl; // Handle logo upload if provided
@@ -375,10 +415,6 @@ export const useAccountSettingsState = (
               : {}),
           };
 
-          await updateDoc(
-            painterDocRef,
-            updatedPainterData
-          );
           const profileSyncResponse = await fetch(
             '/api/providers/sync-profile',
             {
@@ -387,7 +423,7 @@ export const useAccountSettingsState = (
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                providerId: painterDocRef.id,
+                providerId,
                 userId: currentUser.uid,
                 businessName,
                 address: addressValue,
@@ -396,6 +432,8 @@ export const useAccountSettingsState = (
                 termsAndConditionsUrl:
                   updatedTermsAndConditionsUrl || '',
                 phoneNumber: normalizedPhone,
+                coords,
+                rangeKm: range,
               }),
             }
           );

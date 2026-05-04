@@ -6,7 +6,7 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from '@/lib/auth';
 
 export const fetchPainter = async () => {
   const firestore = getFirestore();

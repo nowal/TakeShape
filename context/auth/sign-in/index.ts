@@ -8,18 +8,8 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-} from 'firebase/auth';
+} from '@/lib/auth';
 import firebase from '@/lib/firebase';
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore';
 import { TAuthConfig } from '@/context/auth/types';
 import { useApp } from '@/context/app/provider';
 import { isPainterPaying } from '@/utils/painter-billing';
@@ -32,7 +22,6 @@ export const useSignIn = ({
 }: TAuthConfig) => {
   const AUTH_INIT_TIMEOUT_MS = 5000;
   const SIGN_IN_TIMEOUT_MS = 15000;
-  const FIRESTORE_TIMEOUT_MS = 10000;
   const { onNavigateScrollTopClick } = useApp();
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
@@ -99,8 +88,6 @@ export const useSignIn = ({
     event.preventDefault();
     setSignInSubmitting(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
-    const firestore = getFirestore(firebase);
-
     try {
       await withTimeout(
         signInWithEmailAndPassword(auth, email, password),
@@ -115,69 +102,25 @@ export const useSignIn = ({
 
       if (isUser) {
         dispatchUserSignedIn(isUser);
-        const agentDocRef = doc(
-          firestore,
-          'reAgents',
-          currentUser.uid
+        const response = await fetch(
+          `/api/providers/by-user?userId=${encodeURIComponent(
+            currentUser.uid
+          )}`
         );
-        const agentDoc = await withTimeout(
-          getDoc(agentDocRef),
-          FIRESTORE_TIMEOUT_MS,
-          'Account lookup timed out. Please try again.'
-        );
-
-        if (agentDoc.exists()) {
-          onNavigateScrollTopClick('/agentDashboard');
+        const payload = await response.json().catch(() => ({}));
+        const providerData = payload?.provider as
+          | Record<string, unknown>
+          | null;
+        if (providerData) {
+          if (isPainterPaying(providerData)) {
+            onNavigateScrollTopClick('/call');
+          } else {
+            onNavigateScrollTopClick('/plans');
+          }
         } else {
-          const painterQuery = query(
-            collection(firestore, 'painters'),
-            where('userId', '==', currentUser.uid)
-          );
-          const painterSnapshot = await withTimeout(
-            getDocs(painterQuery),
-            FIRESTORE_TIMEOUT_MS,
-            'Provider lookup timed out. Please try again.'
-          );
-
-          if (!painterSnapshot.empty) {
-            const painterData = painterSnapshot.docs[0]
-              .data() as Record<string, unknown>;
-            if (isPainterPaying(painterData)) {
-              onNavigateScrollTopClick('/call');
-            } else {
-              onNavigateScrollTopClick('/plans');
-            }
-            dispatchAuthLoading(false);
-            return;
-          }
-
-          // Link quote data to the user's account if they are not an agent
-          const quoteData =
-            sessionStorage.getItem('quoteData');
-          if (quoteData) {
-            const quote = JSON.parse(quoteData);
-
-            try {
-              await withTimeout(
-                addDoc(collection(firestore, 'userImages'), {
-                  ...quote,
-                  userId: currentUser.uid,
-                }),
-                FIRESTORE_TIMEOUT_MS,
-                'Quote link timed out'
-              );
-              sessionStorage.removeItem('quoteData'); // Clean up
-            } catch (quoteSyncError) {
-              console.warn(
-                'Quote sync skipped after sign-in:',
-                quoteSyncError
-              );
-            }
-          }
-          console.log(' NAV TO CALL ');
           onNavigateScrollTopClick('/call');
-          dispatchAuthLoading(false); // Authentication state is confirmed, loading is done
         }
+        dispatchAuthLoading(false);
       } else {
         console.error('Error current user is null');
       }
