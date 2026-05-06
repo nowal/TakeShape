@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 import { NextRequest, NextResponse } from 'next/server';
+import { FieldValue } from 'firebase-admin/firestore';
 import { getProviderByIdSupabase } from '@/lib/data/supabase/providers';
+import { upsertQuoteSupabaseFromFirestore } from '@/lib/data/supabase/quotes';
 import {
   getAdminAuth,
   getAdminFirestore,
@@ -165,7 +167,74 @@ const resolveProviderRecipient = async (providerId: string) => {
   return {
     recipientEmail,
     providerName,
+    userId,
   };
+};
+
+const createUploadedVideoQuote = async ({
+  providerId,
+  providerUserId,
+  contact,
+  videoUrl,
+  videoFileName,
+}: {
+  providerId: string;
+  providerUserId: string;
+  contact: ContactPayload;
+  videoUrl: string;
+  videoFileName: string;
+}) => {
+  const firestore = getAdminFirestore();
+  const quoteRef = firestore
+    .collection('painters')
+    .doc(providerId)
+    .collection('quotes')
+    .doc();
+  const nowIso = new Date().toISOString();
+
+  const quoteData: Record<string, unknown> = {
+    painterId: providerId,
+    userId: providerUserId || null,
+    homeownerName: contact.name || null,
+    homeownerAddress: contact.address || null,
+    homeownerEmail: contact.email || null,
+    homeownerPhone: contact.phone || null,
+    signalwireConferenceId: null,
+    signalwireConferenceName: null,
+    pricing: {
+      rows: [],
+      totalPrice: 0,
+      submittedAt: null,
+      updatedAt: nowIso,
+    },
+    videoEstimate: {
+      url: videoUrl,
+      status: 'ready',
+      source: 'embed-intake-upload',
+      uploadedAt: nowIso,
+      recordingId: null,
+      fileName: videoFileName || null,
+      thumbnailStatus: 'pending',
+    },
+    videoEstimates: [videoUrl],
+    quoteSource: 'embed-intake-upload',
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  await quoteRef.set(quoteData);
+
+  await upsertQuoteSupabaseFromFirestore({
+    providerId,
+    quoteId: quoteRef.id,
+    quoteData: {
+      ...quoteData,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    },
+  });
+
+  return quoteRef.id;
 };
 
 const buildCallLink = ({
@@ -241,7 +310,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { recipientEmail, providerName } =
+    const { recipientEmail, providerName, userId } =
       await resolveProviderRecipient(providerId);
 
     if (!recipientEmail) {
@@ -265,6 +334,21 @@ export async function POST(request: NextRequest) {
     const callLink = buildCallLink({ appBase, contact });
     const videoUrl = normalizeText(body.videoUrl);
     const videoFileName = normalizeText(body.videoFileName);
+    const emailFrom =
+      normalizeText(process.env.EMAIL_FROM) ||
+      normalizeText(process.env.SMTP_USER) ||
+      EMAIL_FROM_FALLBACK;
+    let createdQuoteId: string | null = null;
+
+    if (estimateChoice === 'uploadVideo' && videoUrl) {
+      createdQuoteId = await createUploadedVideoQuote({
+        providerId,
+        providerUserId: userId,
+        contact,
+        videoUrl,
+        videoFileName,
+      });
+    }
 
     const subject = `New homeowner intake request (${quoteType})`;
 
@@ -377,6 +461,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       recipientEmail,
+      quoteId: createdQuoteId,
     });
   } catch (error) {
     console.error('Error sending embed intake provider notification:', error);
@@ -390,7 +475,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-    const emailFrom =
-      normalizeText(process.env.EMAIL_FROM) ||
-      normalizeText(process.env.SMTP_USER) ||
-      EMAIL_FROM_FALLBACK;
