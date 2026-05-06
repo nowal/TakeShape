@@ -316,7 +316,8 @@ const ConsultPage: React.FC = () => {
   });
   const pinchStartDistanceRef = useRef<number | null>(null);
   const pinchStartZoomRef = useRef<number | null>(null);
-  const zoomApplyRafRef = useRef<number | null>(null);
+  const zoomApplyInFlightRef = useRef(false);
+  const zoomDesiredValueRef = useRef<number | null>(null);
   const targetZoomValueRef = useRef<number | null>(null);
   const appliedZoomValueRef = useRef<number>(1);
   const quoteAcceptedRef = useRef(false);
@@ -893,18 +894,48 @@ const ConsultPage: React.FC = () => {
     return Number(Math.min(max, Math.max(min, snapped)).toFixed(4));
   }, [zoomRange]);
 
-  const applyZoom = useCallback((nextZoom: number) => {
+  const applyZoom = useCallback(async (nextZoom: number) => {
     if (!zoomSupported) return;
     const track = localStreamRef.current?.getVideoTracks?.()[0];
     if (!track) return;
     const { min, max } = zoomRange;
     const clamped = Math.min(max, Math.max(min, nextZoom));
     const normalized = Number(clamped.toFixed(4));
-    void (track as any).applyConstraints?.({
+    await (track as any).applyConstraints?.({
         advanced: [{ zoom: normalized }]
-      }).catch((error: Error) => {
-        pushDebugLog(`Zoom apply failed: ${error.message}`);
       });
+    appliedZoomValueRef.current = normalized;
+  }, [zoomRange, zoomSupported]);
+
+  const flushZoomApply = useCallback(async () => {
+    if (zoomApplyInFlightRef.current) return;
+    zoomApplyInFlightRef.current = true;
+
+    try {
+      while (zoomDesiredValueRef.current !== null) {
+        const next = zoomDesiredValueRef.current;
+        zoomDesiredValueRef.current = null;
+        if (next === null) break;
+
+        const step = Number(zoomRange.step) || 0.1;
+        const epsilon = Math.max(0.001, step * 0.35);
+        if (Math.abs(appliedZoomValueRef.current - next) <= epsilon) {
+          continue;
+        }
+
+        try {
+          await applyZoom(next);
+        } catch (error) {
+          pushDebugLog(`Zoom apply failed: ${(error as Error).message}`);
+          break;
+        }
+      }
+    } finally {
+      zoomApplyInFlightRef.current = false;
+      if (zoomDesiredValueRef.current !== null) {
+        void flushZoomApply();
+      }
+    }
   }, [pushDebugLog, zoomRange, zoomSupported]);
 
   const queueZoomApply = useCallback((
@@ -916,50 +947,19 @@ const ConsultPage: React.FC = () => {
     setZoomValue(snappedTarget);
 
     if (opts?.immediate) {
-      appliedZoomValueRef.current = snappedTarget;
-      applyZoom(snappedTarget);
+      zoomDesiredValueRef.current = snappedTarget;
+      void flushZoomApply();
       return;
     }
 
-    if (zoomApplyRafRef.current !== null) return;
-
-    const flush = () => {
-      const target = targetZoomValueRef.current;
-      if (target === null) {
-        zoomApplyRafRef.current = null;
-        return;
-      }
-
-      const current = appliedZoomValueRef.current;
-      const delta = target - current;
-      const nextValue = Math.abs(delta) < 0.003
-        ? target
-        : snapToZoomStep(current + delta * 0.28);
-
-      appliedZoomValueRef.current = nextValue;
-      applyZoom(nextValue);
-
-      if (Math.abs(target - nextValue) < 0.002) {
-        appliedZoomValueRef.current = target;
-        applyZoom(target);
-        if (targetZoomValueRef.current === target) {
-          zoomApplyRafRef.current = null;
-          return;
-        }
-      }
-
-      zoomApplyRafRef.current = window.requestAnimationFrame(flush);
-    };
-
-    zoomApplyRafRef.current = window.requestAnimationFrame(flush);
-  }, [applyZoom, snapToZoomStep]);
+    zoomDesiredValueRef.current = snappedTarget;
+    void flushZoomApply();
+  }, [flushZoomApply, snapToZoomStep]);
 
   useEffect(() => {
     return () => {
-      if (zoomApplyRafRef.current !== null) {
-        window.cancelAnimationFrame(zoomApplyRafRef.current);
-      }
-      zoomApplyRafRef.current = null;
+      zoomApplyInFlightRef.current = false;
+      zoomDesiredValueRef.current = null;
       targetZoomValueRef.current = null;
     };
   }, []);
