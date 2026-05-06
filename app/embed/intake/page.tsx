@@ -19,6 +19,7 @@ import {
 import { InputsText } from '@/components/inputs/text';
 import { InputsFile } from '@/components/inputs/file';
 import { ButtonsQuoteSubmit } from '@/components/buttons/quote/submit';
+import { useGoogleAddressAutocomplete } from '@/hooks/address/google-autocomplete';
 import {
   initializeEmbed,
   sendCompletionEvent,
@@ -29,10 +30,11 @@ import {
   IntakeEmbedSettings,
   normalizeIntakeEmbedSettings,
 } from '@/app/embed/intake/settings';
-import uploadIcon from './upload-brand.png';
-import callIcon from './call-brand.png';
-import inPersonIcon from './in-person-brand.png';
 import intakeHeroImage from './embed.png';
+
+const uploadIconPath = '/embed/intake/upload-mono.png';
+const callIconPath = '/embed/intake/call-mono.png';
+const inPersonIconPath = '/embed/intake/in-person-mono.png';
 
 type Step =
   | 'contact'
@@ -151,6 +153,49 @@ const sanitizeStorageSegment = (value: string) =>
     .replace(/[^a-z0-9-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+
+type EmbedAddressFieldProps = {
+  value: string;
+  onChange(value: string): void;
+  required: boolean;
+};
+
+const EmbedAddressField = ({
+  value,
+  onChange,
+  required,
+}: EmbedAddressFieldProps) => {
+  const addressInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+  useGoogleAddressAutocomplete(addressInputRef, {
+    onPlaceChange: (place) => {
+      const formattedAddress = String(
+        place.formatted_address || ''
+      ).trim();
+
+      if (!formattedAddress) return;
+      onChange(formattedAddress);
+    },
+  });
+
+  return (
+    <InputsText
+      ref={addressInputRef}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      }}
+      autoComplete="off"
+      spellCheck={false}
+      placeholder="123 Main St, City, State, ZIP"
+      required={required}
+    />
+  );
+};
 
 export default function EmbedIntakePage() {
   const [step, setStep] = useState<Step>('contact');
@@ -680,15 +725,11 @@ export default function EmbedIntakePage() {
                     <label className="text-sm font-semibold text-black-4">
                       Address
                     </label>
-                    <InputsText
+                    <EmbedAddressField
                       value={contact.address}
-                      onChange={(event) =>
-                        handleContactChange(
-                          'address',
-                          event.target.value
-                        )
+                      onChange={(value) =>
+                        handleContactChange('address', value)
                       }
-                      placeholder="123 Main St, City, State, ZIP"
                       required={!previewMode}
                     />
                     {errors.address && (
@@ -721,7 +762,7 @@ export default function EmbedIntakePage() {
                 subtitle={
                   settings.estimateChoiceSubtitles.uploadVideo
                 }
-                icon={uploadIcon}
+                iconPath={uploadIconPath}
                 onClick={() => onEstimateChoice('uploadVideo')}
               />
               <EstimateChoiceCard
@@ -730,7 +771,7 @@ export default function EmbedIntakePage() {
                   settings.estimateChoiceSubtitles
                     .requestLiveVideoEstimate
                 }
-                icon={callIcon}
+                iconPath={callIconPath}
                 onClick={() =>
                   onEstimateChoice('requestLiveVideoEstimate')
                 }
@@ -741,7 +782,7 @@ export default function EmbedIntakePage() {
                   settings.estimateChoiceSubtitles
                     .requestInPersonEstimate
                 }
-                icon={inPersonIcon}
+                iconPath={inPersonIconPath}
                 onClick={() =>
                   onEstimateChoice('requestInPersonEstimate')
                 }
@@ -992,14 +1033,14 @@ export default function EmbedIntakePage() {
 type EstimateChoiceCardProps = {
   title: string;
   subtitle: string;
-  icon: Parameters<typeof Image>[0]['src'];
+  iconPath: string;
   onClick: () => void;
 };
 
 function EstimateChoiceCard({
   title,
   subtitle,
-  icon,
+  iconPath,
   onClick,
 }: EstimateChoiceCardProps) {
   return (
@@ -1016,7 +1057,7 @@ function EstimateChoiceCard({
       </p>
       <div className="mt-4 w-full overflow-hidden rounded-lg bg-white">
         <Image
-          src={icon}
+          src={iconPath}
           alt={title}
           width={1053}
           height={1024}

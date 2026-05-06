@@ -799,6 +799,11 @@ body:has(.embed-container) {
   transform: scale(1.05);
 }
 
+/* Keep Google Places autocomplete visible above embed surfaces */
+.pac-container {
+  z-index: 2147483647 !important;
+}
+
 /* Error Messages */
 .error-message {
   padding: 20px;
