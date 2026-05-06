@@ -78,6 +78,10 @@ const escapeHtml = (raw: string) =>
 const extractLegacyVideoUrl = (rawVideoEstimates: any): string | null => {
   if (!Array.isArray(rawVideoEstimates)) return null;
   for (const estimate of rawVideoEstimates) {
+    if (typeof estimate === 'string') {
+      const direct = normalizeOptionalField(estimate);
+      if (direct) return direct;
+    }
     const value = normalizeOptionalField(estimate?.value);
     if (value) return value;
     const url = normalizeOptionalField(estimate?.url);
@@ -89,6 +93,9 @@ const extractLegacyVideoUrl = (rawVideoEstimates: any): string | null => {
 const extractLegacyRecordingId = (rawVideoEstimates: any): string | null => {
   if (!Array.isArray(rawVideoEstimates)) return null;
   for (const estimate of rawVideoEstimates) {
+    if (typeof estimate === 'string') {
+      continue;
+    }
     const recordingId = normalizeOptionalField(
       estimate?.signalwireRecordingId || estimate?.recordingId
     );
@@ -131,15 +138,10 @@ const shouldUseStoredVideoUrl = ({
   url: string;
   recordingId: string | null;
 }) => {
-  if (!recordingId) return true;
-  if (!/^https?:\/\//i.test(url)) return true;
-  if (!/files\.signalwire\.com/i.test(url)) return true;
-
-  const expiresAt = parseSignedUrlExpiryMs(url);
-  if (!expiresAt) return true;
-
-  // Treat links expiring soon as stale to avoid immediate playback errors.
-  return Date.now() + 30_000 < expiresAt;
+  // Legacy behavior: trust Firestore-stored URL first.
+  // SignalWire refresh APIs are fallback-only when URL is missing.
+  void recordingId;
+  return /^https?:\/\//i.test(url) || Boolean(url);
 };
 
 type TQuoteAddressFieldProps = {
