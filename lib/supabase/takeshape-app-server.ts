@@ -1,23 +1,42 @@
 import { createClient } from '@supabase/supabase-js';
 
-const required = (name: string, value: string | undefined) => {
-  if (!value || !value.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
+const clean = (value: string | undefined) => (value || '').trim();
+
+const firstAvailableEnv = (names: string[]) => {
+  for (const name of names) {
+    const value = clean(process.env[name]);
+    if (value) return value;
   }
-  return value.trim();
+
+  throw new Error(
+    `Missing required environment variable. Set one of: ${names.join(', ')}`
+  );
 };
+
+const getTakeShapeSupabaseUrl = () =>
+  firstAvailableEnv([
+    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+  ]);
+
+const getTakeShapeSupabasePublishableKey = () =>
+  firstAvailableEnv([
+    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  ]);
+
+const getTakeShapeSupabaseServiceRoleKey = () =>
+  firstAvailableEnv([
+    'TAKESHAPE_APP_SUPABASE_SERVICE_ROLE_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
 
 export const getTakeShapeAppSupabaseServer = () =>
   createClient(
-    required(
-      'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
-      process.env.NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL
-    ),
-    process.env.TAKESHAPE_APP_SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-      required(
-        'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY',
-        process.env.NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY
-      ),
+    getTakeShapeSupabaseUrl(),
+    clean(process.env.TAKESHAPE_APP_SUPABASE_SERVICE_ROLE_KEY) ||
+      clean(process.env.SUPABASE_SERVICE_ROLE_KEY) ||
+      getTakeShapeSupabasePublishableKey(),
     {
       auth: {
         autoRefreshToken: false,
@@ -28,14 +47,8 @@ export const getTakeShapeAppSupabaseServer = () =>
 
 export const getTakeShapeAppSupabaseAdmin = () =>
   createClient(
-    required(
-      'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
-      process.env.NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL
-    ),
-    required(
-      'TAKESHAPE_APP_SUPABASE_SERVICE_ROLE_KEY',
-      process.env.TAKESHAPE_APP_SUPABASE_SERVICE_ROLE_KEY
-    ),
+    getTakeShapeSupabaseUrl(),
+    getTakeShapeSupabaseServiceRoleKey(),
     {
       auth: {
         autoRefreshToken: false,

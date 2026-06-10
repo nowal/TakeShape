@@ -1,21 +1,43 @@
 'use client';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const required = (name: string, value: string | undefined) => {
-  if (!value || !value.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
+const clean = (value: string | undefined) => (value || '').trim();
+
+const firstAvailableEnv = (names: string[]) => {
+  for (const name of names) {
+    const value = clean(process.env[name]);
+    if (value) return value;
   }
-  return value.trim();
+
+  throw new Error(
+    `Missing required environment variable. Set one of: ${names.join(', ')}`
+  );
 };
 
-export const takeshapeAppSupabaseBrowser = createClient(
-  required(
-    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
-    process.env.NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL
-  ),
-  required(
-    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY',
-    process.env.NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY
-  )
-);
+let browserClient: SupabaseClient | null = null;
+
+export const getTakeShapeAppSupabaseBrowser = () => {
+  if (!browserClient) {
+    browserClient = createClient(
+      firstAvailableEnv([
+        'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
+        'NEXT_PUBLIC_SUPABASE_URL',
+      ]),
+      firstAvailableEnv([
+        'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY',
+        'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      ])
+    );
+  }
+
+  return browserClient;
+};
+
+export const takeshapeAppSupabaseBrowser = new Proxy({} as SupabaseClient, {
+  get(_target, property) {
+    const client = getTakeShapeAppSupabaseBrowser() as any;
+    const value = client[property];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
