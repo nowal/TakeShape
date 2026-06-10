@@ -1,10 +1,8 @@
 'use client';
 
-import firebase from '@/lib/firebase';
 import { isPainterPaying } from '@/utils/painter-billing';
 import { loadStripe } from '@stripe/stripe-js';
 import { getAuth, onAuthStateChanged, User } from '@/lib/auth';
-import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -64,8 +62,7 @@ const PLAN_CARDS: PlanCard[] = [
 export default function PlansPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useMemo(() => getAuth(firebase), []);
-  const firestore = useMemo(() => getFirestore(firebase), []);
+  const auth = useMemo(() => getAuth(), []);
 
   const [user, setUser] = useState<User | null>(null);
   const [painterDocId, setPainterDocId] = useState<string | null>(null);
@@ -82,22 +79,31 @@ export default function PlansPage() {
         }
 
         setUser(nextUser);
-        const paintersQuery = query(
-          collection(firestore, 'painters'),
-          where('userId', '==', nextUser.uid)
+        const response = await fetch(
+          `/api/providers/by-user?userId=${encodeURIComponent(
+            nextUser.uid
+          )}&_ts=${Date.now()}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'cache-control': 'no-cache',
+              pragma: 'no-cache',
+            },
+          }
         );
-        const snapshot = await getDocs(paintersQuery);
+        const payload = await response.json().catch(() => ({}));
+        const provider = payload?.provider as
+          | Record<string, unknown>
+          | null;
 
-        if (snapshot.empty) {
+        if (!provider?.id) {
           router.push('/providerRegister');
           return;
         }
 
-        const painterDoc = snapshot.docs[0];
-        setPainterDocId(painterDoc.id);
+        setPainterDocId(String(provider.id));
 
-        const painterData = painterDoc.data() as Record<string, unknown>;
-        if (isPainterPaying(painterData)) {
+        if (isPainterPaying(provider)) {
           router.push('/call');
           return;
         }
@@ -110,7 +116,7 @@ export default function PlansPage() {
     });
 
     return () => unsubscribe();
-  }, [auth, firestore, router]);
+  }, [auth, router]);
 
   const onCheckout = async (plan: PlanKey) => {
     if (!painterDocId || !user) return;

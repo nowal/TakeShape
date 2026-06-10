@@ -12,7 +12,9 @@ import {
 import firebase from '@/lib/firebase';
 import { TAuthConfig } from '@/context/auth/types';
 import { useApp } from '@/context/app/provider';
-import { isPainterPaying } from '@/utils/painter-billing';
+import { getCommunicationDashboardPath } from '@/lib/provider-dashboard/links';
+import { takeshapeAppSupabaseBrowser } from '@/lib/supabase/takeshape-app-browser';
+import { useSearchParams } from 'next/navigation';
 
 export const useSignIn = ({
   isUserSignedIn,
@@ -23,6 +25,7 @@ export const useSignIn = ({
   const AUTH_INIT_TIMEOUT_MS = 5000;
   const SIGN_IN_TIMEOUT_MS = 15000;
   const { onNavigateScrollTopClick } = useApp();
+  const searchParams = useSearchParams();
   const [isShowModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +35,8 @@ export const useSignIn = ({
     string | null
   >(null); // Error message state
   const auth = getAuth(firebase);
+  const requestedProviderId =
+    searchParams.get('provider') || searchParams.get('providerId');
 
   const withTimeout = async <T,>(
     promise: Promise<T>,
@@ -44,6 +49,62 @@ export const useSignIn = ({
         setTimeout(() => reject(new Error(message)), timeoutMs);
       }),
     ]);
+  };
+
+  const getCurrentAccessToken = async () => {
+    const { data, error } =
+      await takeshapeAppSupabaseBrowser.auth.getSession();
+    if (error) throw error;
+    return data.session?.access_token || '';
+  };
+
+  const completeProviderClaim = async (providerId: string) => {
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('A signed-in Supabase session is required.');
+    }
+
+    const response = await fetch('/api/provider-auth/complete', {
+      body: JSON.stringify({
+        providerId,
+      }),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+    const payload = (await response.json().catch(() => ({}))) as {
+      dashboardPath?: string;
+      error?: string;
+      ok?: boolean;
+    };
+
+    if (!response.ok || !payload.ok || !payload.dashboardPath) {
+      throw new Error(
+        payload.error || 'Provider dashboard setup failed.'
+      );
+    }
+
+    return payload.dashboardPath;
+  };
+
+  const getSignedInProviderPath = async (userId: string) => {
+    const response = await fetch(
+      `/api/providers/by-user?userId=${encodeURIComponent(userId)}`
+    );
+    const payload = await response.json().catch(() => ({}));
+    const providerData = payload?.provider as
+      | { id?: unknown }
+      | null
+      | undefined;
+    const providerId = providerData?.id
+      ? String(providerData.id)
+      : '';
+
+    return providerId
+      ? getCommunicationDashboardPath(providerId)
+      : null;
   };
 
   useEffect(() => {
@@ -89,11 +150,45 @@ export const useSignIn = ({
     setSignInSubmitting(true); // Set loading state to true
     setErrorMessage(null); // Reset error message state
     try {
-      await withTimeout(
-        signInWithEmailAndPassword(auth, email, password),
-        SIGN_IN_TIMEOUT_MS,
-        'Sign-in timed out. Please try again.'
-      );
+      const signInDirect = () =>
+        withTimeout(
+          signInWithEmailAndPassword(auth, email, password),
+          SIGN_IN_TIMEOUT_MS,
+          'Sign-in timed out. Please try again.'
+        );
+
+      try {
+        await signInDirect();
+      } catch (signInError) {
+        const signInMessage =
+          signInError instanceof Error
+            ? signInError.message
+            : String(signInError || '');
+        const shouldTryMigrationBridge =
+          signInMessage.toLowerCase().includes('invalid login credentials');
+
+        if (!shouldTryMigrationBridge) {
+          throw signInError;
+        }
+
+        const bridgeResponse = await fetch(
+          '/api/auth/migrate-signin',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              password,
+            }),
+          }
+        );
+
+        if (!bridgeResponse.ok) {
+          throw signInError;
+        }
+
+        await signInDirect();
+      }
       setShowModal(false);
 
       // Check if the signed-in user is in the reAgents collection
@@ -102,24 +197,10 @@ export const useSignIn = ({
 
       if (isUser) {
         dispatchUserSignedIn(isUser);
-        const response = await fetch(
-          `/api/providers/by-user?userId=${encodeURIComponent(
-            currentUser.uid
-          )}`
-        );
-        const payload = await response.json().catch(() => ({}));
-        const providerData = payload?.provider as
-          | Record<string, unknown>
-          | null;
-        if (providerData) {
-          if (isPainterPaying(providerData)) {
-            onNavigateScrollTopClick('/call');
-          } else {
-            onNavigateScrollTopClick('/plans');
-          }
-        } else {
-          onNavigateScrollTopClick('/call');
-        }
+        const dashboardPath = requestedProviderId
+          ? await completeProviderClaim(requestedProviderId)
+          : await getSignedInProviderPath(currentUser.uid);
+        onNavigateScrollTopClick(dashboardPath || '/call');
         dispatchAuthLoading(false);
       } else {
         console.error('Error current user is null');
@@ -137,6 +218,12 @@ export const useSignIn = ({
         setErrorMessage(
           'Sign-in timed out on this browser. Please refresh, then try again.'
         );
+      } else if (
+        message.toLowerCase().includes('provider') ||
+        message.toLowerCase().includes('dashboard') ||
+        message.toLowerCase().includes('supabase')
+      ) {
+        setErrorMessage(message);
       } else {
         setErrorMessage(
           'Incorrect email or password. Please try again.'

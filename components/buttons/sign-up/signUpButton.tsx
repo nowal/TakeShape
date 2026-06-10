@@ -28,7 +28,7 @@ export const SignUpButton: FC<TProps> = ({ ...props }) => {
   }
 
   const title = props.title ?? 'Sign Up';
-  const { href = '/providerRegister', ...restProps } = props;
+  const { href = '/signup', ...restProps } = props;
 
   return (
     <CvaLink

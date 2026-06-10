@@ -19,6 +19,9 @@ import { painterInfoAtom } from '@/atom';
 import { useAccountSettings } from '@/context/account-settings/provider';
 import { useApp } from '@/context/app/provider';
 import { normalizeUsPhoneToE164 } from '@/utils/phone';
+import { getCommunicationDashboardPath } from '@/lib/provider-dashboard/links';
+import { takeshapeAppSupabaseBrowser } from '@/lib/supabase/takeshape-app-browser';
+import { useSearchParams } from 'next/navigation';
 
 export const usePainterRegisterState = () => {
   const {
@@ -30,6 +33,7 @@ export const usePainterRegisterState = () => {
     coords,
   } = useAccountSettings();
   const { onNavigateScrollTopClick } = useApp();
+  const searchParams = useSearchParams();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<
@@ -50,10 +54,18 @@ export const usePainterRegisterState = () => {
   const [errorMessage, setErrorMessage] = useState<
     string | null
   >(null);
-  const [painterInfo, setPainterInfo] =
-    useAtom(painterInfoAtom);
+  const [painterInfo] = useAtom(painterInfoAtom);
   const storage = getStorage(firebase);
   const auth = getAuth(firebase);
+  const requestedProviderId =
+    searchParams.get('provider') || searchParams.get('providerId');
+
+  const getCurrentAccessToken = async () => {
+    const { data, error } =
+      await takeshapeAppSupabaseBrowser.auth.getSession();
+    if (error) throw error;
+    return data.session?.access_token || '';
+  };
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
@@ -63,13 +75,11 @@ export const usePainterRegisterState = () => {
     setErrorMessage(''); // Reset error message
 
     try {
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-      const user = userCredential.user;
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
       const logoUrl = logo
         ? await uploadLogoAndGetUrl(logo)
@@ -89,41 +99,62 @@ export const usePainterRegisterState = () => {
         );
       }
 
-      const providerId = crypto.randomUUID();
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error(
+          'Check your email to confirm the account, then log in to open your dashboard.'
+        );
+      }
 
       const profileSyncResponse = await fetch(
-        '/api/providers/sync-profile',
+        '/api/provider-auth/complete',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            providerId,
-            userId: user.uid,
-            businessName,
             address: addressValue,
-            isInsured: false,
-            logoUrl,
-            termsAndConditionsUrl,
-            phoneNumber: normalizedPhone,
+            businessName,
             coords,
+            fullName: businessName,
+            logoUrl,
+            phoneNumber: normalizedPhone,
+            phone: normalizedPhone,
+            providerId: requestedProviderId,
+            serviceRadiusMiles: range,
+            termsAndConditionsUrl,
           }),
         }
       );
+      const payload = (await profileSyncResponse
+        .json()
+        .catch(() => ({}))) as {
+        dashboardPath?: string;
+        error?: string;
+        ok?: boolean;
+        providerId?: string;
+      };
 
-      if (!profileSyncResponse.ok) {
-        const payload = await profileSyncResponse
-          .json()
-          .catch(() => ({}));
+      if (
+        !profileSyncResponse.ok ||
+        !payload.ok ||
+        !payload.providerId
+      ) {
         throw new Error(
           String(
             payload?.error ||
-              'Failed to sync provider profile to Supabase'
+              'Failed to sync provider profile to Supabase.'
           )
         );
       }
 
       dispatchPainter(true); // Set the user as a painter
-      onNavigateScrollTopClick('/plans');
+      onNavigateScrollTopClick(
+        payload.dashboardPath ||
+          getCommunicationDashboardPath(payload.providerId)
+      );
     } catch (error) {
       console.error('Error registering painter: ', error);
       const errorMessage: null | string = errorAuth(error);
@@ -167,6 +198,16 @@ export const usePainterRegisterState = () => {
     }
   };
 
+  const handleLogoChange = (file: File) => {
+    setLogo(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const uploadTermsAndConditionsAndGetUrl = async (
     file: File | null
   ): Promise<string> => {
@@ -185,16 +226,6 @@ export const usePainterRegisterState = () => {
       console.error(errorMessage, error);
       return '';
     }
-  };
-
-  const handleLogoChange = (file: File) => {
-    setLogo(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleTermsAndConditionsChange = (file: File) => {

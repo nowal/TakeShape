@@ -33,7 +33,7 @@ export const AccountMenu = () => {
   ];
   const callItem: TAccountMenuListItem = [
     'Call',
-    () => onNavigateScrollTopClick('/call'),
+    () => window.location.assign('/call'),
   ];
   const customizeEmbedItem: TAccountMenuListItem = [
     'Customize Embed',

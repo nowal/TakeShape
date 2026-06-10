@@ -1,26 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAuth } from '@/lib/auth';
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  query,
-  collection,
-  where,
-  getDocs,
-} from 'firebase/firestore';
-import {
-  getStorage,
-  ref,
-  getDownloadURL,
-} from 'firebase/storage';
 import { useOutsideClick } from '@/hooks/outside-click';
 import { TAuthConfig } from '@/context/auth/types';
 import { isAgentAtom, isPainterAtom } from '@/atom';
 import { useAtom } from 'jotai';
 import { useApp } from '@/context/app/provider';
 import firebase from '@/lib/firebase';
+import { onAuthStateChanged, type User } from '@/lib/auth';
 
 export const useAuthMenu = (config: TAuthConfig) => {
   const { onNavigateScrollTopClick } = useApp();
@@ -30,76 +17,45 @@ export const useAuthMenu = (config: TAuthConfig) => {
   const [isPainter, setPainter] = useAtom(isPainterAtom);
   const [isAgent, setAgent] = useAtom(isAgentAtom);
   const auth = getAuth(firebase);
-  const firestore = getFirestore(firebase);
-  const storage = getStorage(firebase);
-  const RETRY_INTERVAL = 2000; // Retry every 2 seconds
-  const MAX_RETRIES = 5; // Maximum number of retries
+  const resolvedUidRef = useRef<string | null>(null);
 
-  const fetchProfilePicture = async (retries = 0) => {
+  const fetchProfilePicture = async (currentUser: User | null) => {
     try {
       setFetchingProfilePicture(true);
-      const currentUser = auth.currentUser;
       if (!currentUser) {
-        console.log('no current user');
+        setPainter(false);
+        setAgent(false);
+        dispatchProfilePictureUrl(null);
         return;
       }
 
-      // Check if the user is a painter
-      const painterQuery = query(
-        collection(firestore, 'painters'),
-        where('userId', '==', currentUser.uid)
-      );
-      const painterSnapshot = await getDocs(painterQuery);
-
-      if (!painterSnapshot.empty) {
-        setPainter(true);
-        const painterData = painterSnapshot.docs[0].data();
-        if (painterData.logoUrl) {
-          dispatchProfilePictureUrl(painterData.logoUrl);
-          setFetchingProfilePicture(false);
-          return;
+      const response = await fetch(
+        `/api/providers/by-user?userId=${encodeURIComponent(
+          currentUser.uid
+        )}&_ts=${Date.now()}`,
+        {
+          cache: 'no-store',
+          headers: {
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+          },
         }
+      );
+      const payload = await response.json().catch(() => ({}));
+      const provider = payload?.provider as
+        | Record<string, unknown>
+        | null;
+      if (provider?.id) {
+        setPainter(true);
+        setAgent(false);
+        const logoUrl = String(provider.logo_url || '').trim();
+        if (logoUrl) {
+          dispatchProfilePictureUrl(logoUrl);
+        }
+        return;
       } else {
         setPainter(false);
-      }
-
-      // Check if the user is an agent
-      const agentDocRef = doc(
-        firestore,
-        'reAgents',
-        currentUser.uid
-      );
-      const agentDoc = await getDoc(agentDocRef);
-
-      if (agentDoc.exists()) {
-        setAgent(true);
-        const agentData = agentDoc.data();
-        if (agentData.profilePictureUrl) {
-          dispatchProfilePictureUrl(
-            agentData.profilePictureUrl
-          );
-          return;
-        } else {
-          const profilePictureRef = ref(
-            storage,
-            `profilePictures/${currentUser.uid}`
-          );
-          const url = await getDownloadURL(
-            profilePictureRef
-          );
-          dispatchProfilePictureUrl(url);
-          return;
-        }
-      } else {
         setAgent(false);
-      }
-
-      // Retry fetching profile picture if not found and retry limit not reached
-      if (retries < MAX_RETRIES) {
-        setTimeout(
-          () => fetchProfilePicture(retries + 1),
-          RETRY_INTERVAL
-        );
       }
     } catch (error) {
       console.error(
@@ -112,8 +68,23 @@ export const useAuthMenu = (config: TAuthConfig) => {
   };
 
   useEffect(() => {
-    fetchProfilePicture();
-  }, [auth, firestore, storage]);
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        const nextUid = user?.uid || null;
+        if (resolvedUidRef.current === nextUid) {
+          return;
+        }
+        resolvedUidRef.current = nextUid;
+        void fetchProfilePicture(user);
+      },
+      () => {
+        setFetchingProfilePicture(false);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
 
   const handleMenuOpenToggle = () => {
     setMenuOpen((prev) => !prev);

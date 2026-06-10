@@ -14,7 +14,9 @@ export const isPainterPaying = (
   }
 
   const subscriptionStatus = String(
-    painterData.subscriptionStatus || ''
+    painterData.subscriptionStatus ||
+      painterData.subscription_status ||
+      ''
   )
     .trim()
     .toLowerCase();

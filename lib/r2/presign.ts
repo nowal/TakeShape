@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { r2Client } from '@/lib/r2/client';
+import { getR2Client } from '@/lib/r2/client';
 import { getR2BucketName } from '@/lib/r2/config';
 
 const DEFAULT_UPLOAD_TTL_SECONDS = 900;
@@ -33,7 +33,7 @@ export const signR2UploadUrl = async ({
     ContentType: contentType,
   });
 
-  return getSignedUrl(r2Client, command, {
+  return getSignedUrl(getR2Client(), command, {
     expiresIn: resolveTtl(
       process.env.R2_UPLOAD_SIGN_TTL_SECONDS,
       DEFAULT_UPLOAD_TTL_SECONDS
@@ -47,11 +47,10 @@ export const signR2DownloadUrl = async (key: string) => {
     Key: key,
   });
 
-  return getSignedUrl(r2Client, command, {
+  return getSignedUrl(getR2Client(), command, {
     expiresIn: resolveTtl(
       process.env.R2_DOWNLOAD_SIGN_TTL_SECONDS,
       DEFAULT_DOWNLOAD_TTL_SECONDS
     ),
   });
 };
-

@@ -42,12 +42,25 @@ export default function CustomizePage() {
     useState<IntakeStep>('contact');
   const previewIframeRef =
     useRef<HTMLIFrameElement | null>(null);
+  const resolvedAuthUidRef = useRef<string | null>(null);
+  const providerIdRef = useRef('');
+
+  useEffect(() => {
+    providerIdRef.current = providerId;
+  }, [providerId]);
 
   useEffect(() => {
     const auth = getAuth(firebase);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
+        const nextUid = user?.uid || null;
+        const previousUid = resolvedAuthUidRef.current;
+        const isSameUser = previousUid === nextUid;
+        if (isSameUser && providerIdRef.current) {
+          return;
+        }
+        resolvedAuthUidRef.current = nextUid;
         setIsResolvingProvider(true);
         setStatus('');
 

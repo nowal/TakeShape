@@ -8,12 +8,9 @@ import { usePathname } from 'next/navigation';
 
 export const ShellLogo: FC<{ backgroundColor?: string }> = ({ backgroundColor, ...props }) => {
   const { isUserSignedIn, menu } = useAuth();
-  const { isAgent, isPainter } = menu;
+  const { isAgent } = menu;
   const pathname = usePathname();
-  const href =
-    isUserSignedIn && isPainter && !isAgent
-      ? '/call'
-      : '/';
+  const href = isUserSignedIn && !isAgent ? '/call' : '/';
 
   return (
     <Link

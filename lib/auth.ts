@@ -1,6 +1,6 @@
 'use client';
 
-import { supabaseBrowser } from '@/lib/supabase/browser';
+import { takeshapeAppSupabaseBrowser } from '@/lib/supabase/takeshape-app-browser';
 
 type SupabaseUser = {
   id: string;
@@ -28,13 +28,16 @@ class AuthCompat {
   onAuthStateChanged(callback: AuthStateCallback) {
     const prime = async () => {
       try {
-        const { data, error } = await supabaseBrowser.auth.getUser();
+        const { data, error } =
+          await takeshapeAppSupabaseBrowser.auth.getSession();
         if (error) {
           this.currentUser = null;
           callback(null);
           return;
         }
-        this.currentUser = toUser(data.user as SupabaseUser | null);
+        this.currentUser = toUser(
+          (data.session?.user as SupabaseUser | null) ?? null
+        );
         callback(this.currentUser);
       } catch {
         this.currentUser = null;
@@ -44,7 +47,7 @@ class AuthCompat {
 
     void prime();
 
-    const { data } = supabaseBrowser.auth.onAuthStateChange(
+    const { data } = takeshapeAppSupabaseBrowser.auth.onAuthStateChange(
       (_event, session) => {
         this.currentUser = toUser(
           (session?.user as SupabaseUser | null) ?? null
@@ -81,7 +84,7 @@ export const signInWithEmailAndPassword = async (
   email: string,
   password: string
 ) => {
-  const { data, error } = await supabaseBrowser.auth.signInWithPassword({
+  const { data, error } = await takeshapeAppSupabaseBrowser.auth.signInWithPassword({
     email,
     password,
   });
@@ -99,7 +102,7 @@ export const createUserWithEmailAndPassword = async (
   email: string,
   password: string
 ) => {
-  const { data, error } = await supabaseBrowser.auth.signUp({
+  const { data, error } = await takeshapeAppSupabaseBrowser.auth.signUp({
     email,
     password,
   });
@@ -115,7 +118,7 @@ export const createUserWithEmailAndPassword = async (
 };
 
 export const signOut = async (_auth: AuthCompat) => {
-  const { error } = await supabaseBrowser.auth.signOut();
+  const { error } = await takeshapeAppSupabaseBrowser.auth.signOut();
   if (error) throw error;
   singleton.currentUser = null;
 };

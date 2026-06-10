@@ -108,7 +108,8 @@ export const useDashboardState = () => {
   const fetchUserData = async () => {
     try {
       setUserDataLoading(true);
-      if (!auth.currentUser) {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
         console.log('NO USER');
         return;
       }
@@ -116,7 +117,7 @@ export const useDashboardState = () => {
       const userDocRef = doc(
         firestore,
         'users',
-        auth.currentUser.uid
+        currentUser.uid
       );
       const userDoc = await getDoc(userDocRef);
 
@@ -217,7 +218,7 @@ export const useDashboardState = () => {
         // console.log(auth.currentUser.uid);
         const paintersQuery = query(
           collection(firestore, 'painters'),
-          where('userId', '==', auth.currentUser.uid)
+          where('userId', '==', currentUser.uid)
         );
         const paintersSnapshot = await getDocs(
           paintersQuery

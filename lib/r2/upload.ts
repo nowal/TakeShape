@@ -1,5 +1,5 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { r2Client } from '@/lib/r2/client';
+import { getR2Client } from '@/lib/r2/client';
 import { getR2BucketName } from '@/lib/r2/config';
 
 export const uploadRemoteVideoToR2 = async ({
@@ -20,7 +20,7 @@ export const uploadRemoteVideoToR2 = async ({
 
   const body = Buffer.from(await response.arrayBuffer());
 
-  await r2Client.send(
+  await getR2Client().send(
     new PutObjectCommand({
       Bucket: getR2BucketName(),
       Key: objectKey,
@@ -36,4 +36,3 @@ export const uploadRemoteVideoToR2 = async ({
     fileSizeBytes: body.byteLength,
   };
 };
-

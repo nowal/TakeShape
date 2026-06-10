@@ -40,8 +40,20 @@ export async function GET(request: Request) {
       '[api/embed/intake-settings] GET failed:',
       error
     );
+    const code =
+      error && typeof error === 'object' && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    const likelyCause =
+      code === 'PGRST205'
+        ? 'Missing Supabase migration for public.provider_embed_settings'
+        : undefined;
     return NextResponse.json(
-      { error: 'Failed to load intake settings' },
+      {
+        error: 'Failed to load intake settings',
+        code: code || undefined,
+        likelyCause,
+      },
       { status: 500 }
     );
   }
@@ -77,8 +89,20 @@ export async function POST(request: Request) {
       '[api/embed/intake-settings] POST failed:',
       error
     );
+    const code =
+      error && typeof error === 'object' && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    const likelyCause =
+      code === 'PGRST205'
+        ? 'Missing Supabase migration for public.provider_embed_settings'
+        : undefined;
     return NextResponse.json(
-      { error: 'Failed to save intake settings' },
+      {
+        error: 'Failed to save intake settings',
+        code: code || undefined,
+        likelyCause,
+      },
       { status: 500 }
     );
   }

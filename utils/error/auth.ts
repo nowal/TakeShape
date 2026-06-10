@@ -3,7 +3,13 @@ import { notifyError } from '@/utils/notifications';
 
 export const errorAuth = (error: TError) => {
   const errorCode = (error as { code: string }).code;
-  if (!errorCode) return null;
+  const fallbackMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : null;
+  if (!errorCode) return fallbackMessage;
   let errorMessage: null | string = null;
 
   switch (errorCode) {

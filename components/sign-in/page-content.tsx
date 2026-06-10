@@ -8,8 +8,15 @@ import { NotificationsInlineHighlight } from '@/components/notifications/inline/
 import { useAuth } from '@/context/auth/provider';
 import { IconsLoading16White } from '@/components/icons/loading/16/white';
 import { ComponentsRegisterShell } from '@/components/register/shell';
+import { useSearchParams } from 'next/navigation';
+
+const getProviderSignupPath = (providerId: string | null) =>
+  providerId
+    ? `/providerRegister?provider=${encodeURIComponent(providerId)}`
+    : '/providerRegister';
 
 export const SignInPageContent = () => {
+  const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const {
     isSignInSubmitting,
@@ -29,6 +36,8 @@ export const SignInPageContent = () => {
   const submitButtonTitle = isSignInSubmitting
     ? 'Logging In...'
     : 'Login';
+  const providerId =
+    searchParams.get('provider') || searchParams.get('providerId');
 
   return (
     <ComponentsRegisterShell
@@ -80,7 +89,7 @@ export const SignInPageContent = () => {
           </CvaButton>
           <div className="flex flex-col gap-0.5">
             <CvaLink
-              href="/providerRegister"
+              href={getProviderSignupPath(providerId)}
               title="Sign Up"
               size="md"
               center
