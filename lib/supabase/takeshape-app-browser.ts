@@ -15,6 +15,19 @@ const firstAvailableEnv = (names: string[]) => {
   );
 };
 
+const hasAnyEnv = (names: string[]) =>
+  names.some((name) => Boolean(clean(process.env[name])));
+
+export const hasTakeShapeAppSupabaseBrowserEnv = () =>
+  hasAnyEnv([
+    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+  ]) &&
+  hasAnyEnv([
+    'NEXT_PUBLIC_TAKESHAPE_APP_SUPABASE_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  ]);
+
 let browserClient: SupabaseClient | null = null;
 
 export const getTakeShapeAppSupabaseBrowser = () => {

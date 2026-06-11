@@ -1,6 +1,9 @@
 'use client';
 
-import { takeshapeAppSupabaseBrowser } from '@/lib/supabase/takeshape-app-browser';
+import {
+  hasTakeShapeAppSupabaseBrowserEnv,
+  takeshapeAppSupabaseBrowser,
+} from '@/lib/supabase/takeshape-app-browser';
 
 type SupabaseUser = {
   id: string;
@@ -26,6 +29,12 @@ class AuthCompat {
   currentUser: User | null = null;
 
   onAuthStateChanged(callback: AuthStateCallback) {
+    if (!hasTakeShapeAppSupabaseBrowserEnv()) {
+      this.currentUser = null;
+      callback(null);
+      return () => {};
+    }
+
     const prime = async () => {
       try {
         const { data, error } =
@@ -47,16 +56,22 @@ class AuthCompat {
 
     void prime();
 
-    const { data } = takeshapeAppSupabaseBrowser.auth.onAuthStateChange(
-      (_event, session) => {
-        this.currentUser = toUser(
-          (session?.user as SupabaseUser | null) ?? null
-        );
-        callback(this.currentUser);
-      }
-    );
+    try {
+      const { data } = takeshapeAppSupabaseBrowser.auth.onAuthStateChange(
+        (_event, session) => {
+          this.currentUser = toUser(
+            (session?.user as SupabaseUser | null) ?? null
+          );
+          callback(this.currentUser);
+        }
+      );
 
-    return () => data.subscription.unsubscribe();
+      return () => data.subscription.unsubscribe();
+    } catch {
+      this.currentUser = null;
+      callback(null);
+      return () => {};
+    }
   }
 }
 
