@@ -30,6 +30,7 @@ import {
 } from 'react';
 import { useAuth } from '@/context/auth/provider';
 import {
+  getCommunicationDashboardPath,
   getProviderLoginPath,
   getProviderSignupPath,
 } from '@/lib/provider-dashboard/links';
@@ -140,6 +141,13 @@ type DashboardDataResponse =
       ok?: false;
     };
 
+type ProviderByUserResponse = {
+  error?: string;
+  provider?: {
+    id?: unknown;
+  } | null;
+};
+
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 type UploadProgressStep = 'uploading' | 'complete';
 
@@ -202,6 +210,143 @@ const displayEmails = (lead: HomeownerLead) => {
 const displayPhones = (lead: HomeownerLead) => {
   if (!lead.phones.length) return 'No phone';
   return lead.phones.map(formatPhone).join(', ');
+};
+
+export const CommunicationDashboardAccountResolver = () => {
+  const router = useRouter();
+  const { isAuthLoading, isUserSignedIn } = useAuth();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isResolving, setIsResolving] = useState(false);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (!isUserSignedIn) {
+      setIsResolving(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const resolveDashboard = async () => {
+      setIsResolving(true);
+      setErrorMessage('');
+
+      try {
+        const { data, error } =
+          await takeshapeAppSupabaseBrowser.auth.getSession();
+        if (error) throw error;
+
+        const accessToken = data.session?.access_token || '';
+        if (!accessToken) {
+          throw new Error('Please log in to open your dashboard.');
+        }
+
+        const response = await fetch('/api/providers/by-user', {
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const payload =
+          (await response.json().catch(() => ({}))) as ProviderByUserResponse;
+
+        if (!response.ok) {
+          throw new Error(payload.error || 'Unable to find your dashboard.');
+        }
+
+        const providerId = payload.provider?.id
+          ? String(payload.provider.id)
+          : '';
+
+        if (!providerId) {
+          throw new Error('No provider dashboard is linked to this account.');
+        }
+
+        router.replace(getCommunicationDashboardPath(providerId));
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : 'Unable to open your dashboard.'
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsResolving(false);
+        }
+      }
+    };
+
+    void resolveDashboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthLoading, isUserSignedIn, router]);
+
+  const handleLoginClick = () => {
+    router.push(getProviderLoginPath());
+  };
+
+  const handleSignupClick = () => {
+    router.push('/signup');
+  };
+
+  const showLoading = isAuthLoading || isResolving;
+  const title = showLoading
+    ? 'Opening your dashboard'
+    : isUserSignedIn
+      ? 'Dashboard not found'
+      : 'Log in to view your dashboard';
+  const message = showLoading
+    ? 'Checking the provider dashboard linked to your account.'
+    : errorMessage ||
+      'Use the account connected to your TakeShape provider dashboard.';
+
+  return (
+    <main className="min-h-screen bg-[hsl(var(--app-bg-hsl))] px-4 py-8 text-[#202020] sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[70vh] w-full max-w-3xl items-center justify-center">
+        <section className="w-full rounded-lg border border-black-08 bg-white p-6 text-center shadow-09 sm:p-8">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-[hsl(var(--primary-hsl)/8%)] text-pink">
+            {showLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ShieldCheck className="h-5 w-5" />
+            )}
+          </div>
+          <p className="mt-5 text-sm font-semibold text-pink">
+            Referral partner dashboard
+          </p>
+          <h1 className="mt-2 text-3xl font-bold leading-tight text-black-1">
+            {title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-6 text-black-3">
+            {message}
+          </p>
+          {!showLoading && !isUserSignedIn ? (
+            <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+              <button
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[hsl(var(--primary-hsl))] px-4 text-sm font-bold text-white transition hover:bg-pink-1"
+                onClick={handleLoginClick}
+                type="button"
+              >
+                Log in
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center rounded-md border border-[hsl(var(--primary-hsl)/25%)] bg-white px-4 text-sm font-bold text-pink transition hover:bg-[hsl(var(--primary-hsl)/8%)]"
+                onClick={handleSignupClick}
+                type="button"
+              >
+                Sign up
+              </button>
+            </div>
+          ) : null}
+        </section>
+      </div>
+    </main>
+  );
 };
 
 export const CommunicationDashboardAccessGate = ({

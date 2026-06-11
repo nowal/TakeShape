@@ -1,5 +1,6 @@
 import {
   CommunicationDashboardAccessGate,
+  CommunicationDashboardAccountResolver,
   CommunicationDashboardClient,
   HomeownerLead,
 } from './dashboard-client';
@@ -103,16 +104,14 @@ const isEmptyStatePreviewRequested = (value: string | string[] | undefined) => {
 const getSearchParamValue = (value: string | string[] | undefined) =>
   (Array.isArray(value) ? value[0] : value || '').trim();
 
-const resolveProviderId = (
+const resolveRequestedProviderId = (
   searchParams?: CommunicationDashboardPageProps['searchParams']
 ) => {
   const requestedProviderId =
     getSearchParamValue(searchParams?.provider) ||
     getSearchParamValue(searchParams?.providerId);
 
-  return UUID_PATTERN.test(requestedProviderId)
-    ? requestedProviderId
-    : DEFAULT_COMMUNICATION_DASHBOARD_PROVIDER_ID;
+  return UUID_PATTERN.test(requestedProviderId) ? requestedProviderId : null;
 };
 
 const normalizeText = (value: string | null | undefined) =>
@@ -364,12 +363,19 @@ const fetchRecentHomeScans = async (
 const CommunicationDashboardPage = async ({
   searchParams,
 }: CommunicationDashboardPageProps) => {
-  const supabase = getTakeShapeAppSupabaseServer();
-  const providerId = resolveProviderId(searchParams);
+  const requestedProviderId = resolveRequestedProviderId(searchParams);
   const forcePreUploadState = isEmptyStatePreviewRequested(
     searchParams?.empty
   );
+  const providerId =
+    requestedProviderId ||
+    (forcePreUploadState ? DEFAULT_COMMUNICATION_DASHBOARD_PROVIDER_ID : null);
 
+  if (!providerId) {
+    return <CommunicationDashboardAccountResolver />;
+  }
+
+  const supabase = getTakeShapeAppSupabaseServer();
   const [providerResult, linkResult, batchResult, rawLeadCount] =
     await Promise.all([
       supabase

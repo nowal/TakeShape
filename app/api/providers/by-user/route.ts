@@ -45,7 +45,32 @@ const toClientProvider = (provider: ProviderRecord | null) => {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = String(searchParams.get('userId') || '').trim();
+    let userId = String(searchParams.get('userId') || '').trim();
+    const authorization = request.headers.get('authorization') || '';
+    const accessToken = authorization.toLowerCase().startsWith('bearer ')
+      ? authorization.slice(7).trim()
+      : '';
+
+    const supabase = getTakeShapeAppSupabaseAdmin();
+
+    if (accessToken) {
+      const { data, error } = await supabase.auth.getUser(accessToken);
+      if (error || !data.user?.id) {
+        return NextResponse.json(
+          { error: 'A valid signed-in session is required' },
+          { status: 401 }
+        );
+      }
+
+      if (userId && userId !== data.user.id) {
+        return NextResponse.json(
+          { error: 'This session cannot access that provider account' },
+          { status: 403 }
+        );
+      }
+
+      userId = data.user.id;
+    }
 
     if (!userId) {
       return NextResponse.json(
@@ -54,7 +79,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = getTakeShapeAppSupabaseAdmin();
     const { data: providerByAuthUserId, error: providerError } =
       await supabase
         .from('providers')
