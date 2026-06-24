@@ -19,7 +19,8 @@ export const ShellFooter = () => {
     pathname === '/quotes' ||
     pathname === '/accountSettings' ||
     pathname === '/providerRegister' ||
-    pathname.startsWith('/embed');
+    pathname.startsWith('/embed') ||
+    pathname === '/landing0626';       // ← TakeShape homeowner landing
 
   if (isHiddenFooterRoute) {
     return null;
@@ -39,27 +40,6 @@ export const ShellFooter = () => {
             'lg:flex-row lg:items-end lg:gap-0'
           )}
         >
-          {/* <div className="flex flex-col items-stretch lg:hidden">
-            <ShellFooterLogo />
-            <div className="h-9" />
-            <LinesHorizontal colorClass="border-gray-3" />
-            <div className="h-4.5" />
-          </div>
-          <ShellFooterRow
-            footerRightMenuLinks={
-              [] // if no links the left menu links will spread out
-              // FOOTER_RIGHT_MENU_LINKS
-            }
-          />
-          <div className="flex flex-col items-stretch lg:hidden">
-            <div className="h-18 sm:h-9" />
-            <LinesHorizontal colorClass="border-gray-3" />
-            <div className="h-9 sm:h-4.5" />
-            <div className="flex flex-col items-center gap-8 sm:gap-4 sm:flex-row">
-              <ShellFooterEmail />
-              <ShellFooterTelephone />
-            </div>
-          </div> */}
           <div className="grid w-full grid-cols-2 gap-x-4 gap-y-3 typography-footer-poppins text-black-1 lg:grid-cols-4 lg:items-center">
             <div className="flex items-center justify-center lg:justify-start lg:order-1">
               <ShellFooterLogo />
