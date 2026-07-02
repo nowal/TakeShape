@@ -85,7 +85,7 @@ export function SiteHeader() {
             <Link
               to="/download"
               onClick={() => setIsMenuOpen(false)}
-              className="flex min-h-[54px] items-center rounded-[14px] px-4 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-600 transition-colors hover:bg-rust/10 hover:text-rust focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/70"
+              className="flex min-h-[56px] items-center rounded-[14px] px-4 text-[15px] font-medium text-slate-700 transition-colors hover:bg-rust/10 hover:text-rust focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/70"
             >
               Download TakeShape
             </Link>
