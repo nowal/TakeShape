@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { TakeShapeMark } from "./takeshape-mark";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -9,7 +10,29 @@ const nav = [
 ] as const;
 
 export function SiteHeader() {
-  const [open, setOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
 
   return (
     <header className="absolute inset-x-0 top-0 z-20">
@@ -32,58 +55,43 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        {/* Mobile toggle */}
-        <button
-          type="button"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-rust transition-colors hover:bg-rust/10 md:hidden"
-        >
-          <span className="relative block h-3 w-5">
-            <span
-              className={`absolute left-0 top-0 h-px w-full bg-current transition-transform duration-300 ${
-                open ? "translate-y-[6px] rotate-45" : ""
-              }`}
+        {/* Mobile app menu */}
+        <div ref={menuRef} className="relative md:hidden">
+          <button
+            type="button"
+            aria-label="Open TakeShape menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-app-menu"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[hsl(355_90%_40%)] text-cream shadow-[0_8px_18px_rgba(20,6,6,0.28),inset_0_1px_0_hsl(355_90%_62%)] transition-[filter,transform] duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream/80 active:translate-y-[1px]"
+          >
+            <TakeShapeMark
+              className="h-8 w-8"
+              style={{
+                filter:
+                  "drop-shadow(0 1px 0 hsl(355 90% 62% / 0.35)) drop-shadow(0 1px 2px rgba(20, 6, 6, 0.18))",
+              }}
             />
-            <span
-              className={`absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-current transition-opacity duration-200 ${
-                open ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <span
-              className={`absolute bottom-0 left-0 h-px w-full bg-current transition-transform duration-300 ${
-                open ? "-translate-y-[6px] -rotate-45" : ""
-              }`}
-            />
-          </span>
-        </button>
-      </div>
+          </button>
 
-      {/* Mobile drawer */}
-      <nav
-        className={`md:hidden ${
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        } absolute inset-x-0 top-full transition-opacity duration-200`}
-      >
-        <div className="mx-6 rounded-2xl bg-cream/95 px-6 py-5 shadow-lg shadow-ink/10 backdrop-blur">
-          <ul className="flex flex-col gap-4">
-            {nav.map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className="text-[11px] uppercase tracking-[0.22em] text-ink/70 transition-colors hover:text-rust"
-                  activeProps={{ className: "text-rust" }}
-                  activeOptions={{ exact: true }}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div
+            id="mobile-app-menu"
+            className={`absolute right-0 top-[calc(100%+12px)] w-[230px] origin-top-right rounded-[18px] border border-cream/65 bg-cream/95 p-2 shadow-[0_18px_42px_rgba(20,6,6,0.25)] backdrop-blur-md transition duration-200 ${
+              isMenuOpen
+                ? "translate-y-0 opacity-100"
+                : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+          >
+            <Link
+              to="/download"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex min-h-[54px] items-center rounded-[14px] px-4 font-serif text-[18px] font-bold text-[hsl(355_90%_40%)] transition-colors hover:bg-[hsl(355_90%_40%)] hover:text-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(355_90%_40%)]"
+            >
+              Download TakeShape
+            </Link>
+          </div>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

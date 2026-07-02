@@ -151,14 +151,14 @@ function Home() {
       >
         <div className="mx-auto flex h-full max-w-[1500px] items-center justify-center px-6 md:px-12">
           <span
-            className="mr-3 flex h-12 w-12 items-center justify-center rounded-[14px] bg-cream shadow-[0_8px_18px_rgba(20,6,6,0.22),inset_0_1px_0_rgba(255,255,255,0.45)] md:mr-4 md:h-14 md:w-14 md:rounded-[17px]"
+            className="mr-3 flex h-10 w-10 items-center justify-center text-cream md:mr-4 md:h-12 md:w-12"
             aria-hidden
           >
             <TakeShapeMark
-              className="h-8 w-8 text-[hsl(355_90%_40%)] md:h-9 md:w-9"
+              className="h-10 w-10 md:h-12 md:w-12"
               style={{
                 filter:
-                  "drop-shadow(0 1px 0 hsl(355 90% 62% / 0.35)) drop-shadow(0 1px 2px rgba(20, 6, 6, 0.18))",
+                  "drop-shadow(0 1px 0 hsl(355 90% 22%)) drop-shadow(0 -1px 0 hsl(355 90% 62%)) drop-shadow(0 2px 3px rgba(20, 6, 6, 0.45))",
               }}
             />
           </span>
