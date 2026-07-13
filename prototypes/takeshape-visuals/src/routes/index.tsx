@@ -204,7 +204,7 @@ function Home() {
         </div>
 
 
-        <div className="mt-6 flex flex-col gap-6 px-6 pb-[12svh] [--stack-top:156px] md:mt-10 md:grid md:grid-cols-3 md:gap-8 md:px-0 md:pb-0 md:[--stack-top:188px]">
+        <div className="mt-6 flex flex-col gap-6 px-6 pb-0 [--stack-top:156px] md:mt-10 md:grid md:grid-cols-3 md:gap-8 md:px-0 md:pb-0 md:[--stack-top:188px]">
           {[
             { src: roomDrawing, w: 1280, h: 1600, label: "The Drawing Room", place: "Wiltshire" },
             { src: roomStair, w: 1280, h: 1600, label: "The Spiral", place: "Lisbon" },
@@ -247,17 +247,17 @@ function Home() {
           ))}
         </div>
 
-        <div className="mt-8 md:hidden">
+        <div className="mt-4 px-6 md:hidden">
           <Link to="/rooms" className="text-[11px] uppercase tracking-[0.22em] text-rust">
-            View all rooms &rarr;
+            View More &rarr;
           </Link>
         </div>
       </section>
 
       {/* DISCOVER STRIP */}
-      <section className="mt-12 md:mt-16">
-        <Link to="/discover" className="group block">
-          <div className="relative h-[70svh] min-h-[460px] w-full overflow-hidden">
+      <section className="mt-4 px-6 md:mt-16 md:px-12">
+        <Link to="/discover" className="group mx-auto block max-w-[1500px]">
+          <div className="relative h-[70svh] min-h-[460px] w-full overflow-hidden rounded-[22px] shadow-[0_24px_60px_-28px_rgba(20,12,6,0.58),0_10px_24px_-18px_rgba(20,12,6,0.42)] ring-1 ring-ink/5">
             <img
               src={discoverPavilion}
               alt="Stone pavilion at the edge of a misted meadow"
