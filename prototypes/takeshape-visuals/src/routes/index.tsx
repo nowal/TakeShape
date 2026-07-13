@@ -255,9 +255,9 @@ function Home() {
       </section>
 
       {/* DISCOVER STRIP */}
-      <section className="mt-4 px-6 md:mt-16 md:px-12">
-        <Link to="/discover" className="group mx-auto block max-w-[1500px]">
-          <div className="relative h-[70svh] min-h-[460px] w-full overflow-hidden rounded-[22px] shadow-[0_24px_60px_-28px_rgba(20,12,6,0.58),0_10px_24px_-18px_rgba(20,12,6,0.42)] ring-1 ring-ink/5">
+      <section className="mt-4 md:mt-16">
+        <Link to="/discover" className="group block">
+          <div className="relative h-[70svh] min-h-[460px] w-full overflow-hidden shadow-[0_-20px_34px_-28px_rgba(20,12,6,0.72),0_20px_34px_-28px_rgba(20,12,6,0.72)] ring-y-1 ring-ink/10">
             <img
               src={discoverPavilion}
               alt="Stone pavilion at the edge of a misted meadow"
@@ -266,14 +266,11 @@ function Home() {
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.02]"
             />
-            <div className="absolute inset-0 bg-ink/20" />
+            <div className="absolute inset-0 bg-gradient-to-b from-ink/20 via-ink/18 to-ink/45" />
             <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
               <p className="eyebrow text-cream/90">III &mdash; Discover</p>
               <p className="mt-4 font-serif text-4xl italic text-cream md:text-6xl">
                 Field notes &amp; quiet places.
-              </p>
-              <p className="mt-6 text-[11px] uppercase tracking-[0.22em] text-cream/80">
-                Enter &rarr;
               </p>
             </div>
           </div>
@@ -358,7 +355,7 @@ function HorizontalStatement() {
             </p>
             <Link
               to="/download"
-              className="absolute bottom-6 left-1/2 inline-flex min-h-[60px] min-w-[220px] -translate-x-1/2 items-center justify-center rounded-full bg-[hsl(355_90%_40%)] px-9 font-serif text-xl font-bold text-cream shadow-[0_12px_32px_rgba(20,6,6,0.35)] transition-[filter,transform] duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream/80 active:translate-y-[1px] md:bottom-10 md:min-h-[64px] md:min-w-[260px] md:text-2xl"
+              className="absolute bottom-6 left-1/2 inline-flex min-h-[60px] min-w-[260px] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-full bg-[hsl(355_90%_40%)] px-9 font-serif text-xl font-bold text-cream shadow-[0_12px_32px_rgba(20,6,6,0.35)] transition-[filter,transform] duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream/80 active:translate-y-[1px] md:bottom-10 md:min-h-[64px] md:min-w-[280px] md:text-2xl"
               style={{
                 textShadow:
                   "0 1px 0 hsl(355 90% 22%), 0 -1px 0 hsl(355 90% 62%), 0 2px 3px rgba(20, 6, 6, 0.45)",
