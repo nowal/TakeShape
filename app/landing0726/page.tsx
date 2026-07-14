@@ -76,7 +76,7 @@ export default function Landing0726Page() {
         const stacked = rect.top <= stuckTop + 0.5;
         if (stacked) {
           if (releaseY === null) releaseY = window.scrollY;
-          setExploreOffset((window.scrollY - releaseY) * 0.18);
+          setExploreOffset((window.scrollY - releaseY) * 0.28);
         } else {
           releaseY = null;
           setExploreOffset(0);
@@ -318,7 +318,7 @@ function useSlowLandingScroll() {
       frame = 0;
     };
     const run = () => {
-      current += (target - current) * 0.055;
+      current += (target - current) * 0.075;
 
       if (Math.abs(target - current) < 0.45) {
         current = target;
@@ -343,7 +343,7 @@ function useSlowLandingScroll() {
       if (event.ctrlKey || event.metaKey) return;
       event.preventDefault();
       const modeMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-      moveBy(event.deltaY * modeMultiplier, 0.16);
+      moveBy(event.deltaY * modeMultiplier, 0.23);
     };
     const onTouchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1) return;
@@ -361,7 +361,7 @@ function useSlowLandingScroll() {
       if (Math.abs(deltaY) < Math.abs(deltaX) || Math.abs(deltaY) < 2) return;
 
       event.preventDefault();
-      moveBy(deltaY, 0.13);
+      moveBy(deltaY, 0.2);
       touchY = nextTouch.clientY;
       touchX = nextTouch.clientX;
     };
@@ -441,7 +441,7 @@ function HorizontalStatement({
       ref={wrapRef}
       aria-label="A note on home"
       className="relative w-full"
-      style={{ height: 'calc((100svh - 72px) * 9.5)' }}
+      style={{ height: 'calc((100svh - 72px) * 7)' }}
     >
       <div
         ref={stickyRef}
