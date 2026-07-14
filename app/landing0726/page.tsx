@@ -74,7 +74,7 @@ export default function Landing0726Page() {
         const stacked = rect.top <= stuckTop + 0.5;
         if (stacked) {
           if (releaseY === null) releaseY = window.scrollY;
-          setExploreOffset(window.scrollY - releaseY);
+          setExploreOffset((window.scrollY - releaseY) * 0.68);
         } else {
           releaseY = null;
           setExploreOffset(0);
@@ -345,7 +345,7 @@ function HorizontalStatement({
       ref={wrapRef}
       aria-label="A note on home"
       className="relative w-full"
-      style={{ height: 'calc((100svh - 72px) * 3.35)' }}
+      style={{ height: 'calc((100svh - 72px) * 4.35)' }}
     >
       <div
         ref={stickyRef}
