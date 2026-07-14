@@ -13,6 +13,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        serif: [
+          'Cormorant Garamond',
+          'Cormorant',
+          ...defaultTheme.fontFamily.serif,
+        ],
         montserrat: [
           'var(--font-montserrat)',
           ...defaultTheme.fontFamily.sans,
@@ -87,6 +92,11 @@ const config: Config = {
         'gray-15': '#F5F5F5',
 
         stripe: '#6772E5',
+        cream: '#F4EBDD',
+        'cream-deep': '#ECE0CE',
+        rust: 'hsl(355 90% 40%)',
+        ink: '#2B2923',
+        taupe: '#C9BAA2',
       },
       borderRadius: {
         '15.1875': '15.1875rem',

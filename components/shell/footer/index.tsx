@@ -20,7 +20,8 @@ export const ShellFooter = () => {
     pathname === '/accountSettings' ||
     pathname === '/providerRegister' ||
     pathname.startsWith('/embed') ||
-    pathname === '/landing0626';       // ← TakeShape homeowner landing
+    pathname === '/landing0626' ||
+    pathname === '/landing0726';
 
   if (isHiddenFooterRoute) {
     return null;

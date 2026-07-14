@@ -11,7 +11,8 @@ export const ShellChildren: FC<TProps> = ({ children }) => {
   const isLanding =
     pathname === '/landing' ||
     pathname === '/newLanding' ||
-    pathname === '/homeownerLanding';
+    pathname === '/homeownerLanding' ||
+    pathname === '/landing0726';
   const isEmbed = pathname.startsWith('/embed');
   return (
     <div
