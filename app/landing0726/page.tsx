@@ -119,7 +119,7 @@ export default function Landing0726Page() {
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/15 via-black/10 to-black/70" />
         <div className="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-[1500px] flex-col items-center px-6 pb-[9svh] text-center md:px-12 md:pb-[10svh]">
-          <h1 className="animate-[tsFadeUp_1.1s_cubic-bezier(0.2,0.7,0.2,1)_both] w-screen max-w-none font-serif text-[clamp(3.9rem,11.5vw,11rem)] font-bold leading-[0.86] text-cream">
+          <h1 className="animate-[tsFadeUp_1.1s_cubic-bezier(0.2,0.7,0.2,1)_both] w-full max-w-[calc(100vw-2rem)] font-serif text-[clamp(3.15rem,13.8vw,4.4rem)] font-bold leading-[0.88] text-cream md:w-screen md:max-w-none md:text-[clamp(3.9rem,11.5vw,11rem)] md:leading-[0.86]">
             <span className="block whitespace-nowrap">Your Home</span>
             <span className="block whitespace-nowrap">in Your Hands</span>
           </h1>
@@ -342,7 +342,7 @@ function HorizontalStatement() {
           <div className="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/45 to-ink/75" />
           <div className="relative z-10 flex h-full flex-col items-center justify-end px-6 pb-[24svh] text-center md:px-12 md:pb-[22svh]">
             <p className="eyebrow text-cream/80">TakeShape App</p>
-            <h2 className="mt-4 w-screen max-w-none font-serif text-[clamp(4.25rem,17.8vw,10.5rem)] font-bold leading-[0.84] text-cream">
+            <h2 className="mt-4 w-full max-w-[calc(100vw-1.5rem)] font-serif text-[clamp(2.85rem,12.2vw,3.95rem)] font-bold leading-[0.9] text-cream md:w-screen md:max-w-none md:text-[clamp(4.25rem,17.8vw,10.5rem)] md:leading-[0.84]">
               <span className="block whitespace-nowrap">Power to</span>
               <span className="block whitespace-nowrap">Pursue Beauty</span>
             </h2>
