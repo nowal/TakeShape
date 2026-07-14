@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { ShellHeader } from '@/components/shell/header';
 import { ShellFooter } from '@/components/shell/footer';
 import Script from 'next/script';
@@ -30,6 +30,18 @@ import { FallbacksLogoFill } from '@/components/fallbacks/logo/fill';
 export const metadata: Metadata = {
   title: 'TakeShape',
   description: 'Your home, your style, your terms',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'TakeShape',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#d0021b',
 };
 type TProps = Readonly<{
   children: ReactNode;
