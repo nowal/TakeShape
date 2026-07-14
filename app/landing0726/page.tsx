@@ -318,7 +318,7 @@ function useSlowLandingScroll() {
       frame = 0;
     };
     const run = () => {
-      current += (target - current) * 0.21;
+      current += (target - current) * 0.315;
 
       if (Math.abs(target - current) < 0.45) {
         current = target;
@@ -343,7 +343,7 @@ function useSlowLandingScroll() {
       if (event.ctrlKey || event.metaKey) return;
       event.preventDefault();
       const modeMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-      moveBy(event.deltaY * modeMultiplier, 0.99);
+      moveBy(event.deltaY * modeMultiplier, 1.485);
     };
     const onTouchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1) return;
@@ -361,7 +361,7 @@ function useSlowLandingScroll() {
       if (Math.abs(deltaY) < Math.abs(deltaX) || Math.abs(deltaY) < 2) return;
 
       event.preventDefault();
-      moveBy(deltaY, 0.93);
+      moveBy(deltaY, 1.395);
       touchY = nextTouch.clientY;
       touchX = nextTouch.clientX;
     };
@@ -441,7 +441,7 @@ function HorizontalStatement({
       ref={wrapRef}
       aria-label="A note on home"
       className="relative w-full"
-      style={{ height: 'calc((100svh - 72px) * 4.2)' }}
+      style={{ height: 'calc((100svh - 72px) * 2.8)' }}
     >
       <div
         ref={stickyRef}
