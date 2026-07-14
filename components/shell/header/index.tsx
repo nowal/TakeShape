@@ -18,7 +18,8 @@ export const ShellHeader = () => {
     pathname === '/consult' ||
     pathname === '/call-demo' ||
     pathname.startsWith('/call-demo/') ||
-    pathname.startsWith('/embed');
+    pathname.startsWith('/embed') ||
+    pathname === '/landing0626';       // ← TakeShape homeowner landing
   const viewport = useViewport();
   const height = viewport.headerHeight;
   const headerBackgroundColor = 'hsl(var(--app-bg-hsl))';
