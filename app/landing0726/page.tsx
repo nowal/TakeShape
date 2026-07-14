@@ -38,6 +38,8 @@ const RED_BAR =
   'linear-gradient(135deg, hsl(355 90% 50%) 0%, hsl(355 90% 40%) 20%, hsl(355 90% 28%) 100%)';
 const RED_TEXT_SHADOW =
   '0 1px 0 hsl(355 90% 22%), 0 -1px 0 hsl(355 90% 62%), 0 2px 3px rgba(20, 6, 6, 0.45)';
+const LANDING_SCROLL_EASE = 0.18;
+const LANDING_SCROLL_STEP = 0.56;
 
 export default function Landing0726Page() {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -318,7 +320,7 @@ function useSlowLandingScroll() {
       frame = 0;
     };
     const run = () => {
-      current += (target - current) * 0.252;
+      current += (target - current) * LANDING_SCROLL_EASE;
 
       if (Math.abs(target - current) < 0.45) {
         current = target;
@@ -343,7 +345,7 @@ function useSlowLandingScroll() {
       if (event.ctrlKey || event.metaKey) return;
       event.preventDefault();
       const modeMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-      moveBy(event.deltaY * modeMultiplier, 1.188);
+      moveBy(event.deltaY * modeMultiplier, LANDING_SCROLL_STEP);
     };
     const onTouchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1) return;
@@ -361,7 +363,7 @@ function useSlowLandingScroll() {
       if (Math.abs(deltaY) < Math.abs(deltaX) || Math.abs(deltaY) < 2) return;
 
       event.preventDefault();
-      moveBy(deltaY, 1.116);
+      moveBy(deltaY, LANDING_SCROLL_STEP);
       touchY = nextTouch.clientY;
       touchX = nextTouch.clientX;
     };
