@@ -46,6 +46,8 @@ export default function Landing0726Page() {
   const [exploreOffset, setExploreOffset] = useState(0);
   const [oneLineDesktopPreview, setOneLineDesktopPreview] = useState(false);
 
+  useSlowLandingScroll();
+
   useEffect(() => {
     setOneLineDesktopPreview(
       new URLSearchParams(window.location.search).get('headline') === 'one-line'
@@ -296,6 +298,100 @@ export default function Landing0726Page() {
       `}</style>
     </main>
   );
+}
+
+function useSlowLandingScroll() {
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let current = window.scrollY;
+    let target = current;
+    let frame = 0;
+    let touchY: number | null = null;
+    let touchX: number | null = null;
+
+    const maxScroll = () =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const clamp = (value: number) => Math.min(maxScroll(), Math.max(0, value));
+    const stopFrame = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+    };
+    const run = () => {
+      current += (target - current) * 0.075;
+
+      if (Math.abs(target - current) < 0.45) {
+        current = target;
+        window.scrollTo(0, current);
+        frame = 0;
+        return;
+      }
+
+      window.scrollTo(0, current);
+      frame = requestAnimationFrame(run);
+    };
+    const start = () => {
+      if (!frame) frame = requestAnimationFrame(run);
+    };
+    const moveBy = (delta: number, strength: number) => {
+      current = window.scrollY;
+      target = clamp(target + delta * strength);
+      start();
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) return;
+      event.preventDefault();
+      const modeMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      moveBy(event.deltaY * modeMultiplier, 0.28);
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      stopFrame();
+      current = window.scrollY;
+      target = current;
+      touchY = event.touches[0].clientY;
+      touchX = event.touches[0].clientX;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1 || touchY === null || touchX === null) return;
+      const nextTouch = event.touches[0];
+      const deltaY = touchY - nextTouch.clientY;
+      const deltaX = touchX - nextTouch.clientX;
+      if (Math.abs(deltaY) < Math.abs(deltaX) || Math.abs(deltaY) < 2) return;
+
+      event.preventDefault();
+      moveBy(deltaY, 0.26);
+      touchY = nextTouch.clientY;
+      touchX = nextTouch.clientX;
+    };
+    const onTouchEnd = () => {
+      touchY = null;
+      touchX = null;
+    };
+    const onScroll = () => {
+      if (frame) return;
+      current = window.scrollY;
+      target = current;
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      stopFrame();
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 }
 
 function HorizontalStatement({
