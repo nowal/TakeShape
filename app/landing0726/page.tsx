@@ -38,8 +38,8 @@ const RED_BAR =
   'linear-gradient(135deg, hsl(355 90% 50%) 0%, hsl(355 90% 40%) 20%, hsl(355 90% 28%) 100%)';
 const RED_TEXT_SHADOW =
   '0 1px 0 hsl(355 90% 22%), 0 -1px 0 hsl(355 90% 62%), 0 2px 3px rgba(20, 6, 6, 0.45)';
-const LANDING_SCROLL_EASE = 0.18;
-const LANDING_SCROLL_STEP = 0.56;
+const LANDING_SCROLL_EASE = 0.198;
+const LANDING_SCROLL_STEP = 0.616;
 
 export default function Landing0726Page() {
   const heroRef = useRef<HTMLElement | null>(null);
