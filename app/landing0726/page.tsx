@@ -44,6 +44,13 @@ export default function Landing0726Page() {
   const lastCardRef = useRef<HTMLElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [exploreOffset, setExploreOffset] = useState(0);
+  const [oneLineDesktopPreview, setOneLineDesktopPreview] = useState(false);
+
+  useEffect(() => {
+    setOneLineDesktopPreview(
+      new URLSearchParams(window.location.search).get('headline') === 'one-line'
+    );
+  }, []);
 
   useEffect(() => {
     let frame = 0;
@@ -119,10 +126,18 @@ export default function Landing0726Page() {
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/15 via-black/10 to-black/70" />
         <div className="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-[1500px] flex-col items-center px-6 pb-[9svh] text-center md:px-12 md:pb-[10svh]">
-          <h1 className="animate-[tsFadeUp_1.1s_cubic-bezier(0.2,0.7,0.2,1)_both] w-full max-w-[calc(100vw-2rem)] font-serif text-[clamp(3.15rem,13.8vw,4.4rem)] font-bold leading-[0.88] text-cream md:w-screen md:max-w-none md:text-[clamp(3.9rem,11.5vw,11rem)] md:leading-[0.86]">
-            <span className="block whitespace-nowrap">Your Home</span>
-            <span className="block whitespace-nowrap">in Your Hands</span>
-          </h1>
+          {oneLineDesktopPreview ? (
+            <h1 className="mx-auto w-full max-w-[calc(100vw-2rem)] animate-[tsFadeUp_1.1s_cubic-bezier(0.2,0.7,0.2,1)_both] text-center font-serif text-[clamp(2.85rem,11.7vw,3.75rem)] font-bold leading-[0.9] text-cream md:w-screen md:max-w-none md:px-[3vw] md:text-[clamp(4rem,6.45vw,7.8rem)] md:leading-[0.9]">
+              <span className="hidden whitespace-nowrap md:inline-block">Your Home in Your Hands</span>
+              <span className="inline-block whitespace-nowrap md:hidden">Your Home</span>
+              <span className="inline-block whitespace-nowrap md:hidden">in Your Hands</span>
+            </h1>
+          ) : (
+            <h1 className="mx-auto w-full max-w-[calc(100vw-2rem)] animate-[tsFadeUp_1.1s_cubic-bezier(0.2,0.7,0.2,1)_both] text-center font-serif text-[clamp(2.85rem,11.7vw,3.75rem)] font-bold leading-[0.9] text-cream md:w-screen md:max-w-none md:text-[clamp(4.4rem,13.6vw,13rem)] md:leading-[0.86]">
+              <span className="inline-block whitespace-nowrap">Your Home</span>
+              <span className="inline-block whitespace-nowrap">in Your Hands</span>
+            </h1>
+          )}
           <Link
             href="/download"
             className="mt-7 inline-flex min-h-[56px] min-w-[210px] items-center justify-center rounded-full bg-[hsl(355_90%_40%)] px-8 font-serif text-lg font-bold text-cream shadow-[0_12px_32px_rgba(20,6,6,0.35)] transition-[filter,transform] duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream/80 active:translate-y-[1px] md:min-h-[60px] md:min-w-[240px] md:text-xl"
@@ -164,7 +179,7 @@ export default function Landing0726Page() {
         </div>
       </button>
 
-      <HorizontalStatement />
+      <HorizontalStatement oneLineDesktopPreview={oneLineDesktopPreview} />
 
       <section className="relative mx-auto max-w-[1500px] px-0 md:px-12">
         <div
@@ -283,7 +298,11 @@ export default function Landing0726Page() {
   );
 }
 
-function HorizontalStatement() {
+function HorizontalStatement({
+  oneLineDesktopPreview,
+}: {
+  oneLineDesktopPreview: boolean;
+}) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const stickyRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -342,10 +361,20 @@ function HorizontalStatement() {
           <div className="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/45 to-ink/75" />
           <div className="relative z-10 flex h-full flex-col items-center justify-end px-6 pb-[24svh] text-center md:px-12 md:pb-[22svh]">
             <p className="eyebrow text-cream/80">TakeShape App</p>
-            <h2 className="mt-4 w-full max-w-[calc(100vw-1.5rem)] font-serif text-[clamp(2.85rem,12.2vw,3.95rem)] font-bold leading-[0.9] text-cream md:w-screen md:max-w-none md:text-[clamp(4.25rem,17.8vw,10.5rem)] md:leading-[0.84]">
-              <span className="block whitespace-nowrap">Power to</span>
-              <span className="block whitespace-nowrap">Pursue Beauty</span>
-            </h2>
+            {oneLineDesktopPreview ? (
+              <h2 className="mx-auto mt-4 w-full max-w-[calc(100vw-1.5rem)] text-center font-serif text-[clamp(2.65rem,11.4vw,3.65rem)] font-bold leading-[0.92] text-cream md:w-screen md:max-w-none md:px-[3vw] md:text-[clamp(4rem,7.4vw,8.25rem)] md:leading-[0.9]">
+                <span className="hidden whitespace-nowrap md:inline-block">
+                  Power to Pursue Beauty
+                </span>
+                <span className="inline-block whitespace-nowrap md:hidden">Power to</span>
+                <span className="inline-block whitespace-nowrap md:hidden">Pursue Beauty</span>
+              </h2>
+            ) : (
+              <h2 className="mx-auto mt-4 w-full max-w-[calc(100vw-1.5rem)] text-center font-serif text-[clamp(2.65rem,11.4vw,3.65rem)] font-bold leading-[0.92] text-cream md:w-screen md:max-w-none md:text-[clamp(5.25rem,20.8vw,14.5rem)] md:leading-[0.84]">
+                <span className="inline-block whitespace-nowrap">Power to</span>
+                <span className="inline-block whitespace-nowrap">Pursue Beauty</span>
+              </h2>
+            )}
             <p className="mt-5 max-w-[34rem] text-balance text-sm leading-6 text-cream/85 md:text-base">
               See what beauty could become before you begin.
             </p>
