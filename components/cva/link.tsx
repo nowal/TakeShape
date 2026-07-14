@@ -7,19 +7,19 @@ import { useCvaProps } from '@/components/cva/props';
 import { CvaContent } from '@/components/cva/content';
 import { TCvaProps } from '@/components/cva/types';
 import { motion } from 'framer-motion';
-import { TCvaChildrenProps } from '@/components/cva/children';
 import { TClassValueProps } from '@/types/dom';
 import { cx } from 'class-variance-authority';
 
 const LinkMotion = motion(Link);
 
-export type TLinkMotionElement = typeof LinkMotion &
-  HTMLAnchorElement;
+export type TLinkMotionElement = HTMLAnchorElement;
 export type TLinkMotionElementProps =
-  ComponentPropsWithoutRef<TLinkMotionElement>;
+  ComponentPropsWithoutRef<typeof LinkMotion>;
 export type TCvaLinkProps =
-  TCvaProps<Omit<TLinkMotionElementProps, 'href'>> &
-    TCvaChildrenProps &
+  Omit<
+    TCvaProps<Omit<TLinkMotionElementProps, 'href'>>,
+    'ref'
+  > &
     TClassValueProps & {
       href?: string;
     };

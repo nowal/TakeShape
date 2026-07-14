@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { CvaIconLeading } from '@/components/cva/icon/leading';
 import { CvaIconTrailing } from '@/components/cva/icon/trailing';
@@ -6,12 +6,17 @@ import { TCvaContentProps } from '@/components/cva/types';
 import { CvaChildren } from '@/components/cva/children';
 import { TDivMotionProps } from '@/types/dom';
 
+const CvaAnimatePresence = AnimatePresence as unknown as FC<{
+  children?: ReactNode;
+  mode?: 'sync' | 'popLayout' | 'wait';
+}>;
+
 export const CvaContent: FC<
   TCvaContentProps & TDivMotionProps
 > = ({ Icon, children, ...props }) => {
   return (
     <>
-      <AnimatePresence mode="wait">
+      <CvaAnimatePresence mode="wait">
         {Icon.isLeading && (
           <CvaIconLeading
             key="icon-leading"
@@ -20,11 +25,11 @@ export const CvaContent: FC<
             <Icon.Leading />
           </CvaIconLeading>
         )}
-      </AnimatePresence>
+      </CvaAnimatePresence>
       <CvaChildren {...props}>
         {children}
       </CvaChildren>
-      <AnimatePresence mode="wait">
+      <CvaAnimatePresence mode="wait">
         {Icon.isTrailing && (
           <CvaIconTrailing
             key="icon-trailing"
@@ -33,7 +38,7 @@ export const CvaContent: FC<
             <Icon.Trailing />
           </CvaIconTrailing>
         )}
-      </AnimatePresence>
+      </CvaAnimatePresence>
     </>
   );
 };

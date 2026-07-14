@@ -51,7 +51,8 @@
     "read-excel-file": "^9.1.1",
     "socket.io-client": "^4.8.1",
     "stripe": "^14.25.0",
-    "three": "^0.158.0"
+    "three": "^0.158.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@digitak/esrun": "^3.2.26",

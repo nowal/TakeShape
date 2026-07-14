@@ -37,5 +37,6 @@ export type {
   TImgMotionProps,
   TInputMotionProps,
   TTextareaMotionProps,
+  THrMotionProps,
   TSvgMotionProps,
 } from './motion';

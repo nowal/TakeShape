@@ -32,6 +32,9 @@
   ],
   "exclude": [
     "node_modules",
+    "ops/**/*",
+    "prototypes/**/*",
+    "_imports/**/*",
     "_prev-root/**/*"
   ]
 }
