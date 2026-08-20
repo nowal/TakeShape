@@ -1,29 +1,56 @@
 'use client';
 
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 
 const email = 'quintin@takeshapehome.com';
 const phone = '615-987-9575';
 
+type SubmitState = 'idle' | 'sending' | 'success' | 'error';
+
 export default function SupportPage() {
-  function submitSupportRequest(event: FormEvent<HTMLFormElement>) {
+  const [submitState, setSubmitState] = useState<SubmitState>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  async function submitSupportRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const subject = encodeURIComponent(
-      'TakeShape Support: ' + String(data.get('category') || 'App issue')
-    );
-    const body = encodeURIComponent(
-      [
-        'Name: ' + String(data.get('name') || ''),
-        'Email: ' + String(data.get('email') || ''),
-        'Phone: ' + String(data.get('phone') || 'Not provided'),
-        'Issue type: ' + String(data.get('category') || 'App issue'),
-        '',
-        'How can we help?',
-        String(data.get('message') || ''),
-      ].join('\\n')
-    );
-    window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+
+    setSubmitState('sending');
+    setStatusMessage('');
+
+    try {
+      const response = await fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.get('name'),
+          email: data.get('email'),
+          phone: data.get('phone'),
+          category: data.get('category'),
+          message: data.get('message'),
+          website: data.get('website'),
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Unable to send your request.');
+      }
+
+      form.reset();
+      setSubmitState('success');
+      setStatusMessage(
+        'Your support request has been sent. We will get back to you as soon as possible.'
+      );
+    } catch (error) {
+      setSubmitState('error');
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to send your request. Please try again or call 615-987-9575.'
+      );
+    }
   }
 
   const field =
@@ -68,7 +95,7 @@ export default function SupportPage() {
         <section className="rounded-[2rem] border border-black-08 bg-white p-8 shadow-08 sm:p-10">
           <h2 className="text-3xl font-bold text-black">Contact support</h2>
           <p className="mt-2 text-base font-medium text-black-6">
-            Complete the form below. Your email app will open with the details ready to send.
+            Complete the form below and click Submit. Your request will be sent directly to our support team.
           </p>
 
           <form className="mt-8 space-y-5" onSubmit={submitSupportRequest}>
@@ -110,15 +137,38 @@ export default function SupportPage() {
               />
             </label>
 
+            <div className="hidden" aria-hidden="true">
+              <label>
+                Website
+                <input name="website" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+
             <button
-              className="w-full rounded-xl bg-pink px-6 py-4 text-lg font-bold text-white transition hover:bg-pink-1 focus:outline-none focus:ring-2 focus:ring-pink focus:ring-offset-2"
+              className="w-full rounded-xl bg-pink px-6 py-4 text-lg font-bold text-white transition hover:bg-pink-1 focus:outline-none focus:ring-2 focus:ring-pink focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
               type="submit"
+              disabled={submitState === 'sending'}
             >
-              Prepare support email
+              {submitState === 'sending' ? 'Sending...' : 'Submit'}
             </button>
 
+            {statusMessage && (
+              <div
+                className={
+                  'rounded-xl border px-4 py-3 text-center text-sm font-semibold ' +
+                  (submitState === 'success'
+                    ? 'border-green-600/30 bg-green-50 text-green-800'
+                    : 'border-red/30 bg-red/5 text-red')
+                }
+                role="status"
+                aria-live="polite"
+              >
+                {statusMessage}
+              </div>
+            )}
+
             <p className="text-center text-xs font-medium leading-relaxed text-black-6">
-              The information you enter is only placed into the support email prepared on your device.
+              Your information is sent securely to TakeShape support and used to respond to your request.
             </p>
           </form>
         </section>
